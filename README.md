@@ -25,9 +25,9 @@ Use the following command to run the application:
 
 Typings can be updated with:
 
-> typings install dt~core-js --global --save
-> typings install dt~node --global --save
-> typings install dt~electron --global --save
+> typings install dt~core-js --global --save  
+> typings install dt~node --global --save  
+> typings install dt~electron --global --save  
 
 # Development Notes
 
