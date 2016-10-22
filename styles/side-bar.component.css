@@ -1,0 +1,47 @@
+div {
+  background-color: #444;
+  margin: 0;
+  padding: 0;
+  display: block;
+  width: 32px;
+  height: 100%;
+}
+
+svg {
+  fill: #ccc;
+  stroke: #ccc;
+}
+
+ul {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  display: block;
+  margin: 0;
+  padding: 5px 0;
+}
+
+li a {
+  display: block;
+  position: relative;
+  height: 32px;
+  width: 32px;
+  margin: 0;
+  padding: 0;
+}
+
+li a svg {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+li a:hover svg {
+  fill: #fff;
+  stroke: #fff;
+}
