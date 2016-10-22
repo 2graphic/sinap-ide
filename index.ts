@@ -13,7 +13,7 @@
 // References to app and BrowserWindow are needed in order to start an Electron
 // application.
 //
-import { app, BrowserWindow } from "electron";
+const { app, BrowserWindow } = require("electron");
 
 
 /**
