@@ -7,27 +7,29 @@
 
 Navigate to the project root directory before running any commands. E.g.:
 
-> cd /path/to/sinap-ide
+```$ cd /path/to/sinap-ide```
 
 Be sure to install project dependencies before running:
 
-> npm install
+```$ npm install```
 
 If postInstall fails to run, typings dependencies can be installed with:
 
-> npm run typings install
+```$ npm run typings install```
 
 Use the following command to run the application:
 
-> npm start
+```$ npm start```
 
 # Updating Typings
 
 Typings can be updated with:
 
-> typings install dt~core-js --global --save  
-> typings install dt~node --global --save  
-> typings install dt~electron --global --save  
+```
+$ typings install dt~core-js --global --save  
+$ typings install dt~node --global --save  
+$ typings install dt~electron --global --save  
+```
 
 # Development Notes
 
