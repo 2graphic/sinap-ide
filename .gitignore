@@ -1,6 +1,7 @@
 # Compiled source #
 ###################
 *.js
+*.js.map
 
 # Packages #
 ############
