@@ -13,10 +13,6 @@ Be sure to install project dependencies before running:
 
 ```$ npm install```
 
-If postInstall fails to run, typings dependencies can be installed with:
-
-```$ npm run typings install```
-
 Use the following command to run the application:
 
 ```$ npm start```
