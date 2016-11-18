@@ -21,16 +21,6 @@ Use the following command to run the application:
 
 ```$ npm start```
 
-# Updating Typings
-
-Typings can be updated with:
-
-```
-$ typings install dt~core-js --global --save  
-$ typings install dt~node --global --save  
-$ typings install dt~electron --global --save  
-```
-
 # Development Notes
 
 index.html should not need to be changed. The only thing that should be changed

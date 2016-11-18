@@ -35,3 +35,7 @@ node_modules/
 # Required #
 ############
 !systemjs.config.js
+
+# Misc. #
+#########
+*.log
