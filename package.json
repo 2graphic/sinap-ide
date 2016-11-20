@@ -9,7 +9,9 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "tsc && ./node_modules/.bin/electron ."
+    "start": "tsc && electron .",
+    "tsc": "tsc",
+    "electron": "electron ."
   },
   "dependencies": {
     "@angular/common": "^2.2.1",

@@ -12,6 +12,8 @@ import { BrowserModule } from "@angular/platform-browser";
 
 import { MainComponent }    from "./main.component";
 import { SideBarComponent } from "./side-bar.component";
+import { GraphEditorComponent } from "./graph-editor.component";
+import { GraphEditorCanvasDirective } from "./graph-editor-canvas.directive";
 
 
 @NgModule({
@@ -20,7 +22,9 @@ import { SideBarComponent } from "./side-bar.component";
   ],
   declarations: [
     MainComponent,
-    SideBarComponent
+    SideBarComponent,
+    GraphEditorComponent,
+    GraphEditorCanvasDirective
   ],
   bootstrap:    [ MainComponent ]
 })
