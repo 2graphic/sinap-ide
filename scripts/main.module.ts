@@ -12,16 +12,19 @@ import { BrowserModule } from "@angular/platform-browser";
 
 import { MainComponent }    from "./main.component";
 import { SideBarComponent } from "./side-bar.component";
-
+import {REPLComponent} from "./repl.component";
+import { FormsModule }   from '@angular/forms';
 
 @NgModule({
   imports:      [
-    BrowserModule
+    BrowserModule,
+    FormsModule
   ],
   declarations: [
     MainComponent,
-    SideBarComponent
+    SideBarComponent,
+    REPLComponent
   ],
-  bootstrap:    [ MainComponent ]
+  bootstrap:    [ MainComponent, REPLComponent ]
 })
 export class MainModule { }
