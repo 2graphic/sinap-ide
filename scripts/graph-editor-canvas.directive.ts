@@ -18,24 +18,28 @@ export class GraphEditorCanvasDirective {
 
   private ctx: CanvasRenderingContext2D;
 
-  private drawing = false;
-  private lastEvent: MouseEvent;
+  private downEvent: MouseEvent;
+  private isWaiting: boolean;
+  private isSelecting: boolean;
+  private dragObect;
+  private selectedItems: Array<any>;
 
   constructor(private el: ElementRef) {
     this.ctx = el.nativeElement.getContext("2d");
+    this.isWaiting = false;
+    this.isSelecting = false;
+    this.dragObect = null;
+    this.selectedItems = [];
     this.resize();
   }
 
   @HostListener("mousedown", ["$event"]) onMouseDown(e: MouseEvent) {
     //
     // TODO:
-    // Capture down event.
-    // Activate waiting.
     // Activate timer at 100ms.
     //
-    this.lastEvent = e;
-    this.ctx.beginPath();
-    this.drawing = true;
+    this.downEvent = e;
+    this.isWaiting = true;
   }
 
   //
@@ -47,42 +51,79 @@ export class GraphEditorCanvasDirective {
   //
 
   @HostListener("mousemove", ["$event"]) onMouseMove(e: MouseEvent) {
-    //
-    // TODO:
-    // If mousedown active
-    //   If still waiting for 100ms and dx, dy outside margin
-    //     Disable waiting.
-    //     Perform hit test from down event.
-    //     If hit test captures node, activate create edge.
-    //     Else, activate selection box.
-    //   Else, if not waiting
-    //     If selection box active, update selection box.
-    //     Else if drag node set, update drag node.
-    //     Else if create edge active, update create edge.
-    //
-    if(this.drawing) {
-      this.drawLine(
-        this.lastEvent.clientX,
-        this.lastEvent.clientY,
-        e.clientX,
-        e.clientY
-      );
-      this.lastEvent = e;
+    if(this.downEvent !== null) {
+      var dx = this.downEvent.clientX - e.clientX;
+      var dy = this.downEvent.clientY - e.clientY;
+      if(this.isWaiting && (dx * dx + dy * dy > 3 * 3)) {
+        this.isWaiting = false;
+        this.dragObect = this.hitTest(e.clientX, e.clientY);
+        if(this.dragObect === null)
+          this.isSelecting = true;
+        else if(this.isNode(this.dragObect)) {
+          // TODO:
+          // Create a new edge.
+          // Snap end of edge to cursor.
+        }
+        else if(this.isEdge(this.dragObect)) {
+          // TODO:
+          // Snap end of edge to cursor.
+        }
+      }
+      else if(!this.isWaiting) {
+        if(this.isSelecting) {
+          // TODO:
+          // Update selection box.
+        }
+        else if(this.isNode(this.dragObect)) {
+          // TODO:
+          // Update node position.
+        }
+        else if(this.isEdge(this.dragObect)) {
+          // TODO:
+          // Update edge endpoint.
+        }
+      }
     }
   }
 
-  @HostListener("mouseup") onMouseUp() {
+  @HostListener("mouseup", ["$event"]) onMouseUp(e : MouseEvent) {
+    if(this.isWaiting) {
+      this.selectedItems = [];
+      var hitComponent = this.hitTest(e.clientX, e.clientY);
+      if(hitComponent !== null)
+        this.selectedItems.push(hitComponent);
+    }
+    else if(this.isSelecting) {
+      this.selectedItems = [];
+      //
+      // TODO:
+      // Iterate through all components.
+      // Add every component that is within the selection box to the selection list. 
+      //
+    }
+    else if(this.isNode(this.dragObect)) {
+      //
+      // TODO:
+      // If default creation node is not set, drop context menu for creating a node.
+      // Drop node at location.
+      // Set selected.
+      //
+    }
+    else if(this.isEdge(this.dragObect)) {
+      //
+      // TODO:
+      // If default creation edge is not set, drop context menu for creating a node.
+      // Set endpoint of edge.
+      // Set selected.
+      //
+    }
+    this.isWaiting = false;
+    this.isSelecting = false;
+    this.dragObect = null;
     //
     // TODO:
-    // If still waiting, disable waiting.
-    //   Perform hit test.
-    //   If hit test captures component, set selected component.
-    // Else if selection box active, select all in box.
-    // Else if drag node set, drop node.
-    // Else if create edge active, perform hit test.
-    //   If hit test captures node, create edge from down node to up node.
+    // redraw canvas.
     //
-    this.drawing = false;
   }
 
   resize(): void {
@@ -105,6 +146,31 @@ export class GraphEditorCanvasDirective {
 
   redraw(): void {
     this.clear();
+  }
+
+  private hitTest(x: number, y: number): any {
+    //
+    // TODO:
+    // Iterate through all components.
+    // Return the first that is hit by (x, y)
+    //
+    return null;
+  }
+
+  private isNode(val: any): boolean {
+    //
+    // TODO:
+    // Check equivalency from node list.
+    //
+    return false;
+  }
+
+  private isEdge(val: any): boolean {
+    //
+    // TODO:
+    // Check equivalency from edge list.
+    //
+    return false;
   }
 
 }
