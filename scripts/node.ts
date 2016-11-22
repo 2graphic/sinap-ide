@@ -3,11 +3,16 @@
 // Date created: November 21, 2016
 
 
-export class Node {
+export class Node implements NodeView{
+  color : any;
+  label : string;
+  constructor(public x : number, public y : number) {
+  }
+}
+
+export interface NodeView {
   x : number;
   y : number;
-  constructor(x : number, y : number) {
-    this.x = x;
-    this.y = y;
-  }
+  color : any;
+  label : string;
 }

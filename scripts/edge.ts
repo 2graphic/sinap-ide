@@ -3,16 +3,27 @@
 // Date created: November 21, 2016
 
 
-import { Node } from "./node"
+import { NodeView } from "./node"
 
 
-export class Edge {
-  left : Node = null;
-  right : Node = null;
-  showLeftArrow : boolean = false;
-  showRightArrow : boolean = false;
-  //
-  // TODO:
-  // More display properties.
-  //
+export class Edge implements EdgeView{
+  showLeftArrow : boolean;
+  showRightArrow : boolean;
+  color : any;
+  lineStyle : string;
+  lineWeight : number;
+  constructor(public source : NodeView, public destination : NodeView){
+
+  }
+}
+
+export interface EdgeView {
+  source : NodeView;
+  destination : NodeView;
+  showLeftArrow : boolean;
+  showRightArrow : boolean;
+  color : any;
+  lineStyle : string;
+  lineWeight : number;
+  // todo more display properties
 }
