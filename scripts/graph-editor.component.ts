@@ -15,8 +15,13 @@
 //
 //
 // TODO:
-// - Add a selectionChanged event.
+// - Zoom and Pan
+// - Something about deep binding for the graph components?
+// - Add a selectionChanged event. [Should this be in the GraphView object?]
 // - Should the delete key be handled here or higher up the hierarchy UI?
+// - Add mouse hover display behavior
+//   - Show edge anchor points
+//   - etc.
 //
 //
 
@@ -30,9 +35,13 @@ import {
   ViewChild
 } from "@angular/core";
 
-import { Graph } from "./graph";
-import { Node } from "./node";
-import { Edge } from "./edge";
+//
+// TODO:
+// Remove Graph import for production.
+//
+import { GraphView, Graph } from "./graph";
+import { NodeView, isNodeView } from "./node";
+import { EdgeView, isEdgeView } from "./edge";
 
 
 @Component({
@@ -69,40 +78,47 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
 
   /**
    * isWaiting
-   *   Flag to determine if the moustdown event is waiting for a timeout.
+   *   Determines if the mousedown event is still waiting.
    */
   private isWaiting : boolean = false;
-
-  /**
-   * isSelecting
-   *   Flag to determine if the selection box is active.
-   */
-  private isSelecting : boolean = false;
 
   /**
    * dragObect
    *   The graph component being dragged by the cursor.
    */
-  private dragObject : Node | Edge = null;
+  private dragObject : NodeView | EdgeView = null;
+
+  /**
+   * replaceEdge
+   *   The edge to be replaced once the new edge has been created.
+   */
+  private replaceEdge : EdgeView = null;
 
   /**
    * selectedItems
    *   The currently selected graph components.
    */
-  private selectedItems : Array<Node | Edge> = [];
+  private selectedItems : Array<NodeView | EdgeView> = [];
+
+  /**
+   * unselectedItems
+   *   The currently unselected graph components.
+   */
+  private unselectedItems : Array<NodeView | EdgeView> = [];
 
   /**
    * _graph
    *   The active graph being edited.
    */
-  private _graph : Graph = null;
+  private _graph : GraphView = null;
 
   /**
    * graph
    *   Sets the active graph.
    */
-  set graph(value : Graph) {
+  set graph(value : GraphView) {
     this._graph = value;
+    this.clearSelected();
     this.redraw();
   }
 
@@ -110,7 +126,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * graph
    *   Gets the active graph.
    */
-  get graph() : Graph {
+  get graph() : GraphView {
     return this._graph;
   }
 
@@ -118,7 +134,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * dragNode
    *   Sets the node being dragged by the cursor.
    */
-  set dragNode(value : Node) {
+  set dragNode(value : NodeView) {
     this.dragObject = value;
   }
 
@@ -144,6 +160,31 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
   }
 
   /**
+   * onKeyDown
+   *   Handles the delete key.
+   * 
+   * Note:
+   *   I don't like where this is.
+   */
+  onKeyDown(e : KeyboardEvent) : void {
+    if(e.keyCode == 46) {
+      let edges : Array<EdgeView> = [];
+      let nodes : Array<NodeView> = [];
+      while(this.selectedItems.length > 0) {
+        let i = this.selectedItems.pop();
+        if(isEdgeView(i))
+          edges.push(i);
+        else if(isNodeView(i))
+          nodes.push(i);
+      }
+      for(let e of edges)
+        this._graph.removeEdge(e);
+      for(let n of nodes)
+        this._graph.removeNode(n);
+    }
+  }
+
+  /**
    * onMouseDown
    *   Handles the mousedown event.
    */
@@ -162,25 +203,40 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       // still set to true.
       //
       if(this.isWaiting) {
+        this.isWaiting = false;
         this.dragObject =
           this.hitTest(this.downEvent.clientX, this.downEvent.clientY);
+        //
+        // Create a new node and set it as the drag object if no drab object was
+        // set.
+        //
         if(this.dragObject === null) {
-          //
-          // [Temporary] Create a new node and set it as the drag object.
-          //
-          let n = new Node(e.clientX, e.clientY);
-          this.dragObject = n;
-          this.drawNode(n);
+          this.dragObject = this._graph.createNode(e.clientX, e.clientY);
+          this.drawNode(this.dragObject);
         }
-        else if(this.dragObject instanceof Node) {
+        //
+        // Set the drag object to some dummy edge and the replace edge to the
+        // original drag object if the drag object was an edge.
+        //
+        else if(isEdgeView(this.dragObject)) {
+          //
+          // TODO:
+          // Determine which side of the edge the hit test landed on.
+          //
+          this.replaceEdge = this.dragObject;
+          this.dragObject = new GhostEdge(this.replaceEdge.source);
+          this.ctx.globalAlpha = 0.3;
+          this.drawEdge(this.dragObject, this.downEvent.x, this.downEvent.y);
+          this.ctx.globalAlpha = 1;
+        }
+        //
+        // Update the node position if the drag object was set to a node.
+        //
+        else if(isNodeView(this.dragObject)) {
           this.dragObject.x = this.downEvent.clientX;
           this.dragObject.y = this.downEvent.clientY;
           this.redraw();
         }
-        else if(this.dragObject instanceof Edge) {
-          this.drawEdge(this.dragObject, this.downEvent.x, this.downEvent.y);
-        }
-        this.isWaiting = false;
       }
     }, 300);
   }
@@ -197,15 +253,20 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       //
       // Set the down event if it wasn't previously captured.
       //
+      // Note:
+      // The only time this should happen is if a node is being dragged from the
+      // components panel, in which case, the dragNode method should be called
+      // to set the drag object.
+      //
       if(this.downEvent === null)
         this.downEvent = e;
       //
       // Get the change in x and y locations of the cursor.
       //
-      var dx = this.downEvent.clientX - e.clientX;
-      var dy = this.downEvent.clientY - e.clientY;
+      let dx = this.downEvent.clientX - e.clientX;
+      let dy = this.downEvent.clientY - e.clientY;
       //
-      // Cancel waiting if waiting is still active and the mouse has moved too
+      // Reset waiting if waiting is still active and the mouse has moved too
       // far.
       //
       if(this.isWaiting && (dx * dx + dy * dy > 3 * 3)) {
@@ -215,43 +276,69 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         //
         this.dragObject = this.hitTest(e.clientX, e.clientY);
         //
-        // Activate the selection box if no drag object was set.
+        // Set the drag object to a dummy edge if the drag object is a node.
         //
-        if(this.dragObject === null)
-          this.isSelecting = true;
+        if(isNodeView(this.dragObject))
+          this.dragObject = new GhostEdge(this.dragObject);
         //
-        // Create a new edge and update the drag object if the drag object was
-        // set to a node.
+        // Clear the selected items if the drag object is not a node.
         //
-        else if(this.dragObject instanceof Node) {
-          //
-          // [Temporary] Create a new edge and set it as the drag object.
-          //
-          var edge = new Edge();
-          edge.left = this.dragObject as Node;
-          this.dragObject = edge;
-        }
+        else
+          this.clearSelected();
       }
       //
       // Update the canvas if waiting is not set.
       //
       else if(!this.isWaiting) {
         this.redraw();
-        if(this.isSelecting) {
+        //
+        // Update the selection box if selecting.
+        //
+        if(this.dragObject === null) {
           this.drawSelectionBox(
             this.downEvent.clientX, this.downEvent.clientY,
             e.clientX, e.clientY
           );
+          //
+          // Add components that are not already in the selected items list to
+          // the list.
+          //
+          for(let u of this.unselectedItems) {
+            if(isNodeView(u)) {
+              //
+              // TODO:
+              // If any part of the node is within the selection box,
+              // this.addSelectedItem(u);
+              //
+            }
+            else if(isEdgeView(u)) {
+              //
+              // TODO:
+              // If any part of the edge is within the selection box,
+              // this.addSelectedItem(u);
+              //
+            }
+          }
         }
-        else if(this.dragObject instanceof Node) {
-          var n = this.dragObject as Node;
-          n.x = e.clientX;
-          n.y = e.clientY;
-          this.drawNode(n);
+        //
+        // Update edge endpoint if dragging edge.
+        //
+        else if(isEdgeView(this.dragObject)) {
+          this.ctx.globalAlpha = 0.3;
+          this.drawEdge(this.dragObject, e.clientX, e.clientY);
+          this.ctx.globalAlpha = 1;
         }
-        else if(this.dragObject instanceof Edge) {
-          var ed = this.dragObject as Edge;
-          this.drawEdge(ed, e.clientX, e.clientY);
+        //
+        // Update node position if dragging node.
+        //
+        else if(isNodeView(this.dragObject)) {
+          this.dragObject.x = e.clientX;
+          this.dragObject.y = e.clientY;
+          //
+          // TODO:
+          // Put a drop shadow here?
+          //
+          this.drawNode(this.dragObject);
         }
       }
     }
@@ -263,65 +350,66 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    */
   onMouseUp(e : MouseEvent) : void {
     //
-    // Set the selected graph component if waiting is set.
+    // Set the selected graph component if waiting.
     //
-    this.selectedItems = [];
     if(this.isWaiting) {
-      var hitComponent = this.hitTest(e.clientX, e.clientY);
+      this.clearSelected();
+      let hitComponent = this.hitTest(e.clientX, e.clientY);
       if(hitComponent !== null)
-        this.selectedItems.push(hitComponent);
+        this.addSelectedItem(hitComponent);
     }
     //
-    // Set the selected components if selecting is set.
+    // Create the edge if one is being dragged.
     //
-    else if(this.isSelecting) {
+    else if(isEdgeView(this.dragObject)) {
       //
-      // TODO:
-      // Iterate through all components.
-      // Add every component that is within the selection box to the selection list. 
+      // Check that the mouse was released at a node.
       //
+      let hit = this.hitTest(e.clientX, e.clientY);
+      if(isNodeView(hit)) {
+        //
+        // TODO:
+        // This needs to have some notion of canReplaceEdge from the graph.
+        // Note: Consider the case where the user wants to move an edge
+        //       destination to some other node, but the selectedEdgeType is not
+        //       the same as the replacement edge type. GraphView can either
+        //       redefine the replaceEdge method to take in the original edge
+        //       plus a source and destination NodeView and either succeed or
+        //       fail without warning or error, or we can stick to the pattern
+        //       of checking if the operation is valid before performing it
+        //       (i.e. canCreateEdge -> createEdge + canReplaceEdge ->
+        //       replaceEdge).
+        //
+        if(this.replaceEdge !== null) {
+          this.clearSelected();
+          this.replaceEdge.source = this.dragObject.source;
+          this.replaceEdge.destination = hit;
+          this.addSelectedItem(this.replaceEdge);
+        }
+        else if(this._graph.canCreateEdge(this.dragObject.source, hit)) {
+          this.clearSelected();
+          this.selectedItems.push(
+            this._graph.createEdge(this.dragObject.source, hit)
+          );
+        }
+      }
     }
     //
     // Drop the node if one is being dragged.
     //
-    else if(this.dragObject instanceof Node) {
-      //
-      // TODO:
-      // If default creation node is not set, drop context menu for creating a node.
-      // Drop node at location.
-      // Set selected.
-      //
-      this._graph.nodes.push(this.dragObject);
-    }
-    //
-    // Update the edge if one is being dragged.
-    //
-    else if(this.dragObject instanceof Edge) {
-      //
-      // Check that the mouse was released at a node.
-      //
-      var hit = this.hitTest(e.clientX, e.clientY);
-      if(hit instanceof Node) {
-        //
-        // TODO:
-        // If default creation edge is not set, drop context menu for creating an edge.
-        // Set endpoint of edge.
-        // Set selected.
-        //
-        if(this.dragObject.left)
-          this.dragObject.right = hit;
-        else
-          this.dragObject.left = hit;
-        this._graph.edges.push(this.dragObject);
-      }
+    else if(isNodeView(this.dragObject)) {
+      this.clearSelected();
+      this.dragObject.x = e.clientX;
+      this.dragObject.y = e.clientY;
+      this.addSelectedItem(this.dragObject);
     }
     //
     // Reset input states.
     //
     this.downEvent = null;
-    this.isWaiting = false;
-    this.isSelecting = false;
     this.dragObject = null;
+    this.replaceEdge = null;
+    this.isWaiting = false;
     //
     // Redraw the canvas.
     //
@@ -334,7 +422,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    */
   resize() : void {
     let el = this.graphEditorCanvas.nativeElement;
-    var pel = (el.parentNode as HTMLElement);
+    let pel = (el.parentNode as HTMLElement);
     let h = pel.offsetHeight;
     let w = pel.offsetWidth;
     // if(el.height != h || el.width != w) {
@@ -354,28 +442,20 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    *   Draws the selection box.
    */
   drawSelectionBox(x1 : number, y1 : number, x2 : number, y2 : number) : void {
-    var w = x2 - x1;
-    var h = y2 - y1;
+    let w = x2 - x1;
+    let h = y2 - y1;
     this.ctx.strokeStyle = "#00a2e8";
     this.ctx.fillStyle = "#00a2e8";
     this.ctx.globalAlpha = 0.1;
-    if(w < 0 && h < 0)
-      this.ctx.fillRect(x2, y2, w * -1, h * -1);
-    else if(w < 0 && h >= 0)
-      this.ctx.fillRect(x2, y1, w * -1, h);
-    else if(w >= 0 && h < 0)
-      this.ctx.fillRect(x1, y2, w, h * -1);
-    else
-      this.ctx.fillRect(x1, y1, w, h);
+    this.ctx.fillRect(
+      (w < 0 ? x2 : x1), (h < 0 ? y2 : y1),
+      (w < 0 ? -1 * w : w), (h < 0 ? -1 * h : h)
+    );
     this.ctx.globalAlpha = 1.0;
-    if(w < 0 && h < 0)
-      this.ctx.strokeRect(x2, y2, w * -1, h * -1);
-    else if(w < 0 && h >= 0)
-      this.ctx.strokeRect(x2, y1, w * -1, h);
-    else if(w >= 0 && h < 0)
-      this.ctx.strokeRect(x1, y2, w, h * -1);
-    else
-      this.ctx.strokeRect(x1, y1, w, h);
+    this.ctx.strokeRect(
+      (w < 0 ? x2 : x1), (h < 0 ? y2 : y1),
+      (w < 0 ? -1 * w : w), (h < 0 ? -1 * h : h)
+    );
   }
 
   /**
@@ -384,12 +464,15 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * 
    * TODO:
    *   This needs to be able to handle custom node shapes/images.
+   *   Draw the text label.
    */
-  drawNode(n : Node) : void {
-    this.ctx.fillStyle = "#fff200";
-    this.ctx.strokeStyle = "black";
+  drawNode(n : NodeView) : void {
+    this.ctx.fillStyle = n.color;
+    this.ctx.strokeStyle = n.borderColor;
+    this.ctx.lineWidth = n.borderWidth;
+    this.setLineStyle(n.borderStyle, n.borderWidth);
     this.ctx.beginPath();
-    this.ctx.arc(n.x, n.y, 20, 0, 2 * Math.PI, false);
+    this.ctx.arc(n.x, n.y, 20, 0, 2 * Math.PI);
     this.ctx.fill();
     this.ctx.stroke();
   }
@@ -401,16 +484,14 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * TODO:
    *   This needs to be able to handle custom edge drawing.
    */
-  drawEdge(e : Edge, x? : number, y? : number) : void {
-    this.ctx.strokeStyle = "black";
-    if(x && y) {
-      if(e.left === null)
-        this.drawLine(x, y, e.right.x, e.right.y);
-      else
-        this.drawLine(e.left.x, e.left.y, x, y);
-    }
+  drawEdge(e : EdgeView, x? : number, y? : number) : void {
+    this.ctx.strokeStyle = e.color;
+    this.ctx.lineWidth = e.lineWidth;
+    this.setLineStyle(e.lineStyle, e.lineWidth);
+    if(x && y)
+      this.drawLine(e.source.x, e.source.y, x, y);
     else
-      this.drawLine(e.left.x, e.left.y, e.right.x, e.right.y);
+      this.drawLine(e.source.x, e.source.y, e.destination.x, e.destination.y);
   }
 
   /**
@@ -429,7 +510,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    *   Clears the canvas.
    */
   clear() : void {
-    var el = this.graphEditorCanvas.nativeElement;
+    let el = this.graphEditorCanvas.nativeElement;
     this.ctx.fillStyle = "white";
     this.ctx.fillRect(0, 0, el.width, el.height);
     //
@@ -446,19 +527,61 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     this.clear();
     //
     // TODO:
-    // Don't actually do this.
+    // Don't do this.
     //
-    if(this._graph === null) {
+    if(this._graph === null)
       this._graph = new Graph();
-    }
     //
     // TODO:
-    // Draw selected components differently.
+    // Do we really want to use hardcoded values for selection display properties?
     //
-    for(let e of this._graph.edges)
+    for(let e of this._graph.getEdgeViews()) {
+      let c = e.color;
+      let w = e.lineWidth;
+      if(e === this.replaceEdge)
+        this.ctx.globalAlpha = 0.3;
+      else if(this.selectedItems.indexOf(e) > -1) {
+        e.color = "red";
+        e.lineWidth += 2;
+      }
       this.drawEdge(e);
-    for(let n of this._graph.nodes)
+      e.color = c;
+      e.lineWidth = w;
+      this.ctx.globalAlpha = 1;
+    }
+    for(let n of this._graph.getNodeViews()) {
+      let c = n.borderColor;
+      let w = n.borderWidth;
+      if(this.selectedItems.indexOf(n) > -1) {
+        n.borderColor = "red";
+        n.borderWidth += 2;
+      }
       this.drawNode(n);
+      n.borderColor = c;
+      n.borderWidth = w;
+    }
+  }
+
+  /**
+   * clearSelected
+   *   Clears the selected items collection.
+   */
+  clearSelected() : void {
+    this.selectedItems = [];
+    this.unselectedItems = [];
+    for(let e of this._graph.getEdgeViews())
+      this.unselectedItems.push(e);
+    for(let n of this._graph.getNodeViews())
+      this.unselectedItems.push(n);
+  }
+
+  /**
+   * addSelectedItem
+   *   Adds an item to the selected items collection.
+   */
+  private addSelectedItem(value : NodeView | EdgeView) : void {
+    this.selectedItems.push(value);
+    this.unselectedItems.splice(this.unselectedItems.indexOf(value));
   }
 
   /**
@@ -469,32 +592,62 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    *   Nodes take priority over edges.
    * </p>
    */
-  private hitTest(x : number, y : number) : Node | Edge {
+  private hitTest(x : number, y : number) : NodeView | EdgeView {
     //
     // TODO:
     // Make sure to handle hit testing of custom shapes.
+    // When hit testing edges, hit test only on the end points.
+    //   End points will show on mouse hover.
     //
-    for(let n of this._graph.nodes) {
-      var dx = n.x - x;
-      var dy = n.y - y;
+    for(let n of this._graph.getNodeViews()) {
+      let dx = n.x - x;
+      let dy = n.y - y;
       if(dx * dx + dy * dy <= 20 * 20)
         return n;
     }
-    for(let e of this.graph.edges) {
-      var lx = e.left.x;
-      var ly = e.left.y;
-      var rx = e.right.x;
-      var ry = e.right.y;
-      var x1 = (lx < rx ? lx : rx);
-      var y1 = (ly < ry ? ly : ry);
-      var x2 = (lx < rx ? rx : lx);
-      var y2 = (ly < ry ? ry : ly);
-      var m = (y2 - y1) / (x2 - x1);
-      var b = y1 - m * x1;
-      if(Math.abs(y - (m * x + b)) < 5)
+    for(let e of this.graph.getEdgeViews()) {
+      let lx = e.source.x;
+      let ly = e.source.y;
+      let rx = e.destination.x;
+      let ry = e.destination.y;
+      let x1 = (lx < rx ? lx : rx);
+      let y1 = (ly < ry ? ly : ry);
+      let x2 = (lx < rx ? rx : lx);
+      let y2 = (ly < ry ? ry : ly);
+      let m = (y2 - y1) / (x2 - x1);
+      let b = y1 - m * x1;
+      if(Math.abs(y - (m * x + b)) < 10)
         return e;
     }
     return null;
   }
 
+  /**
+   * setLineStyle
+   *   Sets the line style of the rendering context.
+   */
+  private setLineStyle(value : string, dotSize : number = 1) {
+    if(value == "dashed")
+      this.ctx.setLineDash([3 * dotSize, 6 * dotSize]);
+    else if(value == "dotted")
+      this.ctx.setLineDash([dotSize]);
+    else
+      this.ctx.setLineDash([1, 0]);
+  }
+
+}
+
+
+/**
+ * GhostEdge
+ *   Spoopy haunted edge that follows the cursor. *ooOOOoOOooooOOOOooOoOoOoo*
+ */
+class GhostEdge implements EdgeView {
+  showLeftArrow : boolean = false;
+  showRightArrow : boolean = false;
+  color : string = "#000";
+  lineStyle : string = "dotted";
+  lineWidth : number = 2;
+  destination : NodeView = null;
+  constructor(public source : NodeView) { }
 }

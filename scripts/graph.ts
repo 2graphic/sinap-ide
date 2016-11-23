@@ -1,6 +1,22 @@
 // File: graph.ts
 // Created by: CJ Dimaano
 // Date created: November 21, 2016
+//
+//
+// Notes:
+//
+// There needs to be some notion of canReplaceEdge from the graph.
+//   Consider the case where the user wants to move an edge
+//   destination to some other node, but the selectedEdgeType is not
+//   the same as the replacement edge type. GraphView can either
+//   redefine the replaceEdge method to take in the original edge
+//   plus a source and destination NodeView which either succeeds or
+//   fails without warning or error, or we can stick to the pattern
+//   of checking if the operation is valid before performing it
+//   (i.e. canCreateEdge -> createEdge + canReplaceEdge ->
+//   replaceEdge).
+//
+// 
 
 
 import { EdgeView, Edge } from "./edge";
@@ -8,8 +24,22 @@ import { NodeView, Node } from "./node";
 
 
 export class Graph implements GraphView {
-  nodes : Array<NodeView> = [];
-  edges : Array<EdgeView> = [];
+  private nodes : Array<NodeView> = [];
+  private edges : Array<EdgeView> = [];
+  getNodeViews() {
+    //
+    // TODO:
+    // Send a copy of this.
+    //
+    return this.nodes;
+  }
+  getEdgeViews() {
+    //
+    // TODO:
+    // Send a copy of this.
+    //
+    return this.edges;
+  }
   createNode(x=0, y=0) {
   	const node = new Node(x, y);
   	this.nodes.push(node);
@@ -35,7 +65,17 @@ export class Graph implements GraphView {
 
 }
 
+export function isGraphView(obj : any) : obj is GraphView {
+  //
+  // TODO:
+  // Return false if obj does not have any one of the members in GraphView.
+  //
+  return obj !== null;
+}
+
 export interface GraphView {
+  getNodeViews() : Iterable<NodeView>
+  getEdgeViews() : Iterable<EdgeView>
   createNode(x? : number, y? : number) : NodeView
   /* contractually `src` -> `dest` will have been validated by 
   `canCreateEdge`, Graph implementations are not required to test this */

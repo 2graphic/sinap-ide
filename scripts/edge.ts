@@ -7,14 +7,20 @@ import { NodeView } from "./node"
 
 
 export class Edge implements EdgeView{
-  showLeftArrow : boolean;
-  showRightArrow : boolean;
-  color : any;
-  lineStyle : string;
-  lineWeight : number;
-  constructor(public source : NodeView, public destination : NodeView){
+  showLeftArrow : boolean = false;
+  showRightArrow : boolean = false;
+  color : string = "#000";
+  lineStyle : string = "solid";
+  lineWidth : number = 1;
+  constructor(public source : NodeView, public destination : NodeView) { }
+}
 
-  }
+export function isEdgeView(obj : any) : obj is EdgeView {
+  //
+  // TODO:
+  // Return false if obj does not have any one of the members in EdgeView.
+  //
+  return obj !== null && obj.source !== undefined && obj.destination !== undefined;
 }
 
 export interface EdgeView {
@@ -22,8 +28,8 @@ export interface EdgeView {
   destination : NodeView;
   showLeftArrow : boolean;
   showRightArrow : boolean;
-  color : any;
+  color : string;
   lineStyle : string;
-  lineWeight : number;
+  lineWidth : number;
   // todo more display properties
 }
