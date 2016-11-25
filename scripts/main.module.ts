@@ -12,6 +12,7 @@ import { BrowserModule } from "@angular/platform-browser";
 
 import { MainComponent }    from "./main.component";
 import { SideBarComponent } from "./side-bar.component";
+import { AboutComponent } from "./about.component";
 
 
 @NgModule({
@@ -20,7 +21,8 @@ import { SideBarComponent } from "./side-bar.component";
   ],
   declarations: [
     MainComponent,
-    SideBarComponent
+    SideBarComponent,
+    AboutComponent
   ],
   bootstrap:    [ MainComponent ]
 })
