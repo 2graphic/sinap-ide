@@ -15,6 +15,8 @@
       "@angular/platform-browser": "npm:@angular/platform-browser/bundles/platform-browser.umd.js",
       "@angular/platform-browser-dynamic": "npm:@angular/platform-browser-dynamic/bundles/platform-browser-dynamic.umd.js",
       "@angular/forms": "npm:@angular/forms/bundles/forms.umd.js",
+      // Electron
+      "electron": "@node/electron",
       // other libraries
       "rxjs": "npm:rxjs",
     },

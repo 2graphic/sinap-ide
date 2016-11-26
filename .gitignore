@@ -39,3 +39,7 @@ node_modules/
 # Misc. #
 #########
 *.log
+
+
+# Visual Studio Code Stuff
+.vscode*
