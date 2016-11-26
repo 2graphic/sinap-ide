@@ -4,6 +4,7 @@
     (mousedown)="onMouseDown($event)"
     (mouseup)="onMouseUp($event)"
     (mousemove)="onMouseMove($event)"
-    (keydown)="onKeyDown($event)">
+    (keydown)="onKeyDown($event)"
+    (window:resize)=resize($event)>
   </canvas>
 </div>

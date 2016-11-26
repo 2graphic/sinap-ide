@@ -159,6 +159,16 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     // this.resize();
   }
 
+  // Get position of MouseEvent inside canvas.
+  getMousePosition(evt: MouseEvent) {
+    let canvas = this.graphEditorCanvas.nativeElement;
+    let rect = canvas.getBoundingClientRect();
+    let x = (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width;
+    let y = (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height;
+    
+    return {x, y};
+  }
+
   /**
    * onKeyDown
    *   Handles the delete key.
@@ -194,6 +204,10 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     //
     this.downEvent = e;
     this.isWaiting = true;
+
+    let ePos = this.getMousePosition(e);
+    let downEventPos = this.getMousePosition(this.downEvent);
+
     //
     // Set a timeout.
     //
@@ -205,13 +219,13 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       if(this.isWaiting) {
         this.isWaiting = false;
         this.dragObject =
-          this.hitTest(this.downEvent.clientX, this.downEvent.clientY);
+          this.hitTest(downEventPos.x, downEventPos.y);
         //
         // Create a new node and set it as the drag object if no drab object was
         // set.
         //
         if(this.dragObject === null) {
-          this.dragObject = this._graph.createNode(e.clientX, e.clientY);
+          this.dragObject = this._graph.createNode(ePos.x, ePos.y);
           this.drawNode(this.dragObject);
         }
         //
@@ -233,8 +247,8 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         // Update the node position if the drag object was set to a node.
         //
         else if(isNodeView(this.dragObject)) {
-          this.dragObject.x = this.downEvent.clientX;
-          this.dragObject.y = this.downEvent.clientY;
+          this.dragObject.x = downEventPos.x;
+          this.dragObject.y = downEventPos.y;
           this.redraw();
         }
       }
@@ -246,6 +260,9 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    *   Handles the mousemove event.
    */
   onMouseMove(e : MouseEvent) : void {
+    let ePos = this.getMousePosition(e);
+    let downEventPos = (this.downEvent !== null ? this.getMousePosition(this.downEvent) : undefined);
+
     //
     // Make sure only the left mouse button is down.
     //
@@ -263,8 +280,8 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       //
       // Get the change in x and y locations of the cursor.
       //
-      let dx = this.downEvent.clientX - e.clientX;
-      let dy = this.downEvent.clientY - e.clientY;
+      let dx = downEventPos.x - ePos.x;
+      let dy = downEventPos.y - ePos.y;
       //
       // Reset waiting if waiting is still active and the mouse has moved too
       // far.
@@ -274,7 +291,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         //
         // Update the drag object.
         //
-        this.dragObject = this.hitTest(e.clientX, e.clientY);
+        this.dragObject = this.hitTest(ePos.x, ePos.y);
         //
         // Set the drag object to a dummy edge if the drag object is a node.
         //
@@ -296,8 +313,8 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         //
         if(this.dragObject === null) {
           this.drawSelectionBox(
-            this.downEvent.clientX, this.downEvent.clientY,
-            e.clientX, e.clientY
+            downEventPos.x, downEventPos.y,
+            ePos.x, ePos.y
           );
           //
           // Add components that are not already in the selected items list to
@@ -325,15 +342,15 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         //
         else if(isEdgeView(this.dragObject)) {
           this.ctx.globalAlpha = 0.3;
-          this.drawEdge(this.dragObject, e.clientX, e.clientY);
+          this.drawEdge(this.dragObject, ePos.x, ePos.y);
           this.ctx.globalAlpha = 1;
         }
         //
         // Update node position if dragging node.
         //
         else if(isNodeView(this.dragObject)) {
-          this.dragObject.x = e.clientX;
-          this.dragObject.y = e.clientY;
+          this.dragObject.x = ePos.x;
+          this.dragObject.y = ePos.y;
           //
           // TODO:
           // Put a drop shadow here?
@@ -349,12 +366,15 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    *   Handles the mouseup event.
    */
   onMouseUp(e : MouseEvent) : void {
+    let ePos = this.getMousePosition(e);
+    let downEventPos = (this.downEvent !== null ? this.getMousePosition(this.downEvent) : undefined);
+
     //
     // Set the selected graph component if waiting.
     //
     if(this.isWaiting) {
       this.clearSelected();
-      let hitComponent = this.hitTest(e.clientX, e.clientY);
+      let hitComponent = this.hitTest(ePos.x, ePos.y);
       if(hitComponent !== null)
         this.addSelectedItem(hitComponent);
     }
@@ -365,7 +385,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       //
       // Check that the mouse was released at a node.
       //
-      let hit = this.hitTest(e.clientX, e.clientY);
+      let hit = this.hitTest(ePos.x, ePos.y);
       if(isNodeView(hit)) {
         //
         // TODO:
@@ -399,8 +419,8 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     //
     else if(isNodeView(this.dragObject)) {
       this.clearSelected();
-      this.dragObject.x = e.clientX;
-      this.dragObject.y = e.clientY;
+      this.dragObject.x = ePos.x;
+      this.dragObject.y = ePos.y;
       this.addSelectedItem(this.dragObject);
     }
     //
