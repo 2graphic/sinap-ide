@@ -17,6 +17,7 @@ import { PropertiesPanelComponent } from "./properties-panel.component";
 import { ToolsPanelComponent } from "./tools-panel.component";
 import {REPLComponent} from "./repl.component";
 import { FormsModule }   from '@angular/forms';
+import { GraphEditorComponent } from "./graph-editor.component";
 
 @NgModule({
   imports:      [
@@ -29,7 +30,8 @@ import { FormsModule }   from '@angular/forms';
     AboutComponent,
     PropertiesPanelComponent,
     ToolsPanelComponent,
-    REPLComponent
+    REPLComponent,
+    GraphEditorComponent
   ],
   bootstrap:    [ MainComponent, REPLComponent ]
 })
