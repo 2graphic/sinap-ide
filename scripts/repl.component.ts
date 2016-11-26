@@ -33,6 +33,10 @@ export class Command {
   }
 
   run() {
-    this.result = eval(this.text).toString();
+    try {
+      this.result = eval(this.text).toString();
+    } catch (e) {
+      this.result = e;
+    }
   }
 }
