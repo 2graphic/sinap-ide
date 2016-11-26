@@ -12,23 +12,23 @@
     "start": "tsc && electron ."
   },
   "dependencies": {
-    "@angular/common": "^2.2.1",
-    "@angular/compiler": "^2.2.1",
-    "@angular/core": "^2.2.1",
-    "@angular/forms": "^2.2.1",
-    "@angular/platform-browser": "^2.2.1",
-    "@angular/platform-browser-dynamic": "^2.2.1",
-    "@angular/upgrade": "^2.2.1",
+    "@angular/common": "2.2.2",
+    "@angular/compiler": "2.2.2",
+    "@angular/core": "2.2.2",
+    "@angular/forms": "2.2.2",
+    "@angular/platform-browser": "2.2.2",
+    "@angular/platform-browser-dynamic": "2.2.2",
+    "@angular/upgrade": "2.2.2",
     "core-js": "^2.4.1",
     "reflect-metadata": "^0.1.8",
-    "rxjs": "^5.0.0-beta.12",
+    "rxjs": "5.0.0-beta.12",
     "systemjs": "^0.19.41",
     "zone.js": "^0.6.26"
   },
   "devDependencies": {
-    "@types/electron": "^1.4.27",
+    "@types/electron": "1.4.27",
     "@types/node": "^6.0.48",
-    "electron": "^1.4.7",
-    "typescript": "^2.0.10"
+    "electron": "1.4.8",
+    "typescript": "2.0.10"
   }
 }
