@@ -7,13 +7,24 @@
 //
 
 
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
+import { MenuService, MenuDelegate } from "./menu.service"
 
 
 @Component({
   moduleId: module.id,
   selector: "sinap-main",
-  templateUrl: "../html/main.component.html"
+  templateUrl: "../html/main.component.html",
+  providers: [MenuService]
 })
-export class MainComponent {
+export class MainComponent implements OnInit, MenuDelegate {
+  constructor(private menu: MenuService) {}
+
+  newFile() {
+    console.log("New file.");
+  }
+
+  ngOnInit(): void {
+    this.menu.setDelegate(this);
+  }
 }
