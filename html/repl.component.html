@@ -1,0 +1,10 @@
+<div class="repl">
+    <form (ngSubmit)="onSubmit()">
+        <input [(ngModel)]="command.text" name="commandText" type="text" class="repl-cl" />
+    </form>
+    <div class="repl-output">
+        <p *ngFor="let comm of results">
+            [{{comm.num}}]: {{comm.text}} = {{comm.result}}
+        </p>
+    </div>
+</div>

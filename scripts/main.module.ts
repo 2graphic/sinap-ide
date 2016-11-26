@@ -15,18 +15,22 @@ import { SideBarComponent } from "./side-bar.component";
 import { AboutComponent } from "./about.component";
 import { PropertiesPanelComponent } from "./properties-panel.component";
 import { ToolsPanelComponent } from "./tools-panel.component";
+import {REPLComponent} from "./repl.component";
+import { FormsModule }   from '@angular/forms';
 
 @NgModule({
   imports:      [
-    BrowserModule
+    BrowserModule,
+    FormsModule
   ],
   declarations: [
     MainComponent,
     SideBarComponent,
     AboutComponent,
     PropertiesPanelComponent,
-    ToolsPanelComponent
+    ToolsPanelComponent,
+    REPLComponent
   ],
-  bootstrap:    [ MainComponent ]
+  bootstrap:    [ MainComponent, REPLComponent ]
 })
 export class MainModule { }
