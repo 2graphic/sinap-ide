@@ -20,6 +20,29 @@ import { MenuService, MenuDelegate } from "./menu.service"
 export class MainComponent implements OnInit, MenuDelegate {
   constructor(private menu: MenuService) {}
 
+  // Declare icons for the sidebar.
+  icons = [
+    {
+      path: "properties.svg",
+      name: "Properties",
+      active: true
+    },
+    {
+      path: "tools.svg",
+      name: "Tools",
+      active: false
+    },
+    {
+      path: "files.svg",
+      name: "Files",
+      active: false
+    }
+  ];
+  propertiesIcon = this.icons[0];
+  toolsIcon = this.icons[1];
+  // ------------------------------
+
+
   newFile() {
     console.log("New file.");
   }

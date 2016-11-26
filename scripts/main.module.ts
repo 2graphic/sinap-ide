@@ -13,7 +13,8 @@ import { BrowserModule } from "@angular/platform-browser";
 import { MainComponent }    from "./main.component";
 import { SideBarComponent } from "./side-bar.component";
 import { AboutComponent } from "./about.component";
-
+import { PropertiesPanelComponent } from "./properties-panel.component";
+import { ToolsPanelComponent } from "./tools-panel.component";
 
 @NgModule({
   imports:      [
@@ -22,7 +23,9 @@ import { AboutComponent } from "./about.component";
   declarations: [
     MainComponent,
     SideBarComponent,
-    AboutComponent
+    AboutComponent,
+    PropertiesPanelComponent,
+    ToolsPanelComponent
   ],
   bootstrap:    [ MainComponent ]
 })

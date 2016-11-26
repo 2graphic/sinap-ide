@@ -1,2 +1,10 @@
-<div id="sidebar-wrapper">
+<div id="wrapper">
+    <div id="logo">
+        <!-- Eventually we'll put the logo here -->
+    </div>
+    <img  *ngFor="let icon of icons"
+        src="./images/{{icon.path}}"
+        [class.active]="icon.active"
+        (click)="setActive(icon)"
+        />
 </div>

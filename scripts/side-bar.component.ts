@@ -3,7 +3,7 @@
 // Date created: October 10, 2016
 
 
-import { Component } from "@angular/core";
+import { Component, Input } from "@angular/core";
 
 
 @Component({
@@ -13,4 +13,17 @@ import { Component } from "@angular/core";
   styleUrls: [ "../styles/side-bar.component.css" ]
 })
 export class SideBarComponent {
+  @Input() icons: SideBarIcon[];
+
+  setActive(icon:SideBarIcon) {
+    this.icons.forEach((i) => {
+      i.active = (i == icon);
+    });
+  }
+}
+
+export interface SideBarIcon {
+  active: Boolean;
+  path: String;
+  name: String;
 }

@@ -1,11 +1,18 @@
 <div class="flex-container-row full-size">
   <div id="sidebar">
-    <sinap-side-bar></sinap-side-bar>
+    <sinap-side-bar [icons]="icons">
+    </sinap-side-bar>
   </div>
   <div id="content" class="flex-container-column">
     <div id="top-panels" class="flex-container-row">
-      <div id="side-panel"></div>
-      <div id="editor-panel"></div> 
+      <div id="side-panel">
+        <sinap-properties-panel [hidden]="!(propertiesIcon.active)">
+        </sinap-properties-panel>
+        <sinap-tools-panel [hidden]="!(toolsIcon.active)">
+        </sinap-tools-panel>
+      </div>
+      <div id="editor-panel">
+      </div> 
     </div>
     <div id="bottom-panels" class="flex-container-row">
       <div id="bottom-panel"></div>
