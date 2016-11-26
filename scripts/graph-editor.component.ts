@@ -589,10 +589,12 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
   clearSelected() : void {
     this.selectedItems = [];
     this.unselectedItems = [];
-    for(let e of this._graph.getEdgeViews())
-      this.unselectedItems.push(e);
-    for(let n of this._graph.getNodeViews())
-      this.unselectedItems.push(n);
+    if (this._graph) {
+      for(let e of this._graph.getEdgeViews())
+        this.unselectedItems.push(e);
+      for(let n of this._graph.getNodeViews())
+        this.unselectedItems.push(n);
+    }
   }
 
   /**

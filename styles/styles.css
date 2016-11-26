@@ -26,7 +26,6 @@ html, body, .full-size {
 #bottom-panels {
   flex:none;
   height: 15em;
-  overflow: hidden;
 }
 
 #side-panel {
@@ -36,6 +35,9 @@ html, body, .full-size {
 
 #content, #editor-panel, #top-panels, #bottom-panel {
   flex: auto;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 /********************************************************/

@@ -7,8 +7,9 @@
 //
 
 
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { MenuService, MenuDelegate } from "./menu.service"
+import { GraphEditorComponent } from "./graph-editor.component"
 
 
 @Component({
@@ -19,6 +20,9 @@ import { MenuService, MenuDelegate } from "./menu.service"
 })
 export class MainComponent implements OnInit, MenuDelegate {
   constructor(private menu: MenuService) {}
+
+  @ViewChild(GraphEditorComponent)
+  private graphEditor: GraphEditorComponent;
 
   // Declare icons for the sidebar.
   icons = [
@@ -44,7 +48,7 @@ export class MainComponent implements OnInit, MenuDelegate {
 
 
   newFile() {
-    console.log("New file.");
+    this.graphEditor.graph = null;
   }
 
   ngOnInit(): void {
