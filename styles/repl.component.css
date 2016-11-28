@@ -4,18 +4,20 @@
     bottom: 0;
     background-color: #FFFFFF;
     width: calc(100% - 42px);
-    height: 20%;
-    overflow-y: auto;
+    height: 25%;
     padding: 5px;
     left: 32px;
+    overflow-y: auto;
 }
 
 .repl-cl {
     width: calc(100% - 15px);
     padding: 5px;
     font-size: 1.15em;
+    position: fixed;
 }
 
 .repl-output {
+    margin-top: 15px;
     font-size: 1.15em;
 }
