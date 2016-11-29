@@ -5,9 +5,6 @@
 //
 // Notes:
 //
-// It may be better to have an overall graph container type with its own list of
-// nodes and list of edges.
-//
 // The canvas element needs to have its height and width properties updated in
 // order for its rendering context to be resized properly. Using css to handle
 // resizing for the canvas will stretch the image on the cavas as well as its
@@ -15,6 +12,7 @@
 //
 //
 // TODO:
+// - Fix getMousePosition calls.
 // - Zoom and Pan
 // - Something about deep binding for the graph components?
 // - Add a selectionChanged event. [Should this be in the GraphView object?]
