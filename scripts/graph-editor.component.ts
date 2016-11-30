@@ -18,12 +18,10 @@
 //
 // TODO:
 // - Zoom and Pan
-// - Draw edge arrows
 // - Make it so that if any part of a component is caught within the selection
 //   box, it is selected
 // - Something about deep binding for the graph components? [For now, use redraw]
 // - Add a selectionChanged event. [Should this be in the GraphView object?]
-// - Should the delete key be handled here or higher up the hierarchy UI?
 // - Add mouse hover display behavior
 //   - Show edge anchor points
 //   - etc.
@@ -70,10 +68,10 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
   @ViewChild("sinapGraphEditorCanvas") graphEditorCanvas : ElementRef;
 
   /**
-   * ctx
-   *   The 2D rendering context from the canvas element.
+   * g
+   *   The 2D graphics rendering context from the canvas element.
    */
-  private ctx : CanvasRenderingContext2D;
+  private g : CanvasRenderingContext2D;
 
   /**
    * downEvt
@@ -148,7 +146,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    *   Gets the canvas rendering context and resizes the canvas element.
    */
   ngAfterViewInit() {
-    this.ctx = this.graphEditorCanvas.nativeElement.getContext("2d");
+    this.g = this.graphEditorCanvas.nativeElement.getContext("2d");
     this.resize();
   }
 
@@ -214,7 +212,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         // Set the drag object and reset waiting to false if the waiting flag is
         // still set to true.
         if(this.isWaiting) {
-          let downPt = this.getMousePt(this.downEvt);
+          let downPt = getMousePt(this.g, this.downEvt);
           this.isWaiting = false;
           this.dragObject =
             this.hitTest(downPt.x, downPt.y);
@@ -228,7 +226,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
             // The graph service should be doing this.
             //
             this.dragObject.label = "q0";
-            this.drawNode(this.dragObject);
+            drawNode(this.g, this.dragObject);
           }
 
           // Set the drag object to some dummy edge and the replace edge to the
@@ -240,9 +238,9 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
             //
             this.replaceEdge = this.dragObject;
             this.dragObject = new GhostEdge(this.replaceEdge.source);
-            this.ctx.globalAlpha = 0.3;
-            this.drawEdge(this.dragObject, downPt.x, downPt.y);
-            this.ctx.globalAlpha = 1;
+            this.g.globalAlpha = 0.3;
+            drawEdge(this.g, this.dragObject, downPt.x, downPt.y);
+            this.g.globalAlpha = 1;
           }
 
           // Update the node position if the drag object was set to a node.
@@ -275,8 +273,8 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         this.downEvt = e;
 
       // Get the change in x and y locations of the cursor.
-      let downPt = this.getMousePt(this.downEvt);
-      let ePt = this.getMousePt(e);
+      let downPt = getMousePt(this.g, this.downEvt);
+      let ePt = getMousePt(this.g, e);
       let dx = downPt.x - ePt.x;
       let dy = downPt.y - ePt.y;
 
@@ -305,7 +303,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
 
         // Update the selection box if selecting.
         if(this.dragObject === null) {
-          let rect = this.makeRect(downPt.x, downPt.y, ePt.x, ePt.y);
+          let rect = makeRect(downPt.x, downPt.y, ePt.x, ePt.y);
 
           // Update the selected components.
           let swap = [];
@@ -318,15 +316,15 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
             this.addSelectedItem(swap.pop());
   
           this.redraw();
-          this.drawSelectionBox(rect);
+          drawSelectionBox(this.g, rect);
         }
 
         // Update edge endpoint if dragging edge.
         else if(isEdgeView(this.dragObject)) {
           this.redraw();
-          this.ctx.globalAlpha = 0.3;
-          this.drawEdge(this.dragObject, ePt.x, ePt.y);
-          this.ctx.globalAlpha = 1;
+          this.g.globalAlpha = 0.3;
+          drawEdge(this.g, this.dragObject, ePt.x, ePt.y);
+          this.g.globalAlpha = 1;
         }
 
         // Update node position if dragging node.
@@ -338,7 +336,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
           // TODO:
           // Put a drop shadow here?
           //
-          this.drawNode(this.dragObject);
+          drawNode(this.g, this.dragObject);
         }
       }
     }
@@ -352,7 +350,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
 
     // Make sure a mousedown event was previously captured.
     if(this.downEvt !== null) {
-      let ePt = this.getMousePt(e);
+      let ePt = getMousePt(this.g, e);
 
       // Set the selected graph component if waiting.
       if(this.isWaiting) {
@@ -394,7 +392,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
             // The plugin should handle this.
             // Rename showRightArrow to showDestinationArrow, and same for left.
             //
-            edge.showLeftArrow = true;
+            edge.showRightArrow = true;
             this.clearSelected();
             this.addSelectedItem(edge);
           }
@@ -446,132 +444,11 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
   }
 
   /**
-   * drawSelectionBox
-   *   Draws the selection box.
-   */
-  drawSelectionBox(rect) : void {
-    this.ctx.strokeStyle = "#00a2e8";
-    this.ctx.fillStyle = "#00a2e8";
-    this.ctx.globalAlpha = 0.1;
-    this.ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
-    this.ctx.globalAlpha = 1.0;
-    this.ctx.lineWidth = 1;
-    this.ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
-  }
-
-  /**
-   * drawNode
-   *   Draws a node on the canvas.
-   * 
-   * TODO:
-   *   This needs to be able to handle custom node shapes/images.
-   */
-  drawNode(n : NodeView) : void {
-    this.ctx.fillStyle = n.color;
-    this.ctx.strokeStyle = n.borderColor;
-    this.ctx.lineWidth = n.borderWidth;
-    this.setLineStyle(n.borderStyle, n.borderWidth);
-    this.ctx.beginPath();
-    //
-    // TODO:
-    // For now the radius of a node is hardcoded as 20.
-    //
-    this.ctx.arc(n.x, n.y, 20, 0, 2 * Math.PI);
-    this.ctx.fill();
-    this.ctx.stroke();
-  }
-
-  /**
-   * drawEdge
-   *   Draws an edge on the canvas.
-   * 
-   * TODO:
-   *   This needs to be able to handle custom edge drawing.
-   */
-  drawEdge(e : EdgeView, x? : number, y? : number) : void {
-    this.ctx.strokeStyle = e.color;
-    this.ctx.lineWidth = e.lineWidth;
-    this.setLineStyle(e.lineStyle, e.lineWidth);
-    if(x && y)
-      this.drawLine(e.source.x, e.source.y, x, y);
-    else
-      this.drawLine(e.source.x, e.source.y, e.destination.x, e.destination.y);
-    if(e.showLeftArrow)
-      this.drawArrow(e.destination, e.source);
-    if(e.showRightArrow)
-      this.drawArrow(e.source, e.destination);
-  }
-
-  /**
-   * drawLine
-   *   Draws a line.
-   */
-  drawLine(x1 : number, y1 : number, x2 : number, y2 : number) : void {
-    this.ctx.beginPath();
-    this.ctx.moveTo(x1, y1);
-    this.ctx.lineTo(x2, y2);
-    this.ctx.stroke();
-  }
-
-  /**
-   * drawArrow
-   *   Draws an arrow towards the destination node.
-   */
-  drawArrow(src : NodeView, dst : NodeView) : void {
-    //
-    // TODO:
-    // Either NodeView or EdgeView needs to define anchor points, and the
-    // EdgeView must specify which anchor it is attached to for src and dst.
-    //
-
-    // Get the vector from src to dst.
-    let v = [
-      dst.x - src.x,
-      dst.y - src.y
-    ];
-
-    // Get the distance from src to dst.
-    let d = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
-
-    // Get the unit vector from src to dst.
-    //
-    // TODO:
-    // Node radius is hardcoded to 20.
-    //
-    let u = [
-      v[0] / (d - 20),
-      v[1] / (d - 20)
-    ]
-
-    // Get the point where the edge meets the node border.
-    v[0] = u[0] + src.x;
-    v[1] = u[1] + src.y;
-    //
-    // TODO:
-    // Figure out how to draw the arrow.
-    //
-  }
-
-  /**
-   * clear
-   *   Clears the canvas.
-   */
-  clear() : void {
-    let el = this.graphEditorCanvas.nativeElement;
-    this.ctx.fillStyle = "white";
-    this.ctx.fillRect(0, 0, el.width, el.height);
-    //
-    // TODO:
-    // Draw the grid.
-    //
-  }
-
-  /**
    * redraw
    *   Redraws the graph.
    */
   redraw() : void {
-    this.clear();
+    clear(this.g);
     //
     // TODO:
     // Don't do this.
@@ -586,15 +463,15 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       let c = e.color;
       let w = e.lineWidth;
       if(e === this.replaceEdge)
-        this.ctx.globalAlpha = 0.3;
+        this.g.globalAlpha = 0.3;
       else if(this.selectedItems.indexOf(e) > -1) {
         e.color = "#00a2e8";
         e.lineWidth += 2;
       }
-      this.drawEdge(e);
+      drawEdge(this.g, e);
       e.color = c;
       e.lineWidth = w;
-      this.ctx.globalAlpha = 1;
+      this.g.globalAlpha = 1;
     }
     for(let n of this._graph.getNodeViews()) {
       let c = n.borderColor;
@@ -603,7 +480,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         n.borderColor = "#00a2e8";
         n.borderWidth += 2;
       }
-      this.drawNode(n);
+      drawNode(this.g, n);
       n.borderColor = c;
       n.borderWidth = w;
     }
@@ -613,12 +490,12 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     //   Top, Left, Bottom, Right, Center
     //   Inside, Outside, Center
     //
-    this.ctx.font = "bold 12pt serif";
-    this.ctx.textAlign = "center";
-    this.ctx.textBaseline = "middle";
-    this.ctx.lineWidth = 1.25;
-    this.ctx.strokeStyle = "black";
-    this.ctx.fillStyle = "white";
+    this.g.font = "10pt serif";
+    this.g.textAlign = "center";
+    this.g.textBaseline = "middle";
+    this.g.lineWidth = 2;
+    this.g.strokeStyle = "#000";
+    this.g.fillStyle = "#fff";
     //
     // TODO:
     // Add label field to EdgeView.
@@ -632,8 +509,8 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     //   this.ctx.fillText(e.label, rect.x + rect.w / 2, rect.y + rect.h / 2);
     // }
     for(let n of this._graph.getNodeViews()) {
-      this.ctx.strokeText(n.label, n.x, n.y);
-      this.ctx.fillText(n.label, n.x, n.y);
+      this.g.strokeText(n.label, n.x, n.y);
+      this.g.fillText(n.label, n.x, n.y);
     }
   }
 
@@ -657,7 +534,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    *   Adds an item to the selected items collection.
    */
   private addSelectedItem(value : NodeView | EdgeView) : void {
-    this.moveItem(this.unselectedItems, this.selectedItems, value);
+    moveItem(this.unselectedItems, this.selectedItems, value);
   }
 
   /**
@@ -665,20 +542,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    *   Removes an item from the selected items collection.
    */
   private removeSelectedItem(value : NodeView | EdgeView) : void {
-    this.moveItem(this.selectedItems, this.unselectedItems, value);
-  }
-
-  /**
-   * moveItem
-   *   Moves an item from one array to the other.
-   */
-  private moveItem(
-    src : Array<NodeView | EdgeView>,
-    dst : Array<NodeView | EdgeView>,
-    itm : NodeView | EdgeView
-  ) : void {
-    dst.push(itm);
-    src.splice(src.indexOf(itm));
+    moveItem(this.selectedItems, this.unselectedItems, value);
   }
 
   /**
@@ -719,6 +583,10 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     return null;
   }
 
+  /**
+   * rectHitTest
+   *   Checks if a graph component was hit by a rectangle.
+   */
   private rectHitTest(c : EdgeView | NodeView, rect) : boolean {
     //
     // TODO:
@@ -737,50 +605,217 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
             this.rectHitTest(c.destination, rect)));
   }
 
-  /**
-   * setLineStyle
-   *   Sets the line style of the rendering context.
-   */
-  private setLineStyle(value : string, dotSize : number = 1) {
-    if(value == "dashed")
-      this.ctx.setLineDash([3 * dotSize, 6 * dotSize]);
-    else if(value == "dotted")
-      this.ctx.setLineDash([dotSize]);
-    else
-      this.ctx.setLineDash([1, 0]);
-  }
-
-  /**
-   * getMousePt
-   *   Gets the canvas coordinates from a mouse event.
-   */
-  private getMousePt(e: MouseEvent) {
-    let canvas = this.graphEditorCanvas.nativeElement;
-    let rect = canvas.getBoundingClientRect();
-    return {
-      x: (e.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
-      y: (e.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
-    };
-  }
-
-  /**
-   * makeRect
-   *   Makes a rectangle object with the bottom-left corner and height and
-   *   width.
-   */
-  private makeRect(x1 : number, y1 : number, x2 : number, y2 : number) {
-    let w = x2 - x1;
-    let h = y2 - y1;
-    return {
-      x : (w < 0 ? x2 : x1),
-      y : (h < 0 ? y2 : y1),
-      w : (w < 0 ? -1 * w : w),
-      h : (h < 0 ? -1 * h : h)
-    };
-  }
-
 }
 
+// Static functions. ///////////////////////////////////////////////////////////
+
+/**
+ * getMousePt
+ *   Gets the canvas coordinates from a mouse event.
+ */
+function getMousePt(g : CanvasRenderingContext2D, e: MouseEvent) {
+  let canvas = g.canvas;
+  let rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+    y: (e.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+  };
+}
+
+/**
+ * moveItem
+ *   Moves an item from one array to the other.
+ */
+function moveItem(
+  src : Array<NodeView | EdgeView>,
+  dst : Array<NodeView | EdgeView>,
+  itm : NodeView | EdgeView
+) : void {
+  dst.push(itm);
+  src.splice(src.indexOf(itm));
+}
+
+
+/**
+ * setLineStyle
+ *   Sets the line style of the rendering context.
+ */
+function setLineStyle(
+  g : CanvasRenderingContext2D,
+  value : string,
+  dotSize : number = 1
+) {
+  if(value == "dashed")
+    g.setLineDash([3 * dotSize, 6 * dotSize]);
+  else if(value == "dotted")
+    g.setLineDash([dotSize]);
+  else
+    g.setLineDash([1, 0]);
+}
+
+/**
+ * makeRect
+ *   Makes a rectangle object with the bottom-left corner and height and width.
+ */
+function makeRect(x1 : number, y1 : number, x2 : number, y2 : number) {
+  let w = x2 - x1;
+  let h = y2 - y1;
+  return {
+    x : (w < 0 ? x2 : x1),
+    y : (h < 0 ? y2 : y1),
+    w : (w < 0 ? -1 * w : w),
+    h : (h < 0 ? -1 * h : h)
+  };
+}
+
+/**
+ * drawSelectionBox
+ *   Draws the selection box.
+ */
+function drawSelectionBox(g : CanvasRenderingContext2D, rect) : void {
+  g.strokeStyle = "#00a2e8";
+  g.fillStyle = "#00a2e8";
+  g.globalAlpha = 0.1;
+  g.fillRect(rect.x, rect.y, rect.w, rect.h);
+  g.globalAlpha = 1.0;
+  g.lineWidth = 1;
+  g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+}
+
+/**
+ * drawNode
+ *   Draws a node on the canvas.
+ * 
+ * TODO:
+ *   This needs to be able to handle custom node shapes/images.
+ */
+function drawNode(g : CanvasRenderingContext2D, n : NodeView) : void {
+  g.fillStyle = n.color;
+  g.strokeStyle = n.borderColor;
+  g.lineWidth = n.borderWidth;
+  setLineStyle(g, n.borderStyle, n.borderWidth);
+  g.beginPath();
+  //
+  // TODO:
+  // For now the radius of a node is hardcoded as 20.
+  //
+  g.arc(n.x, n.y, 20, 0, 2 * Math.PI);
+  g.fill();
+  g.stroke();
+}
+
+/**
+ * drawEdge
+ *   Draws an edge on the canvas.
+ * 
+ * TODO:
+ *   This needs to be able to handle custom edge drawing.
+ */
+function drawEdge(
+  g : CanvasRenderingContext2D,
+  e : EdgeView,
+  x? : number, y? : number
+) : void {
+  g.strokeStyle = e.color;
+  g.lineWidth = e.lineWidth;
+  setLineStyle(g, e.lineStyle, e.lineWidth);
+  if(x && y)
+    drawLine(g, e.source.x, e.source.y, x, y);
+  else
+    drawLine(g, e.source.x, e.source.y, e.destination.x, e.destination.y);
+  if(e.showLeftArrow)
+    drawArrow(g, e.destination, e.source);
+  if(e.showRightArrow)
+    drawArrow(g, e.source, e.destination);
+}
+
+/**
+ * drawLine
+ *   Draws a line.
+ */
+function drawLine(
+  g : CanvasRenderingContext2D,
+  x1 : number, y1 : number,
+  x2 : number, y2 : number
+) : void {
+  g.beginPath();
+  g.moveTo(x1, y1);
+  g.lineTo(x2, y2);
+  g.stroke();
+}
+
+/**
+ * drawArrow
+ *   Draws an arrow towards the destination node.
+ */
+function drawArrow(
+  g : CanvasRenderingContext2D,
+  src : NodeView,
+  dst : NodeView
+) : void {
+
+  const COS_THETA = Math.cos(5 * Math.PI / 6);
+  const SIN_THETA = Math.sin(5 * Math.PI / 6);
+
+  //
+  // TODO:
+  // Either NodeView or EdgeView needs to define anchor points, and the
+  // EdgeView must specify which anchor it is attached to for src and dst.
+  //
+
+  // Get the vector from src to dst.
+  let v = [
+    dst.x - src.x,
+    dst.y - src.y
+  ];
+
+  // Get the distance from src to dst.
+  let d = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+
+  // Get the unit vector from src to dst.
+  let u = [
+    v[0] / d,
+    v[1] / d
+  ]
+
+  // Get the point where the edge meets the node border.
+  //
+  // TODO:
+  // Node radius is hardcoded to 20.
+  //
+  v[0] = u[0] * (d - 20) + src.x;
+  v[1] = u[1] * (d - 20) + src.y;
+
+  // Draw arrow.
+  drawLine(
+    g,
+    v[0], v[1],
+    v[0] + 20 * (u[0] * COS_THETA - u[1] * SIN_THETA),
+    v[1] + 20 * (u[0] * SIN_THETA + u[1] * COS_THETA)
+  );
+  drawLine(
+    g,
+    v[0], v[1],
+    v[0] + 20 * (u[0] * COS_THETA + u[1] * SIN_THETA),
+    v[1] + 20 * (-u[0] * SIN_THETA + u[1] * COS_THETA)
+  );
+}
+
+/**
+ * clear
+ *   Clears the canvas.
+ */
+function clear(g : CanvasRenderingContext2D) : void {
+  let canvas = g.canvas;
+  g.fillStyle = "white";
+  g.fillRect(0, 0, canvas.width, canvas.height);
+  //
+  // TODO:
+  // Draw the grid.
+  //
+}
+
+// Static classes. /////////////////////////////////////////////////////////////
 
 /**
  * GhostEdge
