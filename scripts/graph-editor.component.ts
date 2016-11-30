@@ -51,18 +51,17 @@ export interface DrawableGraph {
   createNode(x? : number, y? : number) : DrawableNode
   /* contractually `src` -> `dest` will have been validated by 
   `canCreateEdge`, Graph implementations are not required to test this */
-  createEdge(src : DrawableNode, dest : DrawableNode) : DrawableEdge
+  createEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) : DrawableEdge
   /* contractually `original` will be in the list,
   this is not necessarily checked by implementations */
-  moveEdge(original : DrawableEdge, replacement : DrawableEdge) : void
+  replaceEdge(original : DrawableEdge, replacement : DrawableEdge) : void
   /* contractually `node` will be in the list,
   this is not necessarily checked by implementations */
   removeNode(node : DrawableNode) : void
   /* contractually `edge` will be in the list,
   this is not necessarily checked by implementations */
   removeEdge(edge : DrawableEdge) : void
-  canCreateEdge(src : DrawableNode, dest : DrawableNode) : boolean 
-  canMoveEdge(edge : DrawableEdge, src : DrawableNode, dest : DrawableNode) : boolean 
+  canCreateEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) : boolean 
 }
 
 function isDrawableGraph(obj : any) : obj is DrawableGraph {

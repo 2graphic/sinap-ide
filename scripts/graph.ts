@@ -44,12 +44,12 @@ export class Graph implements DrawableGraph {
   	this._nodes.push(node);
   	return node;
   }
-  createEdge(src : DrawableNode, dest : DrawableNode) {
+  createEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) {
   	const edge = new Edge(src, dest);
   	this._edges.push(edge);
   	return edge;
   }
-  moveEdge(original : DrawableEdge, replacement : DrawableEdge) {
+  replaceEdge(original : DrawableEdge, replacement : DrawableEdge) {
   	this._edges[this._edges.indexOf(original)] = replacement;
   }
   removeNode(node : DrawableNode) {
@@ -58,13 +58,9 @@ export class Graph implements DrawableGraph {
   removeEdge(edge : DrawableEdge) {
     this._edges.splice(this._edges.indexOf(edge), 1);
   }
-  canCreateEdge(src : DrawableNode, dest : DrawableNode) {
+  canCreateEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) {
     return Math.random() > 0.1;
-  } 
-  canMoveEdge(edge : DrawableEdge, src : DrawableNode, dest : DrawableNode) {
-    return Math.random() > 0.1;
-  } 
-
+  }
 }
 
 
