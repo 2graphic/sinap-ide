@@ -1,10 +1,11 @@
 <div>
   <canvas
     #sinapGraphEditorCanvas
+    tabindex="1"
     (mousedown)="onMouseDown($event)"
     (mouseup)="onMouseUp($event)"
     (mousemove)="onMouseMove($event)"
     (keydown)="onKeyDown($event)"
-    (window:resize)=resize($event)>
+    (window:resize)="resize()">
   </canvas>
 </div>
