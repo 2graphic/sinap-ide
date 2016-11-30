@@ -225,7 +225,11 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
           nodes.add(e);
         }
       }
+<<<<<<< HEAD
       let unselectedEdges = [...this.graph.edges].filter(x => !edges.has(x))
+=======
+      let unselectedEdges = [...this.graph.edges].filter(x => edges.has(x))
+>>>>>>> Actually use the new delegate selected elements (broken)
 
       for(let n of nodes) {
         for (let e of unselectedEdges.filter(u =>
@@ -354,12 +358,14 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
           let rect = makeRect(downPt.x, downPt.y, ePt.x, ePt.y);
 
           // TODO: I made this not DRY, also it lost the unselected elements efficiency boost
+          // FIXME? 
           // Update the selected components.
-          this.delegate.clearSelected();
           for(let u of this.graph.nodes) {
             if(this.rectHitTest(u, rect))
               this.delegate.selectElement(u);
           }
+
+          // Update the selected components.
           for(let u of this.graph.edges) {
             if(this.rectHitTest(u, rect))
               this.delegate.selectElement(u);
