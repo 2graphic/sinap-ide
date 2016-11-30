@@ -9,9 +9,10 @@
 
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { MenuService, MenuDelegate } from "./menu.service"
-import { GraphEditorComponent } from "./graph-editor.component"
+import { GraphEditorComponent, EditorDelegate, DrawableNode, DrawableGraph, DrawableEdge } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
+import { PropertiesPanelComponent } from "./properties-panel.component"
 
 
 @Component({
@@ -20,11 +21,25 @@ import { REPLComponent, REPLDelegate } from "./repl.component"
   templateUrl: "../html/main.component.html",
   providers: [MenuService, PluginService]
 })
-export class MainComponent implements OnInit, MenuDelegate, REPLDelegate {
+export class MainComponent implements OnInit, MenuDelegate, REPLDelegate, EditorDelegate {
   constructor(private menu: MenuService, private pluginService: PluginService) {}
+  
+  selectedElements : Set<DrawableGraph | DrawableNode | DrawableEdge>;
+  selectElement(element : DrawableGraph | DrawableNode | DrawableEdge) {
+    this.selectedElements.add(element);
+  }
+  deselectElement(element : DrawableGraph | DrawableNode | DrawableEdge) {
+    this.selectedElements.delete(element);
+  }
+  clearSelected() {
+    this.selectedElements.clear();
+  }
+
+
   ngOnInit(): void {
     this.menu.setDelegate(this);
     this.repl.setDelegate(this);
+    this.graphEditor.delegate = this;
   }
 
   @ViewChild(GraphEditorComponent)
@@ -32,6 +47,9 @@ export class MainComponent implements OnInit, MenuDelegate, REPLDelegate {
 
   @ViewChild(REPLComponent)
   private repl: REPLComponent;
+  
+  @ViewChild(PropertiesPanelComponent)
+  private propertiesPanel: REPLComponent;
 
 
   // Declare icons for the sidebar.

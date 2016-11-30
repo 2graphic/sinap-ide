@@ -44,6 +44,13 @@ import {Graph} from "./graph";
 
 /////// Delegate Interfaces
 
+export interface EditorDelegate {
+  selectedElements : Set<DrawableGraph | DrawableNode | DrawableEdge>;
+  selectElement(element : DrawableGraph | DrawableNode | DrawableEdge) : void;
+  deselectElement(element : DrawableGraph | DrawableNode | DrawableEdge) : void;
+  clearSelected() : void;
+}
+
 export interface DrawableGraph {
   readonly nodes : Iterable<DrawableNode>;
   readonly edges : Iterable<DrawableEdge>;
@@ -130,6 +137,8 @@ export function isDrawableNode(obj : any) : obj is DrawableNode {
  *   Angular2 component that provides a canvas for drawing nodes and edges.
  */
 export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
+
+  public delegate : EditorDelegate;
 
   /**
    * graphEditorCanvas
