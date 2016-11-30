@@ -21,7 +21,7 @@
 // - Make it so that if any part of a component is caught within the selection
 //   box, it is selected
 // - Something about deep binding for the graph components? [For now, use redraw]
-// - Add a selectionChanged event. [Should this be in the GraphView object?]
+// - Add a selectionChanged event. [Should this be in the DrawableGraph object?]
 // - Add mouse hover display behavior
 //   - Show edge anchor points
 //   - etc.
@@ -38,14 +38,84 @@ import {
   ViewChild
 } from "@angular/core";
 
-//
-// TODO:
-// Remove Graph import for production.
-//
-import { GraphView, Graph } from "./graph";
-import { NodeView, isNodeView } from "./node";
-import { EdgeView, isEdgeView } from "./edge";
+// TODO Remove
+import {Graph} from "./graph";
 
+
+/////// Delegate Interfaces
+
+export interface DrawableGraph {
+  readonly nodes : Iterable<DrawableNode>;
+  readonly edges : Iterable<DrawableEdge>;
+
+  createNode(x? : number, y? : number) : DrawableNode
+  /* contractually `src` -> `dest` will have been validated by 
+  `canCreateEdge`, Graph implementations are not required to test this */
+  createEdge(src : DrawableNode, dest : DrawableNode) : DrawableEdge
+  /* contractually `original` will be in the list,
+  this is not necessarily checked by implementations */
+  moveEdge(original : DrawableEdge, replacement : DrawableEdge) : void
+  /* contractually `node` will be in the list,
+  this is not necessarily checked by implementations */
+  removeNode(node : DrawableNode) : void
+  /* contractually `edge` will be in the list,
+  this is not necessarily checked by implementations */
+  removeEdge(edge : DrawableEdge) : void
+  canCreateEdge(src : DrawableNode, dest : DrawableNode) : boolean 
+  canMoveEdge(edge : DrawableEdge, src : DrawableNode, dest : DrawableNode) : boolean 
+}
+
+function isDrawableGraph(obj : any) : obj is DrawableGraph {
+  //
+  // TODO:
+  // Return false if obj does not have any one of the members in DrawableGraph.
+  //
+  return obj !== null;
+}
+
+export interface DrawableEdge {
+  source : DrawableNode;
+  destination : DrawableNode;
+  showLeftArrow : boolean;
+  showRightArrow : boolean;
+  color : string;
+  lineStyle : string;
+  lineWidth : number;
+  // todo more display properties
+}
+
+function isDrawableEdge(obj : any) : obj is DrawableEdge {
+  //
+  // TODO:
+  // Return false if obj does not have any one of the members in DrawableEdge.
+  //
+  return obj !== null && obj.source !== undefined && obj.destination !== undefined;
+}
+
+export interface DrawableNode {
+  x : number;
+  y : number;
+  label : string;
+  
+  color : string;
+  borderColor: string;
+  borderStyle: string; // TODO: enforce "solid" | "dashed" | "dotted"
+  borderWidth: number;
+  // todo more display properties
+}
+
+export function isDrawableNode(obj : any) : obj is DrawableNode {
+  //
+  // TODO:
+  // Return false if obj does not have any one of the members in DrawableNode.
+  //
+  return obj !== null && obj.x !== undefined && obj.y !== undefined;
+}
+
+
+
+
+///// The main component
 
 @Component({
   moduleId: module.id,
@@ -55,6 +125,7 @@ import { EdgeView, isEdgeView } from "./edge";
     "../styles/graph-editor.component.css"
   ]
 })
+
 /**
  * GraphEditorComponent
  *   Angular2 component that provides a canvas for drawing nodes and edges.
@@ -89,37 +160,37 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * dragObect
    *   The graph component being dragged by the cursor.
    */
-  private dragObject : NodeView | EdgeView = null;
+  private dragObject : DrawableNode | DrawableEdge = null;
 
   /**
    * replaceEdge
    *   The edge to be replaced once the new edge has been created.
    */
-  private replaceEdge : EdgeView = null;
+  private replaceEdge : DrawableEdge = null;
 
   /**
    * selectedItems
    *   The currently selected graph components.
    */
-  private selectedItems : Array<NodeView | EdgeView> = [];
+  private selectedItems : Array<DrawableNode | DrawableEdge> = [];
 
   /**
    * unselectedItems
    *   The currently unselected graph components.
    */
-  private unselectedItems : Array<NodeView | EdgeView> = [];
+  private unselectedItems : Array<DrawableNode | DrawableEdge> = [];
 
   /**
    * _graph
    *   The active graph being edited.
    */
-  private _graph : GraphView = null;
+  private _graph : DrawableGraph = null;
 
   /**
    * graph
    *   Sets the active graph.
    */
-  set graph(value : GraphView) {
+  set graph(value : DrawableGraph) {
     this._graph = value;
     this.clearSelected();
     this.redraw();
@@ -129,7 +200,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * graph
    *   Gets the active graph.
    */
-  get graph() : GraphView {
+  get graph() : DrawableGraph {
     return this._graph;
   }
 
@@ -137,7 +208,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * dragNode
    *   Sets the node being dragged by the cursor.
    */
-  set dragNode(value : NodeView) {
+  set dragNode(value : DrawableNode) {
     this.dragObject = value;
   }
 
@@ -171,18 +242,18 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    */
   onKeyDown(e : KeyboardEvent) : void {
     if(e.keyCode == 46) {
-      let edges : Array<EdgeView> = [];
-      let nodes : Array<NodeView> = [];
+      let edges : Array<DrawableEdge> = [];
+      let nodes : Array<DrawableNode> = [];
       while(this.selectedItems.length > 0) {
         let i = this.selectedItems.pop();
-        if(isEdgeView(i))
+        if(isDrawableEdge(i))
           edges.push(i);
-        else if(isNodeView(i))
+        else if(isDrawableNode(i))
           nodes.push(i);
       }
       for(let n of nodes) {
         for(let u of this.unselectedItems)
-          if(isEdgeView(u) && (u.source === n || u.destination === n))
+          if(isDrawableEdge(u) && (u.source === n || u.destination === n))
             edges.push(u);
         this._graph.removeNode(n);
       }
@@ -231,7 +302,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
 
           // Set the drag object to some dummy edge and the replace edge to the
           // original drag object if the drag object was an edge.
-          else if(isEdgeView(this.dragObject)) {
+          else if(isDrawableEdge(this.dragObject)) {
             //
             // TODO:
             // Determine which side of the edge the hit test landed on.
@@ -244,7 +315,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
           }
 
           // Update the node position if the drag object was set to a node.
-          else if(isNodeView(this.dragObject)) {
+          else if(isDrawableNode(this.dragObject)) {
             this.dragObject.x = downPt.x;
             this.dragObject.y = downPt.y;
             this.redraw();
@@ -290,7 +361,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         this.dragObject = this.hitTest(ePt.x, ePt.y);
 
         // Set the drag object to a dummy edge if the drag object is a node.
-        if(isNodeView(this.dragObject))
+        if(isDrawableNode(this.dragObject))
           this.dragObject = new GhostEdge(this.dragObject);
 
         // Clear the selected items if the drag object is not a node.
@@ -320,7 +391,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         }
 
         // Update edge endpoint if dragging edge.
-        else if(isEdgeView(this.dragObject)) {
+        else if(isDrawableEdge(this.dragObject)) {
           this.redraw();
           this.g.globalAlpha = 0.3;
           drawEdge(this.g, this.dragObject, ePt.x, ePt.y);
@@ -328,7 +399,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         }
 
         // Update node position if dragging node.
-        else if(isNodeView(this.dragObject)) {
+        else if(isDrawableNode(this.dragObject)) {
           this.redraw();
           this.dragObject.x = ePt.x;
           this.dragObject.y = ePt.y;
@@ -361,19 +432,19 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       }
 
       // Create the edge if one is being dragged.
-      else if(isEdgeView(this.dragObject)) {
+      else if(isDrawableEdge(this.dragObject)) {
 
         // Check that the mouse was released at a node.
         let hit = this.hitTest(ePt.x, ePt.y);
-        if(isNodeView(hit)) {
+        if(isDrawableNode(hit)) {
           //
           // TODO:
           // This needs to have some notion of canReplaceEdge from the graph.
           // Note: Consider the case where the user wants to move an edge
           //       destination to some other node, but the selectedEdgeType is not
-          //       the same as the replacement edge type. GraphView can either
+          //       the same as the replacement edge type. DrawableGraph can either
           //       redefine the replaceEdge method to take in the original edge
-          //       plus a source and destination NodeView and either succeed or
+          //       plus a source and destination DrawableNode and either succeed or
           //       fail without warning or error, or we can stick to the pattern
           //       of checking if the operation is valid before performing it
           //       (i.e. canCreateEdge -> createEdge + canReplaceEdge ->
@@ -400,7 +471,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       }
 
       // Drop the node if one is being dragged.
-      else if(isNodeView(this.dragObject)) {
+      else if(isDrawableNode(this.dragObject)) {
         //
         // TODO:
         // Pevent nodes from being dropped on top of eachother.
@@ -459,7 +530,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     // TODO:
     // Do we really want to use hardcoded values for selection display properties?
     //
-    for(let e of this._graph.getEdgeViews()) {
+    for(let e of this._graph.edges) {
       let c = e.color;
       let w = e.lineWidth;
       if(e === this.replaceEdge)
@@ -473,7 +544,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       e.lineWidth = w;
       this.g.globalAlpha = 1;
     }
-    for(let n of this._graph.getNodeViews()) {
+    for(let n of this._graph.nodes) {
       let c = n.borderColor;
       let w = n.borderWidth;
       if(this.selectedItems.indexOf(n) > -1) {
@@ -498,9 +569,9 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     this.g.fillStyle = "#fff";
     //
     // TODO:
-    // Add label field to EdgeView.
+    // Add label field to DrawableEdge.
     //
-    // for(let e of this._graph.getEdgeViews()) {
+    // for(let e of this._graph.getDrawableEdges()) {
     //   let rect = this.makeRect(
     //     e.source.x, e.source.y,
     //     e.destination.x, e.destination.y
@@ -508,7 +579,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     //   this.ctx.strokeText(e.label, rect.x + rect.w / 2, rect.y + rect.h / 2);
     //   this.ctx.fillText(e.label, rect.x + rect.w / 2, rect.y + rect.h / 2);
     // }
-    for(let n of this._graph.getNodeViews()) {
+    for(let n of this._graph.nodes) {
       this.g.strokeText(n.label, n.x, n.y);
       this.g.fillText(n.label, n.x, n.y);
     }
@@ -522,9 +593,9 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     this.selectedItems = [];
     this.unselectedItems = [];
     if (this._graph) {
-      for(let e of this._graph.getEdgeViews())
+      for(let e of this._graph.edges)
         this.unselectedItems.push(e);
-      for(let n of this._graph.getNodeViews())
+      for(let n of this._graph.edges)
         this.unselectedItems.push(n);
     }
   }
@@ -533,7 +604,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * addSelectedItem
    *   Adds an item to the selected items collection.
    */
-  private addSelectedItem(value : NodeView | EdgeView) : void {
+  private addSelectedItem(value : DrawableNode | DrawableEdge) : void {
     moveItem(this.unselectedItems, this.selectedItems, value);
   }
 
@@ -541,7 +612,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * removeSelectedItem
    *   Removes an item from the selected items collection.
    */
-  private removeSelectedItem(value : NodeView | EdgeView) : void {
+  private removeSelectedItem(value : DrawableNode | DrawableEdge) : void {
     moveItem(this.selectedItems, this.unselectedItems, value);
   }
 
@@ -553,20 +624,20 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    *   Nodes take priority over edges.
    * </p>
    */
-  private hitTest(x : number, y : number) : NodeView | EdgeView {
+  private hitTest(x : number, y : number) : DrawableNode | DrawableEdge {
     //
     // TODO:
     // Make sure to handle hit testing of custom shapes.
     // When hit testing edges, hit test only on the end points.
     //   End points will show on mouse hover.
     //
-    for(let n of this._graph.getNodeViews()) {
+    for(let n of this._graph.nodes) {
       let dx = n.x - x;
       let dy = n.y - y;
       if(dx * dx + dy * dy <= 20 * 20)
         return n;
     }
-    for(let e of this.graph.getEdgeViews()) {
+    for(let e of this.graph.edges) {
       let lx = e.source.x;
       let ly = e.source.y;
       let rx = e.destination.x;
@@ -587,7 +658,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * rectHitTest
    *   Checks if a graph component was hit by a rectangle.
    */
-  private rectHitTest(c : EdgeView | NodeView, rect) : boolean {
+  private rectHitTest(c : DrawableEdge | DrawableNode, rect) : boolean {
     //
     // TODO:
     // If any part of the component is within the selection box,
@@ -598,10 +669,10 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     //   selection box, and an edge is added if either of its nodes' center is
     //   within the selection box.
     //
-    return (isNodeView(c) &&
+    return (isDrawableNode(c) &&
             c.x >= rect.x && c.x <= rect.x + rect.w &&
             c.y >= rect.y && c.y <= rect.y + rect.h) ||
-           (isEdgeView(c) && (this.rectHitTest(c.source, rect) ||
+           (isDrawableEdge(c) && (this.rectHitTest(c.source, rect) ||
             this.rectHitTest(c.destination, rect)));
   }
 
@@ -627,9 +698,9 @@ function getMousePt(g : CanvasRenderingContext2D, e: MouseEvent) {
  *   Moves an item from one array to the other.
  */
 function moveItem(
-  src : Array<NodeView | EdgeView>,
-  dst : Array<NodeView | EdgeView>,
-  itm : NodeView | EdgeView
+  src : Array<DrawableNode | DrawableEdge>,
+  dst : Array<DrawableNode | DrawableEdge>,
+  itm : DrawableNode | DrawableEdge
 ) : void {
   dst.push(itm);
   src.splice(src.indexOf(itm));
@@ -689,7 +760,7 @@ function drawSelectionBox(g : CanvasRenderingContext2D, rect) : void {
  * TODO:
  *   This needs to be able to handle custom node shapes/images.
  */
-function drawNode(g : CanvasRenderingContext2D, n : NodeView) : void {
+function drawNode(g : CanvasRenderingContext2D, n : DrawableNode) : void {
   g.fillStyle = n.color;
   g.strokeStyle = n.borderColor;
   g.lineWidth = n.borderWidth;
@@ -713,7 +784,7 @@ function drawNode(g : CanvasRenderingContext2D, n : NodeView) : void {
  */
 function drawEdge(
   g : CanvasRenderingContext2D,
-  e : EdgeView,
+  e : DrawableEdge,
   x? : number, y? : number
 ) : void {
   g.strokeStyle = e.color;
@@ -750,8 +821,8 @@ function drawLine(
  */
 function drawArrow(
   g : CanvasRenderingContext2D,
-  src : NodeView,
-  dst : NodeView
+  src : DrawableNode,
+  dst : DrawableNode
 ) : void {
 
   const COS_THETA = Math.cos(5 * Math.PI / 6);
@@ -759,8 +830,8 @@ function drawArrow(
 
   //
   // TODO:
-  // Either NodeView or EdgeView needs to define anchor points, and the
-  // EdgeView must specify which anchor it is attached to for src and dst.
+  // Either DrawableNode or DrawableEdge needs to define anchor points, and the
+  // DrawableEdge must specify which anchor it is attached to for src and dst.
   //
 
   // Get the vector from src to dst.
@@ -821,12 +892,12 @@ function clear(g : CanvasRenderingContext2D) : void {
  * GhostEdge
  *   Spoopy haunted edge that follows the cursor. *ooOOOoOOooooOOOOooOoOoOoo*
  */
-class GhostEdge implements EdgeView {
+class GhostEdge implements DrawableEdge {
   showLeftArrow : boolean = false;
   showRightArrow : boolean = false;
   color : string = "#000";
   lineStyle : string = "dotted";
   lineWidth : number = 2;
-  destination : NodeView = null;
-  constructor(public source : NodeView) { }
+  destination : DrawableNode = null;
+  constructor(public source : DrawableNode) { }
 }
