@@ -8,7 +8,7 @@
 // There needs to be some notion of canReplaceEdge from the graph.
 //   Consider the case where the user wants to move an edge
 //   destination to some other node, but the selectedEdgeType is not
-//   the same as the replacement edge type. GraphView can either
+//   the same as the replacement edge type. DrawableGraph can either
 //   redefine the replaceEdge method to take in the original edge
 //   plus a source and destination NodeView which either succeeds or
 //   fails without warning or error, or we can stick to the pattern
@@ -19,75 +19,65 @@
 // 
 
 
-import { EdgeView, Edge } from "./edge";
-import { NodeView, Node } from "./node";
+import { DrawableEdge, DrawableGraph, DrawableNode } from "./graph-editor.component";
 
 
-export class Graph implements GraphView {
-  private nodes : Array<NodeView> = [];
-  private edges : Array<EdgeView> = [];
-  getNodeViews() {
+export class Graph implements DrawableGraph {
+  private _nodes : Array<Node> = [];
+  private _edges : Array<Edge> = [];
+  get edges() : Iterable<DrawableEdge> {
     //
     // TODO:
     // Send a copy of this.
     //
-    return this.nodes;
+    return this._edges;
   }
-  getEdgeViews() {
+  get nodes() : Iterable<DrawableNode> {
     //
     // TODO:
     // Send a copy of this.
     //
-    return this.edges;
+    return this._nodes;
   }
   createNode(x=0, y=0) {
   	const node = new Node(x, y);
-  	this.nodes.push(node);
+  	this._nodes.push(node);
   	return node;
   }
-  createEdge(src : NodeView, dest : NodeView) {
+  createEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) {
   	const edge = new Edge(src, dest);
-  	this.edges.push(edge);
+  	this._edges.push(edge);
   	return edge;
   }
-  replaceEdge(original : EdgeView, replacement : EdgeView) {
-  	this.edges[this.edges.indexOf(original)] = replacement;
+  replaceEdge(original : DrawableEdge, replacement : DrawableEdge) {
+  	this._edges[this._edges.indexOf(original)] = replacement;
   }
-  removeNode(node : NodeView) {
-    this.nodes.splice(this.nodes.indexOf(node), 1);
+  removeNode(node : DrawableNode) {
+    this._nodes.splice(this._nodes.indexOf(node), 1);
   }
-  removeEdge(edge : EdgeView) {
-    this.edges.splice(this.edges.indexOf(edge), 1);
+  removeEdge(edge : DrawableEdge) {
+    this._edges.splice(this._edges.indexOf(edge), 1);
   }
-  canCreateEdge(src : NodeView, dest : NodeView) {
-  	return Math.random() > 0.1;
-  } 
-
+  canCreateEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) {
+    return Math.random() > 0.1;
+  }
 }
 
-export function isGraphView(obj : any) : obj is GraphView {
-  //
-  // TODO:
-  // Return false if obj does not have any one of the members in GraphView.
-  //
-  return obj !== null;
+
+class Edge implements DrawableEdge{
+  showLeftArrow : boolean = false;
+  showRightArrow : boolean = false;
+  color : string = "#000";
+  lineStyle : string = "solid";
+  lineWidth : number = 1;
+  constructor(public source : DrawableNode, public destination : DrawableNode) { }
 }
 
-export interface GraphView {
-  getNodeViews() : Iterable<NodeView>
-  getEdgeViews() : Iterable<EdgeView>
-  createNode(x? : number, y? : number) : NodeView
-  /* contractually `src` -> `dest` will have been validated by 
-  `canCreateEdge`, Graph implementations are not required to test this */
-  createEdge(src : NodeView, dest : NodeView) : EdgeView
-  /* contractually `original` will be in the list,
-  this is not necessarily checked by implementations */
-  replaceEdge(original : EdgeView, replacement : EdgeView) : void
-  /* contractually `node` will be in the list,
-  this is not necessarily checked by implementations */
-  removeNode(node : NodeView) : void
-  /* contractually `edge` will be in the list,
-  this is not necessarily checked by implementations */
-  removeEdge(edge : EdgeView) : void
-  canCreateEdge(src : NodeView, dest : NodeView) : boolean 
+class Node implements DrawableNode{
+  label : string = "";
+  color : string = "#fff200";
+  borderColor: string = "#000";
+  borderStyle: string = "solid";
+  borderWidth = 1;
+  constructor(public x : number, public y : number) { }
 }
