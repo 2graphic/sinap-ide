@@ -73,7 +73,7 @@ class Edge implements DrawableEdge{
   constructor(public source : DrawableNode, public destination : DrawableNode) { }
 }
 
-export class Node implements DrawableNode{
+class Node implements DrawableNode{
   label : string = "";
   color : string = "#fff200";
   borderColor: string = "#000";
