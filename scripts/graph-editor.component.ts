@@ -225,11 +225,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
           nodes.add(e);
         }
       }
-<<<<<<< HEAD
       let unselectedEdges = [...this.graph.edges].filter(x => !edges.has(x))
-=======
-      let unselectedEdges = [...this.graph.edges].filter(x => edges.has(x))
->>>>>>> Actually use the new delegate selected elements (broken)
 
       for(let n of nodes) {
         for (let e of unselectedEdges.filter(u =>
