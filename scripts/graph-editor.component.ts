@@ -18,6 +18,7 @@
 //
 // TODO:
 // - Special draw start node.
+// - Special draw "final/accept" nodes.
 // - @Input height/width
 // - Zoom and Pan
 //   pinch to zoom/two-touch drag to pan
@@ -48,6 +49,49 @@ import {
   SimpleChanges,
   ViewChild
 } from "@angular/core";
+
+// Static constants ////////////////////////////////////////////////////////////
+//
+// Note:
+// These values should probably be defined in some user/workspace preferences
+// file.
+//
+
+/**
+ * GRID_MAJOR
+ *   Grid spacing between major ticks.
+ */
+const GRID_MAJOR : number = 40;
+
+//
+// TODO:
+// Grid minor spacing?
+//
+
+/**
+ * NUDGE
+ *   The distance the cursor must move by in order to cancel waiting for
+ *   dragging a node.
+ */
+const NUDGE : number = 3;
+
+/**
+ * STICKY_DELAY
+ *   Number of miliseconds to wait for sticking a graph element to the cursor.
+ */
+const STICKY_DELAY : number = 300;
+
+/**
+ * COS_THETA
+ *   Used in the rotation matrix for drawing edge arrows.
+ */
+const COS_THETA : number = Math.cos(5 * Math.PI / 6);
+
+/**
+ * SIN_THETA
+ *   Used in the rotation matrix for drawing edge arrows.
+ */
+const SIN_THETA : number = Math.sin(5 * Math.PI / 6);
 
 // Public interfaces ///////////////////////////////////////////////////////////
 
@@ -103,7 +147,7 @@ export interface DrawableEdge extends Drawable {
 /**
  * DrawableNode
  */
-export interface DrawableNode extends Drawable{
+export interface DrawableNode extends Drawable {
   x : number;
   y : number;
   label : string;
@@ -155,6 +199,12 @@ export class GraphEditorComponent
    *   The 2D graphics rendering context from the canvas element.
    */
   private g : CanvasRenderingContext2D = null;
+
+  /**
+   * gridOriginPt
+   *   The coordinates of the grid origin.
+   */
+  private gridOriginPt = { x: 0, y: 0 };
 
   /**
    * downEvt
@@ -262,6 +312,7 @@ export class GraphEditorComponent
    *   I don't like where this is.
    */
   onKeyDown(e : KeyboardEvent) : void {
+    // Delete keyCode is 46.
     if(e.keyCode == 46) {
       let edges = new Set<DrawableEdge>();
       let nodes = new Set<DrawableNode>();
@@ -346,7 +397,7 @@ export class GraphEditorComponent
             this.redraw();
           }
         }
-      }, 300);
+      }, STICKY_DELAY);
     }
   }
 
@@ -376,10 +427,7 @@ export class GraphEditorComponent
 
       // Reset waiting if waiting is still active and the mouse has moved too
       // far.
-      //
-      // Note:
-      //   The radius is hardcoded to 3 for now.
-      if(this.isWaiting && (dx * dx + dy * dy > 3 * 3)) {
+      if(this.isWaiting && (dx * dx + dy * dy > NUDGE * NUDGE)) {
         this.isWaiting = false;
 
         // Check the drag object.
@@ -538,7 +586,7 @@ export class GraphEditorComponent
    *   Redraws the graph.
    */
   redraw() : void {
-    clear(this.g);
+    clear(this.g, this.gridOriginPt);
     if(this.graph !== null) {
       //
       // TODO:
@@ -640,7 +688,7 @@ export class GraphEditorComponent
     for(let n of this.graph.nodes) {
       let dx = n.x - x;
       let dy = n.y - y;
-      if(dx * dx + dy * dy <= 20 * 20)
+      if(dx * dx + dy * dy <= GRID_MAJOR * GRID_MAJOR / 4)
         return n;
     }
     for(let e of this.graph.edges) {
@@ -684,7 +732,7 @@ export class GraphEditorComponent
 
 }
 
-// Static functions. ///////////////////////////////////////////////////////////
+// Static functions ////////////////////////////////////////////////////////////
 
 /**
  * getMousePt
@@ -776,7 +824,7 @@ function drawNode(g : CanvasRenderingContext2D, n : DrawableNode) : void {
   // TODO:
   // For now the radius of a node is hardcoded as 20.
   //
-  g.arc(n.x, n.y, 20, 0, 2 * Math.PI);
+  g.arc(n.x, n.y, GRID_MAJOR / 2, 0, 2 * Math.PI);
   g.fill();
   g.stroke();
 }
@@ -831,9 +879,6 @@ function drawArrow(
   dst : DrawableNode
 ) : void {
 
-  const COS_THETA = Math.cos(5 * Math.PI / 6);
-  const SIN_THETA = Math.sin(5 * Math.PI / 6);
-
   //
   // TODO:
   // Either DrawableNode or DrawableEdge needs to define anchor points, and the
@@ -856,25 +901,21 @@ function drawArrow(
   ]
 
   // Get the point where the edge meets the node border.
-  //
-  // TODO:
-  // Node radius is hardcoded to 20.
-  //
-  v[0] = u[0] * (d - 20) + src.x;
-  v[1] = u[1] * (d - 20) + src.y;
+  v[0] = u[0] * (d - GRID_MAJOR / 2) + src.x;
+  v[1] = u[1] * (d - GRID_MAJOR / 2) + src.y;
 
   // Draw arrow.
   drawLine(
     g,
     v[0], v[1],
-    v[0] + 20 * (u[0] * COS_THETA - u[1] * SIN_THETA),
-    v[1] + 20 * (u[0] * SIN_THETA + u[1] * COS_THETA)
+    v[0] + GRID_MAJOR * (u[0] * COS_THETA - u[1] * SIN_THETA) / 2,
+    v[1] + GRID_MAJOR * (u[0] * SIN_THETA + u[1] * COS_THETA) / 2
   );
   drawLine(
     g,
     v[0], v[1],
-    v[0] + 20 * (u[0] * COS_THETA + u[1] * SIN_THETA),
-    v[1] + 20 * (-u[0] * SIN_THETA + u[1] * COS_THETA)
+    v[0] + GRID_MAJOR * (u[0] * COS_THETA + u[1] * SIN_THETA) / 2,
+    v[1] + GRID_MAJOR * (-u[0] * SIN_THETA + u[1] * COS_THETA) / 2
   );
 }
 
@@ -882,17 +923,25 @@ function drawArrow(
  * clear
  *   Clears the canvas.
  */
-function clear(g : CanvasRenderingContext2D) : void {
+function clear(g : CanvasRenderingContext2D, gridOriginPt) : void {
   let canvas = g.canvas;
+  let w = canvas.width;
+  let h = canvas.height;
   g.fillStyle = "white";
   g.fillRect(0, 0, canvas.width, canvas.height);
-  //
-  // TODO:
-  // Draw the grid.
-  //
+
+  g.strokeStyle = "#000";
+  g.lineWidth = 1;
+  g.globalAlpha = 0.3;
+  setLineStyle(g, "solid");
+  for(let x = gridOriginPt.x % GRID_MAJOR; x < w; x += GRID_MAJOR)
+    drawLine(g, x, 0, x, h);
+  for(let y = gridOriginPt.y % GRID_MAJOR; y < h; y += GRID_MAJOR)
+    drawLine(g, 0, y, w, y);
+  g.globalAlpha = 1;
 }
 
-// Static classes. /////////////////////////////////////////////////////////////
+// Static classes //////////////////////////////////////////////////////////////
 
 /**
  * GhostEdge
