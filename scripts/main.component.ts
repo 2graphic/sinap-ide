@@ -24,7 +24,7 @@ import { Element, Graph } from "./graph"
 export class MainComponent implements OnInit, MenuDelegate, REPLDelegate, EditorDelegate {
   constructor(private menu: MenuService, private pluginService: PluginService) {}
   
-  selectedElements : Set<Element>;
+  selectedElements = new Set<Element>();
   selectElement(element : DrawableThing) {
     if (!(element instanceof Element))
       throw "Only try to select drawable things made by the main.component";
@@ -53,7 +53,10 @@ export class MainComponent implements OnInit, MenuDelegate, REPLDelegate, Editor
     this.menu.setDelegate(this);
     this.repl.setDelegate(this);
     this.graphEditor.delegate = this;
-    this.newFile();
+  }
+
+  ngAfterViewInit() {
+    this.newFile();    
   }
 
   @ViewChild(GraphEditorComponent)
