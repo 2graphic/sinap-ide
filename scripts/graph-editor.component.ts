@@ -358,14 +358,12 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
           let rect = makeRect(downPt.x, downPt.y, ePt.x, ePt.y);
 
           // TODO: I made this not DRY, also it lost the unselected elements efficiency boost
-          // FIXME? 
           // Update the selected components.
+          this.delegate.clearSelected();
           for(let u of this.graph.nodes) {
             if(this.rectHitTest(u, rect))
               this.delegate.selectElement(u);
           }
-
-          // Update the selected components.
           for(let u of this.graph.edges) {
             if(this.rectHitTest(u, rect))
               this.delegate.selectElement(u);
