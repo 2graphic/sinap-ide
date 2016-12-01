@@ -3,10 +3,9 @@ import { Injectable, NgZone } from '@angular/core';
 import { remote, ipcRenderer } from 'electron';
 let { Menu, MenuItem, app } = remote;
 
-// TODO: Does this need to be a provider to prevent the injector from making mutliple instances of this?
 @Injectable()
 export class MenuService {
-    private delegates:MenuDelegate[] = [];
+    private eventListeners:MenuEventListener[] = [];
 
     constructor( private _ngZone: NgZone) {
         // Initialize the system Menu
@@ -14,36 +13,40 @@ export class MenuService {
         Menu.setApplicationMenu(menu);
 
         ipcRenderer.on("new", () => {
-            this.newFile();
+            this.callEvent(MenuEvent.NEW_FILE);
         });
     }
 
-    private newFile() {
+    private callEvent(e: MenuEvent) {
         this._ngZone.run(() => {
-            this.delegates.forEach((delegate)=>{
-                if (delegate.newFile) {
-                    delegate.newFile();
-                }
+            this.eventListeners.forEach((listener)=>{
+                listener.menuEvent(e);
             });
         });
     }
 
-    public setDelegate(obj: MenuDelegate) {
-       if (this.delegates.indexOf(obj) < 0) {
-           this.delegates.push(obj);
+    public addEventListener(obj: MenuEventListener) {
+       if (this.eventListeners.indexOf(obj) < 0) {
+           this.eventListeners.push(obj);
        }
     }
 
-    public removeDelegate(obj: MenuDelegate) {
-        var index = this.delegates.indexOf(obj);
+    public removeEventListener(obj: MenuEventListener) {
+        var index = this.eventListeners.indexOf(obj);
         if (index >= 0) {
-            this.delegates.splice(index, 1);
+            this.eventListeners.splice(index, 1);
         }
     }
 }
 
-export interface MenuDelegate {
-    newFile?:() => void;
+export enum MenuEvent {
+    NEW_FILE,
+    UNDO,
+    REDO,
+}
+
+export interface MenuEventListener {
+    menuEvent:(e: MenuEvent) => void;
 }
 
 // This defines the template for our applicaiton Menu

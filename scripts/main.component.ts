@@ -8,7 +8,7 @@
 
 
 import { Component, OnInit, ViewChild } from "@angular/core";
-import { MenuService, MenuDelegate } from "./menu.service"
+import { MenuService, MenuEventListener, MenuEvent } from "./menu.service"
 import { GraphEditorComponent, EditorDelegate, DrawableThing } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
@@ -21,7 +21,7 @@ import { Element, Graph } from "./graph"
   templateUrl: "../html/main.component.html",
   providers: [MenuService, PluginService]
 })
-export class MainComponent implements OnInit, MenuDelegate, REPLDelegate, EditorDelegate {
+export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, EditorDelegate {
   constructor(private menu: MenuService, private pluginService: PluginService) {}
   
   selectedElements = new Set<Element>();
@@ -50,9 +50,10 @@ export class MainComponent implements OnInit, MenuDelegate, REPLDelegate, Editor
 
 
   ngOnInit(): void {
-    this.menu.setDelegate(this);
-    this.repl.setDelegate(this);
+    this.repl.delegate = this;
     this.graphEditor.delegate = this;
+
+    this.menu.addEventListener(this);
   }
 
   ngAfterViewInit() {
@@ -94,6 +95,14 @@ export class MainComponent implements OnInit, MenuDelegate, REPLDelegate, Editor
 
   newFile() {
     this.graphEditor.graph = new Graph([new Property("graph_property", null, null, null)]);
+  }
+
+  menuEvent(e: MenuEvent) {
+    switch (e) {
+      case MenuEvent.NEW_FILE:
+        this.graphEditor.graph = null;
+        break;
+    }
   }
 
   run(input: String):String {
