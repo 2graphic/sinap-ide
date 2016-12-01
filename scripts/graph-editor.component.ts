@@ -38,20 +38,22 @@ import {
   ViewChild
 } from "@angular/core";
 
-// TODO Remove
-import {Graph} from "./graph";
-
-
 /////// Delegate Interfaces
 
 export interface EditorDelegate {
-  selectedElements : Set<DrawableGraph | DrawableNode | DrawableEdge>;
-  selectElement(element : DrawableGraph | DrawableNode | DrawableEdge) : void;
-  deselectElement(element : DrawableGraph | DrawableNode | DrawableEdge) : void;
+  selectedElements : Set<DrawableThing>;
+  selectElement(element : DrawableThing) : void;
+  deselectElement(element : DrawableThing) : void;
   clearSelected() : void;
 }
 
-export interface DrawableGraph {
+export interface DrawableThing {
+  isGraph() : this is DrawableGraph;
+  isEdge() : this is DrawableEdge;
+  isNode() : this is DrawableNode;
+}
+
+export interface DrawableGraph extends DrawableThing {
   readonly nodes : Iterable<DrawableNode>;
   readonly edges : Iterable<DrawableEdge>;
 
@@ -71,34 +73,19 @@ export interface DrawableGraph {
   canCreateEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) : boolean 
 }
 
-function isDrawableGraph(obj : any) : obj is DrawableGraph {
-  //
-  // TODO:
-  // Return false if obj does not have any one of the members in DrawableGraph.
-  //
-  return obj !== null;
-}
-
-export interface DrawableEdge {
+export interface DrawableEdge extends DrawableThing {
   source : DrawableNode;
   destination : DrawableNode;
-  showLeftArrow : boolean;
-  showRightArrow : boolean;
+  showSourceArrow : boolean;
+  showDestinationArrow : boolean;
   color : string;
   lineStyle : string;
   lineWidth : number;
+  name : string;
   // todo more display properties
 }
 
-function isDrawableEdge(obj : any) : obj is DrawableEdge {
-  //
-  // TODO:
-  // Return false if obj does not have any one of the members in DrawableEdge.
-  //
-  return obj !== null && obj.source !== undefined && obj.destination !== undefined;
-}
-
-export interface DrawableNode {
+export interface DrawableNode extends DrawableThing{
   x : number;
   y : number;
   label : string;
@@ -109,15 +96,6 @@ export interface DrawableNode {
   borderWidth: number;
   // todo more display properties
 }
-
-export function isDrawableNode(obj : any) : obj is DrawableNode {
-  //
-  // TODO:
-  // Return false if obj does not have any one of the members in DrawableNode.
-  //
-  return obj !== null && obj.x !== undefined && obj.y !== undefined;
-}
-
 
 
 
@@ -254,14 +232,14 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       let nodes : Array<DrawableNode> = [];
       while(this.selectedItems.length > 0) {
         let i = this.selectedItems.pop();
-        if(isDrawableEdge(i))
+        if(i.isEdge())
           edges.push(i);
-        else if(isDrawableNode(i))
+        else
           nodes.push(i);
       }
       for(let n of nodes) {
         for(let u of this.unselectedItems)
-          if(isDrawableEdge(u) && (u.source === n || u.destination === n))
+          if(u.isEdge() && (u.source === n || u.destination === n))
             edges.push(u);
         this._graph.removeNode(n);
       }
@@ -310,7 +288,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
 
           // Set the drag object to some dummy edge and the replace edge to the
           // original drag object if the drag object was an edge.
-          else if(isDrawableEdge(this.dragObject)) {
+          else if(this.dragObject.isEdge()) {
             //
             // TODO:
             // Determine which side of the edge the hit test landed on.
@@ -323,7 +301,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
           }
 
           // Update the node position if the drag object was set to a node.
-          else if(isDrawableNode(this.dragObject)) {
+          else if(this.dragObject.isNode()) {
             this.dragObject.x = downPt.x;
             this.dragObject.y = downPt.y;
             this.redraw();
@@ -369,7 +347,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         this.dragObject = this.hitTest(ePt.x, ePt.y);
 
         // Set the drag object to a dummy edge if the drag object is a node.
-        if(isDrawableNode(this.dragObject))
+        if(this.dragObject.isNode())
           this.dragObject = new GhostEdge(this.dragObject);
 
         // Clear the selected items if the drag object is not a node.
@@ -399,7 +377,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         }
 
         // Update edge endpoint if dragging edge.
-        else if(isDrawableEdge(this.dragObject)) {
+        else if(this.dragObject.isEdge()) {
           this.redraw();
           this.g.globalAlpha = 0.3;
           drawEdge(this.g, this.dragObject, ePt.x, ePt.y);
@@ -407,7 +385,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         }
 
         // Update node position if dragging node.
-        else if(isDrawableNode(this.dragObject)) {
+        else if(this.dragObject.isNode) {
           this.redraw();
           this.dragObject.x = ePt.x;
           this.dragObject.y = ePt.y;
@@ -440,11 +418,11 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       }
 
       // Create the edge if one is being dragged.
-      else if(isDrawableEdge(this.dragObject)) {
+      else if(this.dragObject.isEdge()) {
 
         // Check that the mouse was released at a node.
         let hit = this.hitTest(ePt.x, ePt.y);
-        if(isDrawableNode(hit)) {
+        if(hit.isNode()) {
           //
           // TODO:
           // This needs to have some notion of canReplaceEdge from the graph.
@@ -466,12 +444,6 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
           }
           else if(this._graph.canCreateEdge(this.dragObject.source, hit)) {
             let edge = this._graph.createEdge(this.dragObject.source, hit)
-            //
-            // TODO:
-            // The plugin should handle this.
-            // Rename showRightArrow to showDestinationArrow, and same for left.
-            //
-            edge.showRightArrow = true;
             this.clearSelected();
             this.addSelectedItem(edge);
           }
@@ -479,7 +451,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       }
 
       // Drop the node if one is being dragged.
-      else if(isDrawableNode(this.dragObject)) {
+      else if(this.dragObject.isNode()) {
         //
         // TODO:
         // Pevent nodes from being dropped on top of eachother.
@@ -528,12 +500,6 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    */
   redraw() : void {
     clear(this.g);
-    //
-    // TODO:
-    // Don't do this.
-    //
-    if(this._graph === null)
-      this._graph = new Graph();
     //
     // TODO:
     // Do we really want to use hardcoded values for selection display properties?
@@ -677,10 +643,10 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     //   selection box, and an edge is added if either of its nodes' center is
     //   within the selection box.
     //
-    return (isDrawableNode(c) &&
+    return (c.isNode() &&
             c.x >= rect.x && c.x <= rect.x + rect.w &&
             c.y >= rect.y && c.y <= rect.y + rect.h) ||
-           (isDrawableEdge(c) && (this.rectHitTest(c.source, rect) ||
+           (c.isEdge() && (this.rectHitTest(c.source, rect) ||
             this.rectHitTest(c.destination, rect)));
   }
 
@@ -802,9 +768,9 @@ function drawEdge(
     drawLine(g, e.source.x, e.source.y, x, y);
   else
     drawLine(g, e.source.x, e.source.y, e.destination.x, e.destination.y);
-  if(e.showLeftArrow)
+  if(e.showSourceArrow)
     drawArrow(g, e.destination, e.source);
-  if(e.showRightArrow)
+  if(e.showDestinationArrow)
     drawArrow(g, e.source, e.destination);
 }
 
@@ -901,11 +867,21 @@ function clear(g : CanvasRenderingContext2D) : void {
  *   Spoopy haunted edge that follows the cursor. *ooOOOoOOooooOOOOooOoOoOoo*
  */
 class GhostEdge implements DrawableEdge {
-  showLeftArrow : boolean = false;
-  showRightArrow : boolean = false;
+  isEdge(){
+    return true;
+  }
+  isGraph(){
+    return false;
+  }
+  isNode(){
+    return false;
+  }
+  showSourceArrow : boolean = false;
+  showDestinationArrow : boolean = false;
   color : string = "#000";
   lineStyle : string = "dotted";
   lineWidth : number = 2;
   destination : DrawableNode = null;
+  name = "";
   constructor(public source : DrawableNode) { }
 }

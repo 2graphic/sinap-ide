@@ -9,11 +9,11 @@
 
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { MenuService, MenuDelegate } from "./menu.service"
-import { GraphEditorComponent, EditorDelegate, DrawableNode, DrawableGraph, DrawableEdge } from "./graph-editor.component"
+import { GraphEditorComponent, EditorDelegate, DrawableThing } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
-import { PropertiesPanelComponent } from "./properties-panel.component"
-
+import { PropertiesPanelComponent, Property } from "./properties-panel.component"
+import { Element, Graph } from "./graph"
 
 @Component({
   moduleId: module.id,
@@ -24,12 +24,25 @@ import { PropertiesPanelComponent } from "./properties-panel.component"
 export class MainComponent implements OnInit, MenuDelegate, REPLDelegate, EditorDelegate {
   constructor(private menu: MenuService, private pluginService: PluginService) {}
   
-  selectedElements : Set<DrawableGraph | DrawableNode | DrawableEdge>;
-  selectElement(element : DrawableGraph | DrawableNode | DrawableEdge) {
+  selectedElements : Set<Element>;
+  selectElement(element : DrawableThing) {
+    if (!(element instanceof Element))
+      throw "Only try to select drawable things made by the main.component";
+    this.propertiesPanel.selectedEntity = element;
     this.selectedElements.add(element);
   }
-  deselectElement(element : DrawableGraph | DrawableNode | DrawableEdge) {
+  deselectElement(element : DrawableThing) {
+    if (!(element instanceof Element))
+      throw "Only try to deselect drawable things made by the main.component";
     this.selectedElements.delete(element);
+    if (this.selectedElements.size > 0){
+      // TODO: worry about how to allow multiple selection for the properties panel
+      // set the "selectedEntity" on the this.propertiesPanel to any of the selected elements
+      for(let e of this.selectedElements){
+        this.propertiesPanel.selectedEntity = e;
+        break;
+      }
+    }
   }
   clearSelected() {
     this.selectedElements.clear();
@@ -40,6 +53,7 @@ export class MainComponent implements OnInit, MenuDelegate, REPLDelegate, Editor
     this.menu.setDelegate(this);
     this.repl.setDelegate(this);
     this.graphEditor.delegate = this;
+    this.newFile();
   }
 
   @ViewChild(GraphEditorComponent)
@@ -49,7 +63,7 @@ export class MainComponent implements OnInit, MenuDelegate, REPLDelegate, Editor
   private repl: REPLComponent;
   
   @ViewChild(PropertiesPanelComponent)
-  private propertiesPanel: REPLComponent;
+  private propertiesPanel: PropertiesPanelComponent;
 
 
   // Declare icons for the sidebar.
@@ -76,7 +90,7 @@ export class MainComponent implements OnInit, MenuDelegate, REPLDelegate, Editor
 
 
   newFile() {
-    this.graphEditor.graph = null;
+    this.graphEditor.graph = new Graph([new Property("graph_property", null, null, null)]);
   }
 
   run(input: String):String {
