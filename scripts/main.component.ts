@@ -8,11 +8,12 @@
 
 
 import { Component, OnInit, ViewChild } from "@angular/core";
-import { MenuService, MenuDelegate } from "./menu.service"
-import { GraphEditorComponent } from "./graph-editor.component"
+import { MenuService, MenuEventListener, MenuEvent } from "./menu.service"
+import { GraphEditorComponent, DrawableGraph } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
-
+import { PropertiesPanelComponent, Property } from "./properties-panel.component"
+import { Element, Graph } from "./graph"
 
 @Component({
   moduleId: module.id,
@@ -20,11 +21,17 @@ import { REPLComponent, REPLDelegate } from "./repl.component"
   templateUrl: "../html/main.component.html",
   providers: [MenuService, PluginService]
 })
-export class MainComponent implements OnInit, MenuDelegate, REPLDelegate {
-  constructor(private menu: MenuService, private pluginService: PluginService) {}
+export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
+
+  graph : DrawableGraph;
+
+  constructor(private menu: MenuService, private pluginService: PluginService) {
+    this.newFile();
+  }
+
   ngOnInit(): void {
-    this.menu.setDelegate(this);
-    this.repl.setDelegate(this);
+    this.repl.delegate = this;
+    this.menu.addEventListener(this);
   }
 
   @ViewChild(GraphEditorComponent)
@@ -32,6 +39,9 @@ export class MainComponent implements OnInit, MenuDelegate, REPLDelegate {
 
   @ViewChild(REPLComponent)
   private repl: REPLComponent;
+  
+  @ViewChild(PropertiesPanelComponent)
+  private propertiesPanel: PropertiesPanelComponent;
 
 
   // Declare icons for the sidebar.
@@ -58,7 +68,15 @@ export class MainComponent implements OnInit, MenuDelegate, REPLDelegate {
 
 
   newFile() {
-    this.graphEditor.graph = null;
+    this.graph = new Graph([new Property("graph_property", null, null, null)]);
+  }
+
+  menuEvent(e: MenuEvent) {
+    switch (e) {
+      case MenuEvent.NEW_FILE:
+        this.graphEditor.graph = null;
+        break;
+    }
   }
 
   run(input: String):String {

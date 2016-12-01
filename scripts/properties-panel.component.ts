@@ -12,5 +12,64 @@ import { Component } from "@angular/core";
   templateUrl: "../html/properties-panel.component.html",
   styleUrls: [ "../styles/side-panel.component.css" ]
 })
+
 export class PropertiesPanelComponent {
+  private _selectedEntity : PropertiedEntity;
+  public get selectedEntity(){
+    return this._selectedEntity;
+  }
+  public set selectedEntity(e){
+    // READTHIS: to Daniel
+    // this tells us when things change
+    // may want to change this to just be a field and 
+    // use Angular to detect changes to it. 
+    this._selectedEntity = e;
+  }
+}
+
+export enum EntityKind {
+  General,
+  PluginGenerated
+}
+
+export class SinapType {
+  constructor(public type : string){}
+}
+
+export class SinapTypedValue {
+  constructor(public v : string){}
+}
+
+export class Property{
+  readonly name : string;
+  readonly kind : EntityKind;
+  readonly type : SinapType;
+  value : SinapTypedValue;
+
+  constructor(name: string, kind: EntityKind, type: SinapType, value : SinapTypedValue){
+    this.name = name;
+    this.kind = kind;
+    this.type = type;
+    this.value = value;
+  }
+
+  static fromJSON(json : {name : string, kind : string, type : string, value : string}){
+    return new this(json.name,
+                    EntityKind[json.kind],
+                    new SinapType(json.type),
+                    new SinapTypedValue(json.value));
+  }
+
+  toJSON(){
+    return {"name" : this.name,
+            "kind" : this.kind.toString(),
+            "type" : this.type.type,
+            "value" : this.value.v}
+  }
+}
+
+export interface PropertiedEntity {
+  readonly names : Iterable<string>;
+  readonly properties : Iterable<Property>;
+  property(name : string) : Property;
 }

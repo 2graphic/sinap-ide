@@ -3,91 +3,170 @@
 // Date created: November 21, 2016
 //
 //
-// Notes:
-//
-// There needs to be some notion of canReplaceEdge from the graph.
-//   Consider the case where the user wants to move an edge
-//   destination to some other node, but the selectedEdgeType is not
-//   the same as the replacement edge type. GraphView can either
-//   redefine the replaceEdge method to take in the original edge
-//   plus a source and destination NodeView which either succeeds or
-//   fails without warning or error, or we can stick to the pattern
-//   of checking if the operation is valid before performing it
-//   (i.e. canCreateEdge -> createEdge + canReplaceEdge ->
-//   replaceEdge).
-//
-// 
 
+import { DrawableEdge, DrawableGraph, DrawableNode } from "./graph-editor.component";
+import { PropertiedEntity, Property } from "./properties-panel.component";
 
-import { EdgeView, Edge } from "./edge";
-import { NodeView, Node } from "./node";
+let proto_map_func = Array.prototype.map;
+function map<T, U>(i : Iterable<T>, f : ((x : T) => U)) : Array<U>{
+  return proto_map_func.call(i, f);
+}
 
-
-export class Graph implements GraphView {
-  private nodes : Array<NodeView> = [];
-  private edges : Array<EdgeView> = [];
-  getNodeViews() {
-    //
-    // TODO:
-    // Send a copy of this.
-    //
-    return this.nodes;
+/**
+ * Element is a master class that behind-the-scenes, all components of a graph inherit from. 
+ * That this class exists should be known only to the main components. All other components
+ * will see some subset of the behavior of this class and its subclasses. The things these
+ * other classes want will be specified in interfaces this (or it's subclasses implement). 
+ */
+export class Element implements PropertiedEntity {
+  isEdge(){
+    return false;
   }
-  getEdgeViews() {
+  isNode(){
+    return false;
+  }
+  isGraph(){
+    return false;
+  }
+
+  // a mapping names for all the properties that this entity has
+  // this will include general properties and properties from the 
+  // meta language
+  _properties : Map<string, Property>
+
+  constructor(properties : Iterable<Property>){
+    this._properties = new Map(map(properties, p => 
+      [p.name, p] as [string, Property])); // needs cast to tuple type or we'll get a type error
+  }
+  
+  get names(){
+    return map(this._properties.values(), (x => x.name));
+  }
+  get properties(){
+    return this._properties.values();
+  }
+  property(name : string) {
+    return this._properties.get(name);
+  }
+
+  toJSON(){
+    return {"properties": [...this.properties].map(x => x.toJSON())}
+  }
+}
+
+/**
+ * add all the keys of b to a
+ */
+function extend(a, b){
+  for(let k in b){
+    if (b.hasOwnProperty(k)){
+      a[k] = b[k]
+    }
+  }
+  return a;
+}
+
+export class Graph extends Element implements DrawableGraph {
+  isGraph(){
+    return true;
+  }
+
+  private _nodes : Array<Node> = [];
+  private _edges : Array<Edge> = [];
+
+  toJSON(){
+    return extend(super.toJSON(), 
+                  {"nodes" : this._nodes.map(x => x.toJSON()),
+                   "edges" : this._edges.map(x => x.toJSON())});
+  }
+
+  get edges() : Iterable<DrawableEdge> {
     //
     // TODO:
     // Send a copy of this.
     //
-    return this.edges;
+    return this._edges;
+  }
+  get nodes() : Iterable<DrawableNode> {
+    //
+    // TODO:
+    // Send a copy of this.
+    //
+    return this._nodes;
   }
   createNode(x=0, y=0) {
-  	const node = new Node(x, y);
-  	this.nodes.push(node);
+  	const node = new Node([new Property("node_prop", null, null, null)], x, y);
+  	this._nodes.push(node);
   	return node;
   }
-  createEdge(src : NodeView, dest : NodeView) {
-  	const edge = new Edge(src, dest);
-  	this.edges.push(edge);
+  createEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) {
+  	const edge = new Edge([new Property("edge_prop", null, null, null)], src, dest);
+  	this._edges.push(edge);
   	return edge;
   }
-  replaceEdge(original : EdgeView, replacement : EdgeView) {
-  	this.edges[this.edges.indexOf(original)] = replacement;
+  replaceEdge(original : DrawableEdge, replacement : DrawableEdge) {
+    // TODO: in general for several of these methods I do type assertions 
+    // to tell the compiler that DrawableEdges and DrawableNodes actually
+    // are real Edges and Nodes. Apparently these aren't actually checked
+    // at runtime and are meerly making the type system happy. Do we want
+    // to do real runtime checks? In this application, nothing else will 
+    // ever implement these interfaces, so it seems like a waste (tiny 
+    // performance hit, so it probably doesn't matter)
+  	this._edges[this._edges.indexOf(original as Edge)] = replacement as Edge;
   }
-  removeNode(node : NodeView) {
-    this.nodes.splice(this.nodes.indexOf(node), 1);
+  removeNode(node : DrawableNode) {
+    this._nodes.splice(this._nodes.indexOf(node as Node), 1);
   }
-  removeEdge(edge : EdgeView) {
-    this.edges.splice(this.edges.indexOf(edge), 1);
+  removeEdge(edge : DrawableEdge) {
+    this._edges.splice(this._edges.indexOf(edge as Edge), 1);
   }
-  canCreateEdge(src : NodeView, dest : NodeView) {
-  	return Math.random() > 0.1;
-  } 
+  canCreateEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) {
+    return Math.random() > 0.1;
+  }
+}
+
+
+class Edge extends Element implements DrawableEdge{
+  isEdge(){
+    return true;
+  }
+
+  showSourceArrow : boolean = false;
+  showDestinationArrow : boolean = true;
+  name = "an_edge";
+  color : string = "#000";
+  lineStyle : string = "solid";
+  lineWidth : number = 1;
+  constructor(properties : Iterable<Property>, public source : DrawableNode, public destination : DrawableNode) { 
+    super(properties);
+  }
+
+  toJSON(){
+    // TODO: MIGHT NEED TO FILTER OUT SOME THINGS
+    return extend(super.toJSON(), 
+                  this);
+  }
 
 }
 
-export function isGraphView(obj : any) : obj is GraphView {
-  //
-  // TODO:
-  // Return false if obj does not have any one of the members in GraphView.
-  //
-  return obj !== null;
-}
+class Node extends Element implements DrawableNode{
+  isNode(){
+    return true;
+  }
 
-export interface GraphView {
-  getNodeViews() : Iterable<NodeView>
-  getEdgeViews() : Iterable<EdgeView>
-  createNode(x? : number, y? : number) : NodeView
-  /* contractually `src` -> `dest` will have been validated by 
-  `canCreateEdge`, Graph implementations are not required to test this */
-  createEdge(src : NodeView, dest : NodeView) : EdgeView
-  /* contractually `original` will be in the list,
-  this is not necessarily checked by implementations */
-  replaceEdge(original : EdgeView, replacement : EdgeView) : void
-  /* contractually `node` will be in the list,
-  this is not necessarily checked by implementations */
-  removeNode(node : NodeView) : void
-  /* contractually `edge` will be in the list,
-  this is not necessarily checked by implementations */
-  removeEdge(edge : EdgeView) : void
-  canCreateEdge(src : NodeView, dest : NodeView) : boolean 
+  label : string = "";
+  color : string = "#fff200";
+  borderColor: string = "#000";
+  borderStyle: string = "solid";
+  borderWidth = 1;
+  constructor(properties : Iterable<Property>, public x : number, public y : number) {
+    super(properties);
+  }
+
+  toJSON(){
+    // TODO: MIGHT NEED TO FILTER OUT SOME THINGS
+    return extend(super.toJSON(), 
+                  this);
+  }
+
 }
