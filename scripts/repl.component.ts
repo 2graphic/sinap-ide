@@ -7,12 +7,8 @@ import { Component } from "@angular/core";
   styleUrls: [ "../styles/repl.component.css" ]
 })
 export class REPLComponent {
-  private delegate: REPLDelegate;
+  public delegate: REPLDelegate;
   private results: Command[] = []
-
-  public setDelegate(delegate: REPLDelegate) {
-    this.delegate = delegate;
-  }
 
   private onSubmit(input: String) {
     if (!this.delegate) {
