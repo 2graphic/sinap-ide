@@ -247,7 +247,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
           nodes.add(e);
         }
       }
-      let unselectedEdges = [...this.graph.edges].filter(x => edges.has(x))
+      let unselectedEdges = [...this.graph.edges].filter(x => !edges.has(x))
 
       for(let n of nodes) {
         for (let e of unselectedEdges.filter(u =>
