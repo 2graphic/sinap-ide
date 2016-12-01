@@ -7,9 +7,9 @@
 //
 
 
-import { AfterContentInit, Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "./menu.service"
-import { GraphEditorComponent, EditorDelegate, DrawableThing } from "./graph-editor.component"
+import { GraphEditorComponent, DrawableGraph } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
 import { PropertiesPanelComponent, Property } from "./properties-panel.component"
@@ -21,43 +21,17 @@ import { Element, Graph } from "./graph"
   templateUrl: "../html/main.component.html",
   providers: [MenuService, PluginService]
 })
-export class MainComponent implements OnInit, AfterContentInit, MenuEventListener, REPLDelegate, EditorDelegate {
-  constructor(private menu: MenuService, private pluginService: PluginService) {}
-  
-  selectedElements = new Set<Element>();
-  selectElement(element : DrawableThing) {
-    if (!(element instanceof Element))
-      throw "Only try to select drawable things made by the main.component";
-    this.propertiesPanel.selectedEntity = element;
-    this.selectedElements.add(element);
-  }
-  deselectElement(element : DrawableThing) {
-    if (!(element instanceof Element))
-      throw "Only try to deselect drawable things made by the main.component";
-    this.selectedElements.delete(element);
-    if (this.selectedElements.size > 0){
-      // TODO: worry about how to allow multiple selection for the properties panel
-      // set the "selectedEntity" on the this.propertiesPanel to any of the selected elements
-      for(let e of this.selectedElements){
-        this.propertiesPanel.selectedEntity = e;
-        break;
-      }
-    }
-  }
-  clearSelected() {
-    this.selectedElements.clear();
-  }
+export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
 
+  graph : DrawableGraph;
+
+  constructor(private menu: MenuService, private pluginService: PluginService) {
+    this.newFile();
+  }
 
   ngOnInit(): void {
     this.repl.delegate = this;
-    this.graphEditor.delegate = this;
-
     this.menu.addEventListener(this);
-  }
-
-  ngAfterContentInit() {
-    this.newFile();    
   }
 
   @ViewChild(GraphEditorComponent)
@@ -94,7 +68,7 @@ export class MainComponent implements OnInit, AfterContentInit, MenuEventListene
 
 
   newFile() {
-    this.graphEditor.graph = new Graph([new Property("graph_property", null, null, null)]);
+    this.graph = new Graph([new Property("graph_property", null, null, null)]);
   }
 
   menuEvent(e: MenuEvent) {
