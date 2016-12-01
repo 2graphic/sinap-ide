@@ -17,6 +17,7 @@
 //
 //
 // TODO:
+// - Special draw start node.
 // - @Input height/width
 // - Zoom and Pan
 //   pinch to zoom/two-touch drag to pan
@@ -428,14 +429,13 @@ export class GraphEditorComponent
 
         // Update node position if dragging node.
         else if(this.dragObject.isNode) {
-          this.redraw();
-          this.dragObject.x = ePt.x;
-          this.dragObject.y = ePt.y;
           //
           // TODO:
           // Put a drop shadow here?
           //
-          drawNode(this.g, this.dragObject);
+          this.dragObject.x = ePt.x;
+          this.dragObject.y = ePt.y;
+          this.redraw();
         }
       }
     }
