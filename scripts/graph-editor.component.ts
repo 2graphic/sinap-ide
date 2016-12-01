@@ -155,18 +155,6 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
   private replaceEdge : DrawableEdge = null;
 
   /**
-   * selectedItems
-   *   The currently selected graph components.
-   */
-  private selectedItems : Array<DrawableNode | DrawableEdge> = [];
-
-  /**
-   * unselectedItems
-   *   The currently unselected graph components.
-   */
-  private unselectedItems : Array<DrawableNode | DrawableEdge> = [];
-
-  /**
    * _graph
    *   The active graph being edited.
    */
@@ -178,7 +166,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    */
   set graph(value : DrawableGraph) {
     this._graph = value;
-    this.clearSelected();
+    this.delegate.clearSelected();
     this.redraw();
   }
 
@@ -228,24 +216,27 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    */
   onKeyDown(e : KeyboardEvent) : void {
     if(e.keyCode == 46) {
-      let edges : Array<DrawableEdge> = [];
-      let nodes : Array<DrawableNode> = [];
-      while(this.selectedItems.length > 0) {
-        let i = this.selectedItems.pop();
-        if(i.isEdge())
-          edges.push(i);
-        else
-          nodes.push(i);
+      let edges = new Set<DrawableEdge>();
+      let nodes = new Set<DrawableNode>();
+      for (let e of this.delegate.selectedElements){
+        if(e.isEdge()){
+          edges.add(e);
+        } else if (e.isNode()) {
+          nodes.add(e);
+        }
       }
+      let unselectedEdges = [...this.graph.edges].filter(x => !edges.has(x))
+
       for(let n of nodes) {
-        for(let u of this.unselectedItems)
-          if(u.isEdge() && (u.source === n || u.destination === n))
-            edges.push(u);
+        for (let e of unselectedEdges.filter(u =>
+                      (u.source === n || u.destination === n))){
+          edges.add(e);
+        }
         this._graph.removeNode(n);
       }
       for(let e of edges)
         this._graph.removeEdge(e);
-      this.clearSelected();
+      this.delegate.clearSelected();
       this.redraw();
     }
   }
@@ -352,7 +343,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
 
         // Clear the selected items if the drag object is not a node.
         else
-          this.clearSelected();
+          this.delegate.clearSelected();
       }
 
       // Update the canvas if waiting is not set.
@@ -362,15 +353,17 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         if(this.dragObject === null) {
           let rect = makeRect(downPt.x, downPt.y, ePt.x, ePt.y);
 
+          // TODO: I made this not DRY, also it lost the unselected elements efficiency boost
           // Update the selected components.
-          let swap = [];
-          this.clearSelected();
-          for(let u of this.unselectedItems) {
+          this.delegate.clearSelected();
+          for(let u of this.graph.nodes) {
             if(this.rectHitTest(u, rect))
-              swap.push(u);
+              this.delegate.selectElement(u);
           }
-          while(swap.length > 0)
-            this.addSelectedItem(swap.pop());
+          for(let u of this.graph.edges) {
+            if(this.rectHitTest(u, rect))
+              this.delegate.selectElement(u);
+          }
   
           this.redraw();
           drawSelectionBox(this.g, rect);
@@ -411,10 +404,10 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
 
       // Set the selected graph component if waiting.
       if(this.isWaiting) {
-        this.clearSelected();
+        this.delegate.clearSelected();
         let hitComponent = this.hitTest(ePt.x, ePt.y);
         if(hitComponent !== null)
-          this.addSelectedItem(hitComponent);
+          this.delegate.selectElement(hitComponent);
       }
 
       // Create the edge if one is being dragged.
@@ -437,15 +430,15 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
           //       replaceEdge).
           //
           if(this.replaceEdge !== null) {
-            this.clearSelected();
+            this.delegate.clearSelected();
             this.replaceEdge.source = this.dragObject.source;
             this.replaceEdge.destination = hit;
-            this.addSelectedItem(this.replaceEdge);
+            this.delegate.selectElement(this.replaceEdge);
           }
           else if(this._graph.canCreateEdge(this.dragObject.source, hit)) {
             let edge = this._graph.createEdge(this.dragObject.source, hit)
-            this.clearSelected();
-            this.addSelectedItem(edge);
+            this.delegate.clearSelected();
+            this.delegate.selectElement(edge);
           }
         }
       }
@@ -456,10 +449,10 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         // TODO:
         // Pevent nodes from being dropped on top of eachother.
         //
-        this.clearSelected();
+        this.delegate.clearSelected();
         this.dragObject.x = ePt.x;
         this.dragObject.y = ePt.y;
-        this.addSelectedItem(this.dragObject);
+        this.delegate.selectElement(this.dragObject);
       }
 
       // Reset input states.
@@ -509,7 +502,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       let w = e.lineWidth;
       if(e === this.replaceEdge)
         this.g.globalAlpha = 0.3;
-      else if(this.selectedItems.indexOf(e) > -1) {
+      else if(this.delegate.selectedElements.has(e)) {
         e.color = "#00a2e8";
         e.lineWidth += 2;
       }
@@ -521,7 +514,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     for(let n of this._graph.nodes) {
       let c = n.borderColor;
       let w = n.borderWidth;
-      if(this.selectedItems.indexOf(n) > -1) {
+      if(this.delegate.selectedElements.has(n)) {
         n.borderColor = "#00a2e8";
         n.borderWidth += 2;
       }
@@ -557,37 +550,6 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       this.g.strokeText(n.label, n.x, n.y);
       this.g.fillText(n.label, n.x, n.y);
     }
-  }
-
-  /**
-   * clearSelected
-   *   Clears the selected items collection.
-   */
-  clearSelected() : void {
-    this.selectedItems = [];
-    this.unselectedItems = [];
-    if (this._graph) {
-      for(let e of this._graph.edges)
-        this.unselectedItems.push(e);
-      for(let n of this._graph.edges)
-        this.unselectedItems.push(n);
-    }
-  }
-
-  /**
-   * addSelectedItem
-   *   Adds an item to the selected items collection.
-   */
-  private addSelectedItem(value : DrawableNode | DrawableEdge) : void {
-    moveItem(this.unselectedItems, this.selectedItems, value);
-  }
-
-  /**
-   * removeSelectedItem
-   *   Removes an item from the selected items collection.
-   */
-  private removeSelectedItem(value : DrawableNode | DrawableEdge) : void {
-    moveItem(this.selectedItems, this.unselectedItems, value);
   }
 
   /**
@@ -633,7 +595,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    *   Checks if a graph component was hit by a rectangle.
    */
   private rectHitTest(c : DrawableEdge | DrawableNode, rect) : boolean {
-    //
+    //clear(
     // TODO:
     // If any part of the component is within the selection box,
     // this.addSelectedItem(u);
