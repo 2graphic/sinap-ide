@@ -36,17 +36,13 @@ export class SinapType {
   constructor(public type : string){}
 }
 
-export class SinapTypedValue {
-  constructor(public v : string){}
-}
-
 export class Property{
   readonly name : string;
   readonly kind : EntityKind;
   readonly type : SinapType;
-  value : SinapTypedValue;
+  value : any;
 
-  constructor(name: string, kind: EntityKind, type: SinapType, value : SinapTypedValue){
+  constructor(name: string, kind: EntityKind, type: SinapType, value : any){
     this.name = name;
     this.kind = kind;
     this.type = type;
@@ -57,12 +53,12 @@ export class Property{
     return new this(json.name,
                     EntityKind[json.kind],
                     new SinapType(json.type),
-                    new SinapTypedValue(json.value));
+                    json.value);
   }
 
   toJSON(){
     return {"name" : this.name,
-            "kind" : this.kind.toString(),
+            "kind" : EntityKind[this.kind],
             "type" : this.type.type,
             "value" : this.value.v}
   }

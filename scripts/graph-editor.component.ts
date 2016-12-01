@@ -81,7 +81,7 @@ export interface DrawableEdge extends DrawableThing {
   color : string;
   lineStyle : string;
   lineWidth : number;
-  name : string;
+  label : string;
   // todo more display properties
 }
 
@@ -844,6 +844,6 @@ class GhostEdge implements DrawableEdge {
   lineStyle : string = "dotted";
   lineWidth : number = 2;
   destination : DrawableNode = null;
-  name = "";
+  label = "";
   constructor(public source : DrawableNode) { }
 }

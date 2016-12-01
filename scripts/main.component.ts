@@ -12,7 +12,7 @@ import { MenuService, MenuEventListener, MenuEvent } from "./menu.service"
 import { GraphEditorComponent, EditorDelegate, DrawableThing } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
-import { PropertiesPanelComponent, Property } from "./properties-panel.component"
+import { PropertiesPanelComponent, Property, EntityKind, SinapType } from "./properties-panel.component"
 import { Element, Graph } from "./graph"
 
 @Component({
@@ -92,15 +92,23 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, E
   private toolsIcon = this.icons[1];
   // ------------------------------
 
+  graph : Graph;
 
   newFile() {
-    this.graphEditor.graph = new Graph([new Property("graph_property", null, null, null)]);
+    if (this.graph != null){
+      console.log(JSON.stringify(this.graph.toJSON()))
+    }
+    this.graph = new Graph([new Property("graph_prop",
+                                         EntityKind.PluginGenerated,
+                                         new SinapType("string"),
+                                         "")]);
+    this.graphEditor.graph = this.graph;
   }
 
   menuEvent(e: MenuEvent) {
     switch (e) {
       case MenuEvent.NEW_FILE:
-        this.graphEditor.graph = null;
+        this.newFile();
         break;
     }
   }
