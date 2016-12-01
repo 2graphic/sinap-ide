@@ -7,7 +7,7 @@
 //
 
 
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { AfterContentInit, Component, OnInit, ViewChild } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "./menu.service"
 import { GraphEditorComponent, EditorDelegate, DrawableThing } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
@@ -21,7 +21,7 @@ import { Element, Graph } from "./graph"
   templateUrl: "../html/main.component.html",
   providers: [MenuService, PluginService]
 })
-export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, EditorDelegate {
+export class MainComponent implements OnInit, AfterContentInit, MenuEventListener, REPLDelegate, EditorDelegate {
   constructor(private menu: MenuService, private pluginService: PluginService) {}
   
   selectedElements = new Set<Element>();
@@ -56,7 +56,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, E
     this.menu.addEventListener(this);
   }
 
-  ngAfterViewInit() {
+  ngAfterContentInit() {
     this.newFile();    
   }
 

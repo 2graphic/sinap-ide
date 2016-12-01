@@ -128,7 +128,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * g
    *   The 2D graphics rendering context from the canvas element.
    */
-  private g : CanvasRenderingContext2D;
+  private g : CanvasRenderingContext2D = null;
 
   /**
    * downEvt
@@ -166,8 +166,10 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    */
   set graph(value : DrawableGraph) {
     this._graph = value;
-    this.delegate.clearSelected();
-    this.redraw();
+    if(this.g !== null) {
+      this.delegate.clearSelected();
+      this.redraw();
+    }
   }
 
   /**
@@ -338,7 +340,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
         this.dragObject = this.hitTest(ePt.x, ePt.y);
 
         // Set the drag object to a dummy edge if the drag object is a node.
-        if(this.dragObject.isNode())
+        if(this.dragObject != null && this.dragObject.isNode())
           this.dragObject = new GhostEdge(this.dragObject);
 
         // Clear the selected items if the drag object is not a node.
@@ -411,7 +413,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       }
 
       // Create the edge if one is being dragged.
-      else if(this.dragObject.isEdge()) {
+      else if(this.dragObject !== null && this.dragObject.isEdge()) {
 
         // Check that the mouse was released at a node.
         let hit = this.hitTest(ePt.x, ePt.y);
@@ -444,7 +446,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       }
 
       // Drop the node if one is being dragged.
-      else if(this.dragObject.isNode()) {
+      else if(this.dragObject !== null && this.dragObject.isNode()) {
         //
         // TODO:
         // Pevent nodes from being dropped on top of eachother.
