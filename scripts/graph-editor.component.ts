@@ -152,7 +152,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    * replaceEdge
    *   The edge to be replaced once the new edge has been created.
    */
-  private replaceEdge : DrawableEdge = null;
+  private moveEdge : DrawableEdge = null;
 
   /**
    * _graph
@@ -220,11 +220,11 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     if(e.keyCode == 46) {
       let edges = new Set<DrawableEdge>();
       let nodes = new Set<DrawableNode>();
-      for (let e of this.delegate.selectedElements){
-        if(e.isEdge()){
-          edges.add(e);
-        } else if (e.isNode()) {
-          nodes.add(e);
+      for (let ele of this.delegate.selectedElements){
+        if(ele.isEdge()){
+          edges.add(ele);
+        } else if (ele.isNode()) {
+          nodes.add(ele);
         }
       }
       let unselectedEdges = [...this.graph.edges].filter(x => !edges.has(x))
@@ -286,8 +286,8 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
             // TODO:
             // Determine which side of the edge the hit test landed on.
             //
-            this.replaceEdge = this.dragObject;
-            this.dragObject = new GhostEdge(this.replaceEdge.source);
+            this.moveEdge = this.dragObject;
+            this.dragObject = new GhostEdge(this.moveEdge.source);
             this.g.globalAlpha = 0.3;
             drawEdge(this.g, this.dragObject, downPt.x, downPt.y);
             this.g.globalAlpha = 1;
@@ -417,27 +417,24 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
 
         // Check that the mouse was released at a node.
         let hit = this.hitTest(ePt.x, ePt.y);
-        if(hit.isNode()) {
+        if(hit !== null && hit.isNode()) {
           //
           // TODO:
-          // This needs to have some notion of canReplaceEdge from the graph.
-          // Note: Consider the case where the user wants to move an edge
-          //       destination to some other node, but the selectedEdgeType is not
-          //       the same as the replacement edge type. DrawableGraph can either
-          //       redefine the replaceEdge method to take in the original edge
-          //       plus a source and destination DrawableNode and either succeed or
-          //       fail without warning or error, or we can stick to the pattern
-          //       of checking if the operation is valid before performing it
-          //       (i.e. canCreateEdge -> createEdge + canReplaceEdge ->
-          //       replaceEdge).
+          // Check the the edge can be moved before moving it.
           //
-          if(this.replaceEdge !== null) {
+          // Move the edge if one is being dragged and it can be moved.
+          if(this.moveEdge !== null /* && canMoveEdge */) {
             this.delegate.clearSelected();
-            this.replaceEdge.source = this.dragObject.source;
-            this.replaceEdge.destination = hit;
-            this.delegate.selectElement(this.replaceEdge);
+            this.moveEdge.source = this.dragObject.source;
+            this.moveEdge.destination = hit;
+            this.delegate.selectElement(this.moveEdge);
           }
-          else if(this._graph.canCreateEdge(this.dragObject.source, hit)) {
+
+          // Create a new edge if none is being moved and it can be created.
+          else if(
+            this.moveEdge === null &&
+            this._graph.canCreateEdge(this.dragObject.source, hit)
+          ) {
             let edge = this._graph.createEdge(this.dragObject.source, hit)
             this.delegate.clearSelected();
             this.delegate.selectElement(edge);
@@ -460,7 +457,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
       // Reset input states.
       this.downEvt = null;
       this.dragObject = null;
-      this.replaceEdge = null;
+      this.moveEdge = null;
       this.isWaiting = false;
 
       // Redraw the canvas.
@@ -502,7 +499,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
     for(let e of this._graph.edges) {
       let c = e.color;
       let w = e.lineWidth;
-      if(e === this.replaceEdge)
+      if(e === this.moveEdge)
         this.g.globalAlpha = 0.3;
       else if(this.delegate.selectedElements.has(e)) {
         e.color = "#00a2e8";
