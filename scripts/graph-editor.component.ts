@@ -376,14 +376,12 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
           let rect = makeRect(downPt.x, downPt.y, ePt.x, ePt.y);
 
           // TODO: I made this not DRY, also it lost the unselected elements efficiency boost
-          // FIXME? 
           // Update the selected components.
+          this.delegate.clearSelected();
           for(let u of this.graph.nodes) {
             if(this.rectHitTest(u, rect))
               this.delegate.selectElement(u);
           }
-
-          // Update the selected components.
           for(let u of this.graph.edges) {
             if(this.rectHitTest(u, rect))
               this.delegate.selectElement(u);
@@ -631,7 +629,7 @@ export class GraphEditorComponent implements AfterViewInit, AfterViewChecked {
    *   Checks if a graph component was hit by a rectangle.
    */
   private rectHitTest(c : DrawableEdge | DrawableNode, rect) : boolean {
-    //
+    //clear(
     // TODO:
     // If any part of the component is within the selection box,
     // this.addSelectedItem(u);

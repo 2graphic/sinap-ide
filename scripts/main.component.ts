@@ -24,7 +24,8 @@ import { PropertiesPanelComponent } from "./properties-panel.component"
 export class MainComponent implements OnInit, MenuDelegate, REPLDelegate, EditorDelegate {
   constructor(private menu: MenuService, private pluginService: PluginService) {}
   
-  selectedElements : Set<DrawableGraph | DrawableNode | DrawableEdge>;
+  selectedElements : Set<DrawableGraph | DrawableNode | DrawableEdge> =
+    new Set<DrawableGraph | DrawableNode | DrawableEdge>();
   selectElement(element : DrawableGraph | DrawableNode | DrawableEdge) {
     this.selectedElements.add(element);
   }
