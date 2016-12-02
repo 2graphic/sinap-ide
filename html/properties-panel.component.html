@@ -1,3 +1,13 @@
 <div id="wrapper">
     <h2>Properties</h2>
+    <p *ngIf="!selectedEntity">
+        No selected entity.
+    </p>
+    <table *ngIf="selectedEntity">
+        <tr *ngFor="let property of selectedEntity.properties">
+            <td>{{property.name}}</td>
+            <td><input [(ngModel)]="property.value"
+            class="string-property" type="text" /></td>
+        </tr>
+    </table>
 </div>
