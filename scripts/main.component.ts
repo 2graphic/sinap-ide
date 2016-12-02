@@ -12,7 +12,7 @@ import { MenuService, MenuEventListener, MenuEvent } from "./menu.service"
 import { GraphEditorComponent, Drawable } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
-import { PropertiesPanelComponent, Property, EntityKind, SinapType } from "./properties-panel.component"
+import { PropertiesPanelComponent, SinapType } from "./properties-panel.component"
 import { Element, Graph } from "./graph"
 import { SideBarComponent } from "./side-bar.component"
 
@@ -48,9 +48,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   graph : Graph;
 
   newFile() {
-    if (this.graph != null){
-      console.log(JSON.stringify(this.graph.toJSON()))
-    }
     this.graph = new Graph([]);
   }
 

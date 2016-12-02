@@ -34,16 +34,19 @@ export class DFAInterpreter implements Interpreter {
     			map2 = new Map<string, number>();
     			this.transitions.set(src, map2);
     		}
+            console.log("a", map2, sym, dst)
     		map2.set(sym, dst);
+            console.log("b")
     	}
+        console.log("c")
 
     	this.accept_states = new Set<number>();
 
     	for (let n of nodes){
-    		if (coerseBoolean(n.start_state)){
+    		if (coerseBoolean(n.propertyValues.start_state)){
     			this.start_state = nodes.indexOf(n);
     		}
-    		if (coerseBoolean(n.accept_state)){
+    		if (coerseBoolean(n.propertyValues.accept_state)){
     			this.accept_states.add(nodes.indexOf(n));
     		}
     	}

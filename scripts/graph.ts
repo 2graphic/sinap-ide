@@ -5,7 +5,7 @@
 //
 
 import { DrawableEdge, DrawableGraph, DrawableNode } from "./graph-editor.component";
-import { PropertiedEntity, Property, EntityKind, SinapType } from "./properties-panel.component";
+import { PropertiedEntity, SinapType } from "./properties-panel.component";
 
 let proto_map_func = Array.prototype.map;
 function map<T, U>(i : Iterable<T>, f : ((x : T) => U)) : Array<U>{
@@ -29,49 +29,12 @@ export class Element implements PropertiedEntity {
     return false;
   }
 
-  // a mapping names for all the properties that this entity has
-  // this will include general properties and properties from the 
-  // meta language
-  _properties : Map<string, Property>
-  generalProperties : Array<[string, SinapType]> = [];
+  constructor(public pluginProperties : Array<[string, SinapType]>){
 
-  constructor(properties : Iterable<Property>){
-    this._properties = new Map(map(properties, p => 
-      [p.name, p] as [string, Property])); // needs cast to tuple type or we'll get a type error
-  }
-  
-  get names(){
-    return map(this._properties.values(), (x => x.name));
-  }
-  get properties() : Iterable<Property>{
-    let props = [...this._properties.values()];
-    let general_props = this.generalProperties.map(x => 
-                           new Property(x[0], EntityKind.General,
-                                        x[1], this[x[0]]))
-    return props.concat(general_props);
-  }
-  property(name : string) {
-    let res = this._properties.get(name) 
-    if (res != undefined){
-      return res;
-    }
-    return this[name];
   }
 
-  toJSON(){
-    let generals = new Array();
-    let plugind = new Array();
-    for (let p of this.properties){
-      let v = [p.name, p.type.type, p.value]
-      if (p.kind == EntityKind.General){
-        generals.push(v);
-      } else {
-        plugind.push(v);
-      }
-    }
-    return {"general-properties": generals,
-            "plugin-properties" : plugind}
-  }
+  displayProperties : Array<[string, SinapType]> = [];
+  propertyValues = {};
 }
 
 /**
@@ -95,32 +58,6 @@ export class Graph extends Element implements DrawableGraph {
   private _edges : Array<Edge> = [];
   private _nodeID : number = 0;
 
-  toJSON(){
-    let nodes = [...this._nodes]
-    let edges = [...this._edges]
-
-    let json = extend(super.toJSON(), 
-                      {"nodes" : nodes.map(x => x.toJSON()),
-                       "edges" : edges.map(x => x.toJSON())});
-
-    function traverse(root){
-      for (let k in root){
-        let v = root[k];
-        if (v instanceof Node){
-          root[k] = {"kind" : "node-reference", "target" : nodes.indexOf(v)};
-        } else if (v instanceof Edge){
-          root[k] = {"kind" : "edge-reference", "target" : edges.indexOf(v)};
-        } else if (v instanceof Object) {
-          traverse(v);
-        }
-      }
-    }
-
-    traverse(json);
-
-    return json;
-  }
-
   get edges() : Iterable<Edge> {
     //
     // TODO:
@@ -136,14 +73,8 @@ export class Graph extends Element implements DrawableGraph {
     return this._nodes;
   }
   createNode(x=0, y=0) {
-  	const node = new Node([new Property("accept_state",
-                                        EntityKind.PluginGenerated,
-                                        new SinapType("boolean"),
-                                        false),
-                           new Property("start_state",
-                                        EntityKind.PluginGenerated,
-                                        new SinapType("boolean"),
-                                        false)],
+  	const node = new Node([["accept_state", new SinapType("boolean")],
+                           ["start_state", new SinapType("boolean")]],
                           x, y);
   	this._nodes.push(node);
     node.label = "q" + this._nodeID;
@@ -183,17 +114,58 @@ class Edge extends Element implements DrawableEdge{
     return true;
   }
 
-  showSourceArrow : boolean = false;
-  showDestinationArrow : boolean = true;
-  label = "0";
-  color : string = "#000";
-  lineStyle : string = "solid";
-  lineWidth : number = 1;
-  constructor(properties : Iterable<Property>, public source : Node, public destination : Node) { 
+  propertyValues = {
+    showSourceArrow : false,
+    showDestinationArrow : true,
+    label : "0",
+    color : "#000",
+    lineStyle : "solid",
+    lineWidth : 1
+  }
+
+  get showSourceArrow(){
+    return this.propertyValues.showSourceArrow;
+  }
+  set showSourceArrow(nv){
+    this.propertyValues.showSourceArrow = nv;
+  }
+  get showDestinationArrow(){
+    return this.propertyValues.showDestinationArrow;
+  }
+  set showDestinationArrow(nv){
+    this.propertyValues.showDestinationArrow = nv;
+  }
+  get label(){
+    return this.propertyValues.label;
+  }
+  set label(nv){
+    this.propertyValues.label = nv;
+  }
+  get color(){
+    return this.propertyValues.color;
+  }
+  set color(nv){
+    this.propertyValues.color = nv;
+  }
+  get lineStyle(){
+    return this.propertyValues.lineStyle;
+  }
+  set lineStyle(nv){
+    this.propertyValues.lineStyle = nv;
+  }
+  get lineWidth(){
+    return this.propertyValues.lineWidth;
+  }
+  set lineWidth(nv){
+    this.propertyValues.lineWidth = nv;
+  }
+
+
+  constructor(properties : Array<[string, SinapType]>, public source : Node, public destination : Node) { 
     super(properties);
   }
 
-  generalProperties = [["showSourceArrow", new SinapType("boolean")] as [string, SinapType],
+  displayProperties = [["showSourceArrow", new SinapType("boolean")] as [string, SinapType],
                        ["showDestinationArrow", new SinapType("boolean")] as [string, SinapType],
                        ["label", new SinapType("string")] as [string, SinapType],
                        ["color", new SinapType("string")] as [string, SinapType],
@@ -208,19 +180,55 @@ class Node extends Element implements DrawableNode{
     return true;
   }
 
-  start_state = false;
-  accept_state = false;
+  propertyValues = {
+    start_state : false,
+    accept_state : false,
+    label : "",
+    color : "#fff200",
+    borderColor : "#000",
+    borderStyle : "solid",
+    borderWidth : 1,
+  }
 
-  label : string = "";
-  color : string = "#fff200";
-  borderColor: string = "#000";
-  borderStyle: string = "solid";
-  borderWidth = 1;
-  constructor(properties : Iterable<Property>, public x : number, public y : number) {
+  // ugly and we need to reconsider
+
+  get label(){
+    return this.propertyValues.label;
+  }
+  set label(nv){
+    this.propertyValues.label = nv;
+  }
+  get color(){
+    return this.propertyValues.color;
+  }
+  set color(nv){
+    this.propertyValues.color = nv;
+  }
+  get borderColor(){
+    return this.propertyValues.borderColor;
+  }
+  set borderColor(nv){
+    this.propertyValues.borderColor = nv;
+  }
+  get borderStyle(){
+    return this.propertyValues.borderStyle;
+  }
+  set borderStyle(nv){
+    this.propertyValues.borderStyle = nv;
+  }
+  get borderWidth(){
+    return this.propertyValues.borderWidth;
+  }
+  set borderWidth(nv){
+    this.propertyValues.borderWidth = nv;
+  }
+
+
+  constructor(properties : Array<[string, SinapType]>, public x : number, public y : number) {
     super(properties);
   }
 
-  generalProperties = [["start_state", new SinapType("boolean")] as [string, SinapType],
+  displayProperties = [["start_state", new SinapType("boolean")] as [string, SinapType],
                        ["accept_state", new SinapType("boolean")] as [string, SinapType],
                        ["label", new SinapType("string")] as [string, SinapType],
                        ["color", new SinapType("string")] as [string, SinapType],

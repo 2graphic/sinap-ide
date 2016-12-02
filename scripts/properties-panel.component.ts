@@ -30,45 +30,13 @@ export class PropertiesPanelComponent {
   }
 }
 
-export enum EntityKind {
-  General,
-  PluginGenerated
-}
-
 export class SinapType {
   constructor(public type : string){}
 }
 
-export class Property{
-  readonly name : string;
-  readonly kind : EntityKind;
-  readonly type : SinapType;
-  value : any;
-
-  constructor(name: string, kind: EntityKind, type: SinapType, value : any){
-    this.name = name;
-    this.kind = kind;
-    this.type = type;
-    this.value = value;
-  }
-
-  static fromJSON(json : {name : string, kind : string, type : string, value : string}){
-    return new this(json.name,
-                    EntityKind[json.kind],
-                    new SinapType(json.type),
-                    json.value);
-  }
-
-  toJSON(){
-    return {"name" : this.name,
-            "kind" : EntityKind[this.kind],
-            "type" : this.type.type,
-            "value" : this.value.v}
-  }
-}
 
 export interface PropertiedEntity {
-  readonly names : Iterable<string>;
-  readonly properties : Iterable<Property>;
-  property(name : string) : Property;
+  readonly displayProperties : Iterable<[string, SinapType]>;
+  readonly pluginProperties : Iterable<[string, SinapType]>;
+  readonly propertyValues : Object;
 }

@@ -4,9 +4,9 @@
         No selected entity.
     </p>
     <table *ngIf="selectedEntity">
-        <tr *ngFor="let pair of selectedEntity.generalProperties">
+        <tr *ngFor="let pair of selectedEntity.displayProperties">
             <td>{{pair[0]}}</td>
-            <td><input [(ngModel)]="selectedEntity[pair[0]]"
+            <td><input [(ngModel)]="selectedEntity.propertyValues[pair[0]]"
             class="string-property" type="text" /></td>
         </tr>
     </table>
