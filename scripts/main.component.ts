@@ -82,7 +82,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   }
 
   run(input: String):String {
-    let interpreter = this.pluginService.getInterpreter("dfa", {});
+    let interpreter = this.pluginService.getInterpreter("dfa", this.graph);
     return interpreter.run(input)+"";
   }
 

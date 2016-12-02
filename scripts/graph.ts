@@ -121,14 +121,14 @@ export class Graph extends Element implements DrawableGraph {
     return json;
   }
 
-  get edges() : Iterable<DrawableEdge> {
+  get edges() : Iterable<Edge> {
     //
     // TODO:
     // Send a copy of this.
     //
     return this._edges;
   }
-  get nodes() : Iterable<DrawableNode> {
+  get nodes() : Iterable<Node> {
     //
     // TODO:
     // Send a copy of this.
@@ -150,16 +150,13 @@ export class Graph extends Element implements DrawableGraph {
     this._nodeID++;
   	return node;
   }
-  createEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) {
-  	const edge = new Edge([new Property("symbol",
-                                        EntityKind.PluginGenerated,
-                                        new SinapType("string"),
-                                        "")],
+  createEdge(src : Node, dest : Node, like? : Edge) {
+  	const edge = new Edge([],
                           src, dest);
   	this._edges.push(edge);
   	return edge;
   }
-  replaceEdge(original : DrawableEdge, replacement : DrawableEdge) {
+  replaceEdge(original : Edge, replacement : Edge) {
     // TODO: in general for several of these methods I do type assertions 
     // to tell the compiler that DrawableEdges and DrawableNodes actually
     // are real Edges and Nodes. Apparently these aren't actually checked
@@ -169,13 +166,13 @@ export class Graph extends Element implements DrawableGraph {
     // performance hit, so it probably doesn't matter)
   	this._edges[this._edges.indexOf(original as Edge)] = replacement as Edge;
   }
-  removeNode(node : DrawableNode) {
+  removeNode(node : Node) {
     this._nodes.splice(this._nodes.indexOf(node as Node), 1);
   }
-  removeEdge(edge : DrawableEdge) {
+  removeEdge(edge : Edge) {
     this._edges.splice(this._edges.indexOf(edge as Edge), 1);
   }
-  canCreateEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) {
+  canCreateEdge(src : Node, dest : Node, like? : Edge) {
     return Math.random() > 0.1;
   }
 }
@@ -188,11 +185,11 @@ class Edge extends Element implements DrawableEdge{
 
   showSourceArrow : boolean = false;
   showDestinationArrow : boolean = true;
-  label = "an_edge";
+  label = "0";
   color : string = "#000";
   lineStyle : string = "solid";
   lineWidth : number = 1;
-  constructor(properties : Iterable<Property>, public source : DrawableNode, public destination : DrawableNode) { 
+  constructor(properties : Iterable<Property>, public source : Node, public destination : Node) { 
     super(properties);
   }
 

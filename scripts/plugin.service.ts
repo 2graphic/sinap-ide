@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { DFAInterpreter } from './dfa-interpreter';
 
+// TODO, reconsider this
+import { Graph } from './graph'
+
 @Injectable()
 export class PluginService {
     constructor() {}
@@ -17,8 +20,4 @@ export class PluginService {
 
 export interface Interpreter {
     run(input: String):Boolean;
-}
-
-export interface Graph {
-
 }
