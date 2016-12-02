@@ -90,15 +90,21 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   }
 
   graphSelectionChanged(selected) {
+    let newSelectedEntity : Element;
     if (selected.size > 0){
       for (let x of selected){
         // this cast is safe because we know that the only Drawables that we
         // ever give the `graphEditor` are `Element`s
-        this.propertiesPanel.selectedEntity = x as Element;
+        newSelectedEntity = x as Element;
         break;
       }
     } else {
-      this.propertiesPanel.selectedEntity = this.graph;
+      newSelectedEntity = this.graph;
     } 
+    // ugly trick to silence the fact that things seem to get emitted too often
+    // TODO, reduce the frequency things are emitted
+    if (this.propertiesPanel.selectedEntity != newSelectedEntity){
+      this.propertiesPanel.selectedEntity = newSelectedEntity;
+    }
   }
 }
