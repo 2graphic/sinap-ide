@@ -33,7 +33,12 @@ html, body, .full-size {
   width: 15em;
 }
 
-#content, #editor-panel, #top-panels, #bottom-panel {
+#status-bar {
+  flex: none;
+  height: 1.25em;
+}
+
+#content, #editor-panel, #top-panels, #bottom-panel, #graph-editor {
   flex: auto;
   width: 100%;
   height: 100%;

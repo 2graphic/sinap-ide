@@ -14,6 +14,7 @@ import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
 import { PropertiesPanelComponent, Property } from "./properties-panel.component"
 import { Element, Graph } from "./graph"
+import { SideBarComponent } from "./side-bar.component"
 
 @Component({
   moduleId: module.id,
@@ -43,28 +44,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   @ViewChild(PropertiesPanelComponent)
   private propertiesPanel: PropertiesPanelComponent;
 
-
-  // Declare icons for the sidebar.
-  private icons = [
-    {
-      path: "properties.svg",
-      name: "Properties",
-      active: true
-    },
-    {
-      path: "tools.svg",
-      name: "Tools",
-      active: false
-    },
-    {
-      path: "files.svg",
-      name: "Files",
-      active: false
-    }
-  ];
-  private propertiesIcon = this.icons[0];
-  private toolsIcon = this.icons[1];
-  // ------------------------------
+  @ViewChild(SideBarComponent)
+  private sideBar: SideBarComponent;
 
 
   newFile() {
