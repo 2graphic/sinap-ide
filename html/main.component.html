@@ -12,7 +12,7 @@
         </sinap-tools-panel>
       </div>
       <div id="editor-panel">
-        <sinap-graph-editor [graph]="graph"></sinap-graph-editor>
+        <sinap-graph-editor [graph]="graph" (selectionChanged)="graphSelectionChanged($event)"></sinap-graph-editor>
       </div> 
     </div>
     <div id="bottom-panels" class="flex-container-row">

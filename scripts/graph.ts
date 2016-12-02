@@ -93,6 +93,7 @@ export class Graph extends Element implements DrawableGraph {
 
   private _nodes : Array<Node> = [];
   private _edges : Array<Edge> = [];
+  private _nodeID : number = 0;
 
   toJSON(){
     let nodes = [...this._nodes]
@@ -141,6 +142,8 @@ export class Graph extends Element implements DrawableGraph {
                                         "")],
                           x, y);
   	this._nodes.push(node);
+    node.label = "q" + this._nodeID;
+    this._nodeID++;
   	return node;
   }
   createEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) {
