@@ -15,9 +15,11 @@ import { SideBarComponent } from "./side-bar.component";
 import { AboutComponent } from "./about.component";
 import { PropertiesPanelComponent } from "./properties-panel.component";
 import { ToolsPanelComponent } from "./tools-panel.component";
+import { FilesPanelComponent } from "./files-panel.component";
 import { REPLComponent } from "./repl.component";
 import { FormsModule }   from '@angular/forms';
 import { GraphEditorComponent } from "./graph-editor.component";
+import { StatusBarComponent } from "./status-bar.component";
 
 @NgModule({
   imports:      [
@@ -30,8 +32,10 @@ import { GraphEditorComponent } from "./graph-editor.component";
     AboutComponent,
     PropertiesPanelComponent,
     ToolsPanelComponent,
+    FilesPanelComponent,
     REPLComponent,
-    GraphEditorComponent
+    GraphEditorComponent,
+    StatusBarComponent,
   ],
   bootstrap:    [ MainComponent ]
 })

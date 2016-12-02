@@ -1,18 +1,33 @@
 <div class="flex-container-row full-size">
   <div id="sidebar">
-    <sinap-side-bar [icons]="icons">
+    <sinap-side-bar [icons]="
+    [{
+      path: 'properties.svg',
+      name: 'Properties'
+    },
+    {
+      path: 'tools.svg',
+      name: 'Tools'
+    },
+    {
+      path: 'files.svg',
+      name: 'Files'
+    }]">
     </sinap-side-bar>
   </div>
   <div id="content" class="flex-container-column">
     <div id="top-panels" class="flex-container-row">
       <div id="side-panel">
-        <sinap-properties-panel [hidden]="!(propertiesIcon.active)">
+        <sinap-properties-panel [hidden]="!(sideBar.active == 'Properties')">
         </sinap-properties-panel>
-        <sinap-tools-panel [hidden]="!(toolsIcon.active)">
+        <sinap-tools-panel [hidden]="!(sideBar.active == 'Tools')">
         </sinap-tools-panel>
+        <sinap-files-panel [hidden]="!(sideBar.active == 'Files')">
+        </sinap-files-panel>
       </div>
-      <div id="editor-panel">
-        <sinap-graph-editor [graph]="graph" (selectionChanged)="graphSelectionChanged($event)"></sinap-graph-editor>
+      <div id="editor-panel" class="flex-container-column">
+        <sinap-graph-editor [graph]="graph" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor"></sinap-graph-editor>
+        <sinap-status-bar id="status-bar" [title]="'Finite Automata'" [items]="['Deterministic', '...']"></sinap-status-bar>
       </div> 
     </div>
     <div id="bottom-panels" class="flex-container-row">
