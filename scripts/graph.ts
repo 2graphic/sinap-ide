@@ -230,9 +230,9 @@ class Node extends Element implements DrawableNode{
     super(properties);
   }
 
-  displayProperties = [["start_state", SinapBoolean] as [string, SinapType],
-                       ["accept_state", SinapBoolean] as [string, SinapType],
-                       ["label", SinapString] as [string, SinapType],
+  pluginProperties = [["start_state", SinapBoolean] as [string, SinapType],
+                       ["accept_state", SinapBoolean] as [string, SinapType]]
+  displayProperties = [["label", SinapString] as [string, SinapType],
                        ["color", SinapString] as [string, SinapType],
                        ["borderColor", SinapString] as [string, SinapType],
                        ["borderStyle", SinapString] as [string, SinapType],
