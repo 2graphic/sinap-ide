@@ -29,16 +29,13 @@ export class DFAInterpreter implements Interpreter {
 
     		let map2 : Map<string, number>;
     		if (this.transitions.has(src)){
-    			this.transitions.get(src);
+    			map2 = this.transitions.get(src);
     		} else {
     			map2 = new Map<string, number>();
     			this.transitions.set(src, map2);
     		}
-            console.log("a", map2, sym, dst)
     		map2.set(sym, dst);
-            console.log("b")
     	}
-        console.log("c")
 
     	this.accept_states = new Set<number>();
 

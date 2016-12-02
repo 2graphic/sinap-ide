@@ -13,7 +13,7 @@ import { GraphEditorComponent, Drawable } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
 import { PropertiesPanelComponent } from "./properties-panel.component"
-import { SinapType } from "./types";
+import { SinapType, SinapNumber } from "./types";
 import { Element, Graph } from "./graph"
 import { SideBarComponent } from "./side-bar.component"
 
@@ -26,6 +26,8 @@ import { SideBarComponent } from "./side-bar.component"
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   constructor(private menu: MenuService, private pluginService: PluginService) {
     this.newFile();
+
+
   }
   
 
