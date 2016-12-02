@@ -86,10 +86,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
     if (this.graph != null){
       console.log(JSON.stringify(this.graph.toJSON()))
     }
-    this.graph = new Graph([new Property("graph_prop",
-                                         EntityKind.PluginGenerated,
-                                         new SinapType("string"),
-                                         "")]);
+    this.graph = new Graph([]);
     this.graphEditor.graph = this.graph;
   }
 

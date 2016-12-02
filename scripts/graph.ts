@@ -136,10 +136,14 @@ export class Graph extends Element implements DrawableGraph {
     return this._nodes;
   }
   createNode(x=0, y=0) {
-  	const node = new Node([new Property("node_prop",
+  	const node = new Node([new Property("accept_state",
                                         EntityKind.PluginGenerated,
-                                        new SinapType("string"),
-                                        "")],
+                                        new SinapType("boolean"),
+                                        false),
+                           new Property("start_state",
+                                        EntityKind.PluginGenerated,
+                                        new SinapType("boolean"),
+                                        false)],
                           x, y);
   	this._nodes.push(node);
     node.label = "q" + this._nodeID;
@@ -147,7 +151,7 @@ export class Graph extends Element implements DrawableGraph {
   	return node;
   }
   createEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) {
-  	const edge = new Edge([new Property("edge_prop",
+  	const edge = new Edge([new Property("symbol",
                                         EntityKind.PluginGenerated,
                                         new SinapType("string"),
                                         "")],
