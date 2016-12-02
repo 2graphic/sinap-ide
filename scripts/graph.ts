@@ -73,6 +73,7 @@ export class Graph extends Element implements DrawableGraph {
 
   private _nodes : Array<Node> = [];
   private _edges : Array<Edge> = [];
+  private _nodeID : number = 0;
 
   toJSON(){
     return extend(super.toJSON(), 
@@ -97,6 +98,8 @@ export class Graph extends Element implements DrawableGraph {
   createNode(x=0, y=0) {
   	const node = new Node([new Property("node_prop", null, null, null)], x, y);
   	this._nodes.push(node);
+    node.label = "q" + this._nodeID;
+    this._nodeID++;
   	return node;
   }
   createEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) {
@@ -133,7 +136,7 @@ class Edge extends Element implements DrawableEdge{
 
   showSourceArrow : boolean = false;
   showDestinationArrow : boolean = true;
-  name = "an_edge";
+  label = "an_edge";
   color : string = "#000";
   lineStyle : string = "solid";
   lineWidth : number = 1;

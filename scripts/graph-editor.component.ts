@@ -140,7 +140,7 @@ export interface DrawableEdge extends Drawable {
   color : string;
   lineStyle : string;
   lineWidth : number;
-  name : string;
+  label : string;
   // todo more display properties
 }
 
@@ -368,11 +368,6 @@ export class GraphEditorComponent
           // was set.
           if(this.dragObject === null) {
             this.dragObject = this.graph.createNode(downPt.x, downPt.y);
-            //
-            // TODO:
-            // The graph service should be doing this.
-            //
-            this.dragObject.label = "q0";
             drawNode(this.g, this.dragObject);
           }
 
@@ -629,18 +624,14 @@ export class GraphEditorComponent
       this.g.lineWidth = 2;
       this.g.strokeStyle = "#000";
       this.g.fillStyle = "#fff";
-      //
-      // TODO:
-      // Add label field to DrawableEdge.
-      //
-      // for(let e of this._graph.getDrawableEdges()) {
-      //   let rect = this.makeRect(
-      //     e.source.x, e.source.y,
-      //     e.destination.x, e.destination.y
-      //   );
-      //   this.ctx.strokeText(e.label, rect.x + rect.w / 2, rect.y + rect.h / 2);
-      //   this.ctx.fillText(e.label, rect.x + rect.w / 2, rect.y + rect.h / 2);
-      // }
+      for(let e of this.graph.edges) {
+        let rect = makeRect(
+          e.source.x, e.source.y,
+          e.destination.x, e.destination.y
+        );
+        this.g.strokeText(e.label, rect.x + rect.w / 2, rect.y + rect.h / 2);
+        this.g.fillText(e.label, rect.x + rect.w / 2, rect.y + rect.h / 2);
+      }
       for(let n of this.graph.nodes) {
         this.g.strokeText(n.label, n.x, n.y);
         this.g.fillText(n.label, n.x, n.y);
@@ -963,6 +954,6 @@ class GhostEdge implements DrawableEdge {
   lineStyle : string = "dotted";
   lineWidth : number = 2;
   destination : DrawableNode = null;
-  name = "";
+  label = "";
   constructor(public source : DrawableNode) { }
 }
