@@ -19,6 +19,9 @@ export class PropertiesPanelComponent {
     return this._selectedEntity;
   }
   public set selectedEntity(e){
+    console.log(e);
+
+
     // READTHIS: to Daniel
     // this tells us when things change
     // may want to change this to just be a field and 

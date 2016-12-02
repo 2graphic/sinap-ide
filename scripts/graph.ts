@@ -221,5 +221,4 @@ class Node extends Element implements DrawableNode{
                        ["x", new SinapType("number")] as [string, SinapType],
                        ["y", new SinapType("number")] as [string, SinapType]]
 
-
 }
