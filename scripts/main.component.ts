@@ -12,7 +12,8 @@ import { MenuService, MenuEventListener, MenuEvent } from "./menu.service"
 import { GraphEditorComponent, Drawable } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
-import { PropertiesPanelComponent, SinapType } from "./properties-panel.component"
+import { PropertiesPanelComponent } from "./properties-panel.component"
+import { SinapType } from "./types";
 import { Element, Graph } from "./graph"
 import { SideBarComponent } from "./side-bar.component"
 

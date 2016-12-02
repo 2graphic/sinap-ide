@@ -4,6 +4,7 @@
 
 
 import { Component } from "@angular/core";
+import { SinapType } from "./types";
 
 
 @Component({
@@ -29,11 +30,6 @@ export class PropertiesPanelComponent {
     this._selectedEntity = e;
   }
 }
-
-export class SinapType {
-  constructor(public type : string){}
-}
-
 
 export interface PropertiedEntity {
   readonly displayProperties : Iterable<[string, SinapType]>;

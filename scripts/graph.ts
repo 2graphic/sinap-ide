@@ -5,7 +5,9 @@
 //
 
 import { DrawableEdge, DrawableGraph, DrawableNode } from "./graph-editor.component";
-import { PropertiedEntity, SinapType } from "./properties-panel.component";
+import { PropertiedEntity } from "./properties-panel.component";
+import { SinapType, SinapString, SinapBoolean, SinapNumber, SinapEdge, SinapNode } from "./types";
+
 
 let proto_map_func = Array.prototype.map;
 function map<T, U>(i : Iterable<T>, f : ((x : T) => U)) : Array<U>{
@@ -73,8 +75,8 @@ export class Graph extends Element implements DrawableGraph {
     return this._nodes;
   }
   createNode(x=0, y=0) {
-  	const node = new Node([["accept_state", new SinapType("boolean")],
-                           ["start_state", new SinapType("boolean")]],
+  	const node = new Node([["accept_state", SinapBoolean],
+                           ["start_state", SinapBoolean]],
                           x, y);
   	this._nodes.push(node);
     node.label = "q" + this._nodeID;
@@ -165,14 +167,14 @@ class Edge extends Element implements DrawableEdge{
     super(properties);
   }
 
-  displayProperties = [["showSourceArrow", new SinapType("boolean")] as [string, SinapType],
-                       ["showDestinationArrow", new SinapType("boolean")] as [string, SinapType],
-                       ["label", new SinapType("string")] as [string, SinapType],
-                       ["color", new SinapType("string")] as [string, SinapType],
-                       ["lineStyle", new SinapType("string")] as [string, SinapType],
-                       ["lineWidth", new SinapType("number")] as [string, SinapType],
-                       ["source", new SinapType("node")] as [string, SinapType],
-                       ["destination", new SinapType("node")] as [string, SinapType]]
+  displayProperties = [["showSourceArrow", SinapBoolean] as [string, SinapType],
+                       ["showDestinationArrow", SinapBoolean] as [string, SinapType],
+                       ["label", SinapString] as [string, SinapType],
+                       ["color", SinapString] as [string, SinapType],
+                       ["lineStyle", SinapString] as [string, SinapType],
+                       ["lineWidth", SinapNumber] as [string, SinapType],
+                       ["source", SinapNode] as [string, SinapType],
+                       ["destination", SinapNode] as [string, SinapType]]
 }
 
 class Node extends Element implements DrawableNode{
@@ -228,14 +230,14 @@ class Node extends Element implements DrawableNode{
     super(properties);
   }
 
-  displayProperties = [["start_state", new SinapType("boolean")] as [string, SinapType],
-                       ["accept_state", new SinapType("boolean")] as [string, SinapType],
-                       ["label", new SinapType("string")] as [string, SinapType],
-                       ["color", new SinapType("string")] as [string, SinapType],
-                       ["borderColor", new SinapType("string")] as [string, SinapType],
-                       ["borderStyle", new SinapType("string")] as [string, SinapType],
-                       ["borderWidth", new SinapType("number")] as [string, SinapType],
-                       ["x", new SinapType("number")] as [string, SinapType],
-                       ["y", new SinapType("number")] as [string, SinapType],]
+  displayProperties = [["start_state", SinapBoolean] as [string, SinapType],
+                       ["accept_state", SinapBoolean] as [string, SinapType],
+                       ["label", SinapString] as [string, SinapType],
+                       ["color", SinapString] as [string, SinapType],
+                       ["borderColor", SinapString] as [string, SinapType],
+                       ["borderStyle", SinapString] as [string, SinapType],
+                       ["borderWidth", SinapNumber] as [string, SinapType],
+                       ["x", SinapNumber] as [string, SinapType],
+                       ["y", SinapNumber] as [string, SinapType],]
 
 }
