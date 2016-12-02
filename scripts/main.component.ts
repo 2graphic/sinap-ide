@@ -83,4 +83,11 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
     let interpreter = this.pluginService.getInterpreter("dfa", {});
     return interpreter.run(input)+"";
   }
+
+  graphSelectionChanged(evt) {
+    //
+    // Note:
+    // The evt payload contains a set of selected graph elements.
+    //
+  }
 }
