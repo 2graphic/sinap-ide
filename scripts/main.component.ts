@@ -22,16 +22,14 @@ import { Element, Graph } from "./graph"
   providers: [MenuService, PluginService]
 })
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
-  constructor(private menu: MenuService, private pluginService: PluginService) {}
+  constructor(private menu: MenuService, private pluginService: PluginService) {
+    this.newFile();
+  }
   
 
   ngOnInit(): void {
     this.repl.delegate = this;
     this.menu.addEventListener(this);
-  }
-
-  ngAfterViewInit() {
-    this.newFile();    
   }
 
   @ViewChild(GraphEditorComponent)
@@ -73,7 +71,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
       console.log(JSON.stringify(this.graph.toJSON()))
     }
     this.graph = new Graph([]);
-    this.graphEditor.graph = this.graph;
   }
 
   menuEvent(e: MenuEvent) {
