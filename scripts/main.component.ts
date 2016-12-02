@@ -28,20 +28,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   ngOnInit(): void {
     this.repl.delegate = this;
     this.menu.addEventListener(this);
-
-    let that = this;
-    this.graphEditor.selectionChanged.subscribe(function(selected : Set<Drawable>){
-      if (selected.size > 0){
-        for (let x of selected){
-          // this cast is safe because we know that the only Drawables that we
-          // ever give the `graphEditor` are `Element`s
-          that.propertiesPanel.selectedEntity = x as Element;
-          break;
-        }
-      } else {
-        that.propertiesPanel.selectedEntity = that.graph;
-      } 
-    })
   }
 
   ngAfterViewInit() {
@@ -106,10 +92,16 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
     return interpreter.run(input)+"";
   }
 
-  graphSelectionChanged(evt) {
-    //
-    // Note:
-    // The evt payload contains a set of selected graph elements.
-    //
+  graphSelectionChanged(selected) {
+    if (selected.size > 0){
+      for (let x of selected){
+        // this cast is safe because we know that the only Drawables that we
+        // ever give the `graphEditor` are `Element`s
+        this.propertiesPanel.selectedEntity = x as Element;
+        break;
+      }
+    } else {
+      this.propertiesPanel.selectedEntity = this.graph;
+    } 
   }
 }
