@@ -208,6 +208,9 @@ class Node extends Element implements DrawableNode{
     return true;
   }
 
+  start_state = false;
+  accept_state = false;
+
   label : string = "";
   color : string = "#fff200";
   borderColor: string = "#000";
@@ -217,12 +220,14 @@ class Node extends Element implements DrawableNode{
     super(properties);
   }
 
-  generalProperties = [["label", new SinapType("string")] as [string, SinapType],
+  generalProperties = [["start_state", new SinapType("boolean")] as [string, SinapType],
+                       ["accept_state", new SinapType("boolean")] as [string, SinapType],
+                       ["label", new SinapType("string")] as [string, SinapType],
                        ["color", new SinapType("string")] as [string, SinapType],
                        ["borderColor", new SinapType("string")] as [string, SinapType],
                        ["borderStyle", new SinapType("string")] as [string, SinapType],
                        ["borderWidth", new SinapType("number")] as [string, SinapType],
                        ["x", new SinapType("number")] as [string, SinapType],
-                       ["y", new SinapType("number")] as [string, SinapType]]
+                       ["y", new SinapType("number")] as [string, SinapType],]
 
 }
