@@ -31,6 +31,12 @@ export class SinapUnionType extends SinapType {
 	}
 }
 
+export class SinapTupleType extends SinapType {
+	constructor(public baseTypes : Array<SinapType>){
+		super("tupleof(" + baseTypes.map(x=>x.type).join(",") + ")");
+	}
+}
+
 export const SinapString = new SinapType("string");
 export const SinapNumber = new SinapType("number");
 export const SinapBoolean = new SinapType("boolean");
