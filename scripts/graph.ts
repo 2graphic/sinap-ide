@@ -6,7 +6,7 @@
 
 import { DrawableEdge, DrawableGraph, DrawableNode } from "./graph-editor.component";
 import { PropertiedEntity } from "./properties-panel.component";
-import { SinapType, SinapString, SinapBoolean, SinapNumber, SinapEdge, SinapNode } from "./types";
+import { SinapType, SinapString, SinapBoolean, SinapNumber, SinapEdge, SinapNode, SinapLineStyles, SinapColor } from "./types";
 
 
 let proto_map_func = Array.prototype.map;
@@ -75,8 +75,8 @@ export class Graph extends Element implements DrawableGraph {
     return this._nodes;
   }
   createNode(x=0, y=0) {
-  	const node = new Node([["accept_state", SinapBoolean],
-                           ["start_state", SinapBoolean]],
+  	const node = new Node([["Accept State", SinapBoolean],
+                           ["Start State", SinapBoolean]],
                           x, y);
   	this._nodes.push(node);
     node.label = "q" + this._nodeID;
@@ -117,64 +117,80 @@ class Edge extends Element implements DrawableEdge{
   }
 
   propertyValues = {
-    showSourceArrow : false,
-    showDestinationArrow : true,
-    label : "0",
-    color : "#000",
-    lineStyle : "solid",
-    lineWidth : 1
+    'Show Source Arrow' : false,
+    'Show Destination Arrow' : true,
+    'Label' : "0",
+    'Color' : "#000",
+    'Line Style' : "solid",
+    'Line Width' : 1,
+    'Source' : null,
+    'Destination' : null,
   }
 
   get showSourceArrow(){
-    return this.propertyValues.showSourceArrow;
+    return this.propertyValues['Show Source Arrow'];
   }
   set showSourceArrow(nv){
-    this.propertyValues.showSourceArrow = nv;
+    this.propertyValues['Show Source Arrow'] = nv;
   }
   get showDestinationArrow(){
-    return this.propertyValues.showDestinationArrow;
+    return this.propertyValues['Show Destination Arrow'];
   }
   set showDestinationArrow(nv){
-    this.propertyValues.showDestinationArrow = nv;
+    this.propertyValues['Show Destination Arrow'] = nv;
   }
   get label(){
-    return this.propertyValues.label;
+    return this.propertyValues.Label;
   }
   set label(nv){
-    this.propertyValues.label = nv;
+    this.propertyValues.Label = nv;
   }
   get color(){
-    return this.propertyValues.color;
+    return this.propertyValues.Color;
   }
   set color(nv){
-    this.propertyValues.color = nv;
+    this.propertyValues.Color = nv;
   }
   get lineStyle(){
-    return this.propertyValues.lineStyle;
+    return this.propertyValues['Line Style'];
   }
   set lineStyle(nv){
-    this.propertyValues.lineStyle = nv;
+    this.propertyValues['Line Style'] = nv;
   }
   get lineWidth(){
-    return this.propertyValues.lineWidth;
+    return this.propertyValues['Line Width'];
   }
   set lineWidth(nv){
-    this.propertyValues.lineWidth = nv;
+    this.propertyValues['Line Width'] = nv;
+  }
+  get source(){
+    return this.propertyValues['Source'];
+  }
+  set source(nv){
+    this.propertyValues['Source'] = nv;
+  }
+  get destination(){
+    return this.propertyValues['Destination'];
+  }
+  set destination(nv){
+    this.propertyValues['Destination'] = nv;
   }
 
 
-  constructor(properties : Array<[string, SinapType]>, public source : Node, public destination : Node) { 
+  constructor(properties : Array<[string, SinapType]>, source : Node, destination : Node) { 
     super(properties);
+    this.source = source;
+    this.destination = destination;
   }
 
-  displayProperties = [["showSourceArrow", SinapBoolean] as [string, SinapType],
-                       ["showDestinationArrow", SinapBoolean] as [string, SinapType],
-                       ["label", SinapString] as [string, SinapType],
-                       ["color", SinapString] as [string, SinapType],
-                       ["lineStyle", SinapString] as [string, SinapType],
-                       ["lineWidth", SinapNumber] as [string, SinapType],
-                       ["source", SinapNode] as [string, SinapType],
-                       ["destination", SinapNode] as [string, SinapType]]
+  displayProperties = [["Show Source Arrow", SinapBoolean] as [string, SinapType],
+                       ["Show Destination Arrow", SinapBoolean] as [string, SinapType],
+                       ["Label", SinapString] as [string, SinapType],
+                       ["Color", SinapString] as [string, SinapType],
+                       ["Line Style", SinapLineStyles] as [string, SinapType],
+                       ["Line Width", SinapNumber] as [string, SinapType],
+                       ["Source", SinapNode] as [string, SinapType],
+                       ["Destination", SinapNode] as [string, SinapType]]
 }
 
 class Node extends Element implements DrawableNode{
@@ -183,61 +199,75 @@ class Node extends Element implements DrawableNode{
   }
 
   propertyValues = {
-    start_state : false,
-    accept_state : false,
-    label : "",
-    color : "#fff200",
-    borderColor : "#000",
-    borderStyle : "solid",
-    borderWidth : 1,
+    "Start State" : false,
+    "Accept State" : false,
+    "Label" : "",
+    "Color" : "#fff200",
+    "Border Color" : "#000",
+    "Border Style" : "solid",
+    "Border Width" : 1,
+    "X" : 0,
+    "Y" : 0,
   }
 
   // ugly and we need to reconsider
 
   get label(){
-    return this.propertyValues.label;
+    return this.propertyValues.Label;
   }
   set label(nv){
-    this.propertyValues.label = nv;
+    this.propertyValues.Label = nv;
   }
   get color(){
-    return this.propertyValues.color;
+    return this.propertyValues.Color;
   }
   set color(nv){
-    this.propertyValues.color = nv;
+    this.propertyValues.Color = nv;
   }
   get borderColor(){
-    return this.propertyValues.borderColor;
+    return this.propertyValues['Border Color'];
   }
   set borderColor(nv){
-    this.propertyValues.borderColor = nv;
+    this.propertyValues['Border Color'] = nv;
   }
   get borderStyle(){
-    return this.propertyValues.borderStyle;
+    return this.propertyValues['Border Style'];
   }
   set borderStyle(nv){
-    this.propertyValues.borderStyle = nv;
+    this.propertyValues['Border Style'] = nv;
   }
   get borderWidth(){
-    return this.propertyValues.borderWidth;
+    return this.propertyValues['Border Width'];
   }
   set borderWidth(nv){
-    this.propertyValues.borderWidth = nv;
+    this.propertyValues['Border Width'] = nv;
+  }
+  get x(){
+    return this.propertyValues.X;
+  }
+  set x(nv){
+    this.propertyValues.X = nv;
+  }
+  get y(){
+    return this.propertyValues.Y;
+  }
+  set y(nv){
+    this.propertyValues.Y = nv;
   }
 
 
-  constructor(properties : Array<[string, SinapType]>, public x : number, public y : number) {
+  constructor(properties : Array<[string, SinapType]>, x : number, y : number) {
     super(properties);
+    this.x = x;
+    this.y = y;
   }
 
-  pluginProperties = [["start_state", SinapBoolean] as [string, SinapType],
-                       ["accept_state", SinapBoolean] as [string, SinapType]]
-  displayProperties = [["label", SinapString] as [string, SinapType],
-                       ["color", SinapString] as [string, SinapType],
-                       ["borderColor", SinapString] as [string, SinapType],
-                       ["borderStyle", SinapString] as [string, SinapType],
-                       ["borderWidth", SinapNumber] as [string, SinapType],
-                       ["x", SinapNumber] as [string, SinapType],
-                       ["y", SinapNumber] as [string, SinapType],]
+  displayProperties = [["Label", SinapString] as [string, SinapType],
+                       ["Color", SinapColor] as [string, SinapType],
+                       ["Border Color", SinapColor] as [string, SinapType],
+                       ["Border Style", SinapLineStyles] as [string, SinapType],
+                       ["Border Width", SinapNumber] as [string, SinapType],
+                       ["X", SinapNumber] as [string, SinapType],
+                       ["Y", SinapNumber] as [string, SinapType],]
 
 }

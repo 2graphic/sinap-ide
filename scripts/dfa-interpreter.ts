@@ -40,10 +40,10 @@ export class DFAInterpreter implements Interpreter {
     	this.accept_states = new Set<number>();
 
     	for (let n of nodes){
-    		if (coerseBoolean(n.propertyValues.start_state)){
+    		if (coerseBoolean(n.propertyValues["Start State"])){
     			this.start_state = nodes.indexOf(n);
     		}
-    		if (coerseBoolean(n.propertyValues.accept_state)){
+    		if (coerseBoolean(n.propertyValues["Accept State"])){
     			this.accept_states.add(nodes.indexOf(n));
     		}
     	}
