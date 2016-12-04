@@ -10,11 +10,12 @@
             class="string-property" type="text" /></td>
         </tr>
         <tr *ngFor="let pair of selectedEntity.displayProperties">
-            <td *ngIf="pair[1].type.substring(0,7) == 'enumof('">
-            Hi
-            </td>
             <td>{{pair[0]}}</td>
-            <td><input [(ngModel)]="selectedEntity.propertyValues[pair[0]]"
+            <td>
+            <select *ngIf="pair[1].type.substring(0,7) == 'enumof('" [(ngModel)]="selectedEntity.propertyValues[pair[0]]">
+            <option *ngFor="let lit of pair[1].literals" value="{{lit}}">{{lit}}</option>
+            </select>
+            <input *ngIf="pair[1].type.substring(0,7) != 'enumof('" [(ngModel)]="selectedEntity.propertyValues[pair[0]]"
             class="string-property" type="text" /></td>
         </tr>
     </table>
