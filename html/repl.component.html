@@ -1,7 +1,7 @@
 <div id="repl">
     <div id="repl-output">
         <p class="repl-item" *ngFor="let comm of results; let i = index;">
-            [{{i + 1}}]: {{comm.input}} = {{comm.result}}
+            [{{results.length - i}}]: {{comm.input}} = {{comm.result}}
         </p>
     </div>
     <div id="repl-cl">
