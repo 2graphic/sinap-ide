@@ -1,23 +1,29 @@
-.repl {
-    z-index: 1;
-    position: fixed;
-    bottom: 0;
+#repl {
     background-color: #FFFFFF;
-    width: calc(100% - 42px);
-    height: 25%;
-    padding: 5px;
-    left: 32px;
+    width: 100%;
+    height: 100%;
+
+    box-sizing: border-box;
+    padding: .75em;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#repl-cl {
+    height: 2em;
+    flex:none;
+}
+
+#repl-cl input {
+    font-size: 1em;
+    width: 100%;
+}
+
+#repl-output {
+    flex:auto;
+
+    font-size: 1.15em;
     overflow-y: auto;
-}
-
-.repl-cl {
-    width: calc(100% - 15px);
-    padding: 5px;
-    font-size: 1.15em;
-    position: fixed;
-}
-
-.repl-output {
-    margin-top: 15px;
-    font-size: 1.15em;
 }
