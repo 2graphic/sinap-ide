@@ -7,33 +7,45 @@ export class SinapType {
   }
 }
 
-export class SinapOptionalType extends SinapType {
-	constructor(public baseType : SinapType){
-		super("optional(" + baseType.type + ")");
+export class SinapCompositeType extends SinapType {
+	constructor(public compositeKind : string, body : string){
+		super(compositeKind + "of(" + body + ")")
 	}
 }
 
-export class SinapListType extends SinapType {
+export class SinapOptionalType extends SinapCompositeType {
 	constructor(public baseType : SinapType){
-		super("listof(" + baseType.type + ")");
+		super("option", baseType.type);
 	}
 }
 
-export class SinapEnumType extends SinapType {
+export class SinapListType extends SinapCompositeType {
+	constructor(public baseType : SinapType){
+		super("list", baseType.type);
+	}
+}
+
+export class SinapEnumType extends SinapCompositeType {
 	constructor(public literals : Array<string>){
-		super("enumof('"+literals.join("','")+"')");
+		super("enum", "'" + literals.join("','") + "'");
 	}
 }
 
-export class SinapUnionType extends SinapType {
+export class SinapUnionType extends SinapCompositeType {
 	constructor(public baseTypes : Array<SinapType>){
-		super("unionof(" + baseTypes.map(x=>x.type).join(",") + ")");
+		super("union", baseTypes.map(x=>x.type).join(","));
 	}
 }
 
-export class SinapTupleType extends SinapType {
+export class SinapTupleType extends SinapCompositeType {
 	constructor(public baseTypes : Array<SinapType>){
-		super("tupleof(" + baseTypes.map(x=>x.type).join(",") + ")");
+		super("tuple", baseTypes.map(x=>x.type).join(","));
+	}
+}
+
+export class SinapStructType extends SinapCompositeType {
+	constructor(public baseTypes : Map<string,SinapType>){
+		super("struct", [...baseTypes.entries()].map(p=>p[0] + ":" + p[1].type).join(","));
 	}
 }
 
