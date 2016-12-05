@@ -4,34 +4,36 @@ import { Component } from "@angular/core";
   moduleId: module.id,
   selector: "repl",
   templateUrl: "../html/repl.component.html",
+  styleUrls: [ "../styles/repl.component.css" ]
 })
 export class REPLComponent {
+  public delegate: REPLDelegate;
+  private results: Command[] = []
 
-  command: Command = new Command(1)
+  private onSubmit(input: String) {
+    if (!this.delegate) {
+      throw new Error("REPLDelegate not set.");
+    }
 
-  results: Command[] = [
-  ]
+    let result: String;
+    try {
+      result = this.delegate.run(input);
+    } catch (e) {
+      result = e;
+    }
 
-  onSubmit() {
-    let toExec = this.command;
-    this.command = new Command(toExec.num + 1);
-    toExec.run();
-    this.results.unshift(toExec);
+    this.results.unshift({
+      input: input,
+      result: result
+    });
   }
 }
 
-export class Command {
-  text: string;
-  result: string;
-  num: number;
+export interface REPLDelegate {
+  run(input: String): String;
+}
 
-  constructor(num: number) {
-    this.text = "";
-    this.result = "";
-    this.num = num;
-  }
-
-  run() {
-    this.result = eval(this.text).toString();
-  }
+interface Command {
+  input: String;
+  result: String;
 }

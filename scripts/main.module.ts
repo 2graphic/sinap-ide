@@ -12,8 +12,14 @@ import { BrowserModule } from "@angular/platform-browser";
 
 import { MainComponent }    from "./main.component";
 import { SideBarComponent } from "./side-bar.component";
-import {REPLComponent} from "./repl.component";
+import { AboutComponent } from "./about.component";
+import { PropertiesPanelComponent } from "./properties-panel.component";
+import { ToolsPanelComponent } from "./tools-panel.component";
+import { FilesPanelComponent } from "./files-panel.component";
+import { REPLComponent } from "./repl.component";
 import { FormsModule }   from '@angular/forms';
+import { GraphEditorComponent } from "./graph-editor.component";
+import { StatusBarComponent } from "./status-bar.component";
 
 @NgModule({
   imports:      [
@@ -23,8 +29,14 @@ import { FormsModule }   from '@angular/forms';
   declarations: [
     MainComponent,
     SideBarComponent,
-    REPLComponent
+    AboutComponent,
+    PropertiesPanelComponent,
+    ToolsPanelComponent,
+    FilesPanelComponent,
+    REPLComponent,
+    GraphEditorComponent,
+    StatusBarComponent,
   ],
-  bootstrap:    [ MainComponent, REPLComponent ]
+  bootstrap:    [ MainComponent ]
 })
 export class MainModule { }
