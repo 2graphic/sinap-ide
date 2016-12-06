@@ -3,7 +3,7 @@
     <p *ngIf="!selectedEntity">
         No selected entity.
     </p>
-    
+
     <div *ngIf="selectedEntity">
         <table *ngFor="let group of groups" class="group-table">
             <template [ngIf]="selectedEntity[group[1]].length > 0">
@@ -31,11 +31,11 @@
                                 <option *ngFor="let lit of pair[1].literals" value="{{lit}}">{{lit}}</option>
                             </select>
                         </div>
-                        <div *ngSwitchCase="'tupleof'">
-                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]][0]" type="number" placeholder="x"
+                        <div *ngSwitchCase="'structo'">
+                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]].x" type="number" placeholder="x"
                                 class="text-input tuple-input"/>
-                                <input [(ngModel)]="selectedEntity.propertyValues[pair[0]][1]" type="number" placeholder="y"
-                                class="text-input tuple-input"/>
+                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]].y" type="number" placeholder="y"
+                            class="text-input tuple-input"/>
                         </div>
                         <div *ngSwitchCase="'color'">
                             <label class="color-label" for="property{{pair[0]}}">
