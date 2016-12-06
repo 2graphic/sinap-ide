@@ -32,9 +32,9 @@
                             </select>
                         </div>
                         <div *ngSwitchCase="'structo'">
-                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]].x" type="number" placeholder="x"
+                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]].x" type="number" placeholder="x" step="0.1"
                                 class="text-input tuple-input"/>
-                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]].y" type="number" placeholder="y"
+                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]].y" type="number" placeholder="y" step="0.1"
                             class="text-input tuple-input"/>
                         </div>
                         <div *ngSwitchCase="'color'">

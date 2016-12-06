@@ -246,13 +246,13 @@ class Node extends Element implements DrawableNode{
     return this.propertyValues.Position.x;
   }
   set x(nv){
-    this.propertyValues.Position.x = nv;
+    this.propertyValues.Position.x = Number(nv.toFixed(1));
   }
   get y(){
     return this.propertyValues.Position.y;
   }
   set y(nv){
-    this.propertyValues.Position.y = nv;
+    this.propertyValues.Position.y = Number(nv.toFixed(1));
   }
 
 
