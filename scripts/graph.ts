@@ -128,16 +128,16 @@ class Edge extends Element implements DrawableEdge{
   }
 
   get showSourceArrow(){
-    return this.propertyValues['Show Source Arrow'];
+    return this.propertyValues['Source Arrow'];
   }
   set showSourceArrow(nv){
-    this.propertyValues['Show Source Arrow'] = nv;
+    this.propertyValues['Source Arrow'] = nv;
   }
   get showDestinationArrow(){
-    return this.propertyValues['Show Destination Arrow'];
+    return this.propertyValues['Destination Arrow'];
   }
   set showDestinationArrow(nv){
-    this.propertyValues['Show Destination Arrow'] = nv;
+    this.propertyValues['Destination Arrow'] = nv;
   }
   get label(){
     return this.propertyValues.Label;
