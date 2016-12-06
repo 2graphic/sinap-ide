@@ -3,7 +3,7 @@
     <p *ngIf="!selectedEntity">
         No selected entity.
     </p>
-
+    
     <div *ngIf="selectedEntity">
         <table *ngFor="let group of groups" class="group-table">
             <template [ngIf]="selectedEntity[group[1]].length > 0">

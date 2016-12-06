@@ -6,7 +6,7 @@
 
 import { DrawableEdge, DrawableGraph, DrawableNode } from "./graph-editor.component";
 import { PropertiedEntity } from "./properties-panel.component";
-import { SinapType, SinapString, SinapBoolean, SinapNumber, SinapEdge, SinapNode, SinapLineStyles, SinapColor, SinapTupleType } from "./types";
+import { SinapType, SinapString, SinapBoolean, SinapNumber, SinapEdge, SinapNode, SinapLineStyles, SinapColor, SinapStructType } from "./types";
 
 
 let proto_map_func = Array.prototype.map;
@@ -206,7 +206,8 @@ class Node extends Element implements DrawableNode{
     "Border Color" : "#000",
     "Border Style" : "solid",
     "Border Width" : 1,
-    "Position" : [0, 0],
+    "Position" : {'x':0,
+                  'y':0},
   }
 
   // ugly and we need to reconsider
@@ -242,16 +243,16 @@ class Node extends Element implements DrawableNode{
     this.propertyValues['Border Width'] = nv;
   }
   get x(){
-    return this.propertyValues.Position[0];
+    return this.propertyValues.Position.x;
   }
   set x(nv){
-    this.propertyValues.Position[0] = nv;
+    this.propertyValues.Position.x = nv;
   }
   get y(){
-    return this.propertyValues.Position[1];
+    return this.propertyValues.Position.y;
   }
   set y(nv){
-    this.propertyValues.Position[1] = nv;
+    this.propertyValues.Position.y = nv;
   }
 
 
@@ -266,6 +267,7 @@ class Node extends Element implements DrawableNode{
                        ["Border Color", SinapColor] as [string, SinapType],
                        ["Border Style", SinapLineStyles] as [string, SinapType],
                        ["Border Width", SinapNumber] as [string, SinapType],
-                       ["Position", new SinapTupleType([SinapNumber, SinapNumber])] as [string, SinapType],]
+                       ["Position", new SinapStructType(new Map([['x', SinapNumber],
+                                                                 ['y', SinapNumber]]))] as [string, SinapType],]
 
 }

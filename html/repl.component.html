@@ -1,12 +1,12 @@
 <div id="repl">
+    <div id="repl-output">
+        <p class="repl-item" *ngFor="let comm of results; let i = index;">
+            [{{results.length - i}}]: {{comm.input}} = {{comm.result}}
+        </p>
+    </div>
     <div id="repl-cl">
         <form (ngSubmit)="onSubmit(commandText); commandText = ''">
             <input [(ngModel)]="commandText" name="commandText" type="text" />
         </form>
-    </div>
-    <div id="repl-output">
-        <p *ngFor="let comm of results; let i = index;">
-            [{{results.length-i}}]: {{comm.input}} = {{comm.result}}
-        </p>
     </div>
 </div>
