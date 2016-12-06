@@ -11,22 +11,22 @@ import { SinapType } from "./types";
   moduleId: module.id,
   selector: "sinap-properties-panel",
   templateUrl: "../html/properties-panel.component.html",
-  styleUrls: [ "../styles/side-panel.component.css" ]
+  styleUrls: [ "../styles/side-panel.component.css", "../styles/properties-panel.component.css" ]
 })
 
 export class PropertiesPanelComponent {
   private _selectedEntity : PropertiedEntity;
+
+  private groups = [["General", "pluginProperties"], ["Display", "displayProperties"]];
+
   public get selectedEntity(){
     return this._selectedEntity;
   }
   public set selectedEntity(e){
+    // Leaving this in as it's nice for debugging for a while,
+    // but this can just be a regular property.
+
     console.log(e);
-
-
-    // READTHIS: to Daniel
-    // this tells us when things change
-    // may want to change this to just be a field and 
-    // use Angular to detect changes to it. 
     this._selectedEntity = e;
   }
 }

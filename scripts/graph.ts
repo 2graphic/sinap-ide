@@ -117,8 +117,8 @@ class Edge extends Element implements DrawableEdge{
   }
 
   propertyValues = {
-    'Show Source Arrow' : false,
-    'Show Destination Arrow' : true,
+    'Source Arrow' : false,
+    'Destination Arrow' : true,
     'Label' : "0",
     'Color' : "#000",
     'Line Style' : "solid",
@@ -183,10 +183,10 @@ class Edge extends Element implements DrawableEdge{
     this.destination = destination;
   }
 
-  displayProperties = [["Show Source Arrow", SinapBoolean] as [string, SinapType],
-                       ["Show Destination Arrow", SinapBoolean] as [string, SinapType],
+  displayProperties = [["Source Arrow", SinapBoolean] as [string, SinapType],
+                       ["Destination Arrow", SinapBoolean] as [string, SinapType],
                        ["Label", SinapString] as [string, SinapType],
-                       ["Color", SinapString] as [string, SinapType],
+                       ["Color", SinapColor] as [string, SinapType],
                        ["Line Style", SinapLineStyles] as [string, SinapType],
                        ["Line Width", SinapNumber] as [string, SinapType],
                        ["Source", SinapNode] as [string, SinapType],
