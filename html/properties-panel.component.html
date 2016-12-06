@@ -17,8 +17,8 @@
                         </div>
                         <div *ngSwitchCase="'boolean'">
                             <select [(ngModel)]="selectedEntity.propertyValues[pair[0]]">
-                                <option value="true">True</option>
-                                <option value="false">False</option>
+                                <option [ngValue]="true">True</option>
+                                <option [ngValue]="false">False</option>
                             </select>
                         </div>
                         <div *ngSwitchCase="'node'">
@@ -28,7 +28,7 @@
                         </div>
                         <div *ngSwitchCase="'enum'">
                             <select [(ngModel)]="selectedEntity.propertyValues[pair[0]]">
-                                <option *ngFor="let lit of pair[1].literals" value="{{lit}}">{{lit}}</option>
+                                <option *ngFor="let lit of pair[1].literals" [ngValue]="lit">{{lit}}</option>
                             </select>
                         </div>
                         <div *ngSwitchCase="'struct'">
@@ -41,8 +41,7 @@
                             <label class="color-label" for="property{{pair[0]}}">
                                 <span class="color-preview" [style.background-color]="selectedEntity.propertyValues[pair[0]]"></span>
                                 {{selectedEntity.propertyValues[pair[0]]}}
-                                <input [(ngModel)]="selectedEntity.propertyValues[pair[0]]" id="property{{pair[0]}}" type="color"
-                                    class="color-input"/>
+                                <input [(ngModel)]="selectedEntity.propertyValues[pair[0]]" id="property{{pair[0]}}" type="color" class="color-input"/>
                             </label>
                         </div>
                         <div *ngSwitchDefault> 
