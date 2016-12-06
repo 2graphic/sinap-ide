@@ -10,7 +10,7 @@
                 <tr><th colspan="2">{{group[0]}}</th></tr>
                 <tr *ngFor="let pair of selectedEntity[group[1]]">
                     <td class="label">{{pair[0]}}</td>
-                    <td [ngSwitch]="pair[1].type.substring(0,7)">
+                    <td [ngSwitch]="pair[1].topLevelKind">
                         <div *ngSwitchCase="'number'">
                             <input [(ngModel)]="selectedEntity.propertyValues[pair[0]]" type="number" 
                                 class="number-input"/>
@@ -26,12 +26,12 @@
                                 {{selectedEntity.propertyValues[pair[0]].propertyValues['Label']}}
                             </label>
                         </div>
-                        <div *ngSwitchCase="'enumof('">
+                        <div *ngSwitchCase="'enum'">
                             <select [(ngModel)]="selectedEntity.propertyValues[pair[0]]">
                                 <option *ngFor="let lit of pair[1].literals" value="{{lit}}">{{lit}}</option>
                             </select>
                         </div>
-                        <div *ngSwitchCase="'structo'">
+                        <div *ngSwitchCase="'struct'">
                             <input [(ngModel)]="selectedEntity.propertyValues[pair[0]].x" type="number" placeholder="x" step="0.1"
                                 class="text-input tuple-input"/>
                             <input [(ngModel)]="selectedEntity.propertyValues[pair[0]].y" type="number" placeholder="y" step="0.1"
