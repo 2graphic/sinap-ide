@@ -105,6 +105,20 @@ const menuTemplate: any = [
                     focusedWindow.webContents.send("new");
                 }
             },
+            {
+                label: 'Save',
+                accelerator: 'CmdOrCtrl+s',
+                click: function (item, focusedWindow) {
+                    alert('Saving!')
+                }
+            },
+            {
+                label: 'Load',
+                accelerator: 'CmdOrCtrl+o',
+                click: function (item, focusedWindow) {
+                    alert('Loading!')
+                }
+            }
         ]
     },
     {
