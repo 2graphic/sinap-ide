@@ -3,6 +3,8 @@ import { Injectable, NgZone } from '@angular/core';
 import { remote, ipcRenderer } from 'electron';
 let { Menu, MenuItem, app } = remote;
 
+let fs = remote.require('fs');
+
 @Injectable()
 export class MenuService {
     private eventListeners:MenuEventListener[] = [];
@@ -109,14 +111,23 @@ const menuTemplate: any = [
                 label: 'Save',
                 accelerator: 'CmdOrCtrl+s',
                 click: function (item, focusedWindow) {
-                    alert('Saving!')
+                    fs.writeFile('test.txt', 'Hello, world!', 'utf8', err => {
+                        if (err) {
+                            alert(`Could not save file: ${err}.`);
+                        }
+                    });
                 }
             },
             {
                 label: 'Load',
                 accelerator: 'CmdOrCtrl+o',
                 click: function (item, focusedWindow) {
-                    alert('Loading!')
+                    fs.readFile('test.txt', 'utf8', (err, data) => {
+                        if (err) {
+                            alert(`Could not read file: ${err}.`);
+                        }
+                        alert(`Read in file with contents "${data}".`);
+                    });
                 }
             }
         ]
