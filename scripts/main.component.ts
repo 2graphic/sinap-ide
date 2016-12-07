@@ -17,6 +17,10 @@ import { SinapType, SinapNumber } from "./types";
 import { Element, Graph } from "./graph"
 import { SideBarComponent } from "./side-bar.component"
 
+import { remote } from 'electron';
+const fs = remote.require('fs');
+const {dialog} = remote;
+
 @Component({
   moduleId: module.id,
   selector: "sinap-main",
@@ -66,7 +70,32 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
       case MenuEvent.NEW_FILE:
         this.newFile();
         break;
+      case MenuEvent.LOAD_FILE:
+        this.loadFile();
+        break;
+      case MenuEvent.SAVE_FILE:
+        this.saveFile();
+        break;
     }
+  }
+
+  saveFile() {
+    dialog.showSaveDialog({}, (filename) => {
+      let graph = {
+          'sinap-file-format-version' : "0.0.1",
+          'graph': this.graph.serialize()
+      };
+      fs.saveFile(filename, JSON.stringify(graph), 'uf8', (err) => {
+        if (err)
+          alert(`Error occured while saving to file ${filename}: ${err}.`);
+      });
+    })
+  }
+
+  loadFile() {
+    dialog.showOpenDialog({}, (files) => {
+      alert(`Loading files ${files}.`);
+    });
   }
 
   run(input: String):String {
