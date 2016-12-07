@@ -106,7 +106,8 @@ export class Graph extends Element implements DrawableGraph {
     this._edges.splice(this._edges.indexOf(edge as Edge), 1);
   }
   canCreateEdge(src : Node, dest : Node, like? : Edge) {
-    return Math.random() > 0.1;
+    // return Math.random() > 0.1;
+    return true;
   }
 }
 
