@@ -78,6 +78,45 @@ function extend(a, b){
   return a;
 }
 
+export function deserializeGraph(pojo: any, handler: () => void): Graph {
+  let result = new Graph([], handler);
+  let graph = pojo.graph;
+  let nodes: [any] = graph.nodes;
+  let createdNodes: [Node] = <[Node]>[];
+
+  for(let node of nodes) {
+    const posName = "Position";
+    let pos = node[posName];
+    let newNode = result.createNode(pos.x, pos.y);
+    createdNodes.push(newNode);
+    for(let prop of Object.keys(node)) {
+      if (prop !== posName) {
+        newNode.propertyValues[prop] = node[prop];
+      }
+    }
+  }
+
+  let edges: [any] = graph.edges;
+  const destName = "Destination";
+  const srcName = "Source";
+  function getNode(edge: any, name: string): Node {
+    let ind: number = edge[name].location;
+    return createdNodes[ind];
+  }
+  for(let edge of edges) {
+    let srcNode = getNode(edge, srcName);
+    let destNode = getNode(edge, destName);
+    let newEdge = result.createEdge(srcNode, destNode);
+    for(let prop of Object.keys(edge)) {
+      if (prop !== srcName && prop !== destName) {
+        newEdge.propertyValues[prop] = edge[prop];
+      }
+    }
+  }
+  
+  return result;
+}
+
 export class Graph extends Element implements DrawableGraph {
   isGraph(){
     return true;

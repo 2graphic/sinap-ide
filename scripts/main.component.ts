@@ -14,7 +14,7 @@ import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
 import { PropertiesPanelComponent } from "./properties-panel.component"
 import { SinapType, SinapNumber } from "./types";
-import { Element, Graph } from "./graph"
+import { Element, Graph, deserializeGraph } from "./graph"
 import { SideBarComponent } from "./side-bar.component"
 
 import { remote } from 'electron';
@@ -53,13 +53,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   graph : Graph;
 
   newFile() {
-
-    if (this.graph){
-      console.log(JSON.stringify(
-        {'sinap-file-format-version' : "0.0.1",
-         'graph': this.graph.serialize()}));
-    }
-
     this.graph = new Graph([], () =>{
       this.graphEditor.redraw();
     });
@@ -85,7 +78,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
           'sinap-file-format-version' : "0.0.1",
           'graph': this.graph.serialize()
       };
-      fs.saveFile(filename, JSON.stringify(graph), 'uf8', (err) => {
+      fs.writeFile(filename, JSON.stringify(graph), 'utf8', (err) => {
         if (err)
           alert(`Error occured while saving to file ${filename}: ${err}.`);
       });
@@ -94,7 +87,19 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
 
   loadFile() {
     dialog.showOpenDialog({}, (files) => {
-      alert(`Loading files ${files}.`);
+      // TODO: Make this actually handle multiple files.
+      let filename = files[0];
+      fs.readFile(filename, 'utf8', (err, data) => {
+        if (err) {
+          alert(`Error reading file ${filename}: ${err}`);
+        }
+        try {
+          let pojo = JSON.parse(data);
+          this.graph = deserializeGraph(pojo, () => this.graphEditor.redraw);
+        } catch (e) {
+          alert(`Could not serialize graph: ${e}.`);
+        }
+      })
     });
   }
 
