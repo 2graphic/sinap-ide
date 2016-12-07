@@ -60,6 +60,10 @@ export class Element implements PropertiedEntity {
 
   displayProperties : Array<[string, SinapType]> = [];
   propertyValues = null;
+
+  serialize(){
+    return this._propertyValues;
+  }
 }
 
 /**
@@ -134,6 +138,35 @@ export class Graph extends Element implements DrawableGraph {
   }
   canCreateEdge(src : Node, dest : Node, like? : Edge) {
     return Math.random() > 0.1;
+  }
+
+  serialize(){
+    let nodes = this._nodes;
+    let edges = this._edges;
+
+    function replaceNodesEdges(obj){
+      let n = {};
+      for (let k in obj){
+        let v = obj[k];
+        if (v instanceof Edge){
+          n[k] = {'proxyto':'Edge', 'location': edges.indexOf(v)};
+        } else if (v instanceof Node){
+          n[k] = {'proxyto':'Node', 'location': nodes.indexOf(v)};
+        } else {
+          n[k] = v;
+        }
+      }
+      return n;
+    }
+
+    function cleanup(l : Array<Node|Edge>){
+      let results = [];
+      for (let val of l){
+        results.push(replaceNodesEdges(val.serialize()));
+      }
+      return results;
+    }
+    return {'nodes': cleanup(this._nodes), 'edges': cleanup(this._edges)};
   }
 }
 

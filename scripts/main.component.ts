@@ -49,6 +49,13 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   graph : Graph;
 
   newFile() {
+
+    if (this.graph){
+      console.log(JSON.stringify(
+        {'sinap-file-format-version' : "0.0.1",
+         'graph': this.graph.serialize()}));
+    }
+
     this.graph = new Graph([], () =>{
       this.graphEditor.redraw();
     });
