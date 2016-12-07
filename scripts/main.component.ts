@@ -26,8 +26,6 @@ import { SideBarComponent } from "./side-bar.component"
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   constructor(private menu: MenuService, private pluginService: PluginService) {
     this.newFile();
-
-
   }
   
 
@@ -51,7 +49,9 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   graph : Graph;
 
   newFile() {
-    this.graph = new Graph([]);
+    this.graph = new Graph([], () =>{
+      this.graphEditor.redraw();
+    });
   }
 
   menuEvent(e: MenuEvent) {
