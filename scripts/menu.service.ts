@@ -3,8 +3,6 @@ import { Injectable, NgZone } from '@angular/core';
 import { remote, ipcRenderer } from 'electron';
 let { Menu, MenuItem, app } = remote;
 
-let fs = remote.require('fs');
-
 @Injectable()
 export class MenuService {
     private eventListeners:MenuEventListener[] = [];
@@ -14,9 +12,9 @@ export class MenuService {
         let menu = Menu.buildFromTemplate(menuTemplate);
         Menu.setApplicationMenu(menu);
 
-        ipcRenderer.on("new", () => {
-            this.callEvent(MenuEvent.NEW_FILE);
-        });
+        ipcRenderer.on("new", () => this.callEvent(MenuEvent.NEW_FILE));
+        ipcRenderer.on("save", () => this.callEvent(MenuEvent.SAVE_FILE));
+        ipcRenderer.on("load", () => this.callEvent(MenuEvent.LOAD_FILE));
     }
 
     private callEvent(e: MenuEvent) {
@@ -45,6 +43,8 @@ export enum MenuEvent {
     NEW_FILE,
     UNDO,
     REDO,
+    SAVE_FILE,
+    LOAD_FILE
 }
 
 export interface MenuEventListener {
@@ -111,23 +111,14 @@ const menuTemplate: any = [
                 label: 'Save',
                 accelerator: 'CmdOrCtrl+s',
                 click: function (item, focusedWindow) {
-                    fs.writeFile('test.txt', 'Hello, world!', 'utf8', err => {
-                        if (err) {
-                            alert(`Could not save file: ${err}.`);
-                        }
-                    });
+                    focusedWindow.webContents.send("save");
                 }
             },
             {
                 label: 'Load',
                 accelerator: 'CmdOrCtrl+o',
                 click: function (item, focusedWindow) {
-                    fs.readFile('test.txt', 'utf8', (err, data) => {
-                        if (err) {
-                            alert(`Could not read file: ${err}.`);
-                        }
-                        alert(`Read in file with contents "${data}".`);
-                    });
+                    focusedWindow.webContents.send("load");
                 }
             }
         ]
