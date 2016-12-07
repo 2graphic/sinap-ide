@@ -4,6 +4,7 @@
 //
 //
 
+import { EventEmitter } from "@angular/core"
 import { DrawableEdge, DrawableGraph, DrawableNode } from "./graph-editor.component";
 import { PropertiedEntity } from "./properties-panel.component";
 import { SinapType, SinapString, SinapBoolean, SinapNumber, SinapEdge, SinapNode, SinapLineStyles, SinapColor, SinapStructType } from "./types";
@@ -12,6 +13,13 @@ import { SinapType, SinapString, SinapBoolean, SinapNumber, SinapEdge, SinapNode
 let proto_map_func = Array.prototype.map;
 function map<T, U>(i : Iterable<T>, f : ((x : T) => U)) : Array<U>{
   return proto_map_func.call(i, f);
+}
+
+function proxify(obj, that : Element){
+  return new Proxy(obj, {
+      get : that.getProperty.bind(that),
+      set : that.setProperty.bind(that)
+    });
 }
 
 /**
@@ -31,12 +39,27 @@ export class Element implements PropertiedEntity {
     return false;
   }
 
-  constructor(public pluginProperties : Array<[string, SinapType]>){
+  constructor(public pluginProperties : Array<[string, SinapType]>, public handler : (() => void), private _propertyValues){
+    this.propertyValues = proxify(_propertyValues, this);
+  }
 
+  getProperty(target, k : PropertyKey){
+    // TODO, this condition is insufficient, arrays too
+    if (typeof target[k] == 'object'){
+      // TODO inefficient, creates tons of Proxy objects
+      return proxify(target[k], this);
+    }
+    return target[k];
+  }
+
+  setProperty(target, k : PropertyKey, v){
+    target[k] = v;
+    this.handler();
+    return true;
   }
 
   displayProperties : Array<[string, SinapType]> = [];
-  propertyValues = {};
+  propertyValues = null;
 }
 
 /**
@@ -54,6 +77,10 @@ function extend(a, b){
 export class Graph extends Element implements DrawableGraph {
   isGraph(){
     return true;
+  }
+
+  constructor(pluginProperties, handler){
+    super(pluginProperties, handler, {});
   }
 
   private _nodes : Array<Node> = [];
@@ -76,7 +103,7 @@ export class Graph extends Element implements DrawableGraph {
   }
   createNode(x=0, y=0) {
   	const node = new Node([["Accept State", SinapBoolean],
-                           ["Start State", SinapBoolean]],
+                           ["Start State", SinapBoolean]], this.handler,
                           x, y);
   	this._nodes.push(node);
     node.label = "q" + this._nodeID;
@@ -84,7 +111,7 @@ export class Graph extends Element implements DrawableGraph {
   	return node;
   }
   createEdge(src : Node, dest : Node, like? : Edge) {
-  	const edge = new Edge([],
+  	const edge = new Edge([], this.handler,
                           src, dest);
   	this._edges.push(edge);
   	return edge;
@@ -116,17 +143,6 @@ class Edge extends Element implements DrawableEdge{
     return true;
   }
 
-  propertyValues = {
-    'Source Arrow' : false,
-    'Destination Arrow' : true,
-    'Label' : "0",
-    'Color' : "#000",
-    'Line Style' : "solid",
-    'Line Width' : 1,
-    'Source' : null,
-    'Destination' : null,
-  }
-
   get showSourceArrow(){
     return this.propertyValues['Source Arrow'];
   }
@@ -140,16 +156,16 @@ class Edge extends Element implements DrawableEdge{
     this.propertyValues['Destination Arrow'] = nv;
   }
   get label(){
-    return this.propertyValues.Label;
+    return this.propertyValues['Label'];
   }
   set label(nv){
-    this.propertyValues.Label = nv;
+    this.propertyValues['Label'] = nv;
   }
   get color(){
-    return this.propertyValues.Color;
+    return this.propertyValues['Color'];
   }
   set color(nv){
-    this.propertyValues.Color = nv;
+    this.propertyValues['Color'] = nv;
   }
   get lineStyle(){
     return this.propertyValues['Line Style'];
@@ -177,8 +193,17 @@ class Edge extends Element implements DrawableEdge{
   }
 
 
-  constructor(properties : Array<[string, SinapType]>, source : Node, destination : Node) { 
-    super(properties);
+  constructor(properties : Array<[string, SinapType]>, handler, source : Node, destination : Node) { 
+    super(properties, handler, {
+      'Source Arrow' : false,
+      'Destination Arrow' : true,
+      'Label' : "0",
+      'Color' : "#000",
+      'Line Style' : "solid",
+      'Line Width' : 1,
+      'Source' : null,
+      'Destination' : null,
+    });
     this.source = source;
     this.destination = destination;
   }
@@ -198,31 +223,19 @@ class Node extends Element implements DrawableNode{
     return true;
   }
 
-  propertyValues = {
-    "Start State" : false,
-    "Accept State" : false,
-    "Label" : "",
-    "Color" : "#fff200",
-    "Border Color" : "#000",
-    "Border Style" : "solid",
-    "Border Width" : 1,
-    "Position" : {'x':0,
-                  'y':0},
-  }
-
   // ugly and we need to reconsider
 
   get label(){
-    return this.propertyValues.Label;
+    return this.propertyValues['Label'];
   }
   set label(nv){
-    this.propertyValues.Label = nv;
+    this.propertyValues['Label'] = nv;
   }
   get color(){
-    return this.propertyValues.Color;
+    return this.propertyValues['Color'];
   }
   set color(nv){
-    this.propertyValues.Color = nv;
+    this.propertyValues['Color'] = nv;
   }
   get borderColor(){
     return this.propertyValues['Border Color'];
@@ -243,21 +256,31 @@ class Node extends Element implements DrawableNode{
     this.propertyValues['Border Width'] = nv;
   }
   get x(){
-    return this.propertyValues.Position.x;
+    return this.propertyValues['Position'].x;
   }
   set x(nv){
-    this.propertyValues.Position.x = Number(nv.toFixed(1));
+    this.propertyValues['Position'].x = Number(nv.toFixed(1));
   }
   get y(){
-    return this.propertyValues.Position.y;
+    return this.propertyValues['Position'].y;
   }
   set y(nv){
-    this.propertyValues.Position.y = Number(nv.toFixed(1));
+    this.propertyValues['Position'].y = Number(nv.toFixed(1));
   }
 
 
-  constructor(properties : Array<[string, SinapType]>, x : number, y : number) {
-    super(properties);
+  constructor(properties : Array<[string, SinapType]>, handler, x : number, y : number) {
+    super(properties, handler, {
+      "Start State" : false,
+      "Accept State" : false,
+      "Label" : "",
+      "Color" : "#fff200",
+      "Border Color" : "#000",
+      "Border Style" : "solid",
+      "Border Width" : 1,
+      "Position" : {'x':0,
+                    'y':0},
+    });
     this.x = x;
     this.y = y;
   }

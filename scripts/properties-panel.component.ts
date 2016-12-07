@@ -15,20 +15,9 @@ import { SinapType } from "./types";
 })
 
 export class PropertiesPanelComponent {
-  private _selectedEntity : PropertiedEntity;
+  public selectedEntity : PropertiedEntity;
 
   private groups = [["General", "pluginProperties"], ["Display", "displayProperties"]];
-
-  public get selectedEntity(){
-    return this._selectedEntity;
-  }
-  public set selectedEntity(e){
-    // Leaving this in as it's nice for debugging for a while,
-    // but this can just be a regular property.
-
-    console.log(e);
-    this._selectedEntity = e;
-  }
 }
 
 export interface PropertiedEntity {
