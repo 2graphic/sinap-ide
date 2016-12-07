@@ -42,6 +42,7 @@
 // - Make sure to handle hit testing of custom shapes.
 // - When hit testing edges, hit test only on the end points.
 //   - End points will show on mouse hover.
+// - Consolidate code duplication.
 // - If any part of the component is within the selection box,
 //   this.addSelectedItem(u);
 //
@@ -452,10 +453,9 @@ export class GraphEditorComponent
         // Check the drag object.
         this.dragObject = this.hitTest(ePt.x, ePt.y);
 
-        // Set the selected item.
-        this.clearSelected();
-        if(this.dragObject !== null)
-          this.addSelectedItem(this.dragObject);
+        // Clear the selection if nothing was hit.
+        if(this.dragObject === null)
+          this.clearSelected();
       }
 
       // Update the canvas if waiting is not set.
@@ -493,8 +493,25 @@ export class GraphEditorComponent
 
         // Update node position if dragging node.
         else if(this.dragObject.isNode) {
-          this.dragObject.x = ePt.x;
-          this.dragObject.y = ePt.y;
+          if(
+            this.selectedItems.has(this.dragObject) &&
+            this.selectedItems.size > 0
+          ) {
+            for(let o of this.selectedItems) {
+              let dx = ePt.x - this.dragObject.x;
+              let dy = ePt.y - this.dragObject.y;
+              for(let o of this.selectedItems) {
+                if(o.isNode()) {
+                  o.x += dx;
+                  o.y += dy;
+                }
+              }
+            }
+          }
+          else {
+            this.dragObject.x = ePt.x;
+            this.dragObject.y = ePt.y;
+          }
           this.redraw();
         }
       }
@@ -531,11 +548,10 @@ export class GraphEditorComponent
             this.moveEdge !== null && 
             this.graph.canCreateEdge(this.dragObject.source, hit, this.moveEdge)
           ) {
-            this.clearSelected();
             this.graph.removeEdge(this.moveEdge);
-            this.addSelectedItem(this.graph.createEdge(
+            this.dragObject = this.graph.createEdge(
               this.dragObject.source, hit, this.moveEdge
-            ));
+            );
           }
 
           // Create a new edge if none is being moved and it can be created.
@@ -543,24 +559,39 @@ export class GraphEditorComponent
             this.moveEdge === null &&
             this.graph.canCreateEdge(this.dragObject.source, hit)
           ) {
-            let edge = this.graph.createEdge(this.dragObject.source, hit)
-            this.clearSelected();
-            this.addSelectedItem(edge);
+            this.dragObject = this.graph.createEdge(this.dragObject.source, hit);
           }
         }
       }
 
       // Drop the node if one is being dragged.
       else if(this.dragObject !== null && this.dragObject.isNode()) {
-        //
-        // TODO:
-        // Pevent nodes from being dropped on top of eachother.
-        //
-        this.clearSelected();
-        this.dragObject.x = ePt.x;
-        this.dragObject.y = ePt.y;
-        this.addSelectedItem(this.dragObject);
+        if(
+          this.selectedItems.has(this.dragObject) &&
+          this.selectedItems.size > 0
+        ) {
+          let dx = ePt.x - this.dragObject.x;
+          let dy = ePt.y - this.dragObject.y;
+          for(let o of this.selectedItems) {
+            if(o.isNode()) {
+              o.x += dx;
+              o.y += dy;
+            }
+          }
+        }
+        else {
+          //
+          // TODO:
+          // Pevent nodes from being dropped on top of eachother.
+          //
+          this.dragObject.x = ePt.x;
+          this.dragObject.y = ePt.y;
+        }
       }
+
+      // Set the selected item if nothing is selected.
+      if(this.selectedItems.size == 0)
+        this.addSelectedItem(this.dragObject);
 
       // Reset input states.
       this.downEvt = null;
