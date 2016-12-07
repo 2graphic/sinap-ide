@@ -5,6 +5,10 @@ export class SinapType {
   typeEqual(t : SinapType) : boolean{
   	return this.type == t.type;
   }
+
+  get topLevelKind(){
+  	return (this instanceof SinapCompositeType) ? this.compositeKind : this.type;
+  }
 }
 
 export class SinapCompositeType extends SinapType {

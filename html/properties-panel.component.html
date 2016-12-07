@@ -3,20 +3,55 @@
     <p *ngIf="!selectedEntity">
         No selected entity.
     </p>
-    <table *ngIf="selectedEntity">
-        <tr *ngFor="let pair of selectedEntity.pluginProperties">
-            <td>{{pair[0]}}</td>
-            <td><input [(ngModel)]="selectedEntity.propertyValues[pair[0]]"
-            class="string-property" type="text" /></td>
-        </tr>
-        <tr *ngFor="let pair of selectedEntity.displayProperties">
-            <td>{{pair[0]}}</td>
-            <td>
-            <select *ngIf="pair[1].compositeKind == 'enum'" [(ngModel)]="selectedEntity.propertyValues[pair[0]]">
-            <option *ngFor="let lit of pair[1].literals" value="{{lit}}">{{lit}}</option>
-            </select>
-            <input *ngIf="pair[1].compositeKind != 'enum'" [(ngModel)]="selectedEntity.propertyValues[pair[0]]"
-            class="string-property" type="text" /></td>
-        </tr>
-    </table>
+
+    <div *ngIf="selectedEntity">
+        <table *ngFor="let group of groups" class="group-table">
+            <template [ngIf]="selectedEntity[group[1]].length > 0">
+                <tr><th colspan="2">{{group[0]}}</th></tr>
+                <tr *ngFor="let pair of selectedEntity[group[1]]">
+                    <td class="label">{{pair[0]}}</td>
+                    <td [ngSwitch]="pair[1].topLevelKind">
+                        <div *ngSwitchCase="'number'">
+                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]]" type="number" 
+                                class="number-input"/>
+                        </div>
+                        <div *ngSwitchCase="'boolean'">
+                            <select [(ngModel)]="selectedEntity.propertyValues[pair[0]]">
+                                <option [ngValue]="true">True</option>
+                                <option [ngValue]="false">False</option>
+                            </select>
+                        </div>
+                        <div *ngSwitchCase="'node'">
+                            <label class="node-label">
+                                {{selectedEntity.propertyValues[pair[0]].propertyValues['Label']}}
+                            </label>
+                        </div>
+                        <div *ngSwitchCase="'enum'">
+                            <select [(ngModel)]="selectedEntity.propertyValues[pair[0]]">
+                                <option *ngFor="let lit of pair[1].literals" [ngValue]="lit">{{lit}}</option>
+                            </select>
+                        </div>
+                        <div *ngSwitchCase="'struct'">
+                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]].x" type="number" placeholder="x" step="0.1"
+                                class="text-input tuple-input"/>
+                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]].y" type="number" placeholder="y" step="0.1"
+                            class="text-input tuple-input"/>
+                        </div>
+                        <div *ngSwitchCase="'color'">
+                            <label class="color-label" for="property{{pair[0]}}">
+                                <span class="color-preview" [style.background-color]="selectedEntity.propertyValues[pair[0]]"></span>
+                                {{selectedEntity.propertyValues[pair[0]]}}
+                                <input [(ngModel)]="selectedEntity.propertyValues[pair[0]]" id="property{{pair[0]}}" type="color" class="color-input"/>
+                            </label>
+                        </div>
+                        <div *ngSwitchDefault> 
+                            <!-- default or 'string' -->
+                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]]" type="text" 
+                                class="text-input"/>
+                        </div>
+                    </td>
+                </tr>
+            </template>
+        </table>
+    </div>
 </div>

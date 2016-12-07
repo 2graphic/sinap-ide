@@ -17,6 +17,7 @@
 //
 //
 // TODO:
+// - Multi-component move while dragging multiple nodes.
 // - Special draw start node.
 // - Special draw "final/accept" nodes.
 // - @Input height/width
@@ -31,6 +32,24 @@
 // - Have a visual indication for determining if an edge can be moved from one
 //   node to another.
 // - Update documentation.
+// - Text location options.
+//   - Top, Left, Bottom, Right, Center
+//   - Inside, Outside, Center
+// - Should selection display properties be hardcoded?
+// - Should node radius be set to be half the grid spacing?
+// - Custom shapes/images for nodes.
+// - Custom lines for edges (default/quadratic/bezier/orthogonal).
+// - Make sure to handle hit testing of custom shapes.
+// - When hit testing edges, hit test only on the end points.
+//   - End points will show on mouse hover.
+// - Consolidate code duplication.
+// - If any part of the component is within the selection box,
+//   this.addSelectedItem(u);
+//
+// Note:
+//   For now, a node is added to the selection if its center is within the
+//   selection box, and an edge is added if either of its nodes' center is
+//   within the selection box.
 //
 //
 
@@ -58,15 +77,16 @@ import {
 //
 
 /**
- * GRID_MAJOR
- *   Grid spacing between major ticks.
+ * GRID_SPACING
+ *   Grid spacing between ticks.
  */
-const GRID_MAJOR : number = 40;
+const GRID_SPACING : number = 40;
 
-//
-// TODO:
-// Grid minor spacing?
-//
+/**
+ * GRID_MINOR_OFFSET
+ *   Offset for minor grid ticks.
+ */
+const GRID_MINOR_OFFSET : number = 20;
 
 /**
  * NUDGE
@@ -262,6 +282,10 @@ export class GraphEditorComponent
    */
   ngAfterViewInit() {
     this.g = this.graphEditorCanvas.nativeElement.getContext("2d");
+    this.g.mozImageSmoothingEnabled = true;
+    this.g.webkitImageSmoothingEnabled = true;
+    this.g.msImageSmoothingEnabled = true;
+    this.g.translate(0.5, 0.5);
     this.resize();
   }
 
@@ -314,7 +338,7 @@ export class GraphEditorComponent
    */
   onKeyDown(e : KeyboardEvent) : void {
     // Delete keyCode is 46.
-    if(e.keyCode == 46) {
+    if(e.keyCode == 46 || e.keyCode == 8) {
       let edges = new Set<DrawableEdge>();
       let nodes = new Set<DrawableNode>();
       for (let ele of this.selectedItems){
@@ -369,7 +393,7 @@ export class GraphEditorComponent
           // was set.
           if(this.dragObject === null) {
             this.dragObject = this.graph.createNode(downPt.x, downPt.y);
-            drawNode(this.g, this.dragObject);
+            this.redraw();
           }
 
           // Set the drag object to some dummy edge and the replace edge to the
@@ -380,17 +404,21 @@ export class GraphEditorComponent
             // Determine which side of the edge the hit test landed on.
             //
             this.moveEdge = this.dragObject;
-            this.dragObject = new GhostEdge(this.moveEdge.source);
+            this.dragObject = cloneEdge(this.moveEdge);
+            this.dragObject.lineStyle = "dotted";
+            this.redraw();
             this.g.globalAlpha = 0.3;
-            drawEdge(this.g, this.dragObject, downPt.x, downPt.y);
+            this.drawEdge(this.dragObject, downPt.x, downPt.y);
             this.g.globalAlpha = 1;
           }
 
-          // Update the node position if the drag object was set to a node.
+          // Create a new dummy edge with the source node as the drag object.
           else if(this.dragObject.isNode()) {
-            this.dragObject.x = downPt.x;
-            this.dragObject.y = downPt.y;
+            this.dragObject = new DummyEdge(this.dragObject);
             this.redraw();
+            this.g.globalAlpha = 0.3;
+            this.drawEdge(this.dragObject, downPt.x, downPt.y);
+            this.g.globalAlpha = 1;
           }
         }
       }, STICKY_DELAY);
@@ -403,17 +431,13 @@ export class GraphEditorComponent
    */
   onMouseMove(e : MouseEvent) : void {
 
-    // Make sure only the left mouse button is down.
-    if(e.buttons == 1) {
+    // Capture the down event if the drag object has been set.
+    if(this.dragObject !== null && this.downEvt === null) {
+      this.downEvt = e;
+    }
 
-      // Set the down event if it wasn't previously captured.
-      //
-      // Note:
-      //   The only time this should happen is if a node is being dragged from
-      //   the components panel, in which case, the dragNode method should be
-      //   called to set the drag object.
-      if(this.downEvt === null)
-        this.downEvt = e;
+    // Make sure the mousedown event was previously captured.
+    if(this.downEvt !== null) {
 
       // Get the change in x and y locations of the cursor.
       let downPt = getMousePt(this.g, this.downEvt);
@@ -429,12 +453,8 @@ export class GraphEditorComponent
         // Check the drag object.
         this.dragObject = this.hitTest(ePt.x, ePt.y);
 
-        // Set the drag object to a dummy edge if the drag object is a node.
-        if(this.dragObject != null && this.dragObject.isNode())
-          this.dragObject = new GhostEdge(this.dragObject);
-
-        // Clear the selected items if the drag object is not a node.
-        else
+        // Clear the selection if nothing was hit.
+        if(this.dragObject === null)
           this.clearSelected();
       }
 
@@ -444,7 +464,6 @@ export class GraphEditorComponent
         // Update the selection box if selecting.
         if(this.dragObject === null) {
           let rect = makeRect(downPt.x, downPt.y, ePt.x, ePt.y);
-
 
           // Update the selected components.
           for(let i of this.selectedItems) {
@@ -468,18 +487,31 @@ export class GraphEditorComponent
         else if(this.dragObject.isEdge()) {
           this.redraw();
           this.g.globalAlpha = 0.3;
-          drawEdge(this.g, this.dragObject, ePt.x, ePt.y);
+          this.drawEdge(this.dragObject, ePt.x, ePt.y);
           this.g.globalAlpha = 1;
         }
 
         // Update node position if dragging node.
         else if(this.dragObject.isNode) {
-          //
-          // TODO:
-          // Put a drop shadow here?
-          //
-          this.dragObject.x = ePt.x;
-          this.dragObject.y = ePt.y;
+          if(
+            this.selectedItems.has(this.dragObject) &&
+            this.selectedItems.size > 0
+          ) {
+            for(let o of this.selectedItems) {
+              let dx = ePt.x - this.dragObject.x;
+              let dy = ePt.y - this.dragObject.y;
+              for(let o of this.selectedItems) {
+                if(o.isNode()) {
+                  o.x += dx;
+                  o.y += dy;
+                }
+              }
+            }
+          }
+          else {
+            this.dragObject.x = ePt.x;
+            this.dragObject.y = ePt.y;
+          }
           this.redraw();
         }
       }
@@ -510,16 +542,16 @@ export class GraphEditorComponent
         // Check that the mouse was released at a node.
         let hit = this.hitTest(ePt.x, ePt.y);
         if(hit !== null && hit.isNode()) {
-          //
-          // TODO:
-          // Check the the edge can be moved before moving it.
-          //
+
           // Move the edge if one is being dragged and it can be moved.
-          if(this.moveEdge !== null /* && canMoveEdge */) {
-            this.clearSelected();
-            this.moveEdge.source = this.dragObject.source;
-            this.moveEdge.destination = hit;
-            this.addSelectedItem(this.moveEdge);
+          if(
+            this.moveEdge !== null && 
+            this.graph.canCreateEdge(this.dragObject.source, hit, this.moveEdge)
+          ) {
+            this.graph.removeEdge(this.moveEdge);
+            this.dragObject = this.graph.createEdge(
+              this.dragObject.source, hit, this.moveEdge
+            );
           }
 
           // Create a new edge if none is being moved and it can be created.
@@ -527,24 +559,39 @@ export class GraphEditorComponent
             this.moveEdge === null &&
             this.graph.canCreateEdge(this.dragObject.source, hit)
           ) {
-            let edge = this.graph.createEdge(this.dragObject.source, hit)
-            this.clearSelected();
-            this.addSelectedItem(edge);
+            this.dragObject = this.graph.createEdge(this.dragObject.source, hit);
           }
         }
       }
 
       // Drop the node if one is being dragged.
       else if(this.dragObject !== null && this.dragObject.isNode()) {
-        //
-        // TODO:
-        // Pevent nodes from being dropped on top of eachother.
-        //
-        this.clearSelected();
-        this.dragObject.x = ePt.x;
-        this.dragObject.y = ePt.y;
-        this.addSelectedItem(this.dragObject);
+        if(
+          this.selectedItems.has(this.dragObject) &&
+          this.selectedItems.size > 0
+        ) {
+          let dx = ePt.x - this.dragObject.x;
+          let dy = ePt.y - this.dragObject.y;
+          for(let o of this.selectedItems) {
+            if(o.isNode()) {
+              o.x += dx;
+              o.y += dy;
+            }
+          }
+        }
+        else {
+          //
+          // TODO:
+          // Pevent nodes from being dropped on top of eachother.
+          //
+          this.dragObject.x = ePt.x;
+          this.dragObject.y = ePt.y;
+        }
       }
+
+      // Set the selected item if nothing is selected.
+      if(this.selectedItems.size == 0)
+        this.addSelectedItem(this.dragObject);
 
       // Reset input states.
       this.downEvt = null;
@@ -585,60 +632,106 @@ export class GraphEditorComponent
   redraw() : void {
     clear(this.g, this.gridOriginPt);
     if(this.graph !== null) {
-      //
-      // TODO:
-      // Do we really want to use hardcoded values for selection display properties?
-      //
-      for(let e of this.graph.edges) {
-        let c = e.color;
-        let w = e.lineWidth;
-        if(e === this.moveEdge)
-          this.g.globalAlpha = 0.3;
-        else if(this.selectedItems.has(e)) {
-          e.color = "#00a2e8";
-          e.lineWidth += 2;
-        }
-        drawEdge(this.g, e);
-        e.color = c;
-        e.lineWidth = w;
-        this.g.globalAlpha = 1;
-      }
-      for(let n of this.graph.nodes) {
-        let c = n.borderColor;
-        let w = n.borderWidth;
-        if(this.selectedItems.has(n)) {
-          n.borderColor = "#00a2e8";
-          n.borderWidth += 2;
-        }
-        drawNode(this.g, n);
-        n.borderColor = c;
-        n.borderWidth = w;
-      }
-      //
-      // TODO:
-      // Text location options.
-      //   Top, Left, Bottom, Right, Center
-      //   Inside, Outside, Center
-      //
-      this.g.font = "10pt serif";
-      this.g.textAlign = "center";
-      this.g.textBaseline = "middle";
-      this.g.lineWidth = 2;
-      this.g.strokeStyle = "#000";
-      this.g.fillStyle = "#fff";
-      for(let e of this.graph.edges) {
-        let rect = makeRect(
-          e.source.x, e.source.y,
-          e.destination.x, e.destination.y
-        );
-        this.g.strokeText(e.label, rect.x + rect.w / 2, rect.y + rect.h / 2);
-        this.g.fillText(e.label, rect.x + rect.w / 2, rect.y + rect.h / 2);
-      }
-      for(let n of this.graph.nodes) {
-        this.g.strokeText(n.label, n.x, n.y);
-        this.g.fillText(n.label, n.x, n.y);
-      }
+      for(let e of this.graph.edges)
+        this.drawEdge(e);
+      for(let n of this.graph.nodes)
+        this.drawNode(n);
     }
+  }
+
+  /**
+   * drawNode
+   *   Draws a node on the canvas.
+   */
+  private drawNode(n : DrawableNode) : void {
+
+    // Node
+    if(n === this.dragObject) {
+      this.g.shadowColor = "#000";
+      this.g.shadowBlur = 10;
+    }
+
+    if(this.selectedItems.has(n)) {
+      let sel = cloneNode(n);
+      this.g.fillStyle = "#00a2e8";
+      this.g.strokeStyle = "#00a2e8";
+      this.g.beginPath();
+      this.g.arc(n.x, n.y, (GRID_SPACING + n.borderWidth) / 2 + 2, 0, 2 * Math.PI);
+      this.g.fill();
+      this.g.shadowBlur = 0;
+      this.g.stroke();
+    }
+    this.g.fillStyle = n.color;
+    this.g.strokeStyle = n.borderColor;
+    this.g.lineWidth = n.borderWidth;
+    setLineStyle(this.g, n.borderStyle, n.borderWidth);
+    this.g.beginPath();
+    this.g.arc(n.x, n.y, GRID_SPACING / 2, 0, 2 * Math.PI);
+    this.g.fill();
+    this.g.shadowBlur = 0;
+    this.g.stroke();
+
+    // Label
+    this.g.font = "10pt serif";
+    this.g.textAlign = "center";
+    this.g.textBaseline = "middle";
+    this.g.lineWidth = 2;
+    this.g.strokeStyle = "#000";
+    this.g.fillStyle = "#fff";
+    this.g.strokeText(n.label, n.x, n.y);
+    this.g.fillText(n.label, n.x, n.y);
+  }
+
+  /**
+   * drawEdge
+   *   Draws an edge on the canvas.
+   */
+  private drawEdge(e : DrawableEdge, x? : number, y? : number) : void {
+
+    // Edge
+    if(this.selectedItems.has(e)) {
+      let d = cloneEdge(e);
+      d.color = "#00a2e8";
+      d.lineWidth += 3;
+      this.drawEdge(d);
+    }
+    if(e === this.moveEdge)
+      this.g.globalAlpha = 0.3;
+    this.g.strokeStyle = e.color;
+    this.g.lineWidth = e.lineWidth;
+    setLineStyle(this.g, e.lineStyle, e.lineWidth);
+    if(x && y)
+      drawLine(this.g, e.source.x, e.source.y, x, y);
+    else
+      drawLine(this.g, e.source.x, e.source.y, e.destination.x, e.destination.y);
+    if(e.showSourceArrow)
+      drawArrow(this.g, e.destination, e.source);
+    if(e.showDestinationArrow)
+      drawArrow(this.g, e.source, e.destination);
+    this.g.globalAlpha = 1;
+
+    // Label
+    this.g.font = "10pt serif";
+    this.g.textAlign = "center";
+    this.g.textBaseline = "middle";
+    let tw = this.g.measureText(e.label).width;
+    let rect = makeRect(
+      e.source.x, e.source.y,
+      e.destination.x, e.destination.y
+    );
+    x = rect.x + rect.w / 2;
+    y = rect.y + rect.h / 2;
+    rect = makeRect(x - tw / 2 - 6, y - 8, x + tw / 2 + 6, y + 8);
+    this.g.lineWidth = e.lineWidth;
+    this.g.fillStyle = "#fff";
+    setLineStyle(this.g, e.lineStyle);
+    this.g.lineJoin = "round";
+    this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
+    this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    setLineStyle(this.g, "solid");
+    this.g.lineWidth = 1;
+    this.g.fillStyle = "#000";
+    this.g.fillText(e.label, x, y);
   }
 
   /**
@@ -672,31 +765,40 @@ export class GraphEditorComponent
    * </p>
    */
   private hitTest(x : number, y : number) : DrawableNode | DrawableEdge {
-    //
-    // TODO:
-    // Make sure to handle hit testing of custom shapes.
-    // When hit testing edges, hit test only on the end points.
-    //   End points will show on mouse hover.
-    //
+
+    // Hit test nodes first.
     for(let n of this.graph.nodes) {
       let dx = n.x - x;
       let dy = n.y - y;
-      if(dx * dx + dy * dy <= GRID_MAJOR * GRID_MAJOR / 4)
+      if(dx * dx + dy * dy <= GRID_SPACING * GRID_SPACING / 4)
         return n;
     }
+
+    // Hit test edges.
     for(let e of this.graph.edges) {
+      let r = makeRect(
+        e.source.x,
+        e.source.y,
+        e.destination.x,
+        e.destination.y,
+      );
       let lx = e.source.x;
       let ly = e.source.y;
       let rx = e.destination.x;
       let ry = e.destination.y;
-      let x1 = (lx < rx ? lx : rx);
-      let y1 = (ly < ry ? ly : ry);
-      let x2 = (lx < rx ? rx : lx);
-      let y2 = (ly < ry ? ry : ly);
-      let m = (y2 - y1) / (x2 - x1);
-      let b = y1 - m * x1;
-      if(Math.abs(y - (m * x + b)) < 10)
-        return e;
+      if(
+        (x > r.x && x < r.x + r.w) &&
+        (y > r.y && y < r.y + r.h)
+      ) {
+        let x1 = (lx < rx ? lx : rx);
+        let y1 = (ly < ry ? ly : ry);
+        let x2 = (lx < rx ? rx : lx);
+        let y2 = (ly < ry ? ry : ly);
+        let m = (y2 - y1) / (x2 - x1);
+        let b = y1 - m * x1;
+        if(Math.abs(y - (m * x + b)) < 10)
+          return e;
+      }
     }
     return null;
   }
@@ -706,16 +808,6 @@ export class GraphEditorComponent
    *   Checks if a graph component was hit by a rectangle.
    */
   private rectHitTest(c : DrawableEdge | DrawableNode, rect) : boolean {
-    //clear(
-    // TODO:
-    // If any part of the component is within the selection box,
-    // this.addSelectedItem(u);
-    //
-    // Note:
-    //   For now, a node is added to the selection if its node is within the
-    //   selection box, and an edge is added if either of its nodes' center is
-    //   within the selection box.
-    //
     return (c.isNode() &&
             c.x >= rect.x && c.x <= rect.x + rect.w &&
             c.y >= rect.y && c.y <= rect.y + rect.h) ||
@@ -761,12 +853,14 @@ function moveItem(
 function setLineStyle(
   g : CanvasRenderingContext2D,
   value : string,
-  dotSize : number = 1
+  dotSize? : number
 ) {
+  if(dotSize === undefined || dotSize === null)
+    dotSize = g.lineWidth;
   if(value == "dashed")
     g.setLineDash([3 * dotSize, 6 * dotSize]);
   else if(value == "dotted")
-    g.setLineDash([dotSize]);
+    g.setLineDash([dotSize, 2 * dotSize]);
   else
     g.setLineDash([1, 0]);
 }
@@ -798,53 +892,6 @@ function drawSelectionBox(g : CanvasRenderingContext2D, rect) : void {
   g.globalAlpha = 1.0;
   g.lineWidth = 1;
   g.strokeRect(rect.x, rect.y, rect.w, rect.h);
-}
-
-/**
- * drawNode
- *   Draws a node on the canvas.
- * 
- * TODO:
- *   This needs to be able to handle custom node shapes/images.
- */
-function drawNode(g : CanvasRenderingContext2D, n : DrawableNode) : void {
-  g.fillStyle = n.color;
-  g.strokeStyle = n.borderColor;
-  g.lineWidth = n.borderWidth;
-  setLineStyle(g, n.borderStyle, n.borderWidth);
-  g.beginPath();
-  //
-  // TODO:
-  // For now the radius of a node is hardcoded as 20.
-  //
-  g.arc(n.x, n.y, GRID_MAJOR / 2, 0, 2 * Math.PI);
-  g.fill();
-  g.stroke();
-}
-
-/**
- * drawEdge
- *   Draws an edge on the canvas.
- * 
- * TODO:
- *   This needs to be able to handle custom edge drawing.
- */
-function drawEdge(
-  g : CanvasRenderingContext2D,
-  e : DrawableEdge,
-  x? : number, y? : number
-) : void {
-  g.strokeStyle = e.color;
-  g.lineWidth = e.lineWidth;
-  setLineStyle(g, e.lineStyle, e.lineWidth);
-  if(x && y)
-    drawLine(g, e.source.x, e.source.y, x, y);
-  else
-    drawLine(g, e.source.x, e.source.y, e.destination.x, e.destination.y);
-  if(e.showSourceArrow)
-    drawArrow(g, e.destination, e.source);
-  if(e.showDestinationArrow)
-    drawArrow(g, e.source, e.destination);
 }
 
 /**
@@ -894,21 +941,21 @@ function drawArrow(
   ]
 
   // Get the point where the edge meets the node border.
-  v[0] = u[0] * (d - GRID_MAJOR / 2) + src.x;
-  v[1] = u[1] * (d - GRID_MAJOR / 2) + src.y;
+  v[0] = u[0] * (d - GRID_SPACING / 2) + src.x;
+  v[1] = u[1] * (d - GRID_SPACING / 2) + src.y;
 
   // Draw arrow.
   drawLine(
     g,
     v[0], v[1],
-    v[0] + GRID_MAJOR * (u[0] * COS_THETA - u[1] * SIN_THETA) / 2,
-    v[1] + GRID_MAJOR * (u[0] * SIN_THETA + u[1] * COS_THETA) / 2
+    v[0] + GRID_SPACING * (u[0] * COS_THETA - u[1] * SIN_THETA) / 2,
+    v[1] + GRID_SPACING * (u[0] * SIN_THETA + u[1] * COS_THETA) / 2
   );
   drawLine(
     g,
     v[0], v[1],
-    v[0] + GRID_MAJOR * (u[0] * COS_THETA + u[1] * SIN_THETA) / 2,
-    v[1] + GRID_MAJOR * (-u[0] * SIN_THETA + u[1] * COS_THETA) / 2
+    v[0] + GRID_SPACING * (u[0] * COS_THETA + u[1] * SIN_THETA) / 2,
+    v[1] + GRID_SPACING * (-u[0] * SIN_THETA + u[1] * COS_THETA) / 2
   );
 }
 
@@ -923,24 +970,98 @@ function clear(g : CanvasRenderingContext2D, gridOriginPt) : void {
   g.fillStyle = "white";
   g.fillRect(0, 0, canvas.width, canvas.height);
 
-  g.strokeStyle = "#000";
-  g.lineWidth = 1;
-  g.globalAlpha = 0.3;
   setLineStyle(g, "solid");
-  for(let x = gridOriginPt.x % GRID_MAJOR; x < w; x += GRID_MAJOR)
+  for(
+    let x = gridOriginPt.x % GRID_SPACING - GRID_SPACING;
+    x < w + GRID_SPACING; 
+    x += GRID_SPACING
+  ) {
+    g.strokeStyle = "#7e7e7e";
+    g.lineWidth = 1;
+    setLineStyle(g, "solid");
     drawLine(g, x, 0, x, h);
-  for(let y = gridOriginPt.y % GRID_MAJOR; y < h; y += GRID_MAJOR)
+    g.strokeStyle = "#c3c3c3";
+    g.lineWidth = 0.5;
+    setLineStyle(g, "dotted");
+    drawLine(g, x + GRID_MINOR_OFFSET, 0, x + GRID_MINOR_OFFSET, h);
+  }
+  for(
+    let y = gridOriginPt.y % GRID_SPACING - GRID_SPACING;
+    y < h + GRID_SPACING;
+    y += GRID_SPACING
+  ) {
+    g.strokeStyle = "#7e7e7e";
+    g.lineWidth = 1;
+    setLineStyle(g, "solid");
     drawLine(g, 0, y, w, y);
-  g.globalAlpha = 1;
+    g.strokeStyle = "#c3c3c3";
+    g.lineWidth = 1;
+    setLineStyle(g, "dotted");
+    drawLine(g, 0, y + GRID_MINOR_OFFSET, w, y + GRID_MINOR_OFFSET);
+  }
+}
+
+/**
+ * cloneEdge
+ *   Creates a cloned edge.
+ */
+function cloneEdge(e : DrawableEdge) : DrawableEdge {
+  let clone = new DummyEdge();
+  clone.source = e.source;
+  clone.destination = e.destination;
+  clone.showSourceArrow = e.showSourceArrow;
+  clone.showDestinationArrow = e.showDestinationArrow;
+  clone.color = e.color;
+  clone.lineStyle = e.lineStyle;
+  clone.lineWidth = e.lineWidth;
+  clone.label = e.label;
+  return clone;
+}
+
+/**
+ * cloneNode
+ *   Creates a cloned node.
+ */
+function cloneNode(n : DrawableNode) : DrawableNode {
+  let clone = new DummyNode();
+  clone.label = n.label;
+  clone.color = n.color;
+  clone.borderColor = n.borderColor;
+  clone.borderStyle = n.borderStyle;
+  clone.borderWidth = n.borderWidth;
+  clone.x = n.x;
+  clone.y = n.y;
+  return clone;
 }
 
 // Static classes //////////////////////////////////////////////////////////////
 
 /**
- * GhostEdge
- *   Spoopy haunted edge that follows the cursor. *ooOOOoOOooooOOOOooOoOoOoo*
+ * DummyNode
  */
-class GhostEdge implements DrawableEdge {
+class DummyNode implements DrawableNode {
+  isGraph() {
+    return false;
+  }
+  isNode() {
+    return true;
+  }
+  isEdge() {
+    return false;
+  }
+  label : string = "";
+  color : string = "#fff200";
+  borderColor : string = "#000";
+  borderStyle : string = "solid";
+  borderWidth : number = 1;
+  x : number = 0;
+  y : number = 0;
+}
+
+/**
+ * DummyEdge
+ */
+class DummyEdge implements DrawableEdge {
   isEdge(){
     return true;
   }
@@ -950,12 +1071,16 @@ class GhostEdge implements DrawableEdge {
   isNode(){
     return false;
   }
+  source : DrawableNode = null;
+  destination : DrawableNode = null;
   showSourceArrow : boolean = false;
   showDestinationArrow : boolean = false;
   color : string = "#000";
   lineStyle : string = "dotted";
   lineWidth : number = 2;
-  destination : DrawableNode = null;
   label = "";
-  constructor(public source : DrawableNode) { }
+
+  constructor(sourceNode : DrawableNode = null) {
+    this.source = sourceNode;
+  }
 }

@@ -117,8 +117,8 @@ class Edge extends Element implements DrawableEdge{
   }
 
   propertyValues = {
-    'Show Source Arrow' : false,
-    'Show Destination Arrow' : true,
+    'Source Arrow' : false,
+    'Destination Arrow' : true,
     'Label' : "0",
     'Color' : "#000",
     'Line Style' : "solid",
@@ -128,16 +128,16 @@ class Edge extends Element implements DrawableEdge{
   }
 
   get showSourceArrow(){
-    return this.propertyValues['Show Source Arrow'];
+    return this.propertyValues['Source Arrow'];
   }
   set showSourceArrow(nv){
-    this.propertyValues['Show Source Arrow'] = nv;
+    this.propertyValues['Source Arrow'] = nv;
   }
   get showDestinationArrow(){
-    return this.propertyValues['Show Destination Arrow'];
+    return this.propertyValues['Destination Arrow'];
   }
   set showDestinationArrow(nv){
-    this.propertyValues['Show Destination Arrow'] = nv;
+    this.propertyValues['Destination Arrow'] = nv;
   }
   get label(){
     return this.propertyValues.Label;
@@ -183,10 +183,10 @@ class Edge extends Element implements DrawableEdge{
     this.destination = destination;
   }
 
-  displayProperties = [["Show Source Arrow", SinapBoolean] as [string, SinapType],
-                       ["Show Destination Arrow", SinapBoolean] as [string, SinapType],
+  displayProperties = [["Source Arrow", SinapBoolean] as [string, SinapType],
+                       ["Destination Arrow", SinapBoolean] as [string, SinapType],
                        ["Label", SinapString] as [string, SinapType],
-                       ["Color", SinapString] as [string, SinapType],
+                       ["Color", SinapColor] as [string, SinapType],
                        ["Line Style", SinapLineStyles] as [string, SinapType],
                        ["Line Width", SinapNumber] as [string, SinapType],
                        ["Source", SinapNode] as [string, SinapType],
@@ -246,13 +246,13 @@ class Node extends Element implements DrawableNode{
     return this.propertyValues.Position.x;
   }
   set x(nv){
-    this.propertyValues.Position.x = nv;
+    this.propertyValues.Position.x = Number(nv.toFixed(1));
   }
   get y(){
     return this.propertyValues.Position.y;
   }
   set y(nv){
-    this.propertyValues.Position.y = nv;
+    this.propertyValues.Position.y = Number(nv.toFixed(1));
   }
 
 
