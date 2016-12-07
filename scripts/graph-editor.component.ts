@@ -17,7 +17,6 @@
 //
 //
 // TODO:
-// - Multi-component move while dragging multiple nodes.
 // - Special draw start node.
 // - Special draw "final/accept" nodes.
 // - @Input height/width
@@ -26,9 +25,6 @@
 // - Make it so that if any part of a component is caught within the selection
 //   box, it is selected
 // - Something about deep binding for the graph components? [For now, use redraw]
-// - Add mouse hover display behavior
-//   - Show edge anchor points
-//   - etc.
 // - Have a visual indication for determining if an edge can be moved from one
 //   node to another.
 // - Update documentation.
@@ -246,6 +242,12 @@ export class GraphEditorComponent
   private dragObject : DrawableNode | DrawableEdge = null;
 
   /**
+   * hoverObject
+   *   The graph component over which the cursor is hovering.
+   */
+  private hoverObject : DrawableNode | DrawableEdge = null;
+
+  /**
    * replaceEdge
    *   The edge to be replaced once the new edge has been created.
    */
@@ -283,8 +285,9 @@ export class GraphEditorComponent
   ngAfterViewInit() {
     this.g = this.graphEditorCanvas.nativeElement.getContext("2d");
     this.g.mozImageSmoothingEnabled = true;
-    this.g.webkitImageSmoothingEnabled = true;
     this.g.msImageSmoothingEnabled = true;
+    this.g.oImageSmoothingEnabled = true;
+    // this.g.imageSmoothingEnabled = true;
     this.g.translate(0.5, 0.5);
     this.resize();
   }
@@ -393,6 +396,8 @@ export class GraphEditorComponent
           // was set.
           if(this.dragObject === null) {
             this.dragObject = this.graph.createNode(downPt.x, downPt.y);
+            this.clearSelected();
+            this.addSelectedItem(this.dragObject);
             this.redraw();
           }
 
@@ -430,6 +435,7 @@ export class GraphEditorComponent
    *   Handles the mousemove event.
    */
   onMouseMove(e : MouseEvent) : void {
+    let ePt = getMousePt(this.g, e);
 
     // Capture the down event if the drag object has been set.
     if(this.dragObject !== null && this.downEvt === null) {
@@ -441,7 +447,6 @@ export class GraphEditorComponent
 
       // Get the change in x and y locations of the cursor.
       let downPt = getMousePt(this.g, this.downEvt);
-      let ePt = getMousePt(this.g, e);
       let dx = downPt.x - ePt.x;
       let dy = downPt.y - ePt.y;
 
@@ -516,6 +521,15 @@ export class GraphEditorComponent
         }
       }
     }
+
+    // Mouse hover
+    else {
+      let hit =  this.hitTest(ePt.x, ePt.y);
+      if(hit !== this.hoverObject) {
+        this.hoverObject = hit;
+        this.redraw();
+      }
+    }
   }
 
   /**
@@ -531,9 +545,13 @@ export class GraphEditorComponent
       // Set the selected graph component if waiting.
       if(this.isWaiting) {
         this.clearSelected();
-        let hitComponent = this.hitTest(ePt.x, ePt.y);
-        if(hitComponent !== null)
-          this.addSelectedItem(hitComponent);
+        this.dragObject = this.hitTest(ePt.x, ePt.y);
+      }
+
+      // Set the selected graph component if none is set and the mouse is
+      // hovering over a component.
+      else if(this.dragObject === null && this.hoverObject !== null) {
+        this.dragObject = this.hoverObject;
       }
 
       // Create the edge if one is being dragged.
@@ -559,7 +577,9 @@ export class GraphEditorComponent
             this.moveEdge === null &&
             this.graph.canCreateEdge(this.dragObject.source, hit)
           ) {
-            this.dragObject = this.graph.createEdge(this.dragObject.source, hit);
+            this.clearSelected();
+            this.dragObject = 
+              this.graph.createEdge(this.dragObject.source, hit);
           }
         }
       }
@@ -589,9 +609,11 @@ export class GraphEditorComponent
         }
       }
 
-      // Set the selected item if nothing is selected.
-      if(this.selectedItems.size == 0)
+      // Reset the selected item.
+      if(this.dragObject !== null && this.selectedItems.size < 2) {
+        this.clearSelected();
         this.addSelectedItem(this.dragObject);
+      }
 
       // Reset input states.
       this.downEvt = null;
@@ -636,6 +658,13 @@ export class GraphEditorComponent
         this.drawEdge(e);
       for(let n of this.graph.nodes)
         this.drawNode(n);
+
+      if(this.hoverObject !== null && this.hoverObject.isEdge()) {
+        //
+        // TODO:
+        // Draw anchor points
+        //
+      }
     }
   }
 
@@ -649,6 +678,10 @@ export class GraphEditorComponent
     if(n === this.dragObject) {
       this.g.shadowColor = "#000";
       this.g.shadowBlur = 10;
+    }
+    else if(n === this.hoverObject) {
+      this.g.shadowColor = "#00a2e8";
+      this.g.shadowBlur = 20;
     }
 
     if(this.selectedItems.has(n)) {
@@ -689,6 +722,10 @@ export class GraphEditorComponent
   private drawEdge(e : DrawableEdge, x? : number, y? : number) : void {
 
     // Edge
+    if(e === this.hoverObject) {
+      this.g.shadowColor = "#00a2e8";
+      this.g.shadowBlur = 10;
+    }
     if(this.selectedItems.has(e)) {
       let d = cloneEdge(e);
       d.color = "#00a2e8";
@@ -700,38 +737,46 @@ export class GraphEditorComponent
     this.g.strokeStyle = e.color;
     this.g.lineWidth = e.lineWidth;
     setLineStyle(this.g, e.lineStyle, e.lineWidth);
-    if(x && y)
-      drawLine(this.g, e.source.x, e.source.y, x, y);
-    else
+    if(x && y) {
+      if(e.source)
+        drawLine(this.g, e.source.x, e.source.y, x, y);
+      else
+        drawLine(this.g, x, y, e.destination.x, e.destination.y);
+    }
+    else {
       drawLine(this.g, e.source.x, e.source.y, e.destination.x, e.destination.y);
-    if(e.showSourceArrow)
-      drawArrow(this.g, e.destination, e.source);
-    if(e.showDestinationArrow)
-      drawArrow(this.g, e.source, e.destination);
+      if(e.showSourceArrow)
+        drawArrow(this.g, e.destination, e.source);
+      if(e.showDestinationArrow)
+        drawArrow(this.g, e.source, e.destination);
+    }
     this.g.globalAlpha = 1;
 
     // Label
-    this.g.font = "10pt serif";
-    this.g.textAlign = "center";
-    this.g.textBaseline = "middle";
-    let tw = this.g.measureText(e.label).width;
-    let rect = makeRect(
-      e.source.x, e.source.y,
-      e.destination.x, e.destination.y
-    );
-    x = rect.x + rect.w / 2;
-    y = rect.y + rect.h / 2;
-    rect = makeRect(x - tw / 2 - 6, y - 8, x + tw / 2 + 6, y + 8);
-    this.g.lineWidth = e.lineWidth;
-    this.g.fillStyle = "#fff";
-    setLineStyle(this.g, e.lineStyle);
-    this.g.lineJoin = "round";
-    this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
-    this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
-    setLineStyle(this.g, "solid");
-    this.g.lineWidth = 1;
-    this.g.fillStyle = "#000";
-    this.g.fillText(e.label, x, y);
+    if(e.source && e.destination) {
+      this.g.font = "10pt serif";
+      this.g.textAlign = "center";
+      this.g.textBaseline = "middle";
+      let tw = this.g.measureText(e.label).width;
+      let rect = makeRect(
+        e.source.x, e.source.y,
+        e.destination.x, e.destination.y
+      );
+      x = rect.x + rect.w / 2;
+      y = rect.y + rect.h / 2;
+      rect = makeRect(x - tw / 2 - 6, y - 8, x + tw / 2 + 6, y + 8);
+      this.g.lineWidth = e.lineWidth;
+      this.g.fillStyle = "#fff";
+      setLineStyle(this.g, e.lineStyle);
+      this.g.lineJoin = "round";
+      this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
+      this.g.shadowBlur = 0;
+      this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+      setLineStyle(this.g, "solid");
+      this.g.lineWidth = 1;
+      this.g.fillStyle = "#000";
+      this.g.fillText(e.label, x, y);
+    }
   }
 
   /**
@@ -776,29 +821,42 @@ export class GraphEditorComponent
 
     // Hit test edges.
     for(let e of this.graph.edges) {
-      let r = makeRect(
-        e.source.x,
-        e.source.y,
-        e.destination.x,
-        e.destination.y,
-      );
-      let lx = e.source.x;
-      let ly = e.source.y;
-      let rx = e.destination.x;
-      let ry = e.destination.y;
-      if(
-        (x > r.x && x < r.x + r.w) &&
-        (y > r.y && y < r.y + r.h)
-      ) {
-        let x1 = (lx < rx ? lx : rx);
-        let y1 = (ly < ry ? ly : ry);
-        let x2 = (lx < rx ? rx : lx);
-        let y2 = (ly < ry ? ry : ly);
-        let m = (y2 - y1) / (x2 - x1);
-        let b = y1 - m * x1;
-        if(Math.abs(y - (m * x + b)) < 10)
-          return e;
-      }
+      // Edge vector src -> dst
+      let ve = [
+        e.destination.x - e.source.x,
+        e.destination.y - e.source.y,
+      ];
+      // Cursor vector e.src -> mouse
+      let vm = [
+        x - e.source.x,
+        y - e.source.y
+      ];
+      let dotee = ve[0] * ve[0] + ve[1] * ve[1]; // edge dot edge
+      let dotem = ve[0] * vm[0] + ve[1] * vm[1]; // edge dot mouse
+      // Projection vector mouse -> edge
+      let p = [
+        ve[0] * dotem / dotee,
+        ve[1] * dotem / dotee
+      ];
+      // Rejection vector mouse -^ edge
+      let r = [
+        vm[0] - p[0],
+        vm[1] - p[1]
+      ];
+
+      let dotpp = p[0] * p[0] + p[1] * p[1]; // proj dot proj
+      let dotrr = r[0] * r[0] + r[1] * r[1]; // rej dot rej
+
+      let dep = [
+        ve[0] - p[0],
+        ve[1] - p[1]
+      ];
+      let dotdep = dep[0] * dep[0] + dep[1] * dep[1];
+
+      // TODO:
+      // Margin is hardcoded at 20x20
+      if(dotpp <= dotee && dotdep <= dotee && dotrr < e.lineWidth * e.lineWidth + 400)
+        return e;
     }
     return null;
   }
