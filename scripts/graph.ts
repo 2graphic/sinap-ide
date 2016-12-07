@@ -43,7 +43,7 @@ export class Element implements PropertiedEntity {
     this.propertyValues = proxify(_propertyValues, this);
   }
 
-  getProperty(target, k : PropertyKey){
+  private getProperty(target, k : PropertyKey){
     // TODO, this condition is insufficient, arrays too
     if (typeof target[k] == 'object'){
       // TODO inefficient, creates tons of Proxy objects
@@ -52,7 +52,7 @@ export class Element implements PropertiedEntity {
     return target[k];
   }
 
-  setProperty(target, k : PropertyKey, v){
+  private setProperty(target, k : PropertyKey, v){
     target[k] = v;
     this.handler();
     return true;
