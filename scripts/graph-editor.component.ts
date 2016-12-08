@@ -128,6 +128,7 @@ export interface Drawable {
 export interface DrawableGraph extends Drawable {
   readonly nodes : Iterable<DrawableNode>;
   readonly edges : Iterable<DrawableEdge>;
+  background : string;
 
   createNode(x? : number, y? : number) : DrawableNode
   /* contractually `src` -> `dest` will have been validated by 
@@ -659,7 +660,7 @@ export class GraphEditorComponent
    *   Redraws the graph.
    */
   redraw() : void {
-    clear(this.g, this.gridOriginPt);
+    this.clear(this.g, this.gridOriginPt);
     if(this.graph) {
       for(let e of this.graph.edges)
         this.drawEdge(e);
@@ -672,6 +673,48 @@ export class GraphEditorComponent
         // Draw anchor points
         //
       }
+    }
+  }
+
+  /**
+   * clear
+   *   Clears the canvas.
+   */
+  clear(g : CanvasRenderingContext2D, gridOriginPt) : void {
+    let canvas = g.canvas;
+    let w = canvas.width;
+    let h = canvas.height;
+    g.fillStyle = this.graph.background;
+    g.fillRect(0, 0, canvas.width, canvas.height);
+
+    setLineStyle(g, "solid");
+    for(
+      let x = gridOriginPt.x % GRID_SPACING - GRID_SPACING;
+      x < w + GRID_SPACING; 
+      x += GRID_SPACING
+    ) {
+      g.strokeStyle = "#7e7e7e";
+      g.lineWidth = 1;
+      setLineStyle(g, "solid");
+      drawLine(g, x, 0, x, h);
+      g.strokeStyle = "#c3c3c3";
+      g.lineWidth = 0.5;
+      setLineStyle(g, "dotted");
+      drawLine(g, x + GRID_MINOR_OFFSET, 0, x + GRID_MINOR_OFFSET, h);
+    }
+    for(
+      let y = gridOriginPt.y % GRID_SPACING - GRID_SPACING;
+      y < h + GRID_SPACING;
+      y += GRID_SPACING
+    ) {
+      g.strokeStyle = "#7e7e7e";
+      g.lineWidth = 1;
+      setLineStyle(g, "solid");
+      drawLine(g, 0, y, w, y);
+      g.strokeStyle = "#c3c3c3";
+      g.lineWidth = 1;
+      setLineStyle(g, "dotted");
+      drawLine(g, 0, y + GRID_MINOR_OFFSET, w, y + GRID_MINOR_OFFSET);
     }
   }
 
@@ -1024,48 +1067,6 @@ function drawArrow(
     v[0] + GRID_SPACING * (u[0] * COS_THETA + u[1] * SIN_THETA) / 2,
     v[1] + GRID_SPACING * (-u[0] * SIN_THETA + u[1] * COS_THETA) / 2
   );
-}
-
-/**
- * clear
- *   Clears the canvas.
- */
-function clear(g : CanvasRenderingContext2D, gridOriginPt) : void {
-  let canvas = g.canvas;
-  let w = canvas.width;
-  let h = canvas.height;
-  g.fillStyle = "white";
-  g.fillRect(0, 0, canvas.width, canvas.height);
-
-  setLineStyle(g, "solid");
-  for(
-    let x = gridOriginPt.x % GRID_SPACING - GRID_SPACING;
-    x < w + GRID_SPACING; 
-    x += GRID_SPACING
-  ) {
-    g.strokeStyle = "#7e7e7e";
-    g.lineWidth = 1;
-    setLineStyle(g, "solid");
-    drawLine(g, x, 0, x, h);
-    g.strokeStyle = "#c3c3c3";
-    g.lineWidth = 0.5;
-    setLineStyle(g, "dotted");
-    drawLine(g, x + GRID_MINOR_OFFSET, 0, x + GRID_MINOR_OFFSET, h);
-  }
-  for(
-    let y = gridOriginPt.y % GRID_SPACING - GRID_SPACING;
-    y < h + GRID_SPACING;
-    y += GRID_SPACING
-  ) {
-    g.strokeStyle = "#7e7e7e";
-    g.lineWidth = 1;
-    setLineStyle(g, "solid");
-    drawLine(g, 0, y, w, y);
-    g.strokeStyle = "#c3c3c3";
-    g.lineWidth = 1;
-    setLineStyle(g, "dotted");
-    drawLine(g, 0, y + GRID_MINOR_OFFSET, w, y + GRID_MINOR_OFFSET);
-  }
 }
 
 /**
