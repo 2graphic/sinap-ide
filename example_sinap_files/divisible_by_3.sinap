@@ -1,0 +1,133 @@
+{
+	"sinap-file-format-version": "0.0.1",
+	"graph": {
+		"nodes": [{
+			"Start State": true,
+			"Accept State": true,
+			"Label": "q0",
+			"Color": "#fff200",
+			"Border Color": "#000",
+			"Border Style": "solid",
+			"Border Width": 1,
+			"Position": {
+				"x": 120,
+				"y": 120
+			}
+		}, {
+			"Start State": false,
+			"Accept State": false,
+			"Label": "q1",
+			"Color": "#fff200",
+			"Border Color": "#000",
+			"Border Style": "solid",
+			"Border Width": 1,
+			"Position": {
+				"x": 320,
+				"y": 120
+			}
+		}, {
+			"Start State": false,
+			"Accept State": false,
+			"Label": "q2",
+			"Color": "#fff200",
+			"Border Color": "#000",
+			"Border Style": "solid",
+			"Border Width": 1,
+			"Position": {
+				"x": 520,
+				"y": 120
+			}
+		}],
+		"edges": [{
+			"Source Arrow": false,
+			"Destination Arrow": true,
+			"Label": "0",
+			"Color": "#000",
+			"Line Style": "solid",
+			"Line Width": 1,
+			"Source": {
+				"proxyto": "Node",
+				"location": 0
+			},
+			"Destination": {
+				"proxyto": "Node",
+				"location": 0
+			}
+		}, {
+			"Source Arrow": false,
+			"Destination Arrow": true,
+			"Label": "1",
+			"Color": "#000",
+			"Line Style": "solid",
+			"Line Width": 1,
+			"Source": {
+				"proxyto": "Node",
+				"location": 0
+			},
+			"Destination": {
+				"proxyto": "Node",
+				"location": 1
+			}
+		}, {
+			"Source Arrow": false,
+			"Destination Arrow": true,
+			"Label": "1",
+			"Color": "#000",
+			"Line Style": "solid",
+			"Line Width": 1,
+			"Source": {
+				"proxyto": "Node",
+				"location": 1
+			},
+			"Destination": {
+				"proxyto": "Node",
+				"location": 0
+			}
+		}, {
+			"Source Arrow": false,
+			"Destination Arrow": true,
+			"Label": "0",
+			"Color": "#000",
+			"Line Style": "solid",
+			"Line Width": 1,
+			"Source": {
+				"proxyto": "Node",
+				"location": 1
+			},
+			"Destination": {
+				"proxyto": "Node",
+				"location": 2
+			}
+		}, {
+			"Source Arrow": false,
+			"Destination Arrow": true,
+			"Label": "0",
+			"Color": "#000",
+			"Line Style": "solid",
+			"Line Width": 1,
+			"Source": {
+				"proxyto": "Node",
+				"location": 2
+			},
+			"Destination": {
+				"proxyto": "Node",
+				"location": 1
+			}
+		}, {
+			"Source Arrow": false,
+			"Destination Arrow": true,
+			"Label": "1",
+			"Color": "#000",
+			"Line Style": "solid",
+			"Line Width": 1,
+			"Source": {
+				"proxyto": "Node",
+				"location": 2
+			},
+			"Destination": {
+				"proxyto": "Node",
+				"location": 2
+			}
+		}]
+	}
+}
