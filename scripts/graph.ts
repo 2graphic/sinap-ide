@@ -123,7 +123,9 @@ export class Graph extends Element implements DrawableGraph {
   }
 
   constructor(pluginProperties, handler){
-    super(pluginProperties, handler, {});
+    super(pluginProperties, handler, {
+      'Background' : "#ffffff"
+    });
   }
 
   private _nodes : Array<Node> = [];
@@ -178,6 +180,15 @@ export class Graph extends Element implements DrawableGraph {
   canCreateEdge(src : Node, dest : Node, like? : Edge) {
     // return Math.random() > 0.1;
     return true;
+  }
+
+  displayProperties = [["Background", SinapColor] as [string, SinapType],];
+
+  get background(){
+    return this.propertyValues['Background'];
+  }
+  set background(nv){
+    this.propertyValues['Background'] = nv;
   }
 
   serialize(){
