@@ -684,7 +684,7 @@ export class GraphEditorComponent
     let canvas = g.canvas;
     let w = canvas.width;
     let h = canvas.height;
-    g.fillStyle = this.graph.background;
+    g.fillStyle = this.graph?this.graph.background:"#FFF";
     g.fillRect(0, 0, canvas.width, canvas.height);
 
     setLineStyle(g, "solid");
