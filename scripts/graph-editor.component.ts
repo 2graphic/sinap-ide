@@ -711,6 +711,7 @@ export class GraphEditorComponent
     this.g.lineWidth = 2;
     this.g.strokeStyle = "#000";
     this.g.fillStyle = "#fff";
+    setLineStyle(this.g, "solid");
     this.g.strokeText(n.label, n.x, n.y);
     this.g.fillText(n.label, n.x, n.y);
   }
