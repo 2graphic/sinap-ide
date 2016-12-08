@@ -62,8 +62,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   graph : Graph;
 
   onGraphChanged = ()=>{
-    console.log(this);
-    console.log(this.graphEditor);
     if (this.graphEditor){
       this.graphEditor.redraw();
     }
