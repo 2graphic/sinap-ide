@@ -377,6 +377,9 @@ export class GraphEditorComponent
     // Make sure only the left mouse button is down.
     if(e.buttons == 1) {
 
+      // Clear the hover object.
+      this.hoverObject = null;
+
       // Save mouse click canvas coordinates and set waiting to true.
       this.downEvt = e;
       this.isWaiting = true;
@@ -438,9 +441,8 @@ export class GraphEditorComponent
     let ePt = getMousePt(this.g, e);
 
     // Capture the down event if the drag object has been set.
-    if(this.dragObject !== null && this.downEvt === null) {
+    if(this.dragObject !== null && this.downEvt === null)
       this.downEvt = e;
-    }
 
     // Make sure the mousedown event was previously captured.
     if(this.downEvt !== null) {
@@ -461,6 +463,10 @@ export class GraphEditorComponent
         // Clear the selection if nothing was hit.
         if(this.dragObject === null)
           this.clearSelected();
+        
+        // Clear the drag object if it is an edge.
+        else if(this.dragObject.isEdge())
+          this.dragObject = null;
       }
 
       // Update the canvas if waiting is not set.
@@ -566,6 +572,8 @@ export class GraphEditorComponent
             this.moveEdge !== null && 
             this.graph.canCreateEdge(this.dragObject.source, hit, this.moveEdge)
           ) {
+            console.log("move edge");
+            this.removeSelectedItem(this.moveEdge);
             this.graph.removeEdge(this.moveEdge);
             this.dragObject = this.graph.createEdge(
               this.dragObject.source, hit, this.moveEdge
@@ -577,6 +585,7 @@ export class GraphEditorComponent
             this.moveEdge === null &&
             this.graph.canCreateEdge(this.dragObject.source, hit)
           ) {
+            console.log("no move edge");
             this.clearSelected();
             this.dragObject = 
               this.graph.createEdge(this.dragObject.source, hit);
