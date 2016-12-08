@@ -24,6 +24,18 @@ export class PropertiesPanelComponent {
   //   this._selectedEntity = e;
   // }
 
+  private isEmpty() {
+    if (this.selectedEntity) {
+      for (let group of this.groups) {
+        if (this.selectedEntity[group[1]] && this.selectedEntity[group[1]].length > 0) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   private groups = [["General", "pluginProperties"], ["Display", "displayProperties"]];
 }
 

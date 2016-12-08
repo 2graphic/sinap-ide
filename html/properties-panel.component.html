@@ -1,10 +1,10 @@
 <div id="wrapper">
     <h2>Properties</h2>
-    <p *ngIf="!selectedEntity">
-        No selected entity.
-    </p>
+    <div *ngIf="isEmpty()" id="empty">
+        <p>&lt; empty &gt;</p>
+    </div>
 
-    <div *ngIf="selectedEntity">
+    <div *ngIf="!isEmpty()">
         <table *ngFor="let group of groups" class="group-table">
             <template [ngIf]="selectedEntity[group[1]] && selectedEntity[group[1]].length > 0">
                 <tr><th colspan="2">{{group[0]}}</th></tr>
