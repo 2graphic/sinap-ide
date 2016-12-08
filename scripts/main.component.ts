@@ -59,11 +59,18 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
 
   graph : Graph;
 
-  newFile() {
-    this.graph = new Graph([], () =>{
+  onGraphChanged(){
+    if (this.graphEditor){
       this.graphEditor.redraw();
-      this.barMessages[1] = this.pluginService.getInterpreter("dfa", this.graph).check()
-    });
+    }
+    if (this.pluginService){
+      this.barMessages[1] = this.pluginService.getInterpreter("dfa", this.graph).check();    
+    }
+  }
+
+  newFile() {
+    this.graph = new Graph([], this.onGraphChanged);
+    this.onGraphChanged()
   }
 
   menuEvent(e: MenuEvent) {
@@ -103,7 +110,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
         }
         try {
           let pojo = JSON.parse(data);
-          this.graph = deserializeGraph(pojo, () => this.graphEditor.redraw);
+          this.graph = deserializeGraph(pojo, this.onGraphChanged);
+          this.onGraphChanged()
         } catch (e) {
           alert(`Could not serialize graph: ${e}.`);
         }
