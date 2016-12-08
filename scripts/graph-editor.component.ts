@@ -709,7 +709,8 @@ export class GraphEditorComponent
     this.g.arc(n.x, n.y, GRID_SPACING / 2, 0, 2 * Math.PI);
     this.g.fill();
     this.g.shadowBlur = 0;
-    this.g.stroke();
+    if(n.borderWidth > 0)
+      this.g.stroke();
 
     // Label
     this.g.font = "10pt serif";
