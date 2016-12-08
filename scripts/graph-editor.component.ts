@@ -342,7 +342,7 @@ export class GraphEditorComponent
    */
   onKeyDown(e : KeyboardEvent) : void {
     // Delete keyCode is 46.
-    if(e.keyCode == 46 || e.keyCode == 8) {
+    if(this.graph && (e.keyCode == 46 || e.keyCode == 8)) {
       let edges = new Set<DrawableEdge>();
       let nodes = new Set<DrawableNode>();
       for (let ele of this.selectedItems){
@@ -376,7 +376,7 @@ export class GraphEditorComponent
   onMouseDown(e : MouseEvent) : void {
 
     // Make sure only the left mouse button is down.
-    if(e.buttons == 1) {
+    if(this.graph && e.buttons == 1) {
 
       // Clear the hover object.
       this.hoverObject = null;
@@ -439,102 +439,104 @@ export class GraphEditorComponent
    *   Handles the mousemove event.
    */
   onMouseMove(e : MouseEvent) : void {
-    let ePt = getMousePt(this.g, e);
+    if(this.graph) {
+      let ePt = getMousePt(this.g, e);
 
-    // Capture the down event if the drag object has been set.
-    if(this.dragObject !== null && this.downEvt === null)
-      this.downEvt = e;
+      // Capture the down event if the drag object has been set.
+      if(this.dragObject !== null && this.downEvt === null)
+        this.downEvt = e;
 
-    // Make sure the mousedown event was previously captured.
-    if(this.downEvt !== null) {
+      // Make sure the mousedown event was previously captured.
+      if(this.downEvt !== null) {
 
-      // Get the change in x and y locations of the cursor.
-      let downPt = getMousePt(this.g, this.downEvt);
-      let dx = downPt.x - ePt.x;
-      let dy = downPt.y - ePt.y;
+        // Get the change in x and y locations of the cursor.
+        let downPt = getMousePt(this.g, this.downEvt);
+        let dx = downPt.x - ePt.x;
+        let dy = downPt.y - ePt.y;
 
-      // Reset waiting if waiting is still active and the mouse has moved too
-      // far.
-      if(this.isWaiting && (dx * dx + dy * dy > NUDGE * NUDGE)) {
-        this.isWaiting = false;
+        // Reset waiting if waiting is still active and the mouse has moved too
+        // far.
+        if(this.isWaiting && (dx * dx + dy * dy > NUDGE * NUDGE)) {
+          this.isWaiting = false;
 
-        // Check the drag object.
-        this.dragObject = this.hitTest(ePt.x, ePt.y);
+          // Check the drag object.
+          this.dragObject = this.hitTest(ePt.x, ePt.y);
 
-        // Clear the selection if nothing was hit.
-        if(this.dragObject === null)
-          this.clearSelected();
-        
-        // Clear the drag object if it is an edge.
-        else if(this.dragObject.isEdge())
-          this.dragObject = null;
-      }
-
-      // Update the canvas if waiting is not set.
-      else if(!this.isWaiting) {
-
-        // Update the selection box if selecting.
-        if(this.dragObject === null) {
-          let rect = makeRect(downPt.x, downPt.y, ePt.x, ePt.y);
-
-          // Update the selected components.
-          for(let i of this.selectedItems) {
-            if(!this.rectHitTest(i, rect))
-              moveItem(this.selectedItems, this.unselectedItems, i);
-          }
-          for(let i of this.unselectedItems) {
-            if(this.rectHitTest(i, rect))
-              moveItem(this.unselectedItems, this.selectedItems, i);
-          }
-          this.selectionChanged.emit(new Set<DrawableEdge | DrawableNode>(
-            this.selectedItems
-          ));
-  
-          // Update the canvas.
-          this.redraw();
-          drawSelectionBox(this.g, rect);
+          // Clear the selection if nothing was hit.
+          if(this.dragObject === null)
+            this.clearSelected();
+          
+          // Clear the drag object if it is an edge.
+          else if(this.dragObject.isEdge())
+            this.dragObject = null;
         }
 
-        // Update edge endpoint if dragging edge.
-        else if(this.dragObject.isEdge()) {
-          this.redraw();
-          this.g.globalAlpha = 0.3;
-          this.drawEdge(this.dragObject, ePt.x, ePt.y);
-          this.g.globalAlpha = 1;
-        }
+        // Update the canvas if waiting is not set.
+        else if(!this.isWaiting) {
 
-        // Update node position if dragging node.
-        else if(this.dragObject.isNode) {
-          if(
-            this.selectedItems.has(this.dragObject) &&
-            this.selectedItems.size > 0
-          ) {
-            for(let o of this.selectedItems) {
-              let dx = ePt.x - this.dragObject.x;
-              let dy = ePt.y - this.dragObject.y;
+          // Update the selection box if selecting.
+          if(this.dragObject === null) {
+            let rect = makeRect(downPt.x, downPt.y, ePt.x, ePt.y);
+
+            // Update the selected components.
+            for(let i of this.selectedItems) {
+              if(!this.rectHitTest(i, rect))
+                moveItem(this.selectedItems, this.unselectedItems, i);
+            }
+            for(let i of this.unselectedItems) {
+              if(this.rectHitTest(i, rect))
+                moveItem(this.unselectedItems, this.selectedItems, i);
+            }
+            this.selectionChanged.emit(new Set<DrawableEdge | DrawableNode>(
+              this.selectedItems
+            ));
+    
+            // Update the canvas.
+            this.redraw();
+            drawSelectionBox(this.g, rect);
+          }
+
+          // Update edge endpoint if dragging edge.
+          else if(this.dragObject.isEdge()) {
+            this.redraw();
+            this.g.globalAlpha = 0.3;
+            this.drawEdge(this.dragObject, ePt.x, ePt.y);
+            this.g.globalAlpha = 1;
+          }
+
+          // Update node position if dragging node.
+          else if(this.dragObject.isNode) {
+            if(
+              this.selectedItems.has(this.dragObject) &&
+              this.selectedItems.size > 0
+            ) {
               for(let o of this.selectedItems) {
-                if(o.isNode()) {
-                  o.x += dx;
-                  o.y += dy;
+                let dx = ePt.x - this.dragObject.x;
+                let dy = ePt.y - this.dragObject.y;
+                for(let o of this.selectedItems) {
+                  if(o.isNode()) {
+                    o.x += dx;
+                    o.y += dy;
+                  }
                 }
               }
             }
+            else {
+              this.dragObject.x = ePt.x;
+              this.dragObject.y = ePt.y;
+            }
+            this.redraw();
           }
-          else {
-            this.dragObject.x = ePt.x;
-            this.dragObject.y = ePt.y;
-          }
-          this.redraw();
         }
       }
-    }
 
-    // Mouse hover
-    else {
-      let hit =  this.hitTest(ePt.x, ePt.y);
-      if(hit !== this.hoverObject) {
-        this.hoverObject = hit;
-        this.redraw();
+      // Mouse hover
+      else {
+        let hit =  this.hitTest(ePt.x, ePt.y);
+        if(hit !== this.hoverObject) {
+          this.hoverObject = hit;
+          this.redraw();
+        }
       }
     }
   }
@@ -546,7 +548,7 @@ export class GraphEditorComponent
   onMouseUp(e : MouseEvent) : void {
 
     // Make sure a mousedown event was previously captured.
-    if(this.downEvt !== null) {
+    if(this.graph && this.downEvt !== null) {
       let ePt = getMousePt(this.g, e);
 
       // Set the selected graph component if waiting.
