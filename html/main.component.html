@@ -1,28 +1,26 @@
 <div class="flex-container-row full-size">
-  <div id="sidebar">
-    <sinap-side-bar [icons]="
-    [{
-      path: 'properties.svg',
-      name: 'Properties'
-    },
-    {
-      path: 'tools.svg',
-      name: 'Tools'
-    },
-    {
-      path: 'files.svg',
-      name: 'Files'
-    }]">
-    </sinap-side-bar>
-  </div>
   <div id="content" class="flex-container-column">
     <div id="top-panels" class="flex-container-row">
+      <sinap-side-bar #leftSideBar class="side-bar" [icons]="
+          [{
+            path: 'properties.svg',
+            name: 'Properties'
+          },
+          {
+            path: 'tools.svg',
+            name: 'Tools'
+          },
+          {
+            path: 'files.svg',
+            name: 'Files'
+          }]">
+      </sinap-side-bar>
       <div id="side-panel">
-        <sinap-properties-panel [hidden]="!(sideBar.active == 'Properties')">
+        <sinap-properties-panel [hidden]="!(leftSideBar.active == 'Properties')">
         </sinap-properties-panel>
-        <sinap-tools-panel [hidden]="!(sideBar.active == 'Tools')">
+        <sinap-tools-panel [hidden]="!(leftSideBar.active == 'Tools')">
         </sinap-tools-panel>
-        <sinap-files-panel [hidden]="!(sideBar.active == 'Files')">
+        <sinap-files-panel [hidden]="!(leftSideBar.active == 'Files')">
         </sinap-files-panel>
       </div>
       <div id="editor-panel" class="flex-container-column">
@@ -32,8 +30,24 @@
       </div> 
     </div>
     <div id="bottom-panels" class="flex-container-row">
+      <sinap-side-bar #bottomSideBar class="side-bar" [icons]="
+          [{
+            path: 'properties.svg',
+            name: 'Input'
+          },
+          {
+            path: 'tools.svg',
+            name: 'Test'
+          },
+          {
+            path: 'files.svg',
+            name: 'Debug'
+          }]">
+      </sinap-side-bar>
       <div id="bottom-panel">
-        <repl></repl>
+        <repl [hidden]="!(bottomSideBar.active == 'Input')"></repl>
+        <sinap-test-panel [hidden]="!(bottomSideBar.active == 'Test')"></sinap-test-panel>
+        <sinap-debug-panel [hidden]="!(bottomSideBar.active == 'Debug')"></sinap-debug-panel>
       </div>
     </div>
   </div>

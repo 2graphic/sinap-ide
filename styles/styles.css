@@ -18,7 +18,7 @@ html, body, .full-size {
   height: 100%;
 }
 
-#sidebar {
+.side-bar {
   flex: none;
   width: 3em;
 }

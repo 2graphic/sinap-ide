@@ -17,6 +17,8 @@ import { PropertiesPanelComponent } from "./properties-panel.component";
 import { ToolsPanelComponent } from "./tools-panel.component";
 import { FilesPanelComponent } from "./files-panel.component";
 import { REPLComponent } from "./repl.component";
+import { TestPanelComponent } from "./test-panel.component";
+import { DebugPanelComponent } from "./debug-panel.component";
 import { FormsModule }   from '@angular/forms';
 import { GraphEditorComponent } from "./graph-editor.component";
 import { StatusBarComponent } from "./status-bar.component";
@@ -35,6 +37,8 @@ import { TabBarComponent } from "./tab-bar.component"
     ToolsPanelComponent,
     FilesPanelComponent,
     REPLComponent,
+    TestPanelComponent,
+    DebugPanelComponent,
     GraphEditorComponent,
     StatusBarComponent,
     TabBarComponent,

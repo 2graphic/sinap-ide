@@ -4,7 +4,7 @@ import { Component } from "@angular/core";
   moduleId: module.id,
   selector: "repl",
   templateUrl: "../html/repl.component.html",
-  styleUrls: [ "../styles/repl.component.css" ]
+  styleUrls: [ "../styles/bottom-panel.component.css", "../styles/repl.component.css" ]
 })
 export class REPLComponent {
   public delegate: REPLDelegate;
