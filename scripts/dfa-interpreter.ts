@@ -24,8 +24,8 @@ export class DFAInterpreter implements Interpreter {
 
     	for (let edge of g.edges){
     		let sym = edge.label;
-    		let src = nodes.indexOf(edge.source);
-    		let dst = nodes.indexOf(edge.destination);
+    		let src = nodes.indexOf(edge.propertyValues["Source"]);
+    		let dst = nodes.indexOf(edge.propertyValues["Destination"]);
 
     		let map2 : Map<string, number>;
     		if (this.transitions.has(src)){

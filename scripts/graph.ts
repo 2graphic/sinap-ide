@@ -45,7 +45,7 @@ export class Element implements PropertiedEntity {
 
   private getProperty(target, k : PropertyKey){
     // TODO, this condition is insufficient, arrays too
-    if (typeof target[k] == 'object'){
+    if ((! (target[k] instanceof Node)) && typeof target[k] == 'object'){
       // TODO inefficient, creates tons of Proxy objects
       return proxify(target[k], this);
     }
