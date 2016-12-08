@@ -15,7 +15,7 @@ function map<T, U>(i : Iterable<T>, f : ((x : T) => U)) : Array<U>{
   return proto_map_func.call(i, f);
 }
 
-function proxify(obj, that : Element){
+function proxify(obj, that){
   return new Proxy(obj, {
       get : that.getProperty.bind(that),
       set : that.setProperty.bind(that)
