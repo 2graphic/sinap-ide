@@ -13,6 +13,7 @@ import { GraphEditorComponent, Drawable } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
 import { PropertiesPanelComponent } from "./properties-panel.component"
+import { StatusBarComponent } from "./status-bar.component"
 import { SinapType, SinapNumber } from "./types";
 import { Element, Graph, deserializeGraph } from "./graph"
 import { SideBarComponent } from "./side-bar.component"
@@ -50,11 +51,18 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   @ViewChild(SideBarComponent)
   private sideBar: SideBarComponent;
 
+  public package = "Finite Automata";
+  public barMessages = ["DFA", ""]
+
+  @ViewChild(StatusBarComponent)
+  private statusBar: StatusBarComponent;
+
   graph : Graph;
 
   newFile() {
     this.graph = new Graph([], () =>{
       this.graphEditor.redraw();
+      this.barMessages[1] = this.pluginService.getInterpreter("dfa", this.graph).check()
     });
   }
 

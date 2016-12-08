@@ -27,7 +27,7 @@
       </div>
       <div id="editor-panel" class="flex-container-column">
         <sinap-graph-editor [graph]="graph" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor"></sinap-graph-editor>
-        <sinap-status-bar id="status-bar" [title]="'Finite Automata'" [items]="['Deterministic', '...']"></sinap-status-bar>
+        <sinap-status-bar id="status-bar" [title]="package" [items]="barMessages"></sinap-status-bar>
       </div> 
     </div>
     <div id="bottom-panels" class="flex-container-row">

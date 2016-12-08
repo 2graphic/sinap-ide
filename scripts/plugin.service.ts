@@ -20,4 +20,5 @@ export class PluginService {
 
 export interface Interpreter {
     run(input: String):Boolean;
+    check() : string;
 }

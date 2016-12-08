@@ -11,11 +11,29 @@ export class DFAInterpreter implements Interpreter {
 	transitions : Map<number, Map<string, number>>;
 	start_state : number
 	accept_states : Set<number>
-    
+    error_message : string = null;
+    alphabet : Set<string> = new Set<string>();
+
     constructor(graph: Graph) {
         this.translate(graph);
     }
 
+    check(){
+        if (this.error_message){
+            return this.error_message;
+        }
+        if (this.start_state == null){
+            return "No start state"
+        }
+        if (this.accept_states.size == 0){
+            return "No accept states"
+        }
+
+        let a = [...this.alphabet.values()]
+        a.sort()
+
+        return "Alphabet: " + a.join(" ");
+    }
 
     translate(g : Graph){
     	let nodes = [...g.nodes];
@@ -23,9 +41,21 @@ export class DFAInterpreter implements Interpreter {
 		this.transitions = new Map<number, Map<string, number>>();
 
     	for (let edge of g.edges){
-    		let sym = edge.label;
+    		let sym : string = edge.label;
+            if (sym.length != 1){
+                this.error_message = "Symbols must be one character"
+                return
+            }
+
+            this.alphabet.add(sym);
+
     		let src = nodes.indexOf(edge.propertyValues["Source"]);
     		let dst = nodes.indexOf(edge.propertyValues["Destination"]);
+
+            if (src == -1 || dst == -1){
+                this.error_message = "Unknown node referenced";
+                return;
+            }
 
     		let map2 : Map<string, number>;
     		if (this.transitions.has(src)){
@@ -41,6 +71,10 @@ export class DFAInterpreter implements Interpreter {
 
     	for (let n of nodes){
     		if (coerseBoolean(n.propertyValues["Start State"])){
+                if (this.start_state != null){
+                    this.error_message = "Too many start states";
+                    return;
+                }
     			this.start_state = nodes.indexOf(n);
     		}
     		if (coerseBoolean(n.propertyValues["Accept State"])){
