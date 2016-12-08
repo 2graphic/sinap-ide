@@ -22,13 +22,16 @@
 //
 //
 // TODO:
-// - Special draw start node.
-// - Special draw "final/accept" nodes.
-// - @Input height/width
 // - Zoom and Pan
 //   pinch to zoom/two-touch drag to pan
+// - Special draw start node.
+// - Special draw "final/accept" nodes.
+// - Custom shapes/images for nodes.
+// - Custom lines for edges (default/quadratic/bezier/orthogonal).
+// - Make sure to handle hit testing of custom shapes.
 // - Make it so that if any part of a component is caught within the selection
 //   box, it is selected
+// - @Input height/width
 // - Something about deep binding for the graph components? [For now, use redraw]
 // - Have a visual indication for determining if an edge can be moved from one
 //   node to another.
@@ -38,19 +41,7 @@
 //   - Inside, Outside, Center
 // - Should selection display properties be hardcoded?
 // - Should node radius be set to be half the grid spacing?
-// - Custom shapes/images for nodes.
-// - Custom lines for edges (default/quadratic/bezier/orthogonal).
-// - Make sure to handle hit testing of custom shapes.
-// - When hit testing edges, hit test only on the end points.
-//   - End points will show on mouse hover.
 // - Consolidate code duplication.
-// - If any part of the component is within the selection box,
-//   this.addSelectedItem(u);
-//
-// Note:
-//   For now, a node is added to the selection if its center is within the
-//   selection box, and an edge is added if either of its nodes' center is
-//   within the selection box.
 //
 //
 
@@ -319,6 +310,7 @@ export class GraphEditorComponent
   ngOnChanges(changes : SimpleChanges) {
     for(let c in changes) {
       if(c == "graph" && this.g) {
+        this.clearSelected();
         this.redraw();
       }
     }
