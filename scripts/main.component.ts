@@ -32,11 +32,13 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   constructor(private menu: MenuService, private pluginService: PluginService) {
     this.newFile();
   }
-  
 
   ngOnInit(): void {
     this.repl.delegate = this;
     this.menu.addEventListener(this);
+  }
+
+  ngAfterViewInit() {
   }
 
   @ViewChild(GraphEditorComponent)
@@ -59,18 +61,20 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
 
   graph : Graph;
 
-  onGraphChanged(){
+  onGraphChanged = ()=>{
+    console.log(this);
+    console.log(this.graphEditor);
     if (this.graphEditor){
       this.graphEditor.redraw();
     }
     if (this.pluginService){
       this.barMessages[1] = this.pluginService.getInterpreter("dfa", this.graph).check();    
     }
-  }
+  };
 
   newFile() {
     this.graph = new Graph([], this.onGraphChanged);
-    this.onGraphChanged()
+    this.onGraphChanged();
   }
 
   menuEvent(e: MenuEvent) {

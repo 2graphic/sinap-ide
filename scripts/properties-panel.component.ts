@@ -16,6 +16,13 @@ import { SinapType } from "./types";
 
 export class PropertiesPanelComponent {
   public selectedEntity : PropertiedEntity;
+  // get selectedEntity() {
+  //   return this._selectedEntity;
+  // }
+  // set selectedEntity(e) {
+  //   console.log(e);
+  //   this._selectedEntity = e;
+  // }
 
   private groups = [["General", "pluginProperties"], ["Display", "displayProperties"]];
 }

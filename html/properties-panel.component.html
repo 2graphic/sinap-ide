@@ -6,7 +6,7 @@
 
     <div *ngIf="selectedEntity">
         <table *ngFor="let group of groups" class="group-table">
-            <template [ngIf]="selectedEntity[group[1]].length > 0">
+            <template [ngIf]="selectedEntity[group[1]] && selectedEntity[group[1]].length > 0">
                 <tr><th colspan="2">{{group[0]}}</th></tr>
                 <tr *ngFor="let pair of selectedEntity[group[1]]">
                     <td class="label">{{pair[0]}}</td>
