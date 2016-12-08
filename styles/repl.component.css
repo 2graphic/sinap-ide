@@ -30,6 +30,7 @@
 }
 
 #repl-output {
+    color: white;
     flex: auto;
     display: flex;
 
