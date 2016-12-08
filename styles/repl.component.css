@@ -16,7 +16,6 @@
 }
 
 #repl-cl {
-    height: 2em;
     flex:none;
 }
 
@@ -36,12 +35,13 @@
     font-size: 1em;
     width: 100%;
     margin: -3px;
+    padding: 0px;
 }
 
 .repl-item {
     padding: 0.2em 0.2em;
     margin-bottom: 0.3em;
-    background: #cccccc;
+    background: #dddddd;
     border-radius: 2px;
     color: #111111;
 }
