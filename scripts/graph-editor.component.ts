@@ -16,6 +16,11 @@
 // "pixels" rather than having the canvas map 1:1 with the screen.
 //
 //
+// Resources:
+// - System colors:
+//   https://www.w3.org/TR/REC-CSS2/ui.html#system-colors
+//
+//
 // TODO:
 // - Special draw start node.
 // - Special draw "final/accept" nodes.
@@ -186,7 +191,6 @@ export interface DrawableNode extends Drawable {
     "../styles/graph-editor.component.css"
   ]
 })
-
 /**
  * GraphEditorComponent
  *   Angular2 component that provides a canvas for drawing nodes and edges.
@@ -198,19 +202,22 @@ export class GraphEditorComponent
    * selectionChanged
    *   An event emitter that is emitted when the selected items is changed.
    */
-  @Output() selectionChanged = new EventEmitter();
+  @Output()
+  selectionChanged = new EventEmitter();
 
   /**
    * graph
    *   Input property for the graph object.
    */
-  @Input() graph : DrawableGraph;
+  @Input()
+  graph : DrawableGraph;
 
   /**
    * graphEditorCanvas
    *   Reference to the canvas child element.
    */
-  @ViewChild("sinapGraphEditorCanvas") graphEditorCanvas : ElementRef;
+  @ViewChild("sinapGraphEditorCanvas")
+  graphEditorCanvas : ElementRef;
 
   /**
    * g
@@ -311,7 +318,7 @@ export class GraphEditorComponent
    */
   ngOnChanges(changes : SimpleChanges) {
     for(let c in changes) {
-      if(c == "graph" && this.g !== null) {
+      if(c == "graph" && this.g) {
         this.redraw();
       }
     }
@@ -324,13 +331,15 @@ export class GraphEditorComponent
   clearSelected() : void {
     this.selectedItems.clear();
     this.unselectedItems.clear();
-    for(let n of this.graph.nodes)
-      this.unselectedItems.add(n);
-    for(let e of this.graph.edges)
-      this.unselectedItems.add(e);
-    this.selectionChanged.emit(
-      new Set<Drawable>(this.selectedItems)
-    );
+    if(this.graph) {
+      for(let n of this.graph.nodes)
+        this.unselectedItems.add(n);
+      for(let e of this.graph.edges)
+        this.unselectedItems.add(e);
+      this.selectionChanged.emit(
+        new Set<Drawable>(this.selectedItems)
+      );
+    }
   }
 
   /**
@@ -398,7 +407,7 @@ export class GraphEditorComponent
 
           // Create a new node and set it as the drag object if no drag object
           // was set.
-          if(this.dragObject === null) {
+          if(!this.dragObject) {
             this.dragObject = this.graph.createNode(downPt.x, downPt.y);
             this.clearSelected();
             this.addSelectedItem(this.dragObject);
@@ -416,7 +425,7 @@ export class GraphEditorComponent
             this.dragObject = cloneEdge(this.moveEdge);
             this.dragObject.lineStyle = "dotted";
             this.redraw();
-            this.g.globalAlpha = 0.3;
+            this.g.globalAlpha = 0.5;
             this.drawEdge(this.dragObject, downPt.x, downPt.y);
             this.g.globalAlpha = 1;
           }
@@ -443,11 +452,11 @@ export class GraphEditorComponent
       let ePt = getMousePt(this.g, e);
 
       // Capture the down event if the drag object has been set.
-      if(this.dragObject !== null && this.downEvt === null)
+      if(this.dragObject && !this.downEvt)
         this.downEvt = e;
 
       // Make sure the mousedown event was previously captured.
-      if(this.downEvt !== null) {
+      if(this.downEvt) {
 
         // Get the change in x and y locations of the cursor.
         let downPt = getMousePt(this.g, this.downEvt);
@@ -463,7 +472,7 @@ export class GraphEditorComponent
           this.dragObject = this.hitTest(ePt.x, ePt.y);
 
           // Clear the selection if nothing was hit.
-          if(this.dragObject === null)
+          if(!this.dragObject)
             this.clearSelected();
           
           // Clear the drag object if it is an edge.
@@ -475,7 +484,7 @@ export class GraphEditorComponent
         else if(!this.isWaiting) {
 
           // Update the selection box if selecting.
-          if(this.dragObject === null) {
+          if(!this.dragObject) {
             let rect = makeRect(downPt.x, downPt.y, ePt.x, ePt.y);
 
             // Update the selected components.
@@ -548,7 +557,7 @@ export class GraphEditorComponent
   onMouseUp(e : MouseEvent) : void {
 
     // Make sure a mousedown event was previously captured.
-    if(this.graph && this.downEvt !== null) {
+    if(this.graph && this.downEvt) {
       let ePt = getMousePt(this.g, e);
 
       // Set the selected graph component if waiting.
@@ -559,20 +568,20 @@ export class GraphEditorComponent
 
       // Set the selected graph component if none is set and the mouse is
       // hovering over a component.
-      else if(this.dragObject === null && this.hoverObject !== null) {
+      else if(!this.dragObject && this.hoverObject) {
         this.dragObject = this.hoverObject;
       }
 
       // Create the edge if one is being dragged.
-      else if(this.dragObject !== null && this.dragObject.isEdge()) {
+      else if(this.dragObject && this.dragObject.isEdge()) {
 
         // Check that the mouse was released at a node.
         let hit = this.hitTest(ePt.x, ePt.y);
-        if(hit !== null && hit.isNode()) {
+        if(hit && hit.isNode()) {
 
           // Move the edge if one is being dragged and it can be moved.
           if(
-            this.moveEdge !== null && 
+            this.moveEdge && 
             this.graph.canCreateEdge(this.dragObject.source, hit, this.moveEdge)
           ) {
             this.removeSelectedItem(this.moveEdge);
@@ -584,7 +593,7 @@ export class GraphEditorComponent
 
           // Create a new edge if none is being moved and it can be created.
           else if(
-            this.moveEdge === null &&
+            !this.moveEdge &&
             this.graph.canCreateEdge(this.dragObject.source, hit)
           ) {
             this.clearSelected();
@@ -595,7 +604,7 @@ export class GraphEditorComponent
       }
 
       // Drop the node if one is being dragged.
-      else if(this.dragObject !== null && this.dragObject.isNode()) {
+      else if(this.dragObject && this.dragObject.isNode()) {
         if(
           this.selectedItems.has(this.dragObject) &&
           this.selectedItems.size > 0
@@ -620,7 +629,7 @@ export class GraphEditorComponent
       }
 
       // Reset the selected item.
-      if(this.dragObject !== null && this.selectedItems.size < 2) {
+      if(this.dragObject && this.selectedItems.size < 2) {
         this.clearSelected();
         this.addSelectedItem(this.dragObject);
       }
@@ -662,61 +671,24 @@ export class GraphEditorComponent
    *   Redraws the graph.
    */
   redraw() : void {
-    this.clear(this.g, this.gridOriginPt);
+    //
+    // TODO:
+    // Rename background to backgroundColor
+    //
+    clear(this.g, this.graph ? this.graph.background : "AppWorkspace");
     if(this.graph) {
+      drawGrid(this.g, this.gridOriginPt);
       for(let e of this.graph.edges)
         this.drawEdge(e);
       for(let n of this.graph.nodes)
         this.drawNode(n);
 
-      if(this.hoverObject !== null && this.hoverObject.isEdge()) {
+      if(this.hoverObject && this.hoverObject.isEdge()) {
         //
         // TODO:
         // Draw anchor points
         //
       }
-    }
-  }
-
-  /**
-   * clear
-   *   Clears the canvas.
-   */
-  clear(g : CanvasRenderingContext2D, gridOriginPt) : void {
-    let canvas = g.canvas;
-    let w = canvas.width;
-    let h = canvas.height;
-    g.fillStyle = this.graph?this.graph.background:"#FFF";
-    g.fillRect(0, 0, canvas.width, canvas.height);
-
-    setLineStyle(g, "solid");
-    for(
-      let x = gridOriginPt.x % GRID_SPACING - GRID_SPACING;
-      x < w + GRID_SPACING; 
-      x += GRID_SPACING
-    ) {
-      g.strokeStyle = "#7e7e7e";
-      g.lineWidth = 1;
-      setLineStyle(g, "solid");
-      drawLine(g, x, 0, x, h);
-      g.strokeStyle = "#c3c3c3";
-      g.lineWidth = 0.5;
-      setLineStyle(g, "dotted");
-      drawLine(g, x + GRID_MINOR_OFFSET, 0, x + GRID_MINOR_OFFSET, h);
-    }
-    for(
-      let y = gridOriginPt.y % GRID_SPACING - GRID_SPACING;
-      y < h + GRID_SPACING;
-      y += GRID_SPACING
-    ) {
-      g.strokeStyle = "#7e7e7e";
-      g.lineWidth = 1;
-      setLineStyle(g, "solid");
-      drawLine(g, 0, y, w, y);
-      g.strokeStyle = "#c3c3c3";
-      g.lineWidth = 1;
-      setLineStyle(g, "dotted");
-      drawLine(g, 0, y + GRID_MINOR_OFFSET, w, y + GRID_MINOR_OFFSET);
     }
   }
 
@@ -820,7 +792,7 @@ export class GraphEditorComponent
       y = rect.y + rect.h / 2;
       rect = makeRect(x - tw / 2 - 6, y - 8, x + tw / 2 + 6, y + 8);
       this.g.lineWidth = e.lineWidth;
-      this.g.fillStyle = "#fff";
+      this.g.fillStyle = this.graph.background;
       setLineStyle(this.g, e.lineStyle);
       this.g.lineJoin = "round";
       this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
@@ -967,7 +939,7 @@ function setLineStyle(
   value : string,
   dotSize? : number
 ) {
-  if(dotSize === undefined || dotSize === null)
+  if(!dotSize)
     dotSize = g.lineWidth;
   if(value == "dashed")
     g.setLineDash([3 * dotSize, 6 * dotSize]);
@@ -990,6 +962,18 @@ function makeRect(x1 : number, y1 : number, x2 : number, y2 : number) {
     w : (w < 0 ? -1 * w : w),
     h : (h < 0 ? -1 * h : h)
   };
+}
+
+/**
+ * clear
+ *   Clears the canvas.
+ */
+function clear(g : CanvasRenderingContext2D, bgColor) : void {
+  let canvas = g.canvas;
+  let w = canvas.width;
+  let h = canvas.height;
+  g.fillStyle = bgColor;
+  g.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 /**
@@ -1069,6 +1053,47 @@ function drawArrow(
     v[0] + GRID_SPACING * (u[0] * COS_THETA + u[1] * SIN_THETA) / 2,
     v[1] + GRID_SPACING * (-u[0] * SIN_THETA + u[1] * COS_THETA) / 2
   );
+}
+
+/**
+ * drawGrid
+ *   Draws the editor grid.
+ */
+function drawGrid(g : CanvasRenderingContext2D, originPt) {
+
+  let w = g.canvas.width;
+  let h = g.canvas.height;
+
+  setLineStyle(g, "solid");
+  for(
+    let x = originPt.x % GRID_SPACING - GRID_SPACING;
+    x < w + GRID_SPACING; 
+    x += GRID_SPACING
+  ) {
+    g.strokeStyle = "#7e7e7e";
+    g.lineWidth = 1;
+    setLineStyle(g, "solid");
+    drawLine(g, x, 0, x, h);
+    g.strokeStyle = "#c3c3c3";
+    g.lineWidth = 0.5;
+    setLineStyle(g, "dotted");
+    drawLine(g, x + GRID_MINOR_OFFSET, 0, x + GRID_MINOR_OFFSET, h);
+  }
+  for(
+    let y = originPt.y % GRID_SPACING - GRID_SPACING;
+    y < h + GRID_SPACING;
+    y += GRID_SPACING
+  ) {
+    g.strokeStyle = "#7e7e7e";
+    g.lineWidth = 1;
+    setLineStyle(g, "solid");
+    drawLine(g, 0, y, w, y);
+    g.strokeStyle = "#c3c3c3";
+    g.lineWidth = 1;
+    setLineStyle(g, "dotted");
+    drawLine(g, 0, y + GRID_MINOR_OFFSET, w, y + GRID_MINOR_OFFSET);
+  }
+
 }
 
 /**
