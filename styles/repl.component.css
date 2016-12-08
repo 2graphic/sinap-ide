@@ -20,17 +20,33 @@
     flex:none;
 }
 
+.repl-item .repl-line-number {
+    vertical-align: text-top;
+    font-weight: bold;
+    font-size: 50%;
+    color: #555555;
+}
+
+/* The margins for the next two selectors fix the input box being wider that it's parent*/
+#repl form {
+    margin: 3px;
+}
+
 #repl-cl input {
     font-size: 1em;
     width: 100%;
+    margin: -3px;
 }
 
 .repl-item {
-    margin: 0.3em;
+    padding: 0.2em 0.2em;
+    margin-bottom: 0.3em;
+    background: #cccccc;
+    border-radius: 2px;
+    color: #111111;
 }
 
 #repl-output {
-    color: white;
     flex: auto;
     display: flex;
 
