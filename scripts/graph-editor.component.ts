@@ -660,7 +660,7 @@ export class GraphEditorComponent
    */
   redraw() : void {
     clear(this.g, this.gridOriginPt);
-    if(this.graph !== null) {
+    if(this.graph) {
       for(let e of this.graph.edges)
         this.drawEdge(e);
       for(let n of this.graph.nodes)

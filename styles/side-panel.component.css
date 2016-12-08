@@ -11,11 +11,9 @@ h2 {
     font-family: sans-serif;
     color: white;
 
-    height: 1.85em;
+    height: 35px;
     display: flex;
     align-items: center;
 
-    /* 3em = {sidebar width} */
-    margin-left: -3em;
-    padding-left: 3.5em;
+    padding-left: 0.5em;
 }

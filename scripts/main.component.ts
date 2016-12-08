@@ -7,16 +7,17 @@
 //
 
 
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "./menu.service"
 import { GraphEditorComponent, Drawable } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
-import { PropertiesPanelComponent } from "./properties-panel.component"
+import { PropertiesPanelComponent, PropertiedEntity } from "./properties-panel.component"
 import { StatusBarComponent } from "./status-bar.component"
 import { SinapType, SinapNumber } from "./types";
 import { Element, Graph, deserializeGraph } from "./graph"
 import { SideBarComponent } from "./side-bar.component"
+import { TabBarComponent, TabDelegate } from "./tab-bar.component"
 
 import { remote } from 'electron';
 const fs = remote.require('fs');
@@ -28,17 +29,19 @@ const {dialog} = remote;
   templateUrl: "../html/main.component.html",
   providers: [MenuService, PluginService]
 })
-export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
-  constructor(private menu: MenuService, private pluginService: PluginService) {
-    this.newFile();
+export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
+  constructor(private menu: MenuService, private pluginService: PluginService, private changeDetectorRef: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
     this.repl.delegate = this;
+    this.tabBar.delegate = this;
     this.menu.addEventListener(this);
   }
 
   ngAfterViewInit() {
+    this.newFile();
+    this.changeDetectorRef.detectChanges(); //http://stackoverflow.com/a/35243106 sowwwwwy...
   }
 
   @ViewChild(GraphEditorComponent)
@@ -53,27 +56,66 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
   @ViewChild(SideBarComponent)
   private sideBar: SideBarComponent;
 
+  @ViewChild(TabBarComponent)
+  private tabBar: TabBarComponent;
+
   public package = "Finite Automata";
   public barMessages = ["DFA", ""]
+
+  private tabs: Map<Number, TabContext> = new Map<Number, TabContext>();
+  private context: TabContext;
 
   @ViewChild(StatusBarComponent)
   private statusBar: StatusBarComponent;
 
+  // TODO: Probably always refer to the graph in the tab's context
   graph : Graph;
 
-  onGraphChanged = ()=>{
-    if (this.graphEditor){
+  onGraphChanged = ()=>{ // arrow syntax to bind correct "this"
+    if (this.graph) {
+      if (this.graphEditor){
       this.graphEditor.redraw();
     }
     if (this.pluginService){
       this.barMessages[1] = this.pluginService.getInterpreter("dfa", this.graph).check();    
     }
+    }
   };
 
-  newFile() {
-    this.graph = new Graph([], this.onGraphChanged);
-    this.onGraphChanged();
+  newFile(f?:String, g?: Graph) {
+    let tabNumber = this.tabBar.newTab(f?f:"Untitled");
+    this.tabs.set(tabNumber, 
+      new TabContext((g ? g : (new Graph([], this.onGraphChanged))), null));
+    this.selectedTab(tabNumber);
   }
+
+
+  /* ---------- TabBarDelegate ---------- */
+
+  deletedTab(i: Number) {
+    this.tabs.delete(i);
+  }
+
+  selectedTab(i: Number) {
+    if (i == -1) {
+      // No tabs
+      this.graph = undefined;
+      this.context = undefined;
+      this.onGraphChanged();
+    } else if (this.tabs.has(i)) {
+      this.context = this.tabs.get(i);
+      this.graph = this.context.graph;
+      // TODO: GraphEditor needs a way to set selected elements
+      this.onGraphChanged();
+    }
+  }
+
+  createNewTab() {
+    this.newFile();
+  }
+
+  /* ------------------------------------ */
+
 
   menuEvent(e: MenuEvent) {
     switch (e) {
@@ -112,8 +154,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
         }
         try {
           let pojo = JSON.parse(data);
-          this.graph = deserializeGraph(pojo, this.onGraphChanged);
-          this.onGraphChanged()
+          
+          this.newFile(filename, deserializeGraph(pojo, this.onGraphChanged));
         } catch (e) {
           alert(`Could not serialize graph: ${e}.`);
         }
@@ -141,7 +183,14 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate {
     // ugly trick to silence the fact that things seem to get emitted too often
     // TODO, reduce the frequency things are emitted
     if (this.propertiesPanel.selectedEntity != newSelectedEntity){
+      if (this.context) {
+        this.context.selectedEntity = newSelectedEntity;
+      }
       this.propertiesPanel.selectedEntity = newSelectedEntity;
     }
   }
+}
+
+class TabContext {
+  constructor(public graph: Graph, public selectedEntity: PropertiedEntity) {};
 }

@@ -20,6 +20,7 @@ import { REPLComponent } from "./repl.component";
 import { FormsModule }   from '@angular/forms';
 import { GraphEditorComponent } from "./graph-editor.component";
 import { StatusBarComponent } from "./status-bar.component";
+import { TabBarComponent } from "./tab-bar.component"
 
 @NgModule({
   imports:      [
@@ -36,6 +37,7 @@ import { StatusBarComponent } from "./status-bar.component";
     REPLComponent,
     GraphEditorComponent,
     StatusBarComponent,
+    TabBarComponent,
   ],
   bootstrap:    [ MainComponent ]
 })

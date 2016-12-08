@@ -38,6 +38,11 @@ html, body, .full-size {
   height: 1.25em;
 }
 
+#tab-bar {
+  flex: none;
+  height: 35px;
+}
+
 #content, #editor-panel, #top-panels, #bottom-panel, #graph-editor {
   flex: auto;
   width: 100%;

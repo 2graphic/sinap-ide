@@ -26,6 +26,7 @@
         </sinap-files-panel>
       </div>
       <div id="editor-panel" class="flex-container-column">
+        <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
         <sinap-graph-editor [graph]="graph" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor"></sinap-graph-editor>
         <sinap-status-bar id="status-bar" [title]="package" [items]="barMessages"></sinap-status-bar>
       </div> 
