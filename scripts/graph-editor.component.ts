@@ -572,7 +572,6 @@ export class GraphEditorComponent
             this.moveEdge !== null && 
             this.graph.canCreateEdge(this.dragObject.source, hit, this.moveEdge)
           ) {
-            console.log("move edge");
             this.removeSelectedItem(this.moveEdge);
             this.graph.removeEdge(this.moveEdge);
             this.dragObject = this.graph.createEdge(
@@ -585,7 +584,6 @@ export class GraphEditorComponent
             this.moveEdge === null &&
             this.graph.canCreateEdge(this.dragObject.source, hit)
           ) {
-            console.log("no move edge");
             this.clearSelected();
             this.dragObject = 
               this.graph.createEdge(this.dragObject.source, hit);
