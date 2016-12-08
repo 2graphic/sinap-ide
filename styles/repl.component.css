@@ -26,15 +26,10 @@
     color: #555555;
 }
 
-/* The margins for the next two selectors fix the input box being wider that it's parent*/
-#repl form {
-    margin: 3px;
-}
-
 #repl-cl input {
+    box-sizing: border-box;
     font-size: 1em;
     width: 100%;
-    margin: -3px;
     padding: 0px;
 }
 
