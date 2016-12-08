@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, ViewChild } from "@angular/core";
 
 @Component({
   moduleId: module.id,
@@ -8,7 +8,9 @@ import { Component } from "@angular/core";
 })
 export class REPLComponent {
   public delegate: REPLDelegate;
-  private results: Command[] = []
+  private results: Command[] = [];
+
+  @ViewChild('input') input;
 
   private onSubmit(input: String) {
     if (!this.delegate) {
