@@ -23,7 +23,12 @@
     vertical-align: text-top;
     font-weight: bold;
     font-size: 50%;
-    color: #555555;
+    color: #666666;
+}
+.repl-item .repl-left-padding {
+    color: #bbbbbb;
+    width: 1em;
+    display: inline-block;
 }
 
 #repl-cl input {
@@ -51,3 +56,9 @@
     overflow-y: auto;
     flex-direction: column-reverse;
 }
+#repl-output .repl-item .input {
+    border-bottom: 1px solid #dddddd;
+    margin: 0px -0.25em 2px -0.25em;
+    padding: 0px .25em;
+}
+
