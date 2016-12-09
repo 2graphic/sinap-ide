@@ -19,6 +19,7 @@ export class PluginService {
 }
 
 export interface Interpreter {
-    run(input: String):Boolean;
+    run(input: String):boolean;
+    message() : string;
     check() : string;
 }
