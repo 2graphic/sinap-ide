@@ -178,7 +178,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         try {
           let pojo = JSON.parse(data);
           
-          this.newFile(filename.substring(filename.lastIndexOf("/") + 1), deserializeGraph(pojo, this.onGraphChanged));
+          this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"), filename.lastIndexOf("\\")) + 1), deserializeGraph(pojo, this.onGraphChanged));
         } catch (e) {
           alert(`Could not serialize graph: ${e}.`);
         }
