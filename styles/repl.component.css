@@ -22,8 +22,7 @@
 .repl-item .repl-line-number {
     vertical-align: text-top;
     font-weight: bold;
-    font-size: 50%;
-    color: #555555;
+    color: #a2b2ef;
 }
 
 #repl-cl input {

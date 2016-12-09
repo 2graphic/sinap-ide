@@ -4,7 +4,7 @@
         <div id="repl-output">
             <p class="repl-item" *ngFor="let comm of results; let i = index;"
             (click)="commandText = comm.input; input.focus()">
-                <span class="repl-line-number">[{{results.length - i}}]:</span>
+                <span class="repl-line-number">></span>
                 {{comm.input}}
                 <br>
                 {{comm.result}}
