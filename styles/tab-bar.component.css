@@ -10,6 +10,10 @@
     border-bottom: thin solid #e2e2e2;
 }
 
+::-webkit-scrollbar { 
+    display: none; 
+}
+
 .tab {
     /*Or... we can do macOS style tabs...*/
     flex: none;

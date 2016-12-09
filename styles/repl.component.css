@@ -31,6 +31,10 @@
     display: inline-block;
 }
 
+::-webkit-scrollbar { 
+    display: none; 
+}
+
 #repl-cl input {
     box-sizing: border-box;
     font-size: 1em;
