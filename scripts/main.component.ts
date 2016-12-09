@@ -40,6 +40,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
   }
 
   ngAfterViewInit() {
+    this.newFile("machine_learning.sinap", (new Graph([], this.onGraphChanged)));
     this.newFile();
     this.changeDetectorRef.detectChanges(); //http://stackoverflow.com/a/35243106 sowwwwwy...
   }
@@ -80,15 +81,22 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
       this.graphEditor.redraw();
     }
     if (this.pluginService){
-      this.barMessages[1] = this.pluginService.getInterpreter("dfa", this.graph).check();    
+      if (this.context.filename == "machine_learning.sinap") {
+        this.barMessages = []
+        this.package = "Machine Learning"
+      } else {
+        this.barMessages = ["DFA", this.pluginService.getInterpreter("dfa", this.graph).check()]; 
+        this.package = "Finite Automata"  
+      }
     }
     }
   };
 
   newFile(f?:String, g?: Graph) {
+    let filename = f?f:"Untitled";
     let tabNumber = this.tabBar.newTab(f?f:"Untitled");
     this.tabs.set(tabNumber, 
-      new TabContext((g ? g : (new Graph([], this.onGraphChanged))), null));
+      new TabContext((g ? g : (new Graph([], this.onGraphChanged))), null, filename));
     this.selectedTab(tabNumber);
   }
 
@@ -195,5 +203,5 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 }
 
 class TabContext {
-  constructor(public graph: Graph, public selectedEntity: PropertiedEntity) {};
+  constructor(public graph: Graph, public selectedEntity: PropertiedEntity, public filename?) {};
 }
