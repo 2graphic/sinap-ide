@@ -16,21 +16,34 @@
 }
 
 #repl-cl {
-    height: 2em;
     flex:none;
 }
 
+.repl-item .repl-line-number {
+    vertical-align: text-top;
+    font-weight: bold;
+    font-size: 50%;
+    color: #555555;
+}
+
 #repl-cl input {
+    box-sizing: border-box;
     font-size: 1em;
     width: 100%;
+    padding: 0px;
 }
 
 .repl-item {
-    margin: 0.3em;
+    cursor: pointer;
+    opacity: .9;
+    padding: 0.25em 0.25em;
+    margin-bottom: 0.3em;
+    background: white;
+    border-radius: 2px;
+    color: black;
 }
 
 #repl-output {
-    color: white;
     flex: auto;
     display: flex;
 
