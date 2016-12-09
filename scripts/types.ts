@@ -55,6 +55,7 @@ export class SinapStructType extends SinapCompositeType {
 
 export const SinapString = new SinapType("string");
 export const SinapNumber = new SinapType("number");
+export const SinapFile = new SinapType("file");
 export const SinapBoolean = new SinapType("boolean");
 export const SinapNode = new SinapType("node");
 export const SinapEdge = new SinapType("edge");

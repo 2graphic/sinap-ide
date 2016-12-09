@@ -14,7 +14,7 @@ import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "./properties-panel.component"
 import { StatusBarComponent } from "./status-bar.component"
-import { SinapType, SinapNumber } from "./types";
+import { SinapType, SinapNumber, SinapFile } from "./types";
 import { Element, Graph, deserializeGraph } from "./graph"
 import { SideBarComponent } from "./side-bar.component"
 import { TabBarComponent, TabDelegate } from "./tab-bar.component"
@@ -40,7 +40,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
   }
 
   ngAfterViewInit() {
-    this.newFile("machine_learning.sinap", (new Graph([], this.onGraphChanged)));
+    this.newFile("machine_learning.sinap", new Graph([["Input File", SinapFile],
+                                                      ["Weights File", SinapFile]], this.onGraphChanged));
     this.newFile();
     this.changeDetectorRef.detectChanges(); //http://stackoverflow.com/a/35243106 sowwwwwy...
   }

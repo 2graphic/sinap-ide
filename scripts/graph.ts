@@ -124,7 +124,7 @@ export class Graph extends Element implements DrawableGraph {
 
   constructor(pluginProperties, handler){
     super(pluginProperties, handler, {
-      'Background' : "#ffffff"
+      'Background' : "#ffffff",
     });
   }
 
