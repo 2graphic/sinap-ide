@@ -25,8 +25,8 @@
       </div>
       <div id="editor-panel" class="flex-container-column">
         <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
-        <img [hidden]="!(context && context.filename && context.filename=='machine_learning.sinap')" id="mockimg" src="./images/mocks/ml_mock.png" width="550" height="300"/>
-        <sinap-graph-editor [graph]="graph" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor" [style.margin-top]="(context && context.filename && context.filename=='machine_learning.sinap')?'-350px':'0'"></sinap-graph-editor>
+        <img [hidden]="!(context && context.filename && context.filename=='machine_learning.sinap')" id="mockimg" src="./images/mocks/ml_mock.svg" style="position: absolute; height: 400px; top: 20px;"/>
+        <sinap-graph-editor [graph]="graph" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor"></sinap-graph-editor>
         <sinap-status-bar id="status-bar" [title]="package" [items]="barMessages"></sinap-status-bar>
       </div> 
     </div>
