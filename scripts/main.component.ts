@@ -13,6 +13,7 @@ import { GraphEditorComponent, Drawable } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "./properties-panel.component"
+import { TestPanelComponent } from "./test-panel.component"
 import { StatusBarComponent } from "./status-bar.component"
 import { SinapType, SinapNumber, SinapFile } from "./types";
 import { Element, Graph, deserializeGraph } from "./graph"
@@ -61,6 +62,9 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
   @ViewChild("bottomSideBar")
   private bottomSideBar: SideBarComponent;
 
+  @ViewChild(TestPanelComponent)
+  private testComponent: TestPanelComponent;
+
   @ViewChild(TabBarComponent)
   private tabBar: TabBarComponent;
 
@@ -86,8 +90,15 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         this.barMessages = []
         this.package = "Machine Learning"
       } else {
-        this.barMessages = ["DFA", this.pluginService.getInterpreter("dfa", this.graph).check()]; 
-        this.package = "Finite Automata"  
+        let interp = this.pluginService.getInterpreter("dfa", this.graph);
+        this.barMessages = ["DFA", interp.message()]; 
+        this.package = "Finite Automata";
+
+        if(interp.check()){
+          for (let triplet of this.testComponent.tests){
+            triplet[2] = interp.run(triplet[0] as string);
+          }
+        }
       }
     }
     }

@@ -22,6 +22,18 @@
 
     <table id="fake-input">
     <tr class="header"><td>Input</td><td>Expected Result</td><td>Actual Result</td></tr>
-    <tr *ngFor="let triplet of tests" [class.bad]="triplet[1] != triplet[2]"><td><input type="text" [(value)]="triplet[0]"/></td><td><input type="checkbox" [(checked)]="triplet[1]"></td><td><input type="checkbox" [checked]="triplet[2]" onclick="return false;"></td></tr>
+    <tr *ngFor="let triplet of tests" [class.bad]="triplet[1] != triplet[2]"><td>
+        <input type="text" [(value)]="triplet[0]"/>
+    </td><td>
+        <select [(ngModel)]="triplet[1]">
+            <option [ngValue]="true">True</option>
+            <option [ngValue]="false">False</option>
+        </select>
+    </td><td>
+        <select [(ngModel)]="triplet[2]" disabled>
+            <option [ngValue]="true">True</option>
+            <option [ngValue]="false">False</option>
+        </select>
+    </td></tr>
     </table>
 </div>
