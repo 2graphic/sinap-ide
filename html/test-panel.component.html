@@ -6,6 +6,9 @@
     	width: 100%;
     	color: white;
     }
+    #fake-input tr.bad{
+    	background: #aa0000;
+    }
     #fake-input .header{
     	border-bottom: 1px solid #777;
     }
@@ -19,9 +22,6 @@
 
     <table id="fake-input">
     <tr class="header"><td>Input</td><td>Expected Result</td><td>Actual Result</td></tr>
-    <tr><td><input type="text" value="001001"/></td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td></tr>
-    <tr style="background: #aa4444"><td><input type="text" value="001010"/></td><td><input type="checkbox" checked></td><td><input type="checkbox"></td></tr>
-    <tr><td><input type="text" value="101010101"/></td><td><input type="checkbox"></td><td><input type="checkbox"></td></tr>
-    <tr><td><input type="text" value="100100011"/></td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td></tr>
+    <tr *ngFor="let triplet of tests" [class.bad]="triplet[1] != triplet[2]"><td><input type="text" [(value)]="triplet[0]"/></td><td><input type="checkbox" [(checked)]="triplet[1]"></td><td><input type="checkbox" [checked]="triplet[2]" onclick="return false;"></td></tr>
     </table>
 </div>
