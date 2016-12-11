@@ -7,7 +7,7 @@
 import { EventEmitter } from "@angular/core"
 import { DrawableEdge, DrawableGraph, DrawableNode } from "./graph-editor.component";
 import { PropertiedEntity } from "./properties-panel.component";
-import { SinapType, SinapString, SinapBoolean, SinapNumber, SinapEdge, SinapNode, SinapLineStyles, SinapColor, SinapStructType } from "./types";
+import { SinapType, SinapString, SinapBoolean, SinapNumber, SinapEdge, SinapNode, SinapLineStyles, SinapColor, SinapShape, SinapStructType } from "./types";
 
 
 let proto_map_func = Array.prototype.map;
@@ -184,10 +184,10 @@ export class Graph extends Element implements DrawableGraph {
 
   displayProperties = [["Background", SinapColor] as [string, SinapType],];
 
-  get background(){
+  get backgroundColor(){
     return this.propertyValues['Background'];
   }
-  set background(nv){
+  set backgroundColor(nv){
     this.propertyValues['Background'] = nv;
   }
 
@@ -315,6 +315,12 @@ class Node extends Element implements DrawableNode{
   set label(nv){
     this.propertyValues['Label'] = nv;
   }
+  get shape() {
+    return this.propertyValues['Shape'];
+  }
+  set shape(nv) {
+    this.propertyValues['Shape'] = nv;
+  }
   get color(){
     return this.propertyValues['Color'];
   }
@@ -358,6 +364,7 @@ class Node extends Element implements DrawableNode{
       "Start State" : false,
       "Accept State" : false,
       "Label" : "",
+      "Shape" : "circle",
       "Color" : "#fff200",
       "Border Color" : "#000",
       "Border Style" : "solid",
@@ -370,6 +377,7 @@ class Node extends Element implements DrawableNode{
   }
 
   displayProperties = [["Label", SinapString] as [string, SinapType],
+                       ["Shape", SinapShape] as [string, SinapType],
                        ["Color", SinapColor] as [string, SinapType],
                        ["Border Color", SinapColor] as [string, SinapType],
                        ["Border Style", SinapLineStyles] as [string, SinapType],

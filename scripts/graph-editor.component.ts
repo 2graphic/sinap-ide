@@ -105,6 +105,30 @@ const COS_THETA : number = Math.cos(5 * Math.PI / 6);
  */
 const SIN_THETA : number = Math.sin(5 * Math.PI / 6);
 
+/**
+ * NODE_FONT_FAMILY
+ *   Font family of nodes.
+ */
+const NODE_FONT_FAMILY : string = "serif";
+
+/**
+ * NODE_FONT_SIZE
+ *   Font size of nodes.
+ */
+const NODE_FONT_SIZE : number = 10;
+
+/**
+ * EDGE_FONT_FAMILY
+ *   Font family of edges.
+ */
+const EDGE_FONT_FAMILY : string = "serif";
+
+/**
+ * EDGE_FONT_SIZE
+ *   Font size of edges.
+ */
+const EDGE_FONT_SIZE : number = 10;
+
 // Public interfaces ///////////////////////////////////////////////////////////
 
 /**
@@ -124,7 +148,7 @@ export interface Drawable {
 export interface DrawableGraph extends Drawable {
   readonly nodes : Iterable<DrawableNode>;
   readonly edges : Iterable<DrawableEdge>;
-  background : string;
+  backgroundColor : string;
 
   createNode(x? : number, y? : number) : DrawableNode
   /* contractually `src` -> `dest` will have been validated by 
@@ -165,6 +189,7 @@ export interface DrawableNode extends Drawable {
   y : number;
   label : string;
   
+  shape: string; // TODO: for now this only supports circles and squares.
   color : string;
   borderColor: string;
   borderStyle: string; // TODO: enforce "solid" | "dashed" | "dotted"
@@ -299,6 +324,11 @@ export class GraphEditorComponent
     //
     // TODO:
     // Figure out a more efficient way to handle resizing.
+    //
+    // Note:
+    // One possible solution would be to have the graph editor be the size of the
+    // window client area and have all of the other UI components be drawn on top
+    // of the editor.
     //
     // this.resize();
   }
@@ -663,11 +693,7 @@ export class GraphEditorComponent
    *   Redraws the graph.
    */
   redraw() : void {
-    //
-    // TODO:
-    // Rename background to backgroundColor
-    //
-    clear(this.g, this.graph ? this.graph.background : "AppWorkspace");
+    clear(this.g, this.graph ? this.graph.backgroundColor : "AppWorkspace");
     if(this.graph) {
       drawGrid(this.g, this.gridOriginPt);
       for(let e of this.graph.edges)
@@ -700,37 +726,74 @@ export class GraphEditorComponent
       this.g.shadowBlur = 20;
     }
 
+    let lines = n.label.split("\n");
+    let textHeight = lines.length * 1.5 * NODE_FONT_SIZE;
+    let s = (GRID_SPACING > textHeight + 1.5 * NODE_FONT_SIZE ?
+             GRID_SPACING : textHeight + 1.5 * NODE_FONT_SIZE);
+
     if(this.selectedItems.has(n)) {
       let sel = cloneNode(n);
       this.g.fillStyle = "#00a2e8";
       this.g.strokeStyle = "#00a2e8";
+      setLineStyle(this.g, "solid");
       this.g.beginPath();
-      this.g.arc(n.x, n.y, (GRID_SPACING + n.borderWidth) / 2 + 2, 0, 2 * Math.PI);
+      if(n.shape === "circle")
+        this.g.arc(n.x, n.y, (s + n.borderWidth) / 2 + 2, 0, 2 * Math.PI);
+      else if(n.shape === "square") {
+        let hs = (s + n.borderWidth) / 2 + 2;
+        let lx = n.x - hs;
+        let ty = n.y - hs;
+        let rx = n.x + hs;
+        let by = n.y + hs;
+        this.g.moveTo(lx, ty);
+        this.g.lineTo(rx, ty);
+        this.g.lineTo(rx, by);
+        this.g.lineTo(lx, by);
+        this.g.lineTo(lx, ty);
+      }
       this.g.fill();
       this.g.shadowBlur = 0;
       this.g.stroke();
     }
+
     this.g.fillStyle = n.color;
     this.g.strokeStyle = n.borderColor;
     this.g.lineWidth = n.borderWidth;
     setLineStyle(this.g, n.borderStyle, n.borderWidth);
     this.g.beginPath();
-    this.g.arc(n.x, n.y, GRID_SPACING / 2, 0, 2 * Math.PI);
+    if(n.shape === "circle")
+      this.g.arc(n.x, n.y, s / 2, 0, 2 * Math.PI);
+    else if(n.shape === "square") {
+        let hs = s / 2;
+        let lx = n.x - hs;
+        let ty = n.y - hs;
+        let rx = n.x + hs;
+        let by = n.y + hs;
+        this.g.moveTo(lx, ty);
+        this.g.lineTo(rx, ty);
+        this.g.lineTo(rx, by);
+        this.g.lineTo(lx, by);
+        this.g.lineTo(lx, ty);
+    }
     this.g.fill();
     this.g.shadowBlur = 0;
     if(n.borderWidth > 0)
       this.g.stroke();
 
     // Label
-    this.g.font = "10pt serif";
+    this.g.font = NODE_FONT_SIZE + "pt " + NODE_FONT_FAMILY;
     this.g.textAlign = "center";
     this.g.textBaseline = "middle";
     this.g.lineWidth = 2;
     this.g.strokeStyle = "#000";
     this.g.fillStyle = "#fff";
     setLineStyle(this.g, "solid");
-    this.g.strokeText(n.label, n.x, n.y);
-    this.g.fillText(n.label, n.x, n.y);
+    let ty = n.y - textHeight / 2 + 1.5 * NODE_FONT_SIZE / 2;
+    for(let l = 0; l < lines.length; l++) {
+      this.g.strokeText(lines[l], n.x, ty);
+      this.g.fillText(lines[l], n.x, ty);
+      ty += 1.5 * NODE_FONT_SIZE;
+    }
   }
 
   /**
@@ -772,19 +835,30 @@ export class GraphEditorComponent
 
     // Label
     if(e.source && e.destination) {
-      this.g.font = "10pt serif";
+      this.g.font = EDGE_FONT_SIZE + "pt " + EDGE_FONT_FAMILY;
       this.g.textAlign = "center";
       this.g.textBaseline = "middle";
-      let tw = this.g.measureText(e.label).width;
+      let lines = e.label.split("\n");
+      let textHeight = lines.length * 1.5 * EDGE_FONT_SIZE;
+      let textWidth = 0;
+      for(let l = 0; l < lines.length; l++) {
+        let tw = this.g.measureText(lines[l]).width;
+        if(textWidth < tw)
+          textWidth = tw;
+      }
       let rect = makeRect(
         e.source.x, e.source.y,
         e.destination.x, e.destination.y
       );
       x = rect.x + rect.w / 2;
       y = rect.y + rect.h / 2;
-      rect = makeRect(x - tw / 2 - 6, y - 8, x + tw / 2 + 6, y + 8);
+      textWidth /= 2;
+      textHeight /= 2;
+      rect = makeRect(
+        x - textWidth - 6, y - textHeight,
+        x + textWidth + 6, y + textHeight);
       this.g.lineWidth = e.lineWidth;
-      this.g.fillStyle = this.graph.background;
+      this.g.fillStyle = this.graph.backgroundColor;
       setLineStyle(this.g, e.lineStyle);
       this.g.lineJoin = "round";
       this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
@@ -793,7 +867,11 @@ export class GraphEditorComponent
       setLineStyle(this.g, "solid");
       this.g.lineWidth = 1;
       this.g.fillStyle = "#000";
-      this.g.fillText(e.label, x, y);
+      let ty = y - textHeight + 1.5 * EDGE_FONT_SIZE / 2;
+      for(let l = 0; l < lines.length; l++) {
+        this.g.fillText(lines[l], x, ty);
+        ty += 1.5 * EDGE_FONT_SIZE;
+      }
     }
   }
 
@@ -833,7 +911,12 @@ export class GraphEditorComponent
     for(let n of this.graph.nodes) {
       let dx = n.x - x;
       let dy = n.y - y;
-      if(dx * dx + dy * dy <= GRID_SPACING * GRID_SPACING / 4)
+      let textHeight = 1.5 * NODE_FONT_SIZE * n.label.split("\n").length;
+      let hs = (GRID_SPACING > textHeight + 1.5 * NODE_FONT_SIZE ?
+                GRID_SPACING : textHeight + 1.5 * NODE_FONT_SIZE) / 2;
+      if((n.shape === "circle" && dx * dx + dy * dy <= hs * hs) ||
+         (n.shape === "square" &&
+          x <= n.x + hs && x >= n.x - hs && y <= n.y + hs && y >= n.y - hs))
         return n;
     }
 
@@ -1112,6 +1195,7 @@ function cloneEdge(e : DrawableEdge) : DrawableEdge {
 function cloneNode(n : DrawableNode) : DrawableNode {
   let clone = new DummyNode();
   clone.label = n.label;
+  clone.shape = n.shape;
   clone.color = n.color;
   clone.borderColor = n.borderColor;
   clone.borderStyle = n.borderStyle;
@@ -1137,6 +1221,7 @@ class DummyNode implements DrawableNode {
     return false;
   }
   label : string = "";
+  shape: string = "circle";
   color : string = "#fff200";
   borderColor : string = "#000";
   borderStyle : string = "solid";
