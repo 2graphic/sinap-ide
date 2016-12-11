@@ -1,3 +1,39 @@
 <div id="wrapper">
     <h2>Test</h2>
+
+    <style>
+    #fake-input{
+    	width: 100%;
+    	color: white;
+    }
+    #fake-input tr.bad{
+    	background: #aa0000;
+    }
+    #fake-input .header{
+    	border-bottom: 1px solid #777;
+    }
+    #fake-input td{
+    	padding: 10px;
+    }
+    #fake-input input{
+    	width: 200px;
+    }
+    </style>
+
+    <table id="fake-input">
+    <tr class="header"><td>Input</td><td>Expected Result</td><td>Actual Result</td></tr>
+    <tr *ngFor="let triplet of tests" [class.bad]="triplet[1] != triplet[2]"><td>
+        <input type="text" [(value)]="triplet[0]"/>
+    </td><td>
+        <select [(ngModel)]="triplet[1]">
+            <option [ngValue]="true">True</option>
+            <option [ngValue]="false">False</option>
+        </select>
+    </td><td>
+        <select [(ngModel)]="triplet[2]" disabled>
+            <option [ngValue]="true">True</option>
+            <option [ngValue]="false">False</option>
+        </select>
+    </td></tr>
+    </table>
 </div>

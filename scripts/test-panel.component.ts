@@ -3,7 +3,7 @@
 // Date created: December 8, 2016
 
 
-import { Component } from "@angular/core";
+import { Component , Input, Output} from "@angular/core";
 
 
 @Component({
@@ -13,4 +13,8 @@ import { Component } from "@angular/core";
   styleUrls: [ "../styles/bottom-panel.component.css" ]
 })
 export class TestPanelComponent {
+	@Output() @Input() tests = [['001001', true, true],
+					  ['001010', false, false],
+					  ['101010101', true, false],
+					  ['100100011', true, true]];
 }

@@ -16,6 +16,7 @@ import { SinapType } from "./types";
 
 export class PropertiesPanelComponent {
   public selectedEntity : PropertiedEntity;
+  public console = console;
   // get selectedEntity() {
   //   return this._selectedEntity;
   // }

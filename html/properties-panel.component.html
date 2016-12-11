@@ -31,6 +31,9 @@
                                 <option *ngFor="let lit of pair[1].literals" [ngValue]="lit">{{lit}}</option>
                             </select>
                         </div>
+                        <div *ngSwitchCase="'file'">
+                            <input [(ngModel)]="selectedEntity.propertyValues[pair[0]]" type="file" />
+                        </div>
                         <div *ngSwitchCase="'struct'">
                             <input [(ngModel)]="selectedEntity.propertyValues[pair[0]].x" type="number" placeholder="x" step="0.1"
                                 class="text-input tuple-input"/>

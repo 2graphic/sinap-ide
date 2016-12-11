@@ -28,7 +28,14 @@ export class DFAInterpreter implements Interpreter {
         if (this.accept_states.size == 0){
             return "No accept states"
         }
+        return null;
+    }
 
+    message(){
+        let check = this.check();
+        if(check){
+            return check;
+        }
         let a = [...this.alphabet.values()]
         a.sort()
 
@@ -98,7 +105,7 @@ export class DFAInterpreter implements Interpreter {
 	}
 
 
-    public run(input: String):Boolean {
+    public run(input: String):boolean {
         return this.interpret(this.transitions, this.start_state, this.accept_states, input);
     }
 }

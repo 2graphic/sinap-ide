@@ -2,13 +2,16 @@
     <h2>Input</h2>
     <div id="repl">
         <div id="repl-output">
-            <p class="repl-item" *ngFor="let comm of results; let i = index;"
+            <div class="repl-item" *ngFor="let comm of results; let i = index;"
             (click)="commandText = comm.input; input.focus()">
-                <span class="repl-line-number">></span>
+                <div class="input">
+                <!-- <span class="repl-line-number">[{{results.length - i}}]:</span> -->
+                <div class="repl-left-padding">&gt;</div>
                 {{comm.input}}
-                <br>
+                </div>
+                <div class="repl-left-padding">&lt;</div>
                 {{comm.result}}
-            </p>
+            </div>
         </div>
         <div id="repl-cl">
             <form (ngSubmit)="onSubmit(commandText); commandText = ''">
