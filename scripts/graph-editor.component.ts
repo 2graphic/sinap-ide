@@ -24,6 +24,7 @@
 // TODO:
 // - Zoom and Pan
 //   pinch to zoom/two-touch drag to pan
+// - Snap to grid.
 // - Special draw start node.
 // - Special draw "final/accept" nodes.
 // - Custom shapes/images for nodes.
@@ -726,18 +727,11 @@ export class GraphEditorComponent
       this.g.shadowBlur = 20;
     }
 
-    this.g.font = NODE_FONT_SIZE + "pt " + NODE_FONT_FAMILY;
     let lines = n.label.split("\n");
-    let textHeight = lines.length * 1.5 * NODE_FONT_SIZE;
-    let textWidth = 0;
-    for(let l = 0; l < lines.length; l++) {
-      let tw = this.g.measureText(lines[l]).width;
-      if(textWidth < tw)
-        textWidth = tw;
-    }
-    let s = (GRID_SPACING > textHeight + 1.5 * NODE_FONT_SIZE ?
-             GRID_SPACING : textHeight + 1.5 * NODE_FONT_SIZE);
-    s = (s < textWidth + NODE_FONT_SIZE ? textWidth + NODE_FONT_SIZE : s);
+    let size = getTextSize(this.g, lines, NODE_FONT_FAMILY, NODE_FONT_SIZE);
+    let s = (GRID_SPACING > size.h + 1.5 * NODE_FONT_SIZE ?
+             GRID_SPACING : size.h + 1.5 * NODE_FONT_SIZE);
+    s = (s < size.w + NODE_FONT_SIZE ? size.w + NODE_FONT_SIZE : s);
 
     if(this.selectedItems.has(n)) {
       let sel = cloneNode(n);
@@ -796,7 +790,7 @@ export class GraphEditorComponent
     this.g.strokeStyle = "#000";
     this.g.fillStyle = "#fff";
     setLineStyle(this.g, "solid");
-    let ty = n.y - textHeight / 2 + 1.5 * NODE_FONT_SIZE / 2;
+    let ty = n.y - size.h / 2 + 1.5 * NODE_FONT_SIZE / 2;
     for(let l = 0; l < lines.length; l++) {
       this.g.strokeText(lines[l], n.x, ty);
       this.g.fillText(lines[l], n.x, ty);
@@ -843,28 +837,28 @@ export class GraphEditorComponent
 
     // Label
     if(e.source && e.destination) {
-      this.g.font = EDGE_FONT_SIZE + "pt " + EDGE_FONT_FAMILY;
       this.g.textAlign = "center";
       this.g.textBaseline = "middle";
       let lines = e.label.split("\n");
-      let textHeight = lines.length * 1.5 * EDGE_FONT_SIZE;
-      let textWidth = 0;
-      for(let l = 0; l < lines.length; l++) {
-        let tw = this.g.measureText(lines[l]).width;
-        if(textWidth < tw)
-          textWidth = tw;
-      }
+      let size = getTextSize(this.g, lines, EDGE_FONT_FAMILY, EDGE_FONT_SIZE);
+      //
+      // TODO:
+      // Get the center point of the edge as opposed to the center point
+      // between the source and destination nodes.
+      //
+      let srcPt = getEdgeBorderPt(this.g, e.destination, e.source);
+      let dstPt = getEdgeBorderPt(this.g, e.source, e.destination);
       let rect = makeRect(
-        e.source.x, e.source.y,
-        e.destination.x, e.destination.y
+        srcPt.x, srcPt.y,
+        dstPt.x, dstPt.y
       );
       x = rect.x + rect.w / 2;
       y = rect.y + rect.h / 2;
-      textWidth /= 2;
-      textHeight /= 2;
+      size.w /= 2;
+      size.h /= 2;
       rect = makeRect(
-        x - textWidth - 6, y - textHeight,
-        x + textWidth + 6, y + textHeight);
+        x - size.w - 6, y - size.h,
+        x + size.w + 6, y + size.h);
       this.g.lineWidth = e.lineWidth;
       this.g.fillStyle = this.graph.backgroundColor;
       setLineStyle(this.g, e.lineStyle);
@@ -875,7 +869,7 @@ export class GraphEditorComponent
       setLineStyle(this.g, "solid");
       this.g.lineWidth = 1;
       this.g.fillStyle = "#000";
-      let ty = y - textHeight + 1.5 * EDGE_FONT_SIZE / 2;
+      let ty = y - size.h + 1.5 * EDGE_FONT_SIZE / 2;
       for(let l = 0; l < lines.length; l++) {
         this.g.fillText(lines[l], x, ty);
         ty += 1.5 * EDGE_FONT_SIZE;
@@ -919,9 +913,15 @@ export class GraphEditorComponent
     for(let n of this.graph.nodes) {
       let dx = n.x - x;
       let dy = n.y - y;
-      let textHeight = 1.5 * NODE_FONT_SIZE * n.label.split("\n").length;
-      let hs = (GRID_SPACING > textHeight + 1.5 * NODE_FONT_SIZE ?
-                GRID_SPACING : textHeight + 1.5 * NODE_FONT_SIZE) / 2;
+      let size = getTextSize(
+        this.g,
+        n.label.split("\n"),
+        NODE_FONT_FAMILY,
+        NODE_FONT_SIZE
+      );
+      let hs = (GRID_SPACING > size.h + 1.5 * NODE_FONT_SIZE ?
+                GRID_SPACING : size.h + 1.5 * NODE_FONT_SIZE);
+      hs = (hs < size.w + NODE_FONT_SIZE ? size.w + NODE_FONT_SIZE : hs) / 2;
       if((n.shape === "circle" && dx * dx + dy * dy <= hs * hs) ||
          (n.shape === "square" &&
           x <= n.x + hs && x >= n.x - hs && y <= n.y + hs && y >= n.y - hs))
@@ -997,6 +997,95 @@ function getMousePt(g : CanvasRenderingContext2D, e: MouseEvent) {
     x: (e.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
     y: (e.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
   };
+}
+
+/**
+ * getEdgeBorderPt
+ *   Gets the point were the edge intersects the border of the specified
+ *   destination node.
+ */
+function getEdgeBorderPt(
+  g : CanvasRenderingContext2D,
+  src : DrawableNode,
+  dst : DrawableNode
+) {
+
+  //
+  // TODO:
+  // Either DrawableNode or DrawableEdge needs to define anchor points, and the
+  // DrawableEdge must specify which anchor it is attached to for src and dst.
+  //
+
+  // Get the vector from src to dst.
+  let v = [
+    dst.x - src.x,
+    dst.y - src.y
+  ];
+
+  // Get destination node radius.
+  let lines = dst.label.split("\n");
+  let size = getTextSize(g, lines, NODE_FONT_FAMILY, NODE_FONT_SIZE);
+  let r = (size.h + 1.5 * NODE_FONT_SIZE > size.w + NODE_FONT_SIZE ?
+            size.h + 1.5 * NODE_FONT_SIZE : size.w + NODE_FONT_SIZE);
+  r = (GRID_SPACING > r ? GRID_SPACING : r);
+  r /= 2;
+
+  // Get the distance from src to dst.
+  let d = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+
+  // Get the unit vector from src to dst.
+  let u = [
+    v[0] / d,
+    v[1] / d
+  ];
+
+  // Extend the radius if the shape is a square.
+  if(dst.shape === "square") {
+    let up = [
+      (u[0] < 0 ? -u[0] : u[0]),
+      (u[1] < 0 ? -u[1] : u[1])
+    ];
+    if(up[0] < up[1]) {
+      let ratio = up[0] /up[1];
+      let b = r / up[1];
+      let a = ratio * up[0];
+      r = Math.sqrt(a * a + b * b);
+    }
+    else {
+      let ratio = up[1] / up[0];
+      let a = r / up[0];
+      let b = ratio * up[1];
+      r = Math.sqrt(a * a + b * b);
+    }
+  }
+
+  // Get the point where the edge meets the node border.
+  v[0] = u[0] * (d - r) + src.x;
+  v[1] = u[1] * (d - r) + src.y;
+
+  return { x: v[0], y: v[1], u: u };
+
+}
+
+/**
+ * getTextSize
+ *   Gets the bounding box of text.
+ */
+function getTextSize(
+  g : CanvasRenderingContext2D,
+  lines : Array<string>,
+  fontFamily : string,
+  fontSize : number
+) {
+  g.font = fontSize + "pt " + fontFamily;
+  let textHeight = lines.length * 1.5 * fontSize;
+  let textWidth = 0;
+  for(let l = 0; l < lines.length; l++) {
+    let tw = g.measureText(lines[l]).width;
+    if(textWidth < tw)
+      textWidth = tw;
+  }
+  return { h: textHeight, w: textWidth };
 }
 
 /**
@@ -1098,44 +1187,22 @@ function drawArrow(
   dst : DrawableNode
 ) : void {
 
-  //
-  // TODO:
-  // Either DrawableNode or DrawableEdge needs to define anchor points, and the
-  // DrawableEdge must specify which anchor it is attached to for src and dst.
-  //
-
-  // Get the vector from src to dst.
-  let v = [
-    dst.x - src.x,
-    dst.y - src.y
-  ];
-
-  // Get the distance from src to dst.
-  let d = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
-
-  // Get the unit vector from src to dst.
-  let u = [
-    v[0] / d,
-    v[1] / d
-  ]
-
-  // Get the point where the edge meets the node border.
-  v[0] = u[0] * (d - GRID_SPACING / 2) + src.x;
-  v[1] = u[1] * (d - GRID_SPACING / 2) + src.y;
+  let pt = getEdgeBorderPt(g, src, dst);
 
   // Draw arrow.
   drawLine(
     g,
-    v[0], v[1],
-    v[0] + GRID_SPACING * (u[0] * COS_THETA - u[1] * SIN_THETA) / 2,
-    v[1] + GRID_SPACING * (u[0] * SIN_THETA + u[1] * COS_THETA) / 2
+    pt.x, pt.y,
+    pt.x + GRID_SPACING * (pt.u[0] * COS_THETA - pt.u[1] * SIN_THETA) / 2,
+    pt.y + GRID_SPACING * (pt.u[0] * SIN_THETA + pt.u[1] * COS_THETA) / 2
   );
   drawLine(
     g,
-    v[0], v[1],
-    v[0] + GRID_SPACING * (u[0] * COS_THETA + u[1] * SIN_THETA) / 2,
-    v[1] + GRID_SPACING * (-u[0] * SIN_THETA + u[1] * COS_THETA) / 2
+    pt.x, pt.y,
+    pt.x + GRID_SPACING * (pt.u[0] * COS_THETA + pt.u[1] * SIN_THETA) / 2,
+    pt.y + GRID_SPACING * (-pt.u[0] * SIN_THETA + pt.u[1] * COS_THETA) / 2
   );
+
 }
 
 /**
