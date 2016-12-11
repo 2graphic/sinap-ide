@@ -726,10 +726,18 @@ export class GraphEditorComponent
       this.g.shadowBlur = 20;
     }
 
+    this.g.font = NODE_FONT_SIZE + "pt " + NODE_FONT_FAMILY;
     let lines = n.label.split("\n");
     let textHeight = lines.length * 1.5 * NODE_FONT_SIZE;
+    let textWidth = 0;
+    for(let l = 0; l < lines.length; l++) {
+      let tw = this.g.measureText(lines[l]).width;
+      if(textWidth < tw)
+        textWidth = tw;
+    }
     let s = (GRID_SPACING > textHeight + 1.5 * NODE_FONT_SIZE ?
              GRID_SPACING : textHeight + 1.5 * NODE_FONT_SIZE);
+    s = (s < textWidth + NODE_FONT_SIZE ? textWidth + NODE_FONT_SIZE : s);
 
     if(this.selectedItems.has(n)) {
       let sel = cloneNode(n);
