@@ -724,16 +724,6 @@ export class GraphEditorComponent
    */
   private drawNode(n : DrawableNode) : void {
 
-    // Node
-    if(n === this.dragObject) {
-      this.g.shadowColor = "#000";
-      this.g.shadowBlur = 10;
-    }
-    else if(n === this.hoverObject) {
-      this.g.shadowColor = "#00a2e8";
-      this.g.shadowBlur = 20;
-    }
-
     // Calculate the radius.
     let lines = n.label.split("\n");
     let size = getTextSize(this.g, lines, NODE_FONT_FAMILY, NODE_FONT_SIZE);
@@ -752,7 +742,7 @@ export class GraphEditorComponent
           n.borderWidth,
           "#00a2e8",
           "#00a2e8",
-          (n === this.dragObject || n === this.hoverObject ? 10 : null),
+          (n === this.dragObject || n === this.hoverObject ? 20 * AA_SCALE : null),
           (n === this.dragObject ? "#000" :
            (n === this.hoverObject ? "#00a2e8" : null))
         );
@@ -778,7 +768,7 @@ export class GraphEditorComponent
           n.borderWidth,
           "#00a2e8",
           "#00a2e8",
-          (n === this.dragObject || n === this.hoverObject ? 10 : null),
+          (n === this.dragObject || n === this.hoverObject ? 20 * AA_SCALE : null),
           (n === this.dragObject ? "#000" :
            (n === this.hoverObject ? "#00a2e8" : null))
         );
@@ -806,7 +796,7 @@ export class GraphEditorComponent
           n.borderWidth,
           n.borderColor,
           n.color,
-          (n === this.dragObject || n === this.hoverObject ? 10 : null),
+          (n === this.dragObject || n === this.hoverObject ? 20 * AA_SCALE : null),
           (n === this.dragObject ? "#000" :
             (n === this.hoverObject ? "#00a2e8" : null))
         );
@@ -821,7 +811,7 @@ export class GraphEditorComponent
           n.borderWidth,
           n.borderColor,
           n.color,
-          (n === this.dragObject || n === this.hoverObject ? 10 : null),
+          (n === this.dragObject || n === this.hoverObject ? 20 * AA_SCALE : null),
           (n === this.dragObject ? "#000" :
             (n === this.hoverObject ? "#00a2e8" : null))
         );
@@ -853,7 +843,7 @@ export class GraphEditorComponent
     // Edge
     if(e === this.hoverObject) {
       this.g.shadowColor = "#00a2e8";
-      this.g.shadowBlur = 10;
+      this.g.shadowBlur = 20 * AA_SCALE;
     }
     if(this.selectedItems.has(e)) {
       let d = cloneEdge(e);
