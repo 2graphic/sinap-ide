@@ -70,6 +70,12 @@ import {
 //
 
 /**
+ * AA_SCALE
+ *   Anti-aliasing scale.
+ */
+const AA_SCALE : number = 2;
+
+/**
  * GRID_SPACING
  *   Grid spacing between ticks.
  */
@@ -680,8 +686,9 @@ export class GraphEditorComponent
     // if(el.height != h || el.width != w) {
     //   setTimeout(
     //     () => {
-          el.height = h;
-          el.width = w;
+          el.height = h * AA_SCALE;
+          el.width = w * AA_SCALE;
+          this.g.scale(AA_SCALE, AA_SCALE);
           this.redraw();
     //     },
     //     0
@@ -727,60 +734,99 @@ export class GraphEditorComponent
       this.g.shadowBlur = 20;
     }
 
+    // Calculate the radius.
     let lines = n.label.split("\n");
     let size = getTextSize(this.g, lines, NODE_FONT_FAMILY, NODE_FONT_SIZE);
     let s = (GRID_SPACING > size.h + 1.5 * NODE_FONT_SIZE ?
              GRID_SPACING : size.h + 1.5 * NODE_FONT_SIZE);
     s = (s < size.w + NODE_FONT_SIZE ? size.w + NODE_FONT_SIZE : s);
 
+    // Draw selected shape.
     if(this.selectedItems.has(n)) {
-      let sel = cloneNode(n);
-      this.g.fillStyle = "#00a2e8";
-      this.g.strokeStyle = "#00a2e8";
-      setLineStyle(this.g, "solid");
-      this.g.beginPath();
-      if(n.shape === "circle")
-        this.g.arc(n.x, n.y, (s + n.borderWidth) / 2 + 2, 0, 2 * Math.PI);
+      if(n.shape === "circle") {
+        drawCircle(
+          this.g,
+          n.x, n.y,
+          (s + n.borderWidth) / 2 + 2,
+          "solid",
+          n.borderWidth,
+          "#00a2e8",
+          "#00a2e8",
+          (n === this.dragObject || n === this.hoverObject ? 10 : null),
+          (n === this.dragObject ? "#000" :
+           (n === this.hoverObject ? "#00a2e8" : null))
+        );
+        drawCircle(
+          this.g,
+          n.x, n.y,
+          s / 2,
+          n.borderStyle,
+          n.borderWidth,
+          n.borderColor,
+          n.color
+        );
+      }
       else if(n.shape === "square") {
         let hs = (s + n.borderWidth) / 2 + 2;
-        let lx = n.x - hs;
-        let ty = n.y - hs;
-        let rx = n.x + hs;
-        let by = n.y + hs;
-        this.g.moveTo(lx, ty);
-        this.g.lineTo(rx, ty);
-        this.g.lineTo(rx, by);
-        this.g.lineTo(lx, by);
-        this.g.lineTo(lx, ty);
+        drawSquare(
+          this.g,
+          n.x - hs,
+          n.y - hs,
+          2 * hs,
+          2 * hs,
+          "solid",
+          n.borderWidth,
+          "#00a2e8",
+          "#00a2e8",
+          (n === this.dragObject || n === this.hoverObject ? 10 : null),
+          (n === this.dragObject ? "#000" :
+           (n === this.hoverObject ? "#00a2e8" : null))
+        );
+        hs = s / 2;
+        drawSquare(
+          this.g,
+          n.x - hs, n.y - hs,
+          hs * 2, hs * 2,
+          n.borderStyle,
+          n.borderWidth,
+          n.borderColor,
+          n.color
+        );
       }
-      this.g.fill();
-      this.g.shadowBlur = 0;
-      this.g.stroke();
     }
 
-    this.g.fillStyle = n.color;
-    this.g.strokeStyle = n.borderColor;
-    this.g.lineWidth = n.borderWidth;
-    setLineStyle(this.g, n.borderStyle, n.borderWidth);
-    this.g.beginPath();
-    if(n.shape === "circle")
-      this.g.arc(n.x, n.y, s / 2, 0, 2 * Math.PI);
-    else if(n.shape === "square") {
+    // Draw unselected shape.
+    else {
+      if(n.shape === "circle") {
+        drawCircle(
+          this.g,
+          n.x, n.y,
+          s / 2,
+          n.borderStyle,
+          n.borderWidth,
+          n.borderColor,
+          n.color,
+          (n === this.dragObject || n === this.hoverObject ? 10 : null),
+          (n === this.dragObject ? "#000" :
+            (n === this.hoverObject ? "#00a2e8" : null))
+        );
+      }
+      else if(n.shape === "square") {
         let hs = s / 2;
-        let lx = n.x - hs;
-        let ty = n.y - hs;
-        let rx = n.x + hs;
-        let by = n.y + hs;
-        this.g.moveTo(lx, ty);
-        this.g.lineTo(rx, ty);
-        this.g.lineTo(rx, by);
-        this.g.lineTo(lx, by);
-        this.g.lineTo(lx, ty);
+        drawSquare(
+          this.g,
+          n.x - hs, n.y - hs,
+          hs * 2, hs * 2,
+          n.borderStyle,
+          n.borderWidth,
+          n.borderColor,
+          n.color,
+          (n === this.dragObject || n === this.hoverObject ? 10 : null),
+          (n === this.dragObject ? "#000" :
+            (n === this.hoverObject ? "#00a2e8" : null))
+        );
+      }
     }
-    this.g.fill();
-    this.g.shadowBlur = 0;
-    if(n.borderWidth > 0)
-      this.g.stroke();
 
     // Label
     this.g.font = NODE_FONT_SIZE + "pt " + NODE_FONT_FAMILY;
@@ -994,8 +1040,8 @@ function getMousePt(g : CanvasRenderingContext2D, e: MouseEvent) {
   let canvas = g.canvas;
   let rect = canvas.getBoundingClientRect();
   return {
-    x: (e.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
-    y: (e.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+    x: (e.clientX - rect.left) / (rect.right - rect.left) * canvas.width / AA_SCALE,
+    y: (e.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height / AA_SCALE
   };
 }
 
@@ -1203,6 +1249,73 @@ function drawArrow(
     pt.y + GRID_SPACING * (-pt.u[0] * SIN_THETA + pt.u[1] * COS_THETA) / 2
   );
 
+}
+
+/**
+ * drawCircle
+ *   Draws a circle.
+ */
+function drawCircle(
+  g : CanvasRenderingContext2D,
+  x : number,
+  y : number,
+  r : number,
+  borderStyle : string,
+  borderWidth : number,
+  borderColor : string,
+  fillColor : string,
+  shadowBlur? : number,
+  shadowColor? : string
+) {
+  g.beginPath();
+  g.arc(x, y, r, 0, 2 * Math.PI);
+  g.fillStyle = fillColor;
+  if(shadowBlur && shadowColor) {
+    g.shadowBlur = shadowBlur;
+    g.shadowColor = shadowColor;
+  }
+  g.fill();
+  if(borderWidth > 0) {
+    setLineStyle(g, borderStyle, borderWidth);
+    g.lineWidth = borderWidth;
+    g.strokeStyle = borderColor;
+    if(shadowBlur)
+      g.shadowBlur = 0;
+    g.stroke();
+  }
+}
+
+/**
+ * drawSquare
+ *   Draws a square.
+ */
+function drawSquare(
+  g : CanvasRenderingContext2D,
+  x : number,
+  y : number,
+  w : number,
+  h : number,
+  borderStyle : string,
+  borderWidth : number,
+  borderColor : string,
+  fillColor : string,
+  shadowBlur? : number,
+  shadowColor? : string
+) {
+  g.fillStyle = fillColor;
+  if(shadowBlur && shadowColor) {
+    g.shadowBlur = shadowBlur;
+    g.shadowColor = shadowColor;
+  }
+  g.fillRect(x, y, w, h);
+  if(borderWidth > 0) {
+    setLineStyle(g, borderStyle, borderWidth);
+    g.lineWidth = borderWidth;
+    g.strokeStyle = borderColor;
+    if(shadowBlur)
+      g.shadowBlur = 0;
+    g.strokeRect(x, y, w, h);
+  }
 }
 
 /**
