@@ -60,5 +60,5 @@ export const SinapBoolean = new SinapType("boolean");
 export const SinapNode = new SinapType("node");
 export const SinapEdge = new SinapType("edge");
 export const SinapColor = new SinapType("color");
-export const SinapShape = new SinapType("shape");
+export const SinapShape = new SinapEnumType(["circle", "square"]);
 export const SinapLineStyles = new SinapEnumType(["dotted", "solid", "dashed"]);
