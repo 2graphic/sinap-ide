@@ -1,4 +1,11 @@
 <div id="wrapper">
     <h2>Tools</h2>
-    <img src="./images/mocks/tools_mock.png"/>
+    <!-- <img src="./images/mocks/tools_mock.png"/> -->
+    Active Node Type: <select [(ngModel)]="activeNodeType">
+        <option *ngFor="let t of nodeTypes" [ngValue]="t">{{t}}</option>
+    </select>
+    <br/>
+    Active Graph Type: <select [(ngModel)]="activeGraphType">
+        <option *ngFor="let t of graphTypes" [ngValue]="t">{{t}}</option>
+    </select>
 </div>

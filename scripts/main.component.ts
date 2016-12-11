@@ -13,9 +13,10 @@ import { GraphEditorComponent, Drawable } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "./properties-panel.component"
+import { ToolsPanelComponent } from "./tools-panel.component"
 import { TestPanelComponent } from "./test-panel.component"
 import { StatusBarComponent } from "./status-bar.component"
-import { SinapType, SinapNumber, SinapFile } from "./types";
+import { SinapType, SinapNumber, SinapFile, SinapBoolean, SinapString, SinapStructType } from "./types";
 import { Element, Graph, deserializeGraph } from "./graph"
 import { SideBarComponent } from "./side-bar.component"
 import { TabBarComponent, TabDelegate } from "./tab-bar.component"
@@ -41,8 +42,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
   }
 
   ngAfterViewInit() {
-    this.newFile("machine_learning.sinap", new Graph([["Input File", SinapFile],
-                                                      ["Weights File", SinapFile]], this.onGraphChanged));
     this.newFile();
     this.changeDetectorRef.detectChanges(); //http://stackoverflow.com/a/35243106 sowwwwwy...
   }
@@ -55,6 +54,9 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
   
   @ViewChild(PropertiesPanelComponent)
   private propertiesPanel: PropertiesPanelComponent;
+
+  @ViewChild(ToolsPanelComponent)
+  private toolsPanel: ToolsPanelComponent;
 
   @ViewChild("leftSideBar")
   private leftSideBar: SideBarComponent;
@@ -86,7 +88,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
       this.graphEditor.redraw();
     }
     if (this.pluginService){
-      if (this.context.filename == "machine_learning.sinap") {
+      if (this.graph.kind == "Machine Learning") {
         this.barMessages = []
         this.package = "Machine Learning"
       } else {
@@ -105,10 +107,32 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
   };
 
   newFile(f?:String, g?: Graph) {
+    if (!f && this.toolsPanel.activeGraphType == "Machine Learning"){
+      g = new Graph([["Input File", SinapFile],
+                                                      ["Weights File", SinapFile]], this.onGraphChanged, 
+                                                      () => {
+                                                        switch(this.toolsPanel.activeNodeType){
+                                                          case "Input":
+                                                            return [["shape", SinapString]];
+                                                          case "Fully Connected": 
+                                                            return [];
+                                                          case "Conv2D": 
+                                                            return [["stride", new SinapStructType(new Map([["y", SinapNumber], ["x", SinapNumber]]))],
+                                                                    ["output depth", SinapNumber]];
+                                                          case "Max Pooling": 
+                                                            return [["size", new SinapStructType(new Map([["y", SinapNumber], ["x", SinapNumber]]))]];
+                                                          case "Reshape":
+                                                            return [["shape", SinapString]];
+                                                          default:
+                                                            return [["beta", SinapBoolean]];
+                                                      }}, "Machine Learning");
+    }
+
     let filename = f?f:"Untitled";
     let tabNumber = this.tabBar.newTab(f?f:"Untitled");
     this.tabs.set(tabNumber, 
-      new TabContext((g ? g : (new Graph([], this.onGraphChanged))), null, filename));
+      new TabContext((g ? g : (new Graph([], this.onGraphChanged, () => [["Accept State", SinapBoolean],
+                           ["Start State", SinapBoolean]], "DFA"))), null, filename));
     this.selectedTab(tabNumber);
   }
 

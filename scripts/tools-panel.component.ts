@@ -13,4 +13,9 @@ import { Component } from "@angular/core";
   styleUrls: [ "../styles/side-panel.component.css" ]
 })
 export class ToolsPanelComponent {
+	public activeNodeType : string = "Input";
+	public nodeTypes = ["Input", "Fully Connected", "Conv2D", "Max Pooling", "Reshape"];
+
+	public activeGraphType : string = "DFA";
+	public graphTypes = ["DFA", "Machine Learning"];
 }

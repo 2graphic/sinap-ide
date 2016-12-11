@@ -79,7 +79,8 @@ function extend(a, b){
 }
 
 export function deserializeGraph(pojo: any, handler: () => void): Graph {
-  let result = new Graph([], handler);
+  let result = new Graph([], handler, () => [["Accept State", SinapBoolean],
+                           ["Start State", SinapBoolean]], "DFA");
   let graph = pojo.graph;
   let nodes: [any] = graph.nodes;
   let createdNodes: [Node] = <[Node]>[];
@@ -122,7 +123,7 @@ export class Graph extends Element implements DrawableGraph {
     return true;
   }
 
-  constructor(pluginProperties, handler){
+  constructor(pluginProperties, handler, private getNodeOptions : (() => Array<[string, SinapType]>), public kind : string){
     super(pluginProperties, handler, {
       'Background' : "#ffffff",
     });
@@ -147,8 +148,7 @@ export class Graph extends Element implements DrawableGraph {
     return this._nodes;
   }
   createNode(x=0, y=0) {
-  	const node = new Node([["Accept State", SinapBoolean],
-                           ["Start State", SinapBoolean]], this.handler,
+  	const node = new Node(this.getNodeOptions(), this.handler,
                           x, y);
   	this._nodes.push(node);
     node.label = "q" + this._nodeID;
