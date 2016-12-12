@@ -33,7 +33,8 @@
 // - Make it so that if any part of a component is caught within the selection
 //   box, it is selected
 // - @Input height/width
-// - Something about deep binding for the graph components? [For now, use redraw]
+// - Something about deep binding for the graph components? [For now, use
+//   redraw]
 // - Have a visual indication for determining if an edge can be moved from one
 //   node to another.
 // - Update documentation.
@@ -50,7 +51,6 @@
 
 import {
   AfterViewInit,
-  AfterViewChecked,
   Component,
   ElementRef,
   EventEmitter,
@@ -82,10 +82,46 @@ const AA_SCALE : number = 2;
 const GRID_SPACING : number = 40;
 
 /**
+ * GRID_MAJOR_COLOR
+ *   Color of major grid tickmarks.
+ */
+const GRID_MAJOR_COLOR : string = "#c3c3c3";
+
+/**
+ * GRID_MAJOR_STYLE
+ *   Linestyle of major grid tickmarks.
+ */
+const GRID_MAJOR_STYLE : string = "solid";
+
+/**
+ * GRID_MAJOR_WIDTH
+ *   Linewidth of major grid tickmarks.
+ */
+const GRID_MAJOR_WIDTH : number = 1;
+
+/**
  * GRID_MINOR_OFFSET
  *   Offset for minor grid ticks.
  */
 const GRID_MINOR_OFFSET : number = 20;
+
+/**
+ * GRID_MINOR_COLOR
+ *   Color of minor grid tickmarks.
+ */
+const GRID_MINOR_COLOR : string = "#c3c3c3";
+
+/**
+ * GRID_MINOR_STYLE
+ *   Linestyle of minor grid tickmarks.
+ */
+const GRID_MINOR_STYLE : string = "dotted";
+
+/**
+ * GRID_MINOR_WIDTH
+ *   Linewidth of minor grid tickmarks.
+ */
+const GRID_MINOR_WIDTH : number = 0.5;
 
 /**
  * NUDGE
@@ -98,7 +134,7 @@ const NUDGE : number = 3;
  * STICKY_DELAY
  *   Number of miliseconds to wait for sticking a graph element to the cursor.
  */
-const STICKY_DELAY : number = 300;
+const STICKY_DELAY : number = 500;
 
 /**
  * COS_THETA
@@ -136,6 +172,24 @@ const EDGE_FONT_FAMILY : string = "serif";
  */
 const EDGE_FONT_SIZE : number = 10;
 
+/**
+ * EDGE_HIT_MARGIN
+ *   Margin away from an edge for hit detection.
+ */
+const EDGE_HIT_MARGIN : number = 20;
+
+/**
+ * EDGE_DRAG_LINESTYLE
+ *   Linestyle for dragging an edge.
+ */
+const EDGE_DRAG_LINESTYLE : string =  "dotted";
+
+/**
+ * SELECTION_COLOR
+ *   Color for selection box and selection highlighting.
+ */
+const SELECTION_COLOR : string = "#00a2e8";
+
 // Public interfaces ///////////////////////////////////////////////////////////
 
 /**
@@ -160,7 +214,11 @@ export interface DrawableGraph extends Drawable {
   createNode(x? : number, y? : number) : DrawableNode
   /* contractually `src` -> `dest` will have been validated by 
   `canCreateEdge`, Graph implementations are not required to test this */
-  createEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) : DrawableEdge
+  createEdge(
+    src : DrawableNode,
+    dest : DrawableNode,
+    like? : DrawableEdge
+  ) : DrawableEdge
   /* contractually `original` will be in the list,
   this is not necessarily checked by implementations */
   replaceEdge(original : DrawableEdge, replacement : DrawableEdge) : void
@@ -170,7 +228,11 @@ export interface DrawableGraph extends Drawable {
   /* contractually `edge` will be in the list,
   this is not necessarily checked by implementations */
   removeEdge(edge : DrawableEdge) : void
-  canCreateEdge(src : DrawableNode, dest : DrawableNode, like? : DrawableEdge) : boolean 
+  canCreateEdge(
+    src : DrawableNode,
+    dest : DrawableNode,
+    like? : DrawableEdge
+  ) : boolean 
 }
 
 /**
@@ -218,8 +280,7 @@ export interface DrawableNode extends Drawable {
  * GraphEditorComponent
  *   Angular2 component that provides a canvas for drawing nodes and edges.
  */
-export class GraphEditorComponent
-  implements AfterViewInit, AfterViewChecked, OnChanges {
+export class GraphEditorComponent implements AfterViewInit, OnChanges {
 
   /**
    * selectionChanged
@@ -324,23 +385,6 @@ export class GraphEditorComponent
   }
 
   /**
-   * ngAfterViewChecked
-   *   [Temporary] Updates the size of the canvas.
-   */
-  ngAfterViewChecked() {
-    //
-    // TODO:
-    // Figure out a more efficient way to handle resizing.
-    //
-    // Note:
-    // One possible solution would be to have the graph editor be the size of the
-    // window client area and have all of the other UI components be drawn on top
-    // of the editor.
-    //
-    // this.resize();
-  }
-
-  /**
    * ngOnChanges
    *   Updates the view when a bound property is changed.
    */
@@ -379,7 +423,7 @@ export class GraphEditorComponent
    *   I don't like where this is.
    */
   onKeyDown(e : KeyboardEvent) : void {
-    // Delete keyCode is 46.
+    // Delete keyCode is 46; backspace is 8.
     if(this.graph && (e.keyCode == 46 || e.keyCode == 8)) {
       let edges = new Set<DrawableEdge>();
       let nodes = new Set<DrawableNode>();
@@ -452,7 +496,7 @@ export class GraphEditorComponent
             //
             this.moveEdge = this.dragObject;
             this.dragObject = cloneEdge(this.moveEdge);
-            this.dragObject.lineStyle = "dotted";
+            this.dragObject.lineStyle = EDGE_DRAG_LINESTYLE;
             this.redraw();
             this.g.globalAlpha = 0.5;
             this.drawEdge(this.dragObject, downPt.x, downPt.y);
@@ -740,11 +784,12 @@ export class GraphEditorComponent
           (s + n.borderWidth) / 2 + 2,
           "solid",
           n.borderWidth,
-          "#00a2e8",
-          "#00a2e8",
-          (n === this.dragObject || n === this.hoverObject ? 20 * AA_SCALE : null),
+          SELECTION_COLOR,
+          SELECTION_COLOR,
+          (n === this.dragObject || n === this.hoverObject ?
+           20 * AA_SCALE : null),
           (n === this.dragObject ? "#000" :
-           (n === this.hoverObject ? "#00a2e8" : null))
+           (n === this.hoverObject ? SELECTION_COLOR : null))
         );
         drawCircle(
           this.g,
@@ -766,11 +811,12 @@ export class GraphEditorComponent
           2 * hs,
           "solid",
           n.borderWidth,
-          "#00a2e8",
-          "#00a2e8",
-          (n === this.dragObject || n === this.hoverObject ? 20 * AA_SCALE : null),
+          SELECTION_COLOR,
+          SELECTION_COLOR,
+          (n === this.dragObject || n === this.hoverObject ?
+           20 * AA_SCALE : null),
           (n === this.dragObject ? "#000" :
-           (n === this.hoverObject ? "#00a2e8" : null))
+           (n === this.hoverObject ? SELECTION_COLOR : null))
         );
         hs = s / 2;
         drawSquare(
@@ -796,9 +842,10 @@ export class GraphEditorComponent
           n.borderWidth,
           n.borderColor,
           n.color,
-          (n === this.dragObject || n === this.hoverObject ? 20 * AA_SCALE : null),
+          (n === this.dragObject || n === this.hoverObject ?
+           20 * AA_SCALE : null),
           (n === this.dragObject ? "#000" :
-            (n === this.hoverObject ? "#00a2e8" : null))
+            (n === this.hoverObject ? SELECTION_COLOR : null))
         );
       }
       else if(n.shape === "square") {
@@ -811,27 +858,25 @@ export class GraphEditorComponent
           n.borderWidth,
           n.borderColor,
           n.color,
-          (n === this.dragObject || n === this.hoverObject ? 20 * AA_SCALE : null),
+          (n === this.dragObject || n === this.hoverObject ?
+           20 * AA_SCALE : null),
           (n === this.dragObject ? "#000" :
-            (n === this.hoverObject ? "#00a2e8" : null))
+            (n === this.hoverObject ? SELECTION_COLOR : null))
         );
       }
     }
 
     // Label
-    this.g.font = NODE_FONT_SIZE + "pt " + NODE_FONT_FAMILY;
-    this.g.textAlign = "center";
-    this.g.textBaseline = "middle";
-    this.g.lineWidth = 2;
-    this.g.strokeStyle = "#000";
-    this.g.fillStyle = "#fff";
-    setLineStyle(this.g, "solid");
-    let ty = n.y - size.h / 2 + 1.5 * NODE_FONT_SIZE / 2;
-    for(let l = 0; l < lines.length; l++) {
-      this.g.strokeText(lines[l], n.x, ty);
-      this.g.fillText(lines[l], n.x, ty);
-      ty += 1.5 * NODE_FONT_SIZE;
-    }
+    drawText(
+      this.g,
+      n.x, n.y - size.h / 2 + 1.5 * NODE_FONT_SIZE / 2,
+      lines,
+      NODE_FONT_SIZE,
+      NODE_FONT_FAMILY,
+      "#fff",
+      2,
+      "#000"
+    );
   }
 
   /**
@@ -842,12 +887,13 @@ export class GraphEditorComponent
 
     // Edge
     if(e === this.hoverObject) {
-      this.g.shadowColor = "#00a2e8";
+      this.g.shadowColor = SELECTION_COLOR;
       this.g.shadowBlur = 20 * AA_SCALE;
     }
     if(this.selectedItems.has(e)) {
       let d = cloneEdge(e);
-      d.color = "#00a2e8";
+      d.color = SELECTION_COLOR;
+      d.lineStyle = "solid";
       d.lineWidth += 3;
       this.drawEdge(d);
     }
@@ -873,15 +919,8 @@ export class GraphEditorComponent
 
     // Label
     if(e.source && e.destination) {
-      this.g.textAlign = "center";
-      this.g.textBaseline = "middle";
       let lines = e.label.split("\n");
       let size = getTextSize(this.g, lines, EDGE_FONT_FAMILY, EDGE_FONT_SIZE);
-      //
-      // TODO:
-      // Get the center point of the edge as opposed to the center point
-      // between the source and destination nodes.
-      //
       let srcPt = getEdgeBorderPt(this.g, e.destination, e.source);
       let dstPt = getEdgeBorderPt(this.g, e.source, e.destination);
       let rect = makeRect(
@@ -902,14 +941,14 @@ export class GraphEditorComponent
       this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
       this.g.shadowBlur = 0;
       this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
-      setLineStyle(this.g, "solid");
-      this.g.lineWidth = 1;
-      this.g.fillStyle = "#000";
-      let ty = y - size.h + 1.5 * EDGE_FONT_SIZE / 2;
-      for(let l = 0; l < lines.length; l++) {
-        this.g.fillText(lines[l], x, ty);
-        ty += 1.5 * EDGE_FONT_SIZE;
-      }
+      drawText(
+        this.g,
+        x, y - size.h + 1.5 * EDGE_FONT_SIZE / 2,
+        lines,
+        EDGE_FONT_SIZE,
+        EDGE_FONT_FAMILY,
+        "#000"
+      );
     }
   }
 
@@ -998,9 +1037,9 @@ export class GraphEditorComponent
       ];
       let dotdep = dep[0] * dep[0] + dep[1] * dep[1];
 
-      // TODO:
-      // Margin is hardcoded at 20x20
-      if(dotpp <= dotee && dotdep <= dotee && dotrr < e.lineWidth * e.lineWidth + 400)
+      if(dotpp <= dotee &&
+         dotdep <= dotee &&
+         dotrr < e.lineWidth * e.lineWidth + EDGE_HIT_MARGIN * EDGE_HIT_MARGIN)
         return e;
     }
     return null;
@@ -1028,10 +1067,10 @@ export class GraphEditorComponent
  */
 function getMousePt(g : CanvasRenderingContext2D, e: MouseEvent) {
   let canvas = g.canvas;
-  let rect = canvas.getBoundingClientRect();
+  let r = canvas.getBoundingClientRect();
   return {
-    x: (e.clientX - rect.left) / (rect.right - rect.left) * canvas.width / AA_SCALE,
-    y: (e.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height / AA_SCALE
+    x: (e.clientX - r.left) / (r.right - r.left) * canvas.width / AA_SCALE,
+    y: (e.clientY - r.top) / (r.bottom - r.top) * canvas.height / AA_SCALE
   };
 }
 
@@ -1189,8 +1228,8 @@ function clear(g : CanvasRenderingContext2D, bgColor) : void {
  *   Draws the selection box.
  */
 function drawSelectionBox(g : CanvasRenderingContext2D, rect) : void {
-  g.strokeStyle = "#00a2e8";
-  g.fillStyle = "#00a2e8";
+  g.strokeStyle = SELECTION_COLOR;
+  g.fillStyle = SELECTION_COLOR;
   g.globalAlpha = 0.1;
   g.fillRect(rect.x, rect.y, rect.w, rect.h);
   g.globalAlpha = 1.0;
@@ -1317,19 +1356,18 @@ function drawGrid(g : CanvasRenderingContext2D, originPt) {
   let w = g.canvas.width;
   let h = g.canvas.height;
 
-  setLineStyle(g, "solid");
   for(
     let x = originPt.x % GRID_SPACING - GRID_SPACING;
     x < w + GRID_SPACING; 
     x += GRID_SPACING
   ) {
-    g.strokeStyle = "#7e7e7e";
-    g.lineWidth = 1;
-    setLineStyle(g, "solid");
+    g.strokeStyle = GRID_MAJOR_COLOR;
+    g.lineWidth = GRID_MAJOR_WIDTH;
+    setLineStyle(g, GRID_MAJOR_STYLE);
     drawLine(g, x, 0, x, h);
-    g.strokeStyle = "#c3c3c3";
-    g.lineWidth = 0.5;
-    setLineStyle(g, "dotted");
+    g.strokeStyle = GRID_MINOR_COLOR;
+    g.lineWidth = GRID_MINOR_WIDTH;
+    setLineStyle(g, GRID_MINOR_STYLE);
     drawLine(g, x + GRID_MINOR_OFFSET, 0, x + GRID_MINOR_OFFSET, h);
   }
   for(
@@ -1337,16 +1375,53 @@ function drawGrid(g : CanvasRenderingContext2D, originPt) {
     y < h + GRID_SPACING;
     y += GRID_SPACING
   ) {
-    g.strokeStyle = "#7e7e7e";
-    g.lineWidth = 1;
-    setLineStyle(g, "solid");
+    g.strokeStyle = GRID_MAJOR_COLOR;
+    g.lineWidth = GRID_MAJOR_WIDTH;
+    setLineStyle(g, GRID_MAJOR_STYLE);
     drawLine(g, 0, y, w, y);
-    g.strokeStyle = "#c3c3c3";
-    g.lineWidth = 1;
-    setLineStyle(g, "dotted");
+    g.strokeStyle = GRID_MINOR_COLOR;
+    g.lineWidth = GRID_MINOR_WIDTH;
+    setLineStyle(g, GRID_MINOR_STYLE);
     drawLine(g, 0, y + GRID_MINOR_OFFSET, w, y + GRID_MINOR_OFFSET);
   }
 
+}
+
+/**
+ * drawText
+ *   Draws text.
+ */
+function drawText(
+  g : CanvasRenderingContext2D,
+  x : number,
+  y : number,
+  lines : Array<string>,
+  fontSize : number,
+  fontFamily : string,
+  color : string,
+  borderWidth? : number,
+  borderColor? : string
+) {
+    g.font = fontSize + "pt " + fontFamily;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillStyle = color;
+    if(borderWidth && borderColor) {
+      g.lineWidth = 2;
+      g.strokeStyle = "#000";
+      setLineStyle(g, "solid");
+      for(let l = 0; l < lines.length; l++) {
+        g.strokeText(lines[l], x, y);
+        g.fillText(lines[l], x, y);
+        y += 1.5 * fontSize;
+      }
+    }
+    else {
+      for(let l = 0; l < lines.length; l++) {
+        g.fillText(lines[l], x, y);
+        y += 1.5 * fontSize;
+      }
+    }
 }
 
 /**

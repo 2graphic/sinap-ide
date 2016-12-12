@@ -13,7 +13,7 @@
 // References to app and BrowserWindow are needed in order to start an Electron
 // application.
 //
-const { app, BrowserWindow } = require("electron");
+import { app, BrowserWindow } from "electron";
 
 
 /**
@@ -40,6 +40,8 @@ function createWindow() {
   win.on("closed", () => {
     win = null
   });
+
+  win.maximize();
 }
 
 
