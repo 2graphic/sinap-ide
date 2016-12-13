@@ -918,7 +918,7 @@ export class GraphEditorComponent implements AfterViewInit, OnChanges {
     this.g.globalAlpha = 1;
 
     // Label
-    if(e.source && e.destination) {
+    if(e.source && e.destination && e.label && e.label.trim() !== "") {
       let lines = e.label.split("\n");
       let size = getTextSize(this.g, lines, EDGE_FONT_FAMILY, EDGE_FONT_SIZE);
       let srcPt = getEdgeBorderPt(this.g, e.destination, e.source);
@@ -950,6 +950,8 @@ export class GraphEditorComponent implements AfterViewInit, OnChanges {
         "#000"
       );
     }
+    else
+      this.g.shadowBlur = 0;
   }
 
   /**
@@ -1304,12 +1306,11 @@ function drawCircle(
     g.shadowColor = shadowColor;
   }
   g.fill();
+  g.shadowBlur = 0;
   if(borderWidth > 0) {
     setLineStyle(g, borderStyle, borderWidth);
     g.lineWidth = borderWidth;
     g.strokeStyle = borderColor;
-    if(shadowBlur)
-      g.shadowBlur = 0;
     g.stroke();
   }
 }
@@ -1337,12 +1338,11 @@ function drawSquare(
     g.shadowColor = shadowColor;
   }
   g.fillRect(x, y, w, h);
+  g.shadowBlur = 0;
   if(borderWidth > 0) {
     setLineStyle(g, borderStyle, borderWidth);
     g.lineWidth = borderWidth;
     g.strokeStyle = borderColor;
-    if(shadowBlur)
-      g.shadowBlur = 0;
     g.strokeRect(x, y, w, h);
   }
 }
