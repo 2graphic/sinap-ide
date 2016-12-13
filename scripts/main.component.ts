@@ -88,11 +88,11 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
       this.graphEditor.redraw();
     }
     if (this.pluginService){
-      if (this.graph.kind == "Machine Learning") {
+      if (this.graph.pluginManager.kind == "machine-learning.sinap.graph-kind") {
         this.barMessages = []
         this.package = "Machine Learning"
       } else {
-        let interp = this.pluginService.getInterpreter("dfa", this.graph);
+        let interp = this.pluginService.getInterpreter(this.graph);
         this.barMessages = ["DFA", interp.message()]; 
         this.package = "Finite Automata";
 
@@ -109,30 +109,15 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
   newFile(f?:String, g?: Graph) {
     if (!f && this.toolsPanel.activeGraphType == "Machine Learning"){
       g = new Graph([["Input File", SinapFile],
-                                                      ["Weights File", SinapFile]], this.onGraphChanged, 
-                                                      () => {
-                                                        switch(this.toolsPanel.activeNodeType){
-                                                          case "Input":
-                                                            return [["shape", SinapString]];
-                                                          case "Fully Connected": 
-                                                            return [];
-                                                          case "Conv2D": 
-                                                            return [["stride", new SinapStructType(new Map([["y", SinapNumber], ["x", SinapNumber]]))],
-                                                                    ["output depth", SinapNumber]];
-                                                          case "Max Pooling": 
-                                                            return [["size", new SinapStructType(new Map([["y", SinapNumber], ["x", SinapNumber]]))]];
-                                                          case "Reshape":
-                                                            return [["shape", SinapString]];
-                                                          default:
-                                                            return [["beta", SinapBoolean]];
-                                                      }}, "Machine Learning");
+                     ["Weights File", SinapFile]], this.onGraphChanged,
+                     this.pluginService.getManager("machine-learning.sinap.graph-kind"));
     }
 
     let filename = f?f:"Untitled";
     let tabNumber = this.tabBar.newTab(f?f:"Untitled");
     this.tabs.set(tabNumber, 
-      new TabContext((g ? g : (new Graph([], this.onGraphChanged, () => [["Accept State", SinapBoolean],
-                           ["Start State", SinapBoolean]], "DFA"))), null, filename));
+      new TabContext((g ? g : (new Graph([], this.onGraphChanged,
+        this.pluginService.getManager("dfa.sinap.graph-kind")))), null, filename));
     this.selectedTab(tabNumber);
   }
 
@@ -152,6 +137,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     } else if (this.tabs.has(i)) {
       this.context = this.tabs.get(i);
       this.graph = this.context.graph;
+      this.toolsPanel.manager = this.graph.pluginManager;
+
       // TODO: GraphEditor needs a way to set selected elements
       this.onGraphChanged();
     }
@@ -202,7 +189,9 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         try {
           let pojo = JSON.parse(data);
           
-          this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"), filename.lastIndexOf("\\")) + 1), deserializeGraph(pojo, this.onGraphChanged));
+          this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
+                                          filename.lastIndexOf("\\")) + 1),
+                       deserializeGraph(pojo, this.onGraphChanged, this.pluginService.getManager("dfa.sinap.graph-kind")));
         } catch (e) {
           alert(`Could not serialize graph: ${e}.`);
         }
@@ -211,7 +200,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
   }
 
   run(input: String):String {
-    let interpreter = this.pluginService.getInterpreter("dfa", this.graph);
+    let interpreter = this.pluginService.getInterpreter(this.graph);
     return interpreter.run(input)+"";
   }
 

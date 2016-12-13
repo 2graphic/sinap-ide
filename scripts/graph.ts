@@ -8,7 +8,7 @@ import { EventEmitter } from "@angular/core"
 import { DrawableEdge, DrawableGraph, DrawableNode } from "./graph-editor.component";
 import { PropertiedEntity } from "./properties-panel.component";
 import { SinapType, SinapString, SinapBoolean, SinapNumber, SinapEdge, SinapNode, SinapLineStyles, SinapColor, SinapShape, SinapStructType } from "./types";
-
+import { PluginManager } from "./plugin.service";
 
 let proto_map_func = Array.prototype.map;
 function map<T, U>(i : Iterable<T>, f : ((x : T) => U)) : Array<U>{
@@ -39,13 +39,16 @@ export class Element implements PropertiedEntity {
     return false;
   }
 
-  constructor(public pluginProperties : Array<[string, SinapType]>, public handler : (() => void), private _propertyValues){
-    this.propertyValues = proxify(_propertyValues, this);
+  constructor(public entityName : string, public pluginProperties : Array<[string, SinapType]>, public computedProperties : Array<[string, SinapType, (PropertiedEntity)=>void]>, public handler : (() => void), private _propertyValues){
+    for (let prop of pluginProperties){
+      this._propertyValues[prop[0]] = prop[1].prototypicalStructure();
+    }
+    this.propertyValues = proxify(this._propertyValues, this);
   }
 
   private getProperty(target, k : PropertyKey){
     // TODO, this condition is insufficient, arrays too
-    if ((! (target[k] instanceof Node)) && typeof target[k] == 'object'){
+    if ((! (target[k] instanceof Node)) && target[k] != null && typeof target[k] == 'object'){
       // TODO inefficient, creates tons of Proxy objects
       return proxify(target[k], this);
     }
@@ -54,6 +57,9 @@ export class Element implements PropertiedEntity {
 
   private setProperty(target, k : PropertyKey, v){
     target[k] = v;
+    for (let tri of this.computedProperties){
+      target[tri[0]] = tri[2](this);
+    }
     this.handler();
     return true;
   }
@@ -78,9 +84,8 @@ function extend(a, b){
   return a;
 }
 
-export function deserializeGraph(pojo: any, handler: () => void): Graph {
-  let result = new Graph([], handler, () => [["Accept State", SinapBoolean],
-                           ["Start State", SinapBoolean]], "DFA");
+export function deserializeGraph(pojo: any, handler: () => void, pluginManager : PluginManager): Graph {
+  let result = new Graph([], handler, pluginManager);
   let graph = pojo.graph;
   let nodes: [any] = graph.nodes;
   let createdNodes: [Node] = <[Node]>[];
@@ -123,8 +128,8 @@ export class Graph extends Element implements DrawableGraph {
     return true;
   }
 
-  constructor(pluginProperties, handler, private getNodeOptions : (() => Array<[string, SinapType]>), public kind : string){
-    super(pluginProperties, handler, {
+  constructor(pluginProperties, handler, public pluginManager : PluginManager){
+    super("Graph", pluginProperties, [], handler, {
       'Background' : "#ffffff",
     });
   }
@@ -148,7 +153,7 @@ export class Graph extends Element implements DrawableGraph {
     return this._nodes;
   }
   createNode(x=0, y=0) {
-  	const node = new Node(this.getNodeOptions(), this.handler,
+  	const node = new Node(this.pluginManager.getEntityName("Node"), this.pluginManager.getNodeProperties(), this.pluginManager.getNodeComputedProperties(), this.handler,
                           x, y);
   	this._nodes.push(node);
     node.label = "q" + this._nodeID;
@@ -156,7 +161,7 @@ export class Graph extends Element implements DrawableGraph {
   	return node;
   }
   createEdge(src : Node, dest : Node, like? : Edge) {
-  	const edge = new Edge([], this.handler,
+  	const edge = new Edge(this.pluginManager.getEntityName("Edge"), this.pluginManager.getEdgeProperties(), this.pluginManager.getEdgeComputedProperties(), this.handler,
                           src, dest);
   	this._edges.push(edge);
   	return edge;
@@ -277,8 +282,8 @@ class Edge extends Element implements DrawableEdge{
   }
 
 
-  constructor(properties : Array<[string, SinapType]>, handler, source : Node, destination : Node) { 
-    super(properties, handler, {
+  constructor(entityName : string, properties : Array<[string, SinapType]>, computedProperties : Array<[string, SinapType, (PropertiedEntity)=>void]>, handler, source : Node, destination : Node) { 
+    super(entityName, properties, computedProperties, handler, {
       'Source Arrow' : false,
       'Destination Arrow' : true,
       'Label' : "0",
@@ -359,8 +364,8 @@ class Node extends Element implements DrawableNode{
   }
 
 
-  constructor(properties : Array<[string, SinapType]>, handler, x : number, y : number) {
-    super(properties, handler, {
+  constructor(entityName : string, properties : Array<[string, SinapType]>, computedProperties : Array<[string, SinapType, (PropertiedEntity)=>void]>, handler, x : number, y : number) {
+    super(entityName, properties, computedProperties, handler, {
       "Start State" : false,
       "Accept State" : false,
       "Label" : "",

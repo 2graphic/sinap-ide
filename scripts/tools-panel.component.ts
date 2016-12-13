@@ -5,6 +5,10 @@
 
 import { Component } from "@angular/core";
 
+export interface PluginManagement {
+  activeNodeType : string;
+  nodeTypes : Array<string>;
+}
 
 @Component({
   moduleId: module.id,
@@ -12,10 +16,9 @@ import { Component } from "@angular/core";
   templateUrl: "../html/tools-panel.component.html",
   styleUrls: [ "../styles/side-panel.component.css" ]
 })
-export class ToolsPanelComponent {
-	public activeNodeType : string = "Input";
-	public nodeTypes = ["Input", "Fully Connected", "Conv2D", "Max Pooling", "Reshape"];
 
+export class ToolsPanelComponent {
+	public manager : PluginManagement;
 	public activeGraphType : string = "DFA";
 	public graphTypes = ["DFA", "Machine Learning"];
 }
