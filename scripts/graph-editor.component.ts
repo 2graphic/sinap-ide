@@ -1432,6 +1432,46 @@ function drawLine(
 }
 
 /**
+ * drawCurvyLine  
+ *   Draws a curvy line between two points.
+ */
+function drawCurvyLine(
+  g : CanvasRenderingContext2D,
+  x1 : number, y1 : number,
+  x2 : number, y2 : number,
+  direction: boolean
+) : void {
+  g.beginPath();
+  g.moveTo(x1, y1);
+
+  // Use a quadratic curve.
+  var mx = (x1 + x2) / 2 + Math.min(x1, x2);
+  var my = (y1 + y2) / 2 + Math.min(y1 + y2);
+  var distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+  var hyperDist = distance / 4;
+  // direction == true means move up or right. direction == false means move down or left.
+  if (x1 === x2) {
+    if (direction) {
+      mx += hyperDist;
+    } else {
+      mx -= hyperDist;
+    }
+  } else {
+    var invSlope = (x2 - x1) / (y2 - y1);
+    if (direction === invSlope < 0) {
+      invSlope *= -1;
+    }
+
+    // This is the point along the slope at distance hyperDist.
+    var resx = hyperDist / Math.sqrt(invSlope * invSlope + 1) + mx;
+    my = invSlope * (resx - mx) + my;
+    mx = resx;
+  }
+  g.quadraticCurveTo(mx, my, x2, y2);
+  g.stroke();
+}
+
+/**
  * drawArrow  
  *   Draws an arrow towards the destination node.
  */
