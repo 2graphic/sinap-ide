@@ -1432,43 +1432,39 @@ function drawLine(
 }
 
 /**
- * drawCurvyLine  
- *   Draws a curvy line between two points.
+ * drawQuadraticLine  
+ *   Draws a quadratic line between two points.
  */
-function drawCurvyLine(
+function drawQuadraticLine(
   g : CanvasRenderingContext2D,
   x1 : number, y1 : number,
-  x2 : number, y2 : number,
-  direction: boolean
+  x2 : number, y2 : number
 ) : void {
+
+  // Get the vector from point 1 to point 2.
+  let v = [
+    x2 - x1,
+    y2 - y1
+  ];
+
+  // Get the magnitude of the vector.
+  let d = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+
+  // Get the normal of the vector, rotated 180 degrees.
+  let n = [
+    v[1] / d,
+    -v[0] / d
+  ];
+
+  // Draw the quadric curve.
   g.beginPath();
   g.moveTo(x1, y1);
-
-  // Use a quadratic curve.
-  var mx = (x1 + x2) / 2 + Math.min(x1, x2);
-  var my = (y1 + y2) / 2 + Math.min(y1 + y2);
-  var distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-  var hyperDist = distance / 4;
-  // direction == true means move up or right. direction == false means move down or left.
-  if (x1 === x2) {
-    if (direction) {
-      mx += hyperDist;
-    } else {
-      mx -= hyperDist;
-    }
-  } else {
-    var invSlope = (x2 - x1) / (y2 - y1);
-    if (direction === invSlope < 0) {
-      invSlope *= -1;
-    }
-
-    // This is the point along the slope at distance hyperDist.
-    var resx = hyperDist / Math.sqrt(invSlope * invSlope + 1) + mx;
-    my = invSlope * (resx - mx) + my;
-    mx = resx;
-  }
-  g.quadraticCurveTo(mx, my, x2, y2);
+  g.quadraticCurveTo(
+    x1 + v[0] / 2 + n[0] * GRID_SPACING, y1 + v[1] / 2 + n[1] * GRID_SPACING,
+    x2, y2
+  );
   g.stroke();
+
 }
 
 /**
