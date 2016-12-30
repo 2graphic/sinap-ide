@@ -9,7 +9,7 @@
 
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "./menu.service"
-import { GraphEditorComponent, Drawable } from "./graph-editor.component"
+import { GraphEditorComponent } from "./graph-editor.component"
 import { PluginService, Interpreter } from "./plugin.service"
 import { REPLComponent, REPLDelegate } from "./repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "./properties-panel.component"
