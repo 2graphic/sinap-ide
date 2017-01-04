@@ -34,7 +34,7 @@ node_modules/
 
 # Required #
 ############
-!systemjs.config.js
+!webpack.config.js
 
 # Misc. #
 #########
