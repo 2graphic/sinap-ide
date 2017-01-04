@@ -9,9 +9,9 @@ Navigate to the project root directory before running any commands. E.g.:
 
 ```$ cd /path/to/sinap-ide```
 
-Use the following command to build and run the application:
-TODO: Use Gulp or something like it instead of NPM scripts.
-TODO: Make this README more useful/pretty
+Use the following command to build and run the application:  
+TODO: Use Gulp or something like it instead of NPM scripts.  
+TODO: Make this README more useful/pretty  
 
 ```$ npm run start:build```
 
