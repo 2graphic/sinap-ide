@@ -213,7 +213,7 @@ const EDGE_HIT_MARGIN : number = 20;
 const EDGE_DRAG_LINESTYLE : string =  "dotted";
 
 /**
- * EDGE_DEFAULTS
+ * EDGE_DEFAULTS  
  *   Default property values for drawable edges.
  */
 const EDGE_DEFAULTS : DrawableEdge = {
@@ -245,7 +245,6 @@ export function isDrawableEdge(obj : any) : obj is DrawableEdge {
   return isItThat(obj, EDGE_DEFAULTS);
 }
 
-
 /**
  * isDrawableNode  
  *   Typeguard for drawable nodes.
@@ -256,6 +255,7 @@ export function isDrawableNode(obj : any) : obj is DrawableNode {
 
 
 // Public interfaces ///////////////////////////////////////////////////////////
+
 
 /**
  * DrawableGraph  
@@ -350,13 +350,13 @@ export interface DrawableEdge {
    * source  
    *   The source node of the edge.
    */
-  source : DrawableNode;
+  source : DrawableNode | null;
 
   /**
    * destination  
    *   The destination node of the edge.
    */
-  destination : DrawableNode;
+  destination : DrawableNode | null;
 
   /**
    * showSourceArrow  
@@ -457,7 +457,6 @@ export interface DrawableNode {
   // more display properties
 }
 
-
 /**
  * Drawable  
  *   Type alias for the the union type of `DrawableEdge` and `DrawableNode`.
@@ -523,13 +522,13 @@ export class GraphEditorComponent implements AfterViewInit {
    * graph  
    *   The graph object.
    */
-  private graph : DrawableGraph = null;
+  private graph : DrawableGraph;
 
   /**
    * g  
    *   The 2D graphics rendering context from the canvas element.
    */
-  private g : CanvasRenderingContext2D = null;
+  private g : CanvasRenderingContext2D;
 
   /**
    * gridOriginPt  
@@ -541,7 +540,7 @@ export class GraphEditorComponent implements AfterViewInit {
    * downEvt  
    *   The previous mousedown event payload.
    */
-  private downEvt : MouseEvent = null;
+  private downEvt : MouseEvent | null = null;
 
   /**
    * stickyTimeout  
@@ -554,19 +553,19 @@ export class GraphEditorComponent implements AfterViewInit {
    * dragObect  
    *   The graph component being dragged by the cursor.
    */
-  private dragObject : Drawable = null;
+  private dragObject : Drawable | null = null;
 
   /**
    * hoverObject  
    *   The graph component over which the cursor is hovering.
    */
-  private hoverObject : Drawable = null;
+  private hoverObject : Drawable | null = null;
 
   /**
    * moveEdge  
    *   The edge to be replaced once the new edge has been created.
    */
-  private moveEdge : DrawableEdge = null;
+  private moveEdge : DrawableEdge | null = null;
 
   /**
    * selectedItems  
@@ -663,44 +662,46 @@ export class GraphEditorComponent implements AfterViewInit {
       this.stickyTimeout = setTimeout(() => {
 
         // Set the drag object and reset sticky.
-        let downPt = getMousePt(this.g, this.downEvt);
-        clearTimeout(this.stickyTimeout);
-        this.stickyTimeout = null;
-        this.dragObject = this.hitTest(downPt);
+        if(this.downEvt) {
+          let downPt = getMousePt(this.g, this.downEvt);
+          clearTimeout(this.stickyTimeout);
+          this.stickyTimeout = null;
+          this.dragObject = this.hitTest(downPt);
 
-        // Create a new node and set it as the drag object if no drag object
-        // was set.
-        if(!this.dragObject) {
-          this.dragObject = this.graph.createNode(downPt[0], downPt[1]);
-          this.clearSelected();
-          this.addSelectedItem(this.dragObject);
-          this.redraw();
-        }
+          // Create a new node and set it as the drag object if no drag object
+          // was set.
+          if(!this.dragObject) {
+            this.dragObject = this.graph.createNode(downPt[0], downPt[1]);
+            this.clearSelected();
+            this.addSelectedItem(this.dragObject);
+            this.redraw();
+          }
 
-        // Set the drag object to some dummy edge and the replace edge to the
-        // original drag object if the drag object was an edge.
-        else if(isDrawableEdge(this.dragObject)) {
-          //
-          // TODO:
-          // Determine which side of the edge the hit test landed on.
-          //
-          this.moveEdge = this.dragObject;
-          this.dragObject = cloneEdge(this.moveEdge);
-          this.dragObject.lineStyle = EDGE_DRAG_LINESTYLE;
-          this.redraw();
-          this.g.globalAlpha = 0.5;
-          this.drawEdge(this.dragObject, downPt[0], downPt[1]);
-          this.g.globalAlpha = 1;
-        }
+          // Set the drag object to some dummy edge and the replace edge to the
+          // original drag object if the drag object was an edge.
+          else if(isDrawableEdge(this.dragObject)) {
+            //
+            // TODO:
+            // Determine which side of the edge the hit test landed on.
+            //
+            this.moveEdge = this.dragObject;
+            this.dragObject = cloneEdge(this.moveEdge);
+            this.dragObject.lineStyle = EDGE_DRAG_LINESTYLE;
+            this.redraw();
+            this.g.globalAlpha = 0.5;
+            this.drawEdge(this.dragObject, downPt[0], downPt[1]);
+            this.g.globalAlpha = 1;
+          }
 
-        // Create a new dummy edge with the source node as the drag object.
-        else if(isDrawableNode(this.dragObject)) {
-          this.dragObject = new DummyEdge(this.dragObject);
-          this.dragObject.lineStyle = EDGE_DRAG_LINESTYLE;
-          this.redraw();
-          this.g.globalAlpha = 0.3;
-          this.drawEdge(this.dragObject, downPt[0], downPt[1]);
-          this.g.globalAlpha = 1;
+          // Create a new dummy edge with the source node as the drag object.
+          else if(isDrawableNode(this.dragObject)) {
+            this.dragObject = new DummyEdge(this.dragObject);
+            this.dragObject.lineStyle = EDGE_DRAG_LINESTYLE;
+            this.redraw();
+            this.g.globalAlpha = 0.3;
+            this.drawEdge(this.dragObject, downPt[0], downPt[1]);
+            this.g.globalAlpha = 1;
+          }
         }
       }, STICKY_DELAY);
     }
@@ -783,14 +784,12 @@ export class GraphEditorComponent implements AfterViewInit {
               this.selectedItems.has(this.dragObject) &&
               this.selectedItems.size > 0
             ) {
+              let dx = ePt[0] - this.dragObject.x;
+              let dy = ePt[1] - this.dragObject.y;
               for(let o of this.selectedItems) {
-                let dx = ePt[0] - this.dragObject.x;
-                let dy = ePt[1] - this.dragObject.y;
-                for(let o of this.selectedItems) {
-                  if(isDrawableNode(o)) {
-                    o.x += dx;
-                    o.y += dy;
-                  }
+                if(isDrawableNode(o)) {
+                  o.x += dx;
+                  o.y += dy;
                 }
               }
             }
@@ -845,7 +844,8 @@ export class GraphEditorComponent implements AfterViewInit {
 
           // Move the edge if one is being dragged and it can be moved.
           if(
-            this.moveEdge && 
+            this.moveEdge &&
+            this.dragObject.source &&
             this.graph.canCreateEdge(this.dragObject.source, hit, this.moveEdge)
           ) {
             this.removeSelectedItem(this.moveEdge);
@@ -858,6 +858,7 @@ export class GraphEditorComponent implements AfterViewInit {
           // Create a new edge if none is being moved and it can be created.
           else if(
             !this.moveEdge &&
+            this.dragObject.source &&
             this.graph.canCreateEdge(this.dragObject.source, hit)
           ) {
             this.clearSelected();
@@ -972,9 +973,9 @@ export class GraphEditorComponent implements AfterViewInit {
           SELECTION_COLOR,
           SELECTION_COLOR,
           (n === this.dragObject || n === this.hoverObject ?
-           20 * AA_SCALE : null),
+           20 * AA_SCALE : undefined),
           (n === this.dragObject ? NODE_DRAG_SHADOW_COLOR :
-           (n === this.hoverObject ? SELECTION_COLOR : null))
+           (n === this.hoverObject ? SELECTION_COLOR : undefined))
         );
         drawCircle(
           this.g,
@@ -999,9 +1000,9 @@ export class GraphEditorComponent implements AfterViewInit {
           SELECTION_COLOR,
           SELECTION_COLOR,
           (n === this.dragObject || n === this.hoverObject ?
-           20 * AA_SCALE : null),
+           20 * AA_SCALE : undefined),
           (n === this.dragObject ? NODE_DRAG_SHADOW_COLOR :
-           (n === this.hoverObject ? SELECTION_COLOR : null))
+           (n === this.hoverObject ? SELECTION_COLOR : undefined))
         );
         hs = s / 2;
         drawSquare(
@@ -1028,9 +1029,9 @@ export class GraphEditorComponent implements AfterViewInit {
           n.borderColor,
           n.color,
           (n === this.dragObject || n === this.hoverObject ?
-           20 * AA_SCALE : null),
+           20 * AA_SCALE : undefined),
           (n === this.dragObject ? NODE_DRAG_SHADOW_COLOR :
-            (n === this.hoverObject ? SELECTION_COLOR : null))
+            (n === this.hoverObject ? SELECTION_COLOR : undefined))
         );
       }
       else if(n.shape === "square") {
@@ -1044,9 +1045,9 @@ export class GraphEditorComponent implements AfterViewInit {
           n.borderColor,
           n.color,
           (n === this.dragObject || n === this.hoverObject ?
-           20 * AA_SCALE : null),
+           20 * AA_SCALE : undefined),
           (n === this.dragObject ? NODE_DRAG_SHADOW_COLOR :
-            (n === this.hoverObject ? SELECTION_COLOR : null))
+            (n === this.hoverObject ? SELECTION_COLOR : undefined))
         );
       }
     }
@@ -1090,10 +1091,10 @@ export class GraphEditorComponent implements AfterViewInit {
     if(x && y) {
       if(e.source)
         drawLine(this.g, e.source.x, e.source.y, x, y);
-      else
+      else if(e.destination)
         drawLine(this.g, x, y, e.destination.x, e.destination.y);
     }
-    else {
+    else if(e.source && e.destination) {
       drawLine(this.g, e.source.x, e.source.y, e.destination.x, e.destination.y);
       if(e.showSourceArrow)
         drawArrow(this.g, e.destination, e.source);
@@ -1165,7 +1166,7 @@ export class GraphEditorComponent implements AfterViewInit {
    *   Nodes take priority over edges.
    * </p>
    */
-  private hitTest(pt : number[]) : Drawable {
+  private hitTest(pt : number[]) : Drawable | null {
 
     // Hit test nodes first.
     for(let n of this.graph.nodes) {
@@ -1189,42 +1190,44 @@ export class GraphEditorComponent implements AfterViewInit {
 
     // Hit test edges.
     for(let e of this.graph.edges) {
-      // Edge vector src -> dst
-      let ve = [
-        e.destination.x - e.source.x,
-        e.destination.y - e.source.y,
-      ];
-      // Cursor vector e.src -> mouse
-      let vm = [
-        pt[0] - e.source.x,
-        pt[1] - e.source.y
-      ];
-      let dotee = dot(ve, ve); // edge dot edge
-      let dotem = dot(ve, vm); // edge dot mouse
-      // Projection vector mouse -> edge
-      let p = [
-        ve[0] * dotem / dotee,
-        ve[1] * dotem / dotee
-      ];
-      // Rejection vector mouse -^ edge
-      let r = [
-        vm[0] - p[0],
-        vm[1] - p[1]
-      ];
+      if(e.source && e.destination) {
+        // Edge vector src -> dst
+        let ve = [
+          e.destination.x - e.source.x,
+          e.destination.y - e.source.y,
+        ];
+        // Cursor vector e.src -> mouse
+        let vm = [
+          pt[0] - e.source.x,
+          pt[1] - e.source.y
+        ];
+        let dotee = dot(ve, ve); // edge dot edge
+        let dotem = dot(ve, vm); // edge dot mouse
+        // Projection vector mouse -> edge
+        let p = [
+          ve[0] * dotem / dotee,
+          ve[1] * dotem / dotee
+        ];
+        // Rejection vector mouse -^ edge
+        let r = [
+          vm[0] - p[0],
+          vm[1] - p[1]
+        ];
 
-      let dotpp = dot(p, p); // proj dot proj
-      let dotrr = dot(r, r); // rej dot rej
+        let dotpp = dot(p, p); // proj dot proj
+        let dotrr = dot(r, r); // rej dot rej
 
-      let dep = [
-        ve[0] - p[0],
-        ve[1] - p[1]
-      ];
-      let dotdep = dot(dep, dep);
+        let dep = [
+          ve[0] - p[0],
+          ve[1] - p[1]
+        ];
+        let dotdep = dot(dep, dep);
 
-      if(dotpp <= dotee &&
-         dotdep <= dotee &&
-         dotrr < e.lineWidth * e.lineWidth + EDGE_HIT_MARGIN * EDGE_HIT_MARGIN)
-        return e;
+        if(dotpp <= dotee &&
+          dotdep <= dotee &&
+          dotrr < e.lineWidth * e.lineWidth + EDGE_HIT_MARGIN * EDGE_HIT_MARGIN)
+          return e;
+      }
     }
     return null;
   }
@@ -1233,12 +1236,15 @@ export class GraphEditorComponent implements AfterViewInit {
    * rectHitTest  
    *   Checks if a graph component was hit by a rectangle.
    */
-  private rectHitTest(c : Drawable, rect) : boolean {
+  private rectHitTest(c : Drawable, rect : any) : boolean {
     return (isDrawableNode(c) &&
             c.x >= rect.x && c.x <= rect.x + rect.w &&
             c.y >= rect.y && c.y <= rect.y + rect.h) ||
-           (isDrawableEdge(c) && (this.rectHitTest(c.source, rect) ||
-            this.rectHitTest(c.destination, rect)));
+           (isDrawableEdge(c) &&
+           (c.source && c.destination) &&
+           (this.rectHitTest(c.source, rect) ||
+            this.rectHitTest(c.destination, rect))) ||
+            false;
   }
 
 }
@@ -1401,10 +1407,8 @@ function makeRect(x1 : number, y1 : number, x2 : number, y2 : number) {
  * clear  
  *   Clears the canvas.
  */
-function clear(g : CanvasRenderingContext2D, bgColor) : void {
+function clear(g : CanvasRenderingContext2D, bgColor : string) : void {
   let canvas = g.canvas;
-  let w = canvas.width;
-  let h = canvas.height;
   g.fillStyle = bgColor;
   g.fillRect(0, 0, canvas.width, canvas.height);
 }
@@ -1413,7 +1417,7 @@ function clear(g : CanvasRenderingContext2D, bgColor) : void {
  * drawSelectionBox  
  *   Draws the selection box.
  */
-function drawSelectionBox(g : CanvasRenderingContext2D, rect) : void {
+function drawSelectionBox(g : CanvasRenderingContext2D, rect : any) : void {
   g.strokeStyle = SELECTION_COLOR;
   g.fillStyle = SELECTION_COLOR;
   g.globalAlpha = 0.1;
@@ -1439,41 +1443,41 @@ function drawLine(
   g.stroke();
 }
 
-/**
- * drawQuadraticLine  
- *   Draws a quadratic line between two points.
- */
-function drawQuadraticLine(
-  g : CanvasRenderingContext2D,
-  x1 : number, y1 : number,
-  x2 : number, y2 : number
-) : void {
+// /**
+//  * drawQuadraticLine  
+//  *   Draws a quadratic line between two points.
+//  */
+// function drawQuadraticLine(
+//   g : CanvasRenderingContext2D,
+//   x1 : number, y1 : number,
+//   x2 : number, y2 : number
+// ) : void {
 
-  // Get the vector from point 1 to point 2.
-  let v = [
-    x2 - x1,
-    y2 - y1
-  ];
+//   // Get the vector from point 1 to point 2.
+//   let v = [
+//     x2 - x1,
+//     y2 - y1
+//   ];
 
-  // Get the magnitude of the vector.
-  let d = magnitude(v);
+//   // Get the magnitude of the vector.
+//   let d = magnitude(v);
 
-  // Get the normal of the vector, rotated 180 degrees.
-  let n = [
-    v[1] / d,
-    -v[0] / d
-  ];
+//   // Get the normal of the vector, rotated 180 degrees.
+//   let n = [
+//     v[1] / d,
+//     -v[0] / d
+//   ];
 
-  // Draw the quadric curve.
-  g.beginPath();
-  g.moveTo(x1, y1);
-  g.quadraticCurveTo(
-    x1 + v[0] / 2 + n[0] * GRID_SPACING, y1 + v[1] / 2 + n[1] * GRID_SPACING,
-    x2, y2
-  );
-  g.stroke();
+//   // Draw the quadric curve.
+//   g.beginPath();
+//   g.moveTo(x1, y1);
+//   g.quadraticCurveTo(
+//     x1 + v[0] / 2 + n[0] * GRID_SPACING, y1 + v[1] / 2 + n[1] * GRID_SPACING,
+//     x2, y2
+//   );
+//   g.stroke();
 
-}
+// }
 
 /**
  * drawArrow  
@@ -1683,7 +1687,7 @@ function dot(a : number[], b : number[]) : number {
  * magnitude  
  *   Calculates the magnitude of a vector.
  */
-function magnitude(v) : number {
+function magnitude(v : number[]) : number {
   return Math.sqrt(dot(v, v));
 }
 
@@ -1704,46 +1708,46 @@ function cloneEdge(e : DrawableEdge) : DrawableEdge {
   return clone;
 }
 
-/**
- * cloneNode  
- *   Creates a cloned node.
- */
-function cloneNode(n : DrawableNode) : DrawableNode {
-  let clone = new DummyNode(n.x, n.y);
-  clone.label = n.label;
-  clone.shape = n.shape;
-  clone.color = n.color;
-  clone.borderColor = n.borderColor;
-  clone.borderStyle = n.borderStyle;
-  clone.borderWidth = n.borderWidth;
-  return clone;
-}
+// /**
+//  * cloneNode  
+//  *   Creates a cloned node.
+//  */
+// function cloneNode(n : DrawableNode) : DrawableNode {
+//   let clone = new DummyNode(n.x, n.y);
+//   clone.label = n.label;
+//   clone.shape = n.shape;
+//   clone.color = n.color;
+//   clone.borderColor = n.borderColor;
+//   clone.borderStyle = n.borderStyle;
+//   clone.borderWidth = n.borderWidth;
+//   return clone;
+// }
 
 
 // Static classes //////////////////////////////////////////////////////////////
 
-/**
- * DummyNode  
- *   Creates a dummy node with default properties.
- */
-class DummyNode implements DrawableNode {
-  label : string = NODE_DEFAULTS.label;
-  shape: string = NODE_DEFAULTS.shape;
-  color : string = NODE_DEFAULTS.color;
-  borderColor : string = NODE_DEFAULTS.borderColor;
-  borderStyle : string = NODE_DEFAULTS.borderStyle;
-  borderWidth : number = NODE_DEFAULTS.borderWidth;
+// /**
+//  * DummyNode  
+//  *   Creates a dummy node with default properties.
+//  */
+// class DummyNode implements DrawableNode {
+//   label : string = NODE_DEFAULTS.label;
+//   shape: string = NODE_DEFAULTS.shape;
+//   color : string = NODE_DEFAULTS.color;
+//   borderColor : string = NODE_DEFAULTS.borderColor;
+//   borderStyle : string = NODE_DEFAULTS.borderStyle;
+//   borderWidth : number = NODE_DEFAULTS.borderWidth;
 
-  constructor(public x : number, public y : number) { }
-}
+//   constructor(public x : number, public y : number) { }
+// }
 
 /**
  * DummyEdge  
  *   Creates a dummy edge with default properties.
  */
 class DummyEdge implements DrawableEdge {
-  source : DrawableNode = EDGE_DEFAULTS.source;
-  destination : DrawableNode = EDGE_DEFAULTS.destination;
+  source : DrawableNode | null = EDGE_DEFAULTS.source;
+  destination : DrawableNode | null = EDGE_DEFAULTS.destination;
   showSourceArrow : boolean = EDGE_DEFAULTS.showSourceArrow;
   showDestinationArrow : boolean = EDGE_DEFAULTS.showDestinationArrow;
   color : string = EDGE_DEFAULTS.color;
@@ -1751,7 +1755,7 @@ class DummyEdge implements DrawableEdge {
   lineWidth : number = EDGE_DEFAULTS.lineWidth;
   label = EDGE_DEFAULTS.label;
 
-  constructor(sourceNode : DrawableNode = EDGE_DEFAULTS.source) {
+  constructor(sourceNode : DrawableNode | null = EDGE_DEFAULTS.source) {
     this.source = sourceNode;
   }
 }

@@ -22,7 +22,7 @@ import { app, BrowserWindow } from "electron";
  *   Keeps track of the main window so it does not accidentally get garbage
  *   collected while it is still being used.
  */
-let win;
+let win : Electron.BrowserWindow | null;
 
 
 /**
