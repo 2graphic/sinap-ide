@@ -14,7 +14,7 @@
     "noImplicitReturns": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false, // Need a way for TypeScript to know about template files.
     "noUnusedParameters": true,
     "strictNullChecks": true,
 

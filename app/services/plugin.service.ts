@@ -133,13 +133,14 @@ export class PluginService {
         }
     }
 
-    public getManager(kind : string){
+    public getManager(kind : string) {
         if (kind == "machine-learning.sinap.graph-kind"){
             return new MachineLearningPluginManager(kind);
         } else if (kind == "dfa.sinap.graph-kind"){
             return new DFAPluginManager(kind);
         }
-        return null;
+        
+        throw new Error("Plugin Manager " + kind + " is not available.")
     }
 }
 

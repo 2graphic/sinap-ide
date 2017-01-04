@@ -14,7 +14,7 @@ import { SinapType } from "../../models/types";
 })
 
 export class PropertiesPanelComponent {
-  public selectedEntity : PropertiedEntity;
+  public selectedEntity : PropertiedEntity | null = null;
   public console = console;
   // get selectedEntity() {
   //   return this._selectedEntity;
@@ -27,7 +27,8 @@ export class PropertiesPanelComponent {
   private isEmpty() {
     if (this.selectedEntity) {
       for (let group of this.groups) {
-        if (this.selectedEntity[group[1]] && this.selectedEntity[group[1]].length > 0) {
+        let g = (this.selectedEntity as any)[group[1]];
+        if (g && g.length > 0) {
           return false;
         }
       }

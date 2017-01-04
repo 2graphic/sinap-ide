@@ -10,13 +10,13 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service"
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component"
-import { PluginService, Interpreter } from "../../services/plugin.service"
+import { PluginService } from "../../services/plugin.service"
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "../properties-panel/properties-panel.component"
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
 import { TestPanelComponent } from "../test-panel/test-panel.component"
 import { StatusBarComponent } from "../status-bar/status-bar.component"
-import { SinapType, SinapNumber, SinapFile, SinapBoolean, SinapString, SinapStructType } from "../../models/types";
+import { SinapFile } from "../../models/types";
 import { Element, Graph, deserializeGraph } from "../../models/graph"
 import { SideBarComponent } from "../side-bar/side-bar.component"
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
@@ -74,13 +74,13 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
   public barMessages = ["DFA", ""]
 
   private tabs: Map<Number, TabContext> = new Map<Number, TabContext>();
-  private context: TabContext;
+  private context: TabContext | null;
 
   @ViewChild(StatusBarComponent)
   private statusBar: StatusBarComponent;
 
   // TODO: Probably always refer to the graph in the tab's context
-  graph : Graph;
+  graph : Graph | null;
 
   onGraphChanged = ()=>{ // arrow syntax to bind correct "this"
     if (this.graph) {
@@ -131,11 +131,11 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
   selectedTab(i: Number) {
     if (i == -1) {
       // No tabs
-      this.graph = undefined;
-      this.context = undefined;
+      this.graph = null;
+      this.context = null;
       this.onGraphChanged();
     } else if (this.tabs.has(i)) {
-      this.context = this.tabs.get(i);
+      this.context = this.tabs.get(i) as TabContext;
       this.graph = this.context.graph;
       this.toolsPanel.manager = this.graph.pluginManager;
 
@@ -169,9 +169,9 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     dialog.showSaveDialog({}, (filename) => {
       let graph = {
           'sinap-file-format-version' : "0.0.1",
-          'graph': this.graph.serialize()
+          'graph': (this.graph as Graph).serialize()
       };
-      fs.writeFile(filename, JSON.stringify(graph), 'utf8', (err) => {
+      fs.writeFile(filename, JSON.stringify(graph), 'utf8', (err: any) => {
         if (err)
           alert(`Error occurred while saving to file ${filename}: ${err}.`);
       });
@@ -182,7 +182,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     dialog.showOpenDialog({}, (files) => {
       // TODO: Make this actually handle multiple files.
       let filename = files[0];
-      fs.readFile(filename, 'utf8', (err, data) => {
+      fs.readFile(filename, 'utf8', (err:any, data:string) => {
         if (err) {
           alert(`Error reading file ${filename}: ${err}`);
         }
@@ -200,21 +200,25 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
   }
 
   run(input: String):String {
-    let interpreter = this.pluginService.getInterpreter(this.graph);
-    return interpreter.run(input)+"";
+    if (this.graph) {
+      let interpreter = this.pluginService.getInterpreter(this.graph);
+      return interpreter.run(input)+"";
+    } else {
+      throw new Error("No Graph to Run");
+    }
   }
 
-  graphSelectionChanged(selected) {
-    let newSelectedEntity : Element;
+  graphSelectionChanged(selected: Set<PropertiedEntity>) {
+    let newSelectedEntity : PropertiedEntity | null = null;
     if (selected.size > 0){
       for (let x of selected){
         // this cast is safe because we know that the only Drawables that we
         // ever give the `graphEditor` are `Element`s
-        newSelectedEntity = x as Element;
+        newSelectedEntity = x;
         break;
       }
     } else {
-      newSelectedEntity = this.graph;
+      newSelectedEntity = this.graph; // TODO:: I think once errors are dealt with in graph.ts, this will no longer be an error.
     } 
     // ugly trick to silence the fact that things seem to get emitted too often
     // TODO, reduce the frequency things are emitted
@@ -228,5 +232,5 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 }
 
 class TabContext {
-  constructor(public graph: Graph, public selectedEntity: PropertiedEntity, public filename?) {};
+  constructor(public graph: Graph, public selectedEntity: PropertiedEntity | null, public filename?: String) {};
 }

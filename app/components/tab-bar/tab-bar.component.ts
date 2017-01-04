@@ -39,14 +39,14 @@ export class TabBarComponent {
         }
     }
 
-    private findTab(index: Number):Tab {
+    private findTab(index: Number):Tab|null {
         for (let tab of this.tabs) {
             if (tab.index == index) {
                 return tab;
             }
         }
 
-        return undefined;
+        return null;
     }
 
     // If the current tab is selected, delegate.selectedTab() is called with the new selected tab before delegate.deletedTab()
