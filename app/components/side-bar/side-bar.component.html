@@ -1,0 +1,10 @@
+<div id="wrapper">
+    <div id="logo">
+        <!-- Eventually we'll put the logo here -->
+    </div>
+    <img  *ngFor="let icon of icons"
+        [src]="icon.path"
+        [class.active]="icon.name == active"
+        (click)="setActive(icon)"
+        />
+</div>

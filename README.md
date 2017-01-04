@@ -9,18 +9,18 @@ Navigate to the project root directory before running any commands. E.g.:
 
 ```$ cd /path/to/sinap-ide```
 
-Be sure to install project dependencies before running:
+Use the following command to build and run the application:
+TODO: Use Gulp or something like it instead of NPM scripts.
+TODO: Make this README more useful/pretty
 
-```$ npm install```
+```$ npm run start:build```
 
-Use the following command to run the application:
+Use the following command to build and package the electron app (places apps in the dist folder):
 
-```$ npm start```
+```$ npm run package```
 
-# Development Notes
-
-index.html should not need to be changed. The only thing that should be changed
-in index.ts is functionality for the main menu.
-
-Everything else should be done in the scripts, styles, and html directories.
-Please try to follow the conventions outlined by the Angular2 TS guide.
+app/index.ts = Starting point for Electron application.
+app/main.ts = Starting point for Angular 2 application.
+app/main.module.ts = Our module for the Sinap IDE
+app/vendors.ts = Import all libraries we're using. (Currently on Angular)
+app/polyfills.ts = IDK ok

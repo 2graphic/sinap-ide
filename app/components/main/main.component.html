@@ -1,0 +1,53 @@
+<div class="flex-container-row full-size">
+  <div id="content" class="flex-container-column">
+    <div id="top-panels" class="flex-container-row">
+      <sinap-side-bar #leftSideBar class="side-bar" [icons]="
+          [{
+            path: '${require('../../images/properties.svg')}',
+            name: 'Properties'
+          },
+          {
+            path: '${require('../../images/tools.svg')}',
+            name: 'Tools'
+          },
+          {
+            path: '${require('../../images/files.svg')}',
+            name: 'Files'
+          }]">
+      </sinap-side-bar>
+      <div id="side-panel">
+        <sinap-properties-panel [hidden]="!(leftSideBar.active == 'Properties')">
+        </sinap-properties-panel>
+        <sinap-tools-panel [hidden]="!(leftSideBar.active == 'Tools')">
+        </sinap-tools-panel>
+        <sinap-files-panel [hidden]="!(leftSideBar.active == 'Files')">
+        </sinap-files-panel>
+      </div>
+      <div id="editor-panel" class="flex-container-column">
+        <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
+        <sinap-graph-editor [graph]="graph" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor"></sinap-graph-editor>
+        <sinap-status-bar id="status-bar" [title]="package" [items]="barMessages"></sinap-status-bar>
+      </div> 
+    </div>
+    <div id="bottom-panels" class="flex-container-row">
+      <sinap-side-bar #bottomSideBar class="side-bar" [icons]="
+          [{
+            path: '${require('../../images/input.svg')}',
+            name: 'Input'
+          },
+          {
+            path: '${require('../../images/test.svg')}',
+            name: 'Test'
+          },
+          {
+            path: '${require('../../images/debug.svg')}',
+            name: 'Debug'
+          }]">
+      </sinap-side-bar>
+      <div id="bottom-panel">
+        <repl [hidden]="!(bottomSideBar.active == 'Input')"></repl>
+        <sinap-test-panel [hidden]="!(bottomSideBar.active == 'Test')"></sinap-test-panel>
+        <sinap-debug-panel [hidden]="!(bottomSideBar.active == 'Debug')"></sinap-debug-panel>
+      </div>
+    </div>
+  </div>
