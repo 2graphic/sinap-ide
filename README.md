@@ -19,8 +19,8 @@ Use the following command to build and package the electron app (places apps in 
 
 ```$ npm run package```
 
-app/index.ts = Starting point for Electron application.
-app/main.ts = Starting point for Angular 2 application.
-app/main.module.ts = Our module for the Sinap IDE
-app/vendors.ts = Import all libraries we're using. (Currently on Angular)
+app/index.ts = Starting point for Electron application.  
+app/main.ts = Starting point for Angular 2 application.  
+app/main.module.ts = Our module for the Sinap IDE  
+app/vendors.ts = Import all libraries we're using. (Currently on Angular)  
 app/polyfills.ts = IDK ok
