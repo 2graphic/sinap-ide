@@ -15,7 +15,7 @@ function map<T, U>(i : Iterable<T>, f : ((x : T) => U)) : Array<U>{
   return proto_map_func.call(i, f);
 }
 
-function proxify(obj, that){
+function proxify(obj:any, that:any){
   return new Proxy(obj, {
       get : that.getProperty.bind(that),
       set : that.setProperty.bind(that)
@@ -29,6 +29,7 @@ function proxify(obj, that){
  * other classes want will be specified in interfaces this (or it's subclasses implement). 
  */
 export class Element implements PropertiedEntity {
+  // TODO Stricter type checking
   isEdge(){
     return false;
   }
@@ -39,14 +40,18 @@ export class Element implements PropertiedEntity {
     return false;
   }
 
-  constructor(public entityName : string, public pluginProperties : Array<[string, SinapType]>, public computedProperties : Array<[string, SinapType, (PropertiedEntity)=>void]>, public handler : (() => void), private _propertyValues){
+  constructor(public entityName : string, 
+              public pluginProperties : Array<[string, SinapType]>, 
+              public computedProperties : Array<[string, SinapType, (_:PropertiedEntity)=>void]>, 
+              public handler : (() => void), 
+              private _propertyValues:any){
     for (let prop of pluginProperties){
       this._propertyValues[prop[0]] = prop[1].prototypicalStructure();
     }
     this.propertyValues = proxify(this._propertyValues, this);
   }
 
-  private getProperty(target, k : PropertyKey){
+  private getProperty(target:any, k : PropertyKey){
     // TODO, this condition is insufficient, arrays too
     if ((! (target[k] instanceof Node)) && target[k] != null && typeof target[k] == 'object'){
       // TODO inefficient, creates tons of Proxy objects
@@ -55,7 +60,7 @@ export class Element implements PropertiedEntity {
     return target[k];
   }
 
-  private setProperty(target, k : PropertyKey, v){
+  private setProperty(target:any, k : PropertyKey, v:any){
     target[k] = v;
     for (let tri of this.computedProperties){
       target[tri[0]] = tri[2](this);
@@ -65,7 +70,7 @@ export class Element implements PropertiedEntity {
   }
 
   displayProperties : Array<[string, SinapType]> = [];
-  propertyValues = null;
+  propertyValues : Object;
 
   serialize(){
     return this._propertyValues;
@@ -75,7 +80,7 @@ export class Element implements PropertiedEntity {
 /**
  * add all the keys of b to a
  */
-function extend(a, b){
+function extend(a:any, b:any){
   for(let k in b){
     if (b.hasOwnProperty(k)){
       a[k] = b[k]

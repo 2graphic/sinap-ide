@@ -218,7 +218,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         break;
       }
     } else {
-      newSelectedEntity = this.graph; // TODO:: I think once errors are dealt with in graph.ts, this will no longer be an error.
+      newSelectedEntity = this.graph;
     } 
     // ugly trick to silence the fact that things seem to get emitted too often
     // TODO, reduce the frequency things are emitted
