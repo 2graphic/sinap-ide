@@ -546,8 +546,7 @@ export class GraphEditorComponent implements AfterViewInit {
    * stickyTimeout  
    *   Timer reference for the sticky delay.
    */
-  // TODO I changed this from stickyTimeout to any, and I probably broke it. -love, Daniel
-  private stickyTimeout : any = null;
+  private stickyTimeout : NodeJS.Timer | number | null = null;
 
   /**
    * dragObect  
@@ -664,7 +663,7 @@ export class GraphEditorComponent implements AfterViewInit {
         // Set the drag object and reset sticky.
         if(this.downEvt) {
           let downPt = getMousePt(this.g, this.downEvt);
-          clearTimeout(this.stickyTimeout);
+          clearTimeout(this.stickyTimeout as NodeJS.Timer);
           this.stickyTimeout = null;
           this.dragObject = this.hitTest(downPt);
 
@@ -730,7 +729,7 @@ export class GraphEditorComponent implements AfterViewInit {
         // Reset waiting if waiting is still active and the mouse has moved too
         // far.
         if(this.stickyTimeout && (dx * dx + dy * dy > NUDGE * NUDGE)) {
-          clearTimeout(this.stickyTimeout);
+          clearTimeout(this.stickyTimeout as NodeJS.Timer);
           this.stickyTimeout = null;
 
           // Check the drag object.
@@ -900,7 +899,7 @@ export class GraphEditorComponent implements AfterViewInit {
       }
 
       // Reset input states.
-      clearTimeout(this.stickyTimeout);
+      clearTimeout(this.stickyTimeout as NodeJS.Timer);
       this.stickyTimeout = null;
       this.downEvt = null;
       this.dragObject = null;
@@ -1443,41 +1442,41 @@ function drawLine(
   g.stroke();
 }
 
-// /**
-//  * drawQuadraticLine  
-//  *   Draws a quadratic line between two points.
-//  */
-// function drawQuadraticLine(
-//   g : CanvasRenderingContext2D,
-//   x1 : number, y1 : number,
-//   x2 : number, y2 : number
-// ) : void {
+/**
+ * drawQuadraticLine  
+ *   Draws a quadratic line between two points.
+ */
+function drawQuadraticLine(
+  g : CanvasRenderingContext2D,
+  x1 : number, y1 : number,
+  x2 : number, y2 : number
+) : void {
 
-//   // Get the vector from point 1 to point 2.
-//   let v = [
-//     x2 - x1,
-//     y2 - y1
-//   ];
+  // Get the vector from point 1 to point 2.
+  let v = [
+    x2 - x1,
+    y2 - y1
+  ];
 
-//   // Get the magnitude of the vector.
-//   let d = magnitude(v);
+  // Get the magnitude of the vector.
+  let d = magnitude(v);
 
-//   // Get the normal of the vector, rotated 180 degrees.
-//   let n = [
-//     v[1] / d,
-//     -v[0] / d
-//   ];
+  // Get the normal of the vector, rotated 180 degrees.
+  let n = [
+    v[1] / d,
+    -v[0] / d
+  ];
 
-//   // Draw the quadric curve.
-//   g.beginPath();
-//   g.moveTo(x1, y1);
-//   g.quadraticCurveTo(
-//     x1 + v[0] / 2 + n[0] * GRID_SPACING, y1 + v[1] / 2 + n[1] * GRID_SPACING,
-//     x2, y2
-//   );
-//   g.stroke();
+  // Draw the quadric curve.
+  g.beginPath();
+  g.moveTo(x1, y1);
+  g.quadraticCurveTo(
+    x1 + v[0] / 2 + n[0] * GRID_SPACING, y1 + v[1] / 2 + n[1] * GRID_SPACING,
+    x2, y2
+  );
+  g.stroke();
 
-// }
+}
 
 /**
  * drawArrow  
@@ -1708,38 +1707,38 @@ function cloneEdge(e : DrawableEdge) : DrawableEdge {
   return clone;
 }
 
-// /**
-//  * cloneNode  
-//  *   Creates a cloned node.
-//  */
-// function cloneNode(n : DrawableNode) : DrawableNode {
-//   let clone = new DummyNode(n.x, n.y);
-//   clone.label = n.label;
-//   clone.shape = n.shape;
-//   clone.color = n.color;
-//   clone.borderColor = n.borderColor;
-//   clone.borderStyle = n.borderStyle;
-//   clone.borderWidth = n.borderWidth;
-//   return clone;
-// }
+/**
+ * cloneNode  
+ *   Creates a cloned node.
+ */
+function cloneNode(n : DrawableNode) : DrawableNode {
+  let clone = new DummyNode(n.x, n.y);
+  clone.label = n.label;
+  clone.shape = n.shape;
+  clone.color = n.color;
+  clone.borderColor = n.borderColor;
+  clone.borderStyle = n.borderStyle;
+  clone.borderWidth = n.borderWidth;
+  return clone;
+}
 
 
 // Static classes //////////////////////////////////////////////////////////////
 
-// /**
-//  * DummyNode  
-//  *   Creates a dummy node with default properties.
-//  */
-// class DummyNode implements DrawableNode {
-//   label : string = NODE_DEFAULTS.label;
-//   shape: string = NODE_DEFAULTS.shape;
-//   color : string = NODE_DEFAULTS.color;
-//   borderColor : string = NODE_DEFAULTS.borderColor;
-//   borderStyle : string = NODE_DEFAULTS.borderStyle;
-//   borderWidth : number = NODE_DEFAULTS.borderWidth;
+/**
+ * DummyNode  
+ *   Creates a dummy node with default properties.
+ */
+class DummyNode implements DrawableNode {
+  label : string = NODE_DEFAULTS.label;
+  shape: string = NODE_DEFAULTS.shape;
+  color : string = NODE_DEFAULTS.color;
+  borderColor : string = NODE_DEFAULTS.borderColor;
+  borderStyle : string = NODE_DEFAULTS.borderStyle;
+  borderWidth : number = NODE_DEFAULTS.borderWidth;
 
-//   constructor(public x : number, public y : number) { }
-// }
+  constructor(public x : number, public y : number) { }
+}
 
 /**
  * DummyEdge  

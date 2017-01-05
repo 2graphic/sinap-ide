@@ -15,7 +15,7 @@
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noUnusedLocals": false, // Need a way for TypeScript to know about template files.
-    "noUnusedParameters": true,
+    "noUnusedParameters": false, // Some functions in the menu service have unused parameters.
     "strictNullChecks": true,
 
     "skipLibCheck": true

@@ -103,21 +103,21 @@ const menuTemplate: any = [
             {
                 label: 'New',
                 accelerator: 'CmdOrCtrl+n',
-                click: function (item, focusedWindow) {
+                click: function (item : Electron.MenuItem, focusedWindow : Electron.BrowserWindow) {
                     focusedWindow.webContents.send("new");
                 }
             },
             {
                 label: 'Save',
                 accelerator: 'CmdOrCtrl+s',
-                click: function (item, focusedWindow) {
+                click: function (item : Electron.MenuItem, focusedWindow : Electron.BrowserWindow) {
                     focusedWindow.webContents.send("save");
                 }
             },
             {
                 label: 'Load',
                 accelerator: 'CmdOrCtrl+o',
-                click: function (item, focusedWindow) {
+                click: function (item : Electron.MenuItem, focusedWindow : Electron.BrowserWindow) {
                     focusedWindow.webContents.send("load");
                 }
             }
@@ -144,7 +144,7 @@ const menuTemplate: any = [
             {
                 label: 'Reload',
                 accelerator: 'CmdOrCtrl+R',
-                click: function (item, focusedWindow) {
+                click: function (item : Electron.MenuItem, focusedWindow : Electron.BrowserWindow) {
                     if (focusedWindow)
                         focusedWindow.reload();
                 }
@@ -157,7 +157,7 @@ const menuTemplate: any = [
                     else
                         return 'F11';
                 })(),
-                click: function (item, focusedWindow) {
+                click: function (item : Electron.MenuItem, focusedWindow : Electron.BrowserWindow) {
                     if (focusedWindow)
                         focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
                 }
@@ -170,7 +170,7 @@ const menuTemplate: any = [
                     else
                         return 'Ctrl+Shift+I';
                 })(),
-                click: function (item, focusedWindow) {
+                click: function (item : Electron.MenuItem, focusedWindow : any) { // TODO: toggleDevTools is not a member of BrowserWindow?
                     if (focusedWindow)
                         focusedWindow.toggleDevTools();
                 }
