@@ -9,14 +9,14 @@
     "removeComments": true,
     "pretty": true,
 
-    "alwaysStrict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitReturns": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
+    //"alwaysStrict": true,
+    //"forceConsistentCasingInFileNames": true,
+    //"noImplicitReturns": true,
+    //"noImplicitAny": true,
+    //"noImplicitThis": true,
     "noUnusedLocals": false, // Need a way for TypeScript to know about template files.
     "noUnusedParameters": false, // Some functions in the menu service have unused parameters.
-    "strictNullChecks": true,
+    //"strictNullChecks": true,
 
     "skipLibCheck": true
   },
