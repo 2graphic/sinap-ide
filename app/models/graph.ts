@@ -43,7 +43,7 @@ export class Element implements PropertiedEntity {
   constructor(public entityName : string, 
               public pluginProperties : Array<[string, SinapType]>, 
               public computedProperties : Array<[string, SinapType, (_:PropertiedEntity)=>void]>, 
-              public handler : (() => void), 
+              public handler : () => void, 
               private _propertyValues:any){
     for (let prop of pluginProperties){
       this._propertyValues[prop[0]] = prop[1].prototypicalStructure();
@@ -70,7 +70,7 @@ export class Element implements PropertiedEntity {
   }
 
   displayProperties : Array<[string, SinapType]> = [];
-  propertyValues : Object;
+  propertyValues : any;
 
   serialize(){
     return this._propertyValues;
@@ -92,8 +92,8 @@ function extend(a:any, b:any){
 export function deserializeGraph(pojo: any, handler: () => void, pluginManager : PluginManager): Graph {
   let result = new Graph([], handler, pluginManager);
   let graph = pojo.graph;
-  let nodes: [any] = graph.nodes;
-  let createdNodes: [Node] = <[Node]>[];
+  let nodes : [any] = graph.nodes;
+  let createdNodes : Node[] = [];
 
   for(let node of nodes) {
     const posName = "Position";
@@ -133,7 +133,7 @@ export class Graph extends Element implements DrawableGraph {
     return true;
   }
 
-  constructor(pluginProperties, handler, public pluginManager : PluginManager){
+  constructor(pluginProperties : Array<[string, SinapType]>, handler : () => void, public pluginManager : PluginManager){
     super("Graph", pluginProperties, [], handler, {
       'Background' : "#ffffff",
     });
@@ -194,7 +194,7 @@ export class Graph extends Element implements DrawableGraph {
 
   displayProperties = [["Background", SinapColor] as [string, SinapType],];
 
-  get backgroundColor(){
+  get backgroundColor() : any{
     return this.propertyValues['Background'];
   }
   set backgroundColor(nv){
@@ -205,8 +205,8 @@ export class Graph extends Element implements DrawableGraph {
     let nodes = this._nodes;
     let edges = this._edges;
 
-    function replaceNodesEdges(obj){
-      let n = {};
+    function replaceNodesEdges(obj : any){
+      let n : any = {};
       for (let k in obj){
         let v = obj[k];
         if (v instanceof Edge){
@@ -287,7 +287,11 @@ class Edge extends Element implements DrawableEdge{
   }
 
 
-  constructor(entityName : string, properties : Array<[string, SinapType]>, computedProperties : Array<[string, SinapType, (PropertiedEntity)=>void]>, handler, source : Node, destination : Node) { 
+  constructor(entityName : string, properties : Array<[string, SinapType]>,
+              computedProperties : Array<[string, SinapType, (entity : PropertiedEntity)=>void]>,
+              handler : () => void,
+              source : Node,
+              destination : Node) { 
     super(entityName, properties, computedProperties, handler, {
       'Source Arrow' : false,
       'Destination Arrow' : true,
@@ -369,7 +373,9 @@ class Node extends Element implements DrawableNode{
   }
 
 
-  constructor(entityName : string, properties : Array<[string, SinapType]>, computedProperties : Array<[string, SinapType, (PropertiedEntity)=>void]>, handler, x : number, y : number) {
+  constructor(entityName : string, properties : Array<[string, SinapType]>,
+              computedProperties : Array<[string, SinapType, (entity : PropertiedEntity)=>void]>,
+              handler : () => void, x : number, y : number) {
     super(entityName, properties, computedProperties, handler, {
       "Start State" : false,
       "Accept State" : false,
