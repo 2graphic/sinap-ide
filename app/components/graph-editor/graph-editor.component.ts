@@ -67,401 +67,32 @@ import {
   ViewChild
 } from "@angular/core";
 
-
-// Static constants ////////////////////////////////////////////////////////////
-//
-// Note:
-// These values should probably be defined in some user/workspace preferences
-// file.
-//
+import * as CONST from "./constants";
+import * as Drawables from "./drawable-interfaces";
+import * as MathEx from "./math";
+import * as Draw from "./draw";
 
 
-/**
- * AA_SCALE  
- *   Anti-aliasing scale.
- */
-const AA_SCALE : number = 2;
-
-/**
- * GRID_SPACING  
- *   Grid spacing between ticks.
- */
-const GRID_SPACING : number = 40;
-
-/**
- * GRID_MAJOR_COLOR  
- *   Color of major grid tickmarks.
- */
-const GRID_MAJOR_COLOR : string = "#c3c3c3";
-
-/**
- * GRID_MAJOR_STYLE  
- *   Linestyle of major grid tickmarks.
- */
-const GRID_MAJOR_STYLE : string = "solid";
-
-/**
- * GRID_MAJOR_WIDTH  
- *   Linewidth of major grid tickmarks.
- */
-const GRID_MAJOR_WIDTH : number = 1;
-
-/**
- * GRID_MINOR_OFFSET  
- *   Offset for minor grid ticks.
- */
-const GRID_MINOR_OFFSET : number = 20;
-
-/**
- * GRID_MINOR_COLOR  
- *   Color of minor grid tickmarks.
- */
-const GRID_MINOR_COLOR : string = "#c3c3c3";
-
-/**
- * GRID_MINOR_STYLE  
- *   Linestyle of minor grid tickmarks.
- */
-const GRID_MINOR_STYLE : string = "dotted";
-
-/**
- * GRID_MINOR_WIDTH  
- *   Linewidth of minor grid tickmarks.
- */
-const GRID_MINOR_WIDTH : number = 0.5;
-
-/**
- * NUDGE  
- *   The distance the cursor must move by in order to cancel waiting for
- *   dragging a node.
- */
-const NUDGE : number = 3;
-
-/**
- * STICKY_DELAY  
- *   Number of miliseconds to wait for sticking a graph element to the cursor.
- */
-const STICKY_DELAY : number = 500;
-
-/**
- * COS_150  
- *   Used in the rotation matrix for drawing edge arrows.
- */
-const COS_150 : number = Math.cos(5 * Math.PI / 6);
-
-/**
- * SIN_150  
- *   Used in the rotation matrix for drawing edge arrows.
- */
-const SIN_150 : number = Math.sin(5 * Math.PI / 6);
-
-/**
- * NODE_DEFAULTS  
- *   Default property values for drawable nodes.
- */
-const NODE_DEFAULTS : DrawableNode = {
-  x : 0,
-  y : 0,
-  label : "",
-  shape: "circle",
-  color : "#fff200",
-  borderColor : "#000",
-  borderStyle : "solid",
-  borderWidth : 1
-};
-
-/**
- * NODE_FONT_FAMILY  
- *   Font family of nodes.
- */
-const NODE_FONT_FAMILY : string = "serif";
-
-/**
- * NODE_FONT_SIZE  
- *   Font size of nodes.
- */
-const NODE_FONT_SIZE : number = 10;
-
-/**
- * NODE_DRAG_SHADOW_COLOR  
- *   Shadow color of dragging nodes.
- */
-const NODE_DRAG_SHADOW_COLOR : string = "#000";
-
-/**
- * EDGE_FONT_FAMILY  
- *   Font family of edges.
- */
-const EDGE_FONT_FAMILY : string = "serif";
-
-/**
- * EDGE_FONT_SIZE  
- *   Font size of edges.
- */
-const EDGE_FONT_SIZE : number = 10;
-
-/**
- * EDGE_HIT_MARGIN  
- *   Margin away from an edge for hit detection.
- */
-const EDGE_HIT_MARGIN : number = 20;
-
-/**
- * EDGE_DRAG_LINESTYLE  
- *   Linestyle for dragging an edge.
- */
-const EDGE_DRAG_LINESTYLE : string =  "dotted";
-
-/**
- * EDGE_DEFAULTS  
- *   Default property values for drawable edges.
- */
-const EDGE_DEFAULTS : DrawableEdge = {
-  source : null,
-  destination : null,
-  label : "",
-  color : "#000",
-  lineStyle : "solid",
-  lineWidth : 2,
-  showDestinationArrow : false,
-  showSourceArrow : false
-};
-
-/**
- * SELECTION_COLOR  
- *   Color for selection box and selection highlighting.
- */
-const SELECTION_COLOR : string = "#3af";
+// Re-exports //////////////////////////////////////////////////////////////////
 
 
-// Public functions ////////////////////////////////////////////////////////////
+export {
+  DrawableGraph,
+  DrawableEdge,
+  DrawableNode,
+  isDrawableEdge,
+  isDrawableNode
+} from "./drawable-interfaces";
 
 
-/**
- * isDrawableEdge  
- *   Typeguard for drawable edges.
- */
-export function isDrawableEdge(obj : any) : obj is DrawableEdge {
-  return isItThat(obj, EDGE_DEFAULTS);
-}
+// Type aliases ////////////////////////////////////////////////////////////////
 
-/**
- * isDrawableNode  
- *   Typeguard for drawable nodes.
- */
-export function isDrawableNode(obj : any) : obj is DrawableNode {
-  return isItThat(obj, NODE_DEFAULTS);
-}
-
-
-// Public interfaces ///////////////////////////////////////////////////////////
-
-
-/**
- * DrawableGraph  
- *   Interface that exposes drawable graph properties and methods.
- */
-export interface DrawableGraph {
-
-  /**
-   * nodes  
-   *   The collection of drawable nodes that are part of the graph.
-   */
-  readonly nodes : Iterable<DrawableNode>;
-
-  /**
-   * edges  
-   *   The collection of drawable edges that are part of the graph.
-   */
-  readonly edges : Iterable<DrawableEdge>;
-
-  /**
-   * backgroundColor  
-   *   What is this doing here? It should be a public property of the graph
-   *   editor component.
-   */
-  backgroundColor : string;
-
-  /**
-   * createNode  
-   *   Creates a drawable node with an optional position.
-   */
-  createNode(x? : number, y? : number) : DrawableNode;
-
-  /**
-   * removeNode  
-   *   Guarantees that the given node is not present in the graph.
-   */
-  removeNode(node : DrawableNode) : void;
-
-  /**
-   * canCreateEdge  
-   *   Checks if a drawable edge can be created with the given source and
-   *   destination nodes.
-   * 
-   *   If `like` is specified, a drawable edge with a matching type of `like` is
-   *   is checked against the given source and destination nodes.
-   * 
-   *   This method must be called before calling `createEdge`.
-   */
-  canCreateEdge(
-    src : DrawableNode,
-    dst : DrawableNode,
-    like? : DrawableEdge
-  ) : boolean;
-
-  /**
-   * createEdge  
-   *   Creates a drawable edge with a source and destination node.
-   * 
-   *   If `like` is specified, a drawable edge with a matching type of `like` is
-   *   created.
-   * 
-   *   The `canCreateEdge` method must be called to check if creating the edge
-   *   is valid.
-   */
-  createEdge(
-    src : DrawableNode,
-    dst : DrawableNode,
-    like? : DrawableEdge
-  ) : DrawableEdge;
-
-  /**
-   * replaceEdge  
-   *   This method has been replaced by `createEdge` and is no longer needed.
-   */
-  replaceEdge(original : DrawableEdge, replacement : DrawableEdge) : void;
-
-  /**
-   * removeEdge  
-   *   Guarantees that the given edge is not present in the graph.
-   */
-  removeEdge(edge : DrawableEdge) : void;
-
-}
-
-/**
- * DrawableEdge  
- *   Interface that exposes drawable edge properties.
- */
-export interface DrawableEdge {
-
-  /**
-   * source  
-   *   The source node of the edge.
-   */
-  source : DrawableNode | null;
-
-  /**
-   * destination  
-   *   The destination node of the edge.
-   */
-  destination : DrawableNode | null;
-
-  /**
-   * showSourceArrow  
-   *   True to draw an arrow pointing to the source node; otherwise, false.
-   */
-  showSourceArrow : boolean;
-
-  /**
-   * showDestinationArrow  
-   *   True to draw an arrow pointing to the destination node; otherwise, false.
-   */
-  showDestinationArrow : boolean;
-
-  /**
-   * color  
-   *   The color of the edge. This can be any valid `CSS` color string.
-   */
-  color : string;
-
-  /**
-   * lineStyle  
-   *   The line style of the edge. This can be `solid`, `dotted`, or `dashed`.
-   */
-  lineStyle : string;
-
-  /**
-   * lineWidth  
-   *   The width of the edge. This value must be non-negative.
-   */
-  lineWidth : number;
-
-  /**
-   * label  
-   *   The text label to be displayed by the edge.
-   */
-  label : string;
-
-  // TODO:
-  // more display properties.
-}
-
-/**
- * DrawableNode  
- *   Interface that exposes drawable node properties.
- */
-export interface DrawableNode {
-
-  /**
-   * x  
-   *   The x-coordinate of the center of the node.
-   */
-  x : number;
-
-  /**
-   * y  
-   *   The y-coordinate of the center of the node.
-   */
-  y : number;
-
-  /**
-   * label  
-   *   The text label to be displayed in the node.
-   */
-  label : string;
-  
-  /**
-   * shape  
-   *   The shape of the node.
-   */
-  shape: string; // TODO: for now this only supports circles and squares.
-
-  /**
-   * color  
-   *   The background color of the node.  Can be any valid `CSS` color string.
-   */
-  color : string;
-
-  /**
-   * borderColor  
-   *   The border color of the node.  Can be any valid `CSS` color string.
-   */
-  borderColor: string;
-
-  /**
-   * borderStyle  
-   *   The line style of the border. Can be `solid`, `dotted`, or `dashed`.
-   */
-  borderStyle: string;
-
-  /**
-   * borderWidth  
-   *   The line width of the border. Set to 0 to draw no border; value must be
-   *   non-negative.
-   */
-  borderWidth: number;
-
-  // TODO:
-  // more display properties
-}
 
 /**
  * Drawable  
  *   Type alias for the the union type of `DrawableEdge` and `DrawableNode`.
  */
-type Drawable = DrawableEdge | DrawableNode;
+type Drawable = Drawables.DrawableEdge | Drawables.DrawableNode;
 
 
 // Graph Editor Angular Component //////////////////////////////////////////////
@@ -492,7 +123,7 @@ export class GraphEditorComponent implements AfterViewInit {
    *   Input property for the graph object.
    */
   @Input("graph")
-  set setGraph(value : DrawableGraph) {
+  set setGraph(value : Drawables.DrawableGraph) {
     this.graph = value;
     if(this.g) {
       // TODO:
@@ -507,7 +138,7 @@ export class GraphEditorComponent implements AfterViewInit {
    *   Sets the node being dragged by the cursor.
    */
   @Input()
-  dragNode(value : DrawableNode) {
+  dragNode(value : Drawables.DrawableNode) {
     this.dragObject = value;
   }
 
@@ -522,7 +153,7 @@ export class GraphEditorComponent implements AfterViewInit {
    * graph  
    *   The graph object.
    */
-  private graph : DrawableGraph;
+  private graph : Drawables.DrawableGraph;
 
   /**
    * g  
@@ -564,7 +195,7 @@ export class GraphEditorComponent implements AfterViewInit {
    * moveEdge  
    *   The edge to be replaced once the new edge has been created.
    */
-  private moveEdge : DrawableEdge | null = null;
+  private moveEdge : Drawables.DrawableEdge | null = null;
 
   /**
    * selectedItems  
@@ -615,15 +246,15 @@ export class GraphEditorComponent implements AfterViewInit {
    * Note:
    *   I don't like where this is.
    */
-  onKeyDown(e : KeyboardEvent) : void {
+  private onKeyDown(e : KeyboardEvent) : void {
     // Delete keyCode is 46; backspace is 8.
     if(this.graph && (e.keyCode == 46 || e.keyCode == 8)) {
-      let edges = new Set<DrawableEdge>();
-      let nodes = new Set<DrawableNode>();
+      let edges = new Set<Drawables.DrawableEdge>();
+      let nodes = new Set<Drawables.DrawableNode>();
       for (let ele of this.selectedItems){
-        if(isDrawableEdge(ele))
+        if(Drawables.isDrawableEdge(ele))
           edges.add(ele);
-        else if(isDrawableNode(ele))
+        else if(Drawables.isDrawableNode(ele))
           nodes.add(ele);
       }
       let unselectedEdges = [...this.graph.edges].filter(x => !edges.has(x));
@@ -646,7 +277,7 @@ export class GraphEditorComponent implements AfterViewInit {
    * onMouseDown  
    *   Handles the mousedown event.
    */
-  onMouseDown(e : MouseEvent) : void {
+  private onMouseDown(e : MouseEvent) : void {
 
     // Make sure only the left mouse button is down.
     if(this.graph && e.buttons == 1) {
@@ -678,14 +309,14 @@ export class GraphEditorComponent implements AfterViewInit {
 
           // Set the drag object to some dummy edge and the replace edge to the
           // original drag object if the drag object was an edge.
-          else if(isDrawableEdge(this.dragObject)) {
+          else if(Drawables.isDrawableEdge(this.dragObject)) {
             //
             // TODO:
             // Determine which side of the edge the hit test landed on.
             //
             this.moveEdge = this.dragObject;
-            this.dragObject = cloneEdge(this.moveEdge);
-            this.dragObject.lineStyle = EDGE_DRAG_LINESTYLE;
+            this.dragObject = Drawables.cloneEdge(this.moveEdge);
+            this.dragObject.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
             this.redraw();
             this.g.globalAlpha = 0.5;
             this.drawEdge(this.dragObject, downPt[0], downPt[1]);
@@ -693,16 +324,16 @@ export class GraphEditorComponent implements AfterViewInit {
           }
 
           // Create a new dummy edge with the source node as the drag object.
-          else if(isDrawableNode(this.dragObject)) {
-            this.dragObject = new DummyEdge(this.dragObject);
-            this.dragObject.lineStyle = EDGE_DRAG_LINESTYLE;
+          else if(Drawables.isDrawableNode(this.dragObject)) {
+            this.dragObject = new Drawables.DummyEdge(this.dragObject);
+            this.dragObject.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
             this.redraw();
             this.g.globalAlpha = 0.3;
             this.drawEdge(this.dragObject, downPt[0], downPt[1]);
             this.g.globalAlpha = 1;
           }
         }
-      }, STICKY_DELAY);
+      }, CONST.STICKY_DELAY);
     }
   }
 
@@ -710,7 +341,7 @@ export class GraphEditorComponent implements AfterViewInit {
    * onMouseMove  
    *   Handles the mousemove event.
    */
-  onMouseMove(e : MouseEvent) : void {
+  private onMouseMove(e : MouseEvent) : void {
     if(this.graph) {
       let ePt = getMousePt(this.g, e);
 
@@ -728,7 +359,10 @@ export class GraphEditorComponent implements AfterViewInit {
 
         // Reset waiting if waiting is still active and the mouse has moved too
         // far.
-        if(this.stickyTimeout && (dx * dx + dy * dy > NUDGE * NUDGE)) {
+        if(
+          this.stickyTimeout &&
+          (dx * dx + dy * dy > CONST.NUDGE * CONST.NUDGE)
+        ) {
           clearTimeout(this.stickyTimeout as NodeJS.Timer);
           this.stickyTimeout = null;
 
@@ -740,7 +374,7 @@ export class GraphEditorComponent implements AfterViewInit {
             this.clearSelected();
           
           // Clear the drag object if it is an edge.
-          else if(isDrawableEdge(this.dragObject))
+          else if(Drawables.isDrawableEdge(this.dragObject))
             this.dragObject = null;
         }
 
@@ -766,11 +400,11 @@ export class GraphEditorComponent implements AfterViewInit {
     
             // Update the canvas.
             this.redraw();
-            drawSelectionBox(this.g, rect);
+            Draw.drawSelectionBox(this.g, rect);
           }
 
           // Update edge endpoint if dragging edge.
-          else if(isDrawableEdge(this.dragObject)) {
+          else if(Drawables.isDrawableEdge(this.dragObject)) {
             this.redraw();
             this.g.globalAlpha = 0.3;
             this.drawEdge(this.dragObject, ePt[0], ePt[1]);
@@ -778,7 +412,7 @@ export class GraphEditorComponent implements AfterViewInit {
           }
 
           // Update node position if dragging node.
-          else if(isDrawableNode(this.dragObject)) {
+          else if(Drawables.isDrawableNode(this.dragObject)) {
             if(
               this.selectedItems.has(this.dragObject) &&
               this.selectedItems.size > 0
@@ -786,7 +420,7 @@ export class GraphEditorComponent implements AfterViewInit {
               let dx = ePt[0] - this.dragObject.x;
               let dy = ePt[1] - this.dragObject.y;
               for(let o of this.selectedItems) {
-                if(isDrawableNode(o)) {
+                if(Drawables.isDrawableNode(o)) {
                   o.x += dx;
                   o.y += dy;
                 }
@@ -816,7 +450,7 @@ export class GraphEditorComponent implements AfterViewInit {
    * onMouseUp  
    *   Handles the mouseup event.
    */
-  onMouseUp(e : MouseEvent) : void {
+  private onMouseUp(e : MouseEvent) : void {
 
     // Make sure a mousedown event was previously captured.
     if(this.graph && this.downEvt) {
@@ -835,11 +469,11 @@ export class GraphEditorComponent implements AfterViewInit {
       }
 
       // Create the edge if one is being dragged.
-      else if(isDrawableEdge(this.dragObject)) {
+      else if(Drawables.isDrawableEdge(this.dragObject)) {
 
         // Check that the mouse was released at a node.
         let hit = this.hitTest(ePt);
-        if(isDrawableNode(hit)) {
+        if(Drawables.isDrawableNode(hit)) {
 
           // Move the edge if one is being dragged and it can be moved.
           if(
@@ -868,7 +502,7 @@ export class GraphEditorComponent implements AfterViewInit {
       }
 
       // Drop the node if one is being dragged.
-      else if(isDrawableNode(this.dragObject)) {
+      else if(Drawables.isDrawableNode(this.dragObject)) {
         if(
           this.selectedItems.has(this.dragObject) &&
           this.selectedItems.size > 0
@@ -876,7 +510,7 @@ export class GraphEditorComponent implements AfterViewInit {
           let dx = ePt[0] - this.dragObject.x;
           let dy = ePt[1] - this.dragObject.y;
           for(let o of this.selectedItems) {
-            if(isDrawableNode(o)) {
+            if(Drawables.isDrawableNode(o)) {
               o.x += dx;
               o.y += dy;
             }
@@ -919,9 +553,9 @@ export class GraphEditorComponent implements AfterViewInit {
     let pel = (el.parentNode as HTMLElement);
     let h = pel.offsetHeight;
     let w = pel.offsetWidth;
-    el.height = h * AA_SCALE;
-    el.width = w * AA_SCALE;
-    this.g.scale(AA_SCALE, AA_SCALE);
+    el.height = h * CONST.AA_SCALE;
+    el.width = w * CONST.AA_SCALE;
+    this.g.scale(CONST.AA_SCALE, CONST.AA_SCALE);
     this.redraw();
   }
 
@@ -932,13 +566,13 @@ export class GraphEditorComponent implements AfterViewInit {
   redraw() : void {
     clear(this.g, this.graph ? this.graph.backgroundColor : "AppWorkspace");
     if(this.graph) {
-      drawGrid(this.g, this.gridOriginPt);
+      Draw.drawGrid(this.g, this.gridOriginPt);
       for(let e of this.graph.edges)
         this.drawEdge(e);
       for(let n of this.graph.nodes)
         this.drawNode(n);
 
-      if(isDrawableEdge(this.hoverObject)) {
+      if(Drawables.isDrawableEdge(this.hoverObject)) {
         //
         // TODO:
         // Draw anchor points
@@ -951,32 +585,37 @@ export class GraphEditorComponent implements AfterViewInit {
    * drawNode  
    *   Draws a node on the canvas.
    */
-  private drawNode(n : DrawableNode) : void {
+  private drawNode(n : Drawables.DrawableNode) : void {
 
     // Calculate the radius.
     let lines = n.label.split("\n");
-    let size = getTextSize(this.g, lines, NODE_FONT_FAMILY, NODE_FONT_SIZE);
-    let s = (GRID_SPACING > size.h + 1.5 * NODE_FONT_SIZE ?
-             GRID_SPACING : size.h + 1.5 * NODE_FONT_SIZE);
-    s = (s < size.w + NODE_FONT_SIZE ? size.w + NODE_FONT_SIZE : s);
+    let size = Draw.getTextSize(
+      this.g,
+      lines,
+      CONST.NODE_FONT_FAMILY,
+      CONST.NODE_FONT_SIZE
+    );
+    let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
+             CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
+    s = (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s);
 
     // Draw selected shape.
     if(this.selectedItems.has(n)) {
       if(n.shape === "circle") {
-        drawCircle(
+        Draw.drawCircle(
           this.g,
           n.x, n.y,
           (s + n.borderWidth) / 2 + 2,
           "solid",
           n.borderWidth,
-          SELECTION_COLOR,
-          SELECTION_COLOR,
+          CONST.SELECTION_COLOR,
+          CONST.SELECTION_COLOR,
           (n === this.dragObject || n === this.hoverObject ?
-           20 * AA_SCALE : undefined),
-          (n === this.dragObject ? NODE_DRAG_SHADOW_COLOR :
-           (n === this.hoverObject ? SELECTION_COLOR : undefined))
+           20 * CONST.AA_SCALE : undefined),
+          (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+           (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
         );
-        drawCircle(
+        Draw.drawCircle(
           this.g,
           n.x, n.y,
           s / 2,
@@ -988,7 +627,7 @@ export class GraphEditorComponent implements AfterViewInit {
       }
       else if(n.shape === "square") {
         let hs = (s + n.borderWidth) / 2 + 2;
-        drawSquare(
+        Draw.drawSquare(
           this.g,
           n.x - hs,
           n.y - hs,
@@ -996,15 +635,15 @@ export class GraphEditorComponent implements AfterViewInit {
           2 * hs,
           "solid",
           n.borderWidth,
-          SELECTION_COLOR,
-          SELECTION_COLOR,
+          CONST.SELECTION_COLOR,
+          CONST.SELECTION_COLOR,
           (n === this.dragObject || n === this.hoverObject ?
-           20 * AA_SCALE : undefined),
-          (n === this.dragObject ? NODE_DRAG_SHADOW_COLOR :
-           (n === this.hoverObject ? SELECTION_COLOR : undefined))
+           20 * CONST.AA_SCALE : undefined),
+          (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+           (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
         );
         hs = s / 2;
-        drawSquare(
+        Draw.drawSquare(
           this.g,
           n.x - hs, n.y - hs,
           hs * 2, hs * 2,
@@ -1019,7 +658,7 @@ export class GraphEditorComponent implements AfterViewInit {
     // Draw unselected shape.
     else {
       if(n.shape === "circle") {
-        drawCircle(
+        Draw.drawCircle(
           this.g,
           n.x, n.y,
           s / 2,
@@ -1028,14 +667,14 @@ export class GraphEditorComponent implements AfterViewInit {
           n.borderColor,
           n.color,
           (n === this.dragObject || n === this.hoverObject ?
-           20 * AA_SCALE : undefined),
-          (n === this.dragObject ? NODE_DRAG_SHADOW_COLOR :
-            (n === this.hoverObject ? SELECTION_COLOR : undefined))
+           20 * CONST.AA_SCALE : undefined),
+          (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+            (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
         );
       }
       else if(n.shape === "square") {
         let hs = s / 2;
-        drawSquare(
+        Draw.drawSquare(
           this.g,
           n.x - hs, n.y - hs,
           hs * 2, hs * 2,
@@ -1044,20 +683,20 @@ export class GraphEditorComponent implements AfterViewInit {
           n.borderColor,
           n.color,
           (n === this.dragObject || n === this.hoverObject ?
-           20 * AA_SCALE : undefined),
-          (n === this.dragObject ? NODE_DRAG_SHADOW_COLOR :
-            (n === this.hoverObject ? SELECTION_COLOR : undefined))
+           20 * CONST.AA_SCALE : undefined),
+          (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+            (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
         );
       }
     }
 
     // Label
-    drawText(
+    Draw.drawText(
       this.g,
-      n.x, n.y - size.h / 2 + 1.5 * NODE_FONT_SIZE / 2,
+      n.x, n.y - size.h / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
       lines,
-      NODE_FONT_SIZE,
-      NODE_FONT_FAMILY,
+      CONST.NODE_FONT_SIZE,
+      CONST.NODE_FONT_FAMILY,
       "#fff",
       2,
       "#000"
@@ -1068,16 +707,16 @@ export class GraphEditorComponent implements AfterViewInit {
    * drawEdge  
    *   Draws an edge on the canvas.
    */
-  private drawEdge(e : DrawableEdge, x? : number, y? : number) : void {
+  private drawEdge(e : Drawables.DrawableEdge, x? : number, y? : number) : void {
 
     // Edge
     if(e === this.hoverObject) {
-      this.g.shadowColor = SELECTION_COLOR;
-      this.g.shadowBlur = 20 * AA_SCALE;
+      this.g.shadowColor = CONST.SELECTION_COLOR;
+      this.g.shadowBlur = 20 * CONST.AA_SCALE;
     }
     if(this.selectedItems.has(e)) {
-      let d = cloneEdge(e);
-      d.color = SELECTION_COLOR;
+      let d = Drawables.cloneEdge(e);
+      d.color = CONST.SELECTION_COLOR;
       d.lineStyle = "solid";
       d.lineWidth += 3;
       this.drawEdge(d);
@@ -1086,28 +725,28 @@ export class GraphEditorComponent implements AfterViewInit {
       this.g.globalAlpha = 0.3;
     this.g.strokeStyle = e.color;
     this.g.lineWidth = e.lineWidth;
-    setLineStyle(this.g, e.lineStyle, e.lineWidth);
+    Draw.setLineStyle(this.g, e.lineStyle, e.lineWidth);
     if(x && y) {
       if(e.source)
-        drawLine(this.g, e.source.x, e.source.y, x, y);
+        Draw.drawLine(this.g, e.source.x, e.source.y, x, y);
       else if(e.destination)
-        drawLine(this.g, x, y, e.destination.x, e.destination.y);
+        Draw.drawLine(this.g, x, y, e.destination.x, e.destination.y);
     }
     else if(e.source && e.destination) {
-      drawLine(this.g, e.source.x, e.source.y, e.destination.x, e.destination.y);
+      Draw.drawLine(this.g, e.source.x, e.source.y, e.destination.x, e.destination.y);
       if(e.showSourceArrow)
-        drawArrow(this.g, e.destination, e.source);
+        Draw.drawArrow(this.g, e.destination, e.source);
       if(e.showDestinationArrow)
-        drawArrow(this.g, e.source, e.destination);
+        Draw.drawArrow(this.g, e.source, e.destination);
     }
     this.g.globalAlpha = 1;
 
     // Label
     if(e.source && e.destination && e.label && e.label.trim() !== "") {
       let lines = e.label.split("\n");
-      let size = getTextSize(this.g, lines, EDGE_FONT_FAMILY, EDGE_FONT_SIZE);
-      let srcPt = getEdgeBorderPt(this.g, e.destination, e.source);
-      let dstPt = getEdgeBorderPt(this.g, e.source, e.destination);
+      let size = Draw.getTextSize(this.g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+      let srcPt = Draw.getEdgeBorderPt(this.g, e.destination, e.source);
+      let dstPt = Draw.getEdgeBorderPt(this.g, e.source, e.destination);
       let rect = makeRect(
         srcPt.x, srcPt.y,
         dstPt.x, dstPt.y
@@ -1121,17 +760,17 @@ export class GraphEditorComponent implements AfterViewInit {
         x + size.w + 6, y + size.h);
       this.g.lineWidth = e.lineWidth;
       this.g.fillStyle = this.graph.backgroundColor;
-      setLineStyle(this.g, e.lineStyle);
+      Draw.setLineStyle(this.g, e.lineStyle);
       this.g.lineJoin = "round";
       this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
       this.g.shadowBlur = 0;
       this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
-      drawText(
+      Draw.drawText(
         this.g,
-        x, y - size.h + 1.5 * EDGE_FONT_SIZE / 2,
+        x, y - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
         lines,
-        EDGE_FONT_SIZE,
-        EDGE_FONT_FAMILY,
+        CONST.EDGE_FONT_SIZE,
+        CONST.EDGE_FONT_FAMILY,
         "#000"
       );
     }
@@ -1171,15 +810,15 @@ export class GraphEditorComponent implements AfterViewInit {
     for(let n of this.graph.nodes) {
       let dx = n.x - pt[0];
       let dy = n.y - pt[1];
-      let size = getTextSize(
+      let size = Draw.getTextSize(
         this.g,
         n.label.split("\n"),
-        NODE_FONT_FAMILY,
-        NODE_FONT_SIZE
+        CONST.NODE_FONT_FAMILY,
+        CONST.NODE_FONT_SIZE
       );
-      let hs = (GRID_SPACING > size.h + 1.5 * NODE_FONT_SIZE ?
-                GRID_SPACING : size.h + 1.5 * NODE_FONT_SIZE);
-      hs = (hs < size.w + NODE_FONT_SIZE ? size.w + NODE_FONT_SIZE : hs) / 2;
+      let hs = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
+                CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
+      hs = (hs < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : hs) / 2;
       if((n.shape === "circle" && dx * dx + dy * dy <= hs * hs) ||
          (n.shape === "square" &&
           pt[0] <= n.x + hs && pt[0] >= n.x - hs &&
@@ -1200,8 +839,8 @@ export class GraphEditorComponent implements AfterViewInit {
           pt[0] - e.source.x,
           pt[1] - e.source.y
         ];
-        let dotee = dot(ve, ve); // edge dot edge
-        let dotem = dot(ve, vm); // edge dot mouse
+        let dotee = MathEx.dot(ve, ve); // edge dot edge
+        let dotem = MathEx.dot(ve, vm); // edge dot mouse
         // Projection vector mouse -> edge
         let p = [
           ve[0] * dotem / dotee,
@@ -1213,18 +852,18 @@ export class GraphEditorComponent implements AfterViewInit {
           vm[1] - p[1]
         ];
 
-        let dotpp = dot(p, p); // proj dot proj
-        let dotrr = dot(r, r); // rej dot rej
+        let dotpp = MathEx.dot(p, p); // proj dot proj
+        let dotrr = MathEx.dot(r, r); // rej dot rej
 
         let dep = [
           ve[0] - p[0],
           ve[1] - p[1]
         ];
-        let dotdep = dot(dep, dep);
+        let dotdep = MathEx.dot(dep, dep);
 
         if(dotpp <= dotee &&
           dotdep <= dotee &&
-          dotrr < e.lineWidth * e.lineWidth + EDGE_HIT_MARGIN * EDGE_HIT_MARGIN)
+          dotrr < e.lineWidth * e.lineWidth + CONST.EDGE_HIT_MARGIN * CONST.EDGE_HIT_MARGIN)
           return e;
       }
     }
@@ -1236,10 +875,10 @@ export class GraphEditorComponent implements AfterViewInit {
    *   Checks if a graph component was hit by a rectangle.
    */
   private rectHitTest(c : Drawable, rect : any) : boolean {
-    return (isDrawableNode(c) &&
+    return (Drawables.isDrawableNode(c) &&
             c.x >= rect.x && c.x <= rect.x + rect.w &&
             c.y >= rect.y && c.y <= rect.y + rect.h) ||
-           (isDrawableEdge(c) &&
+           (Drawables.isDrawableEdge(c) &&
            (c.source && c.destination) &&
            (this.rectHitTest(c.source, rect) ||
             this.rectHitTest(c.destination, rect))) ||
@@ -1260,98 +899,9 @@ function getMousePt(g : CanvasRenderingContext2D, e: MouseEvent) : number[] {
   let canvas = g.canvas;
   let r = canvas.getBoundingClientRect();
   return [
-    (e.clientX - r.left) / (r.right - r.left) * canvas.width / AA_SCALE,
-    (e.clientY - r.top) / (r.bottom - r.top) * canvas.height / AA_SCALE
+    (e.clientX - r.left) / (r.right - r.left) * canvas.width / CONST.AA_SCALE,
+    (e.clientY - r.top) / (r.bottom - r.top) * canvas.height / CONST.AA_SCALE
   ];
-}
-
-/**
- * getEdgeBorderPt  
- *   Gets the point were the edge intersects the border of the specified
- *   destination node.
- */
-function getEdgeBorderPt(
-  g : CanvasRenderingContext2D,
-  src : DrawableNode,
-  dst : DrawableNode
-) {
-
-  //
-  // TODO:
-  // Either DrawableNode or DrawableEdge needs to define anchor points, and the
-  // DrawableEdge must specify which anchor it is attached to for src and dst.
-  //
-
-  // Get the vector from src to dst.
-  let v = [
-    dst.x - src.x,
-    dst.y - src.y
-  ];
-
-  // Get destination node radius.
-  let lines = dst.label.split("\n");
-  let size = getTextSize(g, lines, NODE_FONT_FAMILY, NODE_FONT_SIZE);
-  let r = (size.h + 1.5 * NODE_FONT_SIZE > size.w + NODE_FONT_SIZE ?
-            size.h + 1.5 * NODE_FONT_SIZE : size.w + NODE_FONT_SIZE);
-  r = (GRID_SPACING > r ? GRID_SPACING : r);
-  r /= 2;
-
-  // Get the distance from src to dst.
-  let d = magnitude(v);
-
-  // Get the unit vector from src to dst.
-  let u = [
-    v[0] / d,
-    v[1] / d
-  ];
-
-  // Extend the radius if the shape is a square.
-  if(dst.shape === "square") {
-    let up = [
-      (u[0] < 0 ? -u[0] : u[0]),
-      (u[1] < 0 ? -u[1] : u[1])
-    ];
-    if(up[0] < up[1]) {
-      let ratio = up[0] / up[1];
-      let b = r / up[1];
-      let a = ratio * up[0];
-      r = magnitude([ a, b ]);
-    }
-    else {
-      let ratio = up[1] / up[0];
-      let a = r / up[0];
-      let b = ratio * up[1];
-      r = magnitude([ a, b ]);
-    }
-  }
-
-  // Get the point where the edge meets the node border.
-  v[0] = u[0] * (d - r) + src.x;
-  v[1] = u[1] * (d - r) + src.y;
-
-  return { x: v[0], y: v[1], u: u };
-
-}
-
-/**
- * getTextSize  
- *   Gets the bounding box of text.
- */
-function getTextSize(
-  g : CanvasRenderingContext2D,
-  lines : Array<string>,
-  fontFamily : string,
-  fontSize : number
-) {
-  g.font = fontSize + "pt " + fontFamily;
-  let textHeight = lines.length * 1.5 * fontSize;
-  let textWidth = 0;
-  for(let l = 0; l < lines.length; l++) {
-    let tw = g.measureText(lines[l]).width;
-    if(textWidth < tw)
-      textWidth = tw;
-  }
-  return { h: textHeight, w: textWidth };
 }
 
 /**
@@ -1365,26 +915,6 @@ function moveItem(
 ) : void {
   src.delete(itm);
   dst.add(itm);
-}
-
-
-/**
- * setLineStyle  
- *   Sets the line style of the rendering context.
- */
-function setLineStyle(
-  g : CanvasRenderingContext2D,
-  value : string,
-  dotSize? : number
-) {
-  if(!dotSize)
-    dotSize = g.lineWidth;
-  if(value == "dashed")
-    g.setLineDash([3 * dotSize, 6 * dotSize]);
-  else if(value == "dotted")
-    g.setLineDash([dotSize, 2 * dotSize]);
-  else
-    g.setLineDash([1, 0]);
 }
 
 /**
@@ -1410,351 +940,4 @@ function clear(g : CanvasRenderingContext2D, bgColor : string) : void {
   let canvas = g.canvas;
   g.fillStyle = bgColor;
   g.fillRect(0, 0, canvas.width, canvas.height);
-}
-
-/**
- * drawSelectionBox  
- *   Draws the selection box.
- */
-function drawSelectionBox(g : CanvasRenderingContext2D, rect : any) : void {
-  g.strokeStyle = SELECTION_COLOR;
-  g.fillStyle = SELECTION_COLOR;
-  g.globalAlpha = 0.1;
-  g.fillRect(rect.x, rect.y, rect.w, rect.h);
-  g.globalAlpha = 1.0;
-  g.lineWidth = 1;
-  setLineStyle(g, "solid");
-  g.strokeRect(rect.x, rect.y, rect.w, rect.h);
-}
-
-/**
- * drawLine  
- *   Draws a line.
- */
-function drawLine(
-  g : CanvasRenderingContext2D,
-  x1 : number, y1 : number,
-  x2 : number, y2 : number
-) : void {
-  g.beginPath();
-  g.moveTo(x1, y1);
-  g.lineTo(x2, y2);
-  g.stroke();
-}
-
-/**
- * drawQuadraticLine  
- *   Draws a quadratic line between two points.
- */
-function drawQuadraticLine(
-  g : CanvasRenderingContext2D,
-  x1 : number, y1 : number,
-  x2 : number, y2 : number
-) : void {
-
-  // Get the vector from point 1 to point 2.
-  let v = [
-    x2 - x1,
-    y2 - y1
-  ];
-
-  // Get the magnitude of the vector.
-  let d = magnitude(v);
-
-  // Get the normal of the vector, rotated 180 degrees.
-  let n = [
-    v[1] / d,
-    -v[0] / d
-  ];
-
-  // Draw the quadric curve.
-  g.beginPath();
-  g.moveTo(x1, y1);
-  g.quadraticCurveTo(
-    x1 + v[0] / 2 + n[0] * GRID_SPACING, y1 + v[1] / 2 + n[1] * GRID_SPACING,
-    x2, y2
-  );
-  g.stroke();
-
-}
-
-/**
- * drawArrow  
- *   Draws an arrow towards the destination node.
- */
-function drawArrow(
-  g : CanvasRenderingContext2D,
-  src : DrawableNode,
-  dst : DrawableNode
-) : void {
-
-  let pt = getEdgeBorderPt(g, src, dst);
-
-  // Draw arrow.
-  drawLine(
-    g,
-    pt.x, pt.y,
-    pt.x + GRID_SPACING * (pt.u[0] * COS_150 - pt.u[1] * SIN_150) / 2,
-    pt.y + GRID_SPACING * (pt.u[0] * SIN_150 + pt.u[1] * COS_150) / 2
-  );
-  drawLine(
-    g,
-    pt.x, pt.y,
-    pt.x + GRID_SPACING * (pt.u[0] * COS_150 + pt.u[1] * SIN_150) / 2,
-    pt.y + GRID_SPACING * (-pt.u[0] * SIN_150 + pt.u[1] * COS_150) / 2
-  );
-
-}
-
-/**
- * drawCircle  
- *   Draws a circle.
- */
-function drawCircle(
-  g : CanvasRenderingContext2D,
-  x : number,
-  y : number,
-  r : number,
-  borderStyle : string,
-  borderWidth : number,
-  borderColor : string,
-  fillColor : string,
-  shadowBlur? : number,
-  shadowColor? : string
-) {
-  g.beginPath();
-  g.arc(x, y, r, 0, 2 * Math.PI);
-  g.fillStyle = fillColor;
-  if(shadowBlur && shadowColor) {
-    g.shadowBlur = shadowBlur;
-    g.shadowColor = shadowColor;
-  }
-  g.fill();
-  g.shadowBlur = 0;
-  if(borderWidth > 0) {
-    setLineStyle(g, borderStyle, borderWidth);
-    g.lineWidth = borderWidth;
-    g.strokeStyle = borderColor;
-    g.stroke();
-  }
-}
-
-/**
- * drawSquare  
- *   Draws a square.
- */
-function drawSquare(
-  g : CanvasRenderingContext2D,
-  x : number,
-  y : number,
-  w : number,
-  h : number,
-  borderStyle : string,
-  borderWidth : number,
-  borderColor : string,
-  fillColor : string,
-  shadowBlur? : number,
-  shadowColor? : string
-) {
-  g.fillStyle = fillColor;
-  if(shadowBlur && shadowColor) {
-    g.shadowBlur = shadowBlur;
-    g.shadowColor = shadowColor;
-  }
-  g.fillRect(x, y, w, h);
-  g.shadowBlur = 0;
-  if(borderWidth > 0) {
-    setLineStyle(g, borderStyle, borderWidth);
-    g.lineWidth = borderWidth;
-    g.strokeStyle = borderColor;
-    g.strokeRect(x, y, w, h);
-  }
-}
-
-/**
- * drawGrid  
- *   Draws the editor grid.
- */
-function drawGrid(g : CanvasRenderingContext2D, originPt : number[]) {
-
-  let w = g.canvas.width;
-  let h = g.canvas.height;
-
-  for(
-    let x = originPt[0] % GRID_SPACING - GRID_SPACING;
-    x < w + GRID_SPACING; 
-    x += GRID_SPACING
-  ) {
-    g.strokeStyle = GRID_MAJOR_COLOR;
-    g.lineWidth = GRID_MAJOR_WIDTH;
-    setLineStyle(g, GRID_MAJOR_STYLE);
-    drawLine(g, x, 0, x, h);
-    g.strokeStyle = GRID_MINOR_COLOR;
-    g.lineWidth = GRID_MINOR_WIDTH;
-    setLineStyle(g, GRID_MINOR_STYLE);
-    drawLine(g, x + GRID_MINOR_OFFSET, 0, x + GRID_MINOR_OFFSET, h);
-  }
-  for(
-    let y = originPt[1] % GRID_SPACING - GRID_SPACING;
-    y < h + GRID_SPACING;
-    y += GRID_SPACING
-  ) {
-    g.strokeStyle = GRID_MAJOR_COLOR;
-    g.lineWidth = GRID_MAJOR_WIDTH;
-    setLineStyle(g, GRID_MAJOR_STYLE);
-    drawLine(g, 0, y, w, y);
-    g.strokeStyle = GRID_MINOR_COLOR;
-    g.lineWidth = GRID_MINOR_WIDTH;
-    setLineStyle(g, GRID_MINOR_STYLE);
-    drawLine(g, 0, y + GRID_MINOR_OFFSET, w, y + GRID_MINOR_OFFSET);
-  }
-
-}
-
-/**
- * drawText  
- *   Draws text.
- */
-function drawText(
-  g : CanvasRenderingContext2D,
-  x : number,
-  y : number,
-  lines : Array<string>,
-  fontSize : number,
-  fontFamily : string,
-  color : string,
-  borderWidth? : number,
-  borderColor? : string
-) {
-    g.font = fontSize + "pt " + fontFamily;
-    g.textAlign = "center";
-    g.textBaseline = "middle";
-    g.fillStyle = color;
-    if(borderWidth && borderColor) {
-      g.lineWidth = 2;
-      g.strokeStyle = "#000";
-      setLineStyle(g, "solid");
-      for(let l = 0; l < lines.length; l++) {
-        g.strokeText(lines[l], x, y);
-        g.fillText(lines[l], x, y);
-        y += 1.5 * fontSize;
-      }
-    }
-    else {
-      for(let l = 0; l < lines.length; l++) {
-        g.fillText(lines[l], x, y);
-        y += 1.5 * fontSize;
-      }
-    }
-}
-
-/**
- * isItThat  
- *   Checks if `it` has the same members as `that`.
- */
-function isItThat(it : any, that : any) : boolean {
-  if(!it)
-    return false;
-  let result = true;
-  for(let p in that) {
-    result =
-      result &&
-      (p in it) &&
-      (typeof that[p] === typeof it[p]);
-    if(!result)
-      return false;
-  }
-  return result;
-}
-
-/**
- * dot  
- *   Calculates the dot product of two vectors.
- */
-function dot(a : number[], b : number[]) : number {
-  console.assert(
-    a.length === b.length,
-    "error dot: a and b must be of equal length."
-  );
-  let result = 0;
-  for(let i = 0; i < a.length; i++)
-    result += a[i] * b[i];
-  return result;
-}
-
-/**
- * magnitude  
- *   Calculates the magnitude of a vector.
- */
-function magnitude(v : number[]) : number {
-  return Math.sqrt(dot(v, v));
-}
-
-/**
- * cloneEdge  
- *   Creates a cloned edge.
- */
-function cloneEdge(e : DrawableEdge) : DrawableEdge {
-  let clone = new DummyEdge();
-  clone.source = e.source;
-  clone.destination = e.destination;
-  clone.showSourceArrow = e.showSourceArrow;
-  clone.showDestinationArrow = e.showDestinationArrow;
-  clone.color = e.color;
-  clone.lineStyle = e.lineStyle;
-  clone.lineWidth = e.lineWidth;
-  clone.label = e.label;
-  return clone;
-}
-
-/**
- * cloneNode  
- *   Creates a cloned node.
- */
-function cloneNode(n : DrawableNode) : DrawableNode {
-  let clone = new DummyNode(n.x, n.y);
-  clone.label = n.label;
-  clone.shape = n.shape;
-  clone.color = n.color;
-  clone.borderColor = n.borderColor;
-  clone.borderStyle = n.borderStyle;
-  clone.borderWidth = n.borderWidth;
-  return clone;
-}
-
-
-// Static classes //////////////////////////////////////////////////////////////
-
-/**
- * DummyNode  
- *   Creates a dummy node with default properties.
- */
-class DummyNode implements DrawableNode {
-  label : string = NODE_DEFAULTS.label;
-  shape: string = NODE_DEFAULTS.shape;
-  color : string = NODE_DEFAULTS.color;
-  borderColor : string = NODE_DEFAULTS.borderColor;
-  borderStyle : string = NODE_DEFAULTS.borderStyle;
-  borderWidth : number = NODE_DEFAULTS.borderWidth;
-
-  constructor(public x : number, public y : number) { }
-}
-
-/**
- * DummyEdge  
- *   Creates a dummy edge with default properties.
- */
-class DummyEdge implements DrawableEdge {
-  source : DrawableNode | null = EDGE_DEFAULTS.source;
-  destination : DrawableNode | null = EDGE_DEFAULTS.destination;
-  showSourceArrow : boolean = EDGE_DEFAULTS.showSourceArrow;
-  showDestinationArrow : boolean = EDGE_DEFAULTS.showDestinationArrow;
-  color : string = EDGE_DEFAULTS.color;
-  lineStyle : string = EDGE_DEFAULTS.lineStyle;
-  lineWidth : number = EDGE_DEFAULTS.lineWidth;
-  label = EDGE_DEFAULTS.label;
-
-  constructor(sourceNode : DrawableNode | null = EDGE_DEFAULTS.source) {
-    this.source = sourceNode;
-  }
 }
