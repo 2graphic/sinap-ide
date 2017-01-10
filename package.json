@@ -10,9 +10,13 @@
   "main": "index.js",
   "scripts": {
     "clean": "rm -r ./node_modules 2> /dev/null || echo > /dev/null && rm -r ./build 2> /dev/null || echo > /dev/null && rm -r ./dist 2> /dev/null || echo > /dev/null",
-    "build": "mkdir build > /dev/null || echo > /dev/null && npm install && webpack --progress --profile --colors --display-error-details --display-cached && cp package.json build",
+    "clean:win": "DEL /F /Q .\\node_modules .\\build .\\dist",
+    "webpack": "webpack --progress --profile --colors --display-error-details --display-cached",
+    "build": "mkdir build > /dev/null || echo > /dev/null && npm install && npm run webpack && cp package.json build",
+    "build:win": "MKDIR build && npm install && npm run webpack && COPY /Y package.json .\\build",
     "start": "electron build",
     "start:build": "npm run build && npm run start",
+    "start:build:win": "npm run build:win && npm run start",
     "package":"npm run build && mkdir dist > /dev/null || echo > /dev/null && electron-packager build sinap --out=dist --no-prune --platform=all --arch=all --overwrite",
     "package:darwin":"npm run build && mkdir dist > /dev/null || echo > /dev/null && electron-packager build sinap --out=dist --no-prune --platform=darwin --arch=all --overwrite"
   },
