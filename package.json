@@ -23,7 +23,14 @@
     "electron-packager": "electron-packager build sinap --out=dist --no-prune --arch=all --overwrite",
     "prepackage": "npm run clean && npm run build && cp package.json build",
     "package":"npm run prepackage && npm run electron-packager -- --platform=all",
-    "package:darwin":"npm run prepackage && npm run electron-packager -- --platform=darwin"
+    "package:darwin":"npm run prepackage && npm run electron-packager -- --platform=darwin",
+
+    "clean:win": "rmdir /s /q node_modules || rmdir /s /q build || rmdir /s /q dist",
+    "prebuild:win": "if not exist build mkdir build && if not exist dist mkdir dist && npm install",
+    "build:win": "npm run prebuild:win && npm run webpack",
+    "build:win:watch": "npm run prebuild:win && npm run webpack -- --watch",
+    "start:build:win": "npm run build:win && npm run start",
+    "start:build:win:watch": "npm run build:win:watch && npm run start"
   },
   "dependencies": {
     "@angular/common": "2.4.x",
