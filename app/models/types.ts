@@ -6,7 +6,7 @@ export class SinapType {
   	return this.type == t.type;
   }
 
-  get topLevelKind(){
+  get topLevelKind() : string{
   	return (this instanceof SinapCompositeType) ? this.compositeKind : this.type;
   }
 }
@@ -53,7 +53,7 @@ export class SinapStructType extends SinapCompositeType {
 	constructor(public baseTypes : Map<string,SinapType>){
 		super("struct", [...baseTypes.entries()].map(p=>p[0] + ":" + p[1].type).join(","),
 			 ()=>{
-				let res = {};
+				let res : any = {};
 				for (let pair of this.baseTypes.entries()){
 					res[pair[0]] = pair[1].prototypicalStructure();
 				}

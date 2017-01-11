@@ -43,6 +43,6 @@ export class PropertiesPanelComponent {
 export interface PropertiedEntity {
   readonly displayProperties : Iterable<[string, SinapType]>;
   readonly pluginProperties : Iterable<[string, SinapType]>;
-  readonly propertyValues : Object;
+  readonly propertyValues : any;
   readonly entityName : string;
 }
