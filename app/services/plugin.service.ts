@@ -24,11 +24,11 @@ export class PluginManager implements PluginManagement{
     return [];
   }
 
-  getNodeComputedProperties() : Array<[string, SinapType, (PropertiedEntity)=>void]>{
+  getNodeComputedProperties() : Array<[string, SinapType, (entity : PropertiedEntity)=>void]>{
     return [];
   }
 
-  getEdgeComputedProperties() : Array<[string, SinapType, (PropertiedEntity)=>void]>{
+  getEdgeComputedProperties() : Array<[string, SinapType, (entity : PropertiedEntity)=>void]>{
     return [];
   }
 
@@ -43,8 +43,8 @@ class DFAPluginManager extends PluginManager{
                             ["Start State", SinapBoolean]];
     }
 
-    getEdgeComputedProperties() : Array<[string, SinapType, (PropertiedEntity)=>void]>{
-        return [["Label", SinapString, (th)=>th["Label"] = th.propertyValues["Symbol"]]];
+    getEdgeComputedProperties() : Array<[string, SinapType, (entity : PropertiedEntity)=>void]>{
+        return [["Label", SinapString, (th)=>(th as any)["Label"] = th.propertyValues["Symbol"]]];
     }
 
     getEdgeProperties() : Array<[string, SinapType]>{
@@ -91,7 +91,7 @@ class MachineLearningPluginManager extends PluginManager{
         }
     }
 
-    getNodeComputedProperties() : Array<[string, SinapType, (PropertiedEntity)=>void]>{
+    getNodeComputedProperties() : Array<[string, SinapType, (entity : PropertiedEntity)=>void]>{
         return [["Label", SinapString,
                 (th : PropertiedEntity)=>{
                     let contentString = "";
@@ -115,7 +115,7 @@ class MachineLearningPluginManager extends PluginManager{
                           break;
                     }
 
-                    return th["Label"] = th.entityName + "\n" + contentString;
+                    return (th as any)["Label"] = th.entityName + "\n" + contentString;
                 }]];
     }
 }
@@ -124,7 +124,7 @@ class MachineLearningPluginManager extends PluginManager{
 export class PluginService {
     constructor() {}
 
-    public getInterpreter(withGraph: Graph):Interpreter {
+    public getInterpreter(withGraph: Graph) : Interpreter {
         switch (withGraph.pluginManager.kind) {
             case "dfa.sinap.graph-kind":
                 return new DFAInterpreter(withGraph);
@@ -144,8 +144,15 @@ export class PluginService {
     }
 }
 
+
+export class Error {
+  constructor (public message : string){}
+}
+export class InterpeterError extends Error{
+}
+
 export interface Interpreter {
-    run(input: String):boolean;
-    message() : string;
-    check() : string;
+  run(input: String):boolean;
+  message() : string;
+  check() : InterpeterError | null;
 }
