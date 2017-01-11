@@ -7,32 +7,32 @@ import { Component, Input } from "@angular/core";
 
 
 @Component({
-  selector: "sinap-side-bar",
-  templateUrl: "./side-bar.component.html",
-  styleUrls: [ "./side-bar.component.css" ]
+    selector: "sinap-side-bar",
+    templateUrl: "./side-bar.component.html",
+    styleUrls: ["./side-bar.component.css"]
 })
 export class SideBarComponent {
-  @Input() icons: SideBarIcon[];
-  private _active: String;
+    @Input() icons: SideBarIcon[];
+    private _active: String;
 
-  get active() {
-    if (this._active) {
-      return this._active;
-    } else {
-      return this.icons[0].name;
+    get active() {
+        if (this._active) {
+            return this._active;
+        } else {
+            return this.icons[0].name;
+        }
     }
-  }
 
-  set active(v: String) {
-    this._active = v;
-  }
+    set active(v: String) {
+        this._active = v;
+    }
 
-  setActive(icon:SideBarIcon) {
-    this._active = icon.name;
-  }
+    setActive(icon: SideBarIcon) {
+        this._active = icon.name;
+    }
 }
 
 export interface SideBarIcon {
-  path: String;
-  name: String;
+    path: String;
+    name: String;
 }

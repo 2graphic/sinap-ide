@@ -22,7 +22,7 @@ import { app, BrowserWindow } from "electron";
  *   Keeps track of the main window so it does not accidentally get garbage
  *   collected while it is still being used.
  */
-let win : Electron.BrowserWindow | null;
+let win: Electron.BrowserWindow | null;
 
 
 /**
@@ -30,19 +30,19 @@ let win : Electron.BrowserWindow | null;
  *   Creates the main application window.
  */
 function createWindow() {
-  win = new BrowserWindow({
-    width: 1150,
-    height: 720,
-    center: true
-  });
+    win = new BrowserWindow({
+        width: 1150,
+        height: 720,
+        center: true
+    });
 
-  win.loadURL(`file://${__dirname}/index.html`);
+    win.loadURL(`file://${__dirname}/index.html`);
 
-  win.on("closed", () => {
-    win = null
-  });
+    win.on("closed", () => {
+        win = null
+    });
 
-  win.maximize();
+    win.maximize();
 }
 
 
@@ -56,9 +56,9 @@ app.on("ready", createWindow);
 // Terminates the application when all windows have been closed.
 //
 app.on("window-all-closed", () => {
-  if(process.platform !== "darwin") {
-    app.quit();
-  }
+    if (process.platform !== "darwin") {
+        app.quit();
+    }
 });
 
 
@@ -67,7 +67,7 @@ app.on("window-all-closed", () => {
 // This will likely occur on mobile devices with limited resources.
 //
 app.on("activate", () => {
-  if(win === null) {
-    createWindow();
-  }
+    if (win === null) {
+        createWindow();
+    }
 });
