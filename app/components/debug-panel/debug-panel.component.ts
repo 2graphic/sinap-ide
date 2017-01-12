@@ -7,9 +7,9 @@ import { Component } from "@angular/core";
 
 
 @Component({
-  selector: "sinap-debug-panel",
-  templateUrl: "./debug-panel.component.html",
-  styleUrls: [ "../../styles/bottom-panel.component.css" ]
+    selector: "sinap-debug-panel",
+    templateUrl: "./debug-panel.component.html",
+    styleUrls: ["../../styles/bottom-panel.component.css"]
 })
 export class DebugPanelComponent {
 }

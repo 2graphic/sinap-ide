@@ -7,9 +7,9 @@ import { Component } from "@angular/core";
 
 
 @Component({
-  selector: "sinap-files-panel",
-  templateUrl: "./files-panel.component.html",
-  styleUrls: [ "../../styles/side-panel.component.css" ]
+    selector: "sinap-files-panel",
+    templateUrl: "./files-panel.component.html",
+    styleUrls: ["../../styles/side-panel.component.css"]
 })
 export class FilesPanelComponent {
 }

@@ -11,7 +11,7 @@ import { enableProdMode } from '@angular/core';
 import { MainModule } from "./main.module";
 
 if (process.env.ENV === 'production') {
-  enableProdMode();
+    enableProdMode();
 }
 
 platformBrowserDynamic().bootstrapModule(MainModule);

@@ -7,9 +7,9 @@ import { Component, Input } from "@angular/core";
 
 
 @Component({
-  selector: "sinap-status-bar",
-  templateUrl: "./status-bar.component.html",
-  styleUrls: [ "./status-bar.component.css" ]
+    selector: "sinap-status-bar",
+    templateUrl: "./status-bar.component.html",
+    styleUrls: ["./status-bar.component.css"]
 })
 export class StatusBarComponent {
     @Input() title: String;

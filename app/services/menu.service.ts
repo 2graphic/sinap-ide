@@ -5,9 +5,9 @@ let { Menu, MenuItem, app } = remote;
 
 @Injectable()
 export class MenuService {
-    private eventListeners:MenuEventListener[] = [];
+    private eventListeners: MenuEventListener[] = [];
 
-    constructor( private _ngZone: NgZone) {
+    constructor(private _ngZone: NgZone) {
         // Initialize the system Menu
         let menu = Menu.buildFromTemplate(menuTemplate);
         Menu.setApplicationMenu(menu);
@@ -19,16 +19,16 @@ export class MenuService {
 
     private callEvent(e: MenuEvent) {
         this._ngZone.run(() => {
-            this.eventListeners.forEach((listener)=>{
+            this.eventListeners.forEach((listener) => {
                 listener.menuEvent(e);
             });
         });
     }
 
     public addEventListener(obj: MenuEventListener) {
-       if (this.eventListeners.indexOf(obj) < 0) {
-           this.eventListeners.push(obj);
-       }
+        if (this.eventListeners.indexOf(obj) < 0) {
+            this.eventListeners.push(obj);
+        }
     }
 
     public removeEventListener(obj: MenuEventListener) {
@@ -48,7 +48,7 @@ export enum MenuEvent {
 }
 
 export interface MenuEventListener {
-    menuEvent:(e: MenuEvent) => void;
+    menuEvent: (e: MenuEvent) => void;
 }
 
 // This defines the template for our application Menu
@@ -93,7 +93,7 @@ const menuTemplate: any = [
             {
                 label: 'Quit',
                 accelerator: 'Command+Q',
-                click: function () { app.quit(); }
+                click: function() { app.quit(); }
             },
         ]
     },
@@ -103,21 +103,21 @@ const menuTemplate: any = [
             {
                 label: 'New',
                 accelerator: 'CmdOrCtrl+n',
-                click: function (item : Electron.MenuItem, focusedWindow : Electron.BrowserWindow) {
+                click: function(item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
                     focusedWindow.webContents.send("new");
                 }
             },
             {
                 label: 'Save',
                 accelerator: 'CmdOrCtrl+s',
-                click: function (item : Electron.MenuItem, focusedWindow : Electron.BrowserWindow) {
+                click: function(item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
                     focusedWindow.webContents.send("save");
                 }
             },
             {
                 label: 'Load',
                 accelerator: 'CmdOrCtrl+o',
-                click: function (item : Electron.MenuItem, focusedWindow : Electron.BrowserWindow) {
+                click: function(item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
                     focusedWindow.webContents.send("load");
                 }
             }
@@ -144,33 +144,33 @@ const menuTemplate: any = [
             {
                 label: 'Reload',
                 accelerator: 'CmdOrCtrl+R',
-                click: function (item : Electron.MenuItem, focusedWindow : Electron.BrowserWindow) {
+                click: function(item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
                     if (focusedWindow)
                         focusedWindow.reload();
                 }
             },
             {
                 label: 'Toggle Full Screen',
-                accelerator: (function () {
+                accelerator: (function() {
                     if (process.platform == 'darwin')
                         return 'Ctrl+Command+F';
                     else
                         return 'F11';
                 })(),
-                click: function (item : Electron.MenuItem, focusedWindow : Electron.BrowserWindow) {
+                click: function(item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
                     if (focusedWindow)
                         focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
                 }
             },
             {
                 label: 'Toggle Developer Tools',
-                accelerator: (function () {
+                accelerator: (function() {
                     if (process.platform == 'darwin')
                         return 'Alt+Command+I';
                     else
                         return 'Ctrl+Shift+I';
                 })(),
-                click: function (item : Electron.MenuItem, focusedWindow : any) { // TODO: toggleDevTools is not a member of BrowserWindow?
+                click: function(item: Electron.MenuItem, focusedWindow: any) { // TODO: toggleDevTools is not a member of BrowserWindow?
                     if (focusedWindow)
                         focusedWindow.toggleDevTools();
                 }
@@ -199,7 +199,7 @@ const menuTemplate: any = [
         submenu: [
             {
                 label: 'Learn More',
-                click: function () { require('electron').shell.openExternal('https://github.com/2graphic/2graphic.github.io') }
+                click: function() { require('electron').shell.openExternal('https://github.com/2graphic/2graphic.github.io') }
             },
         ]
     },
