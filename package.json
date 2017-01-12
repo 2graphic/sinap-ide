@@ -9,12 +9,29 @@
   },
   "main": "index.js",
   "scripts": {
-    "clean": "rm -r ./node_modules 2> /dev/null || echo > /dev/null && rm -r ./build 2> /dev/null || echo > /dev/null && rm -r ./dist 2> /dev/null || echo > /dev/null",
-    "build": "mkdir build > /dev/null || echo > /dev/null && npm install && webpack --progress --profile --colors --display-error-details --display-cached && cp package.json build",
+    "clean": "rm -r ./build 2> /dev/null || echo > /dev/null && rm -r ./dist 2> /dev/null || echo > /dev/null",
+    "clean:node_modules": "npm run clean && rm -r ./node_modules 2> /dev/null || echo > /dev/null",
+
+    "webpack": "webpack --progress --profile --colors --display-error-details --display-cached",
+    "format": "tsfmt -r",
+    "prebuild": "mkdir build > /dev/null || echo > /dev/null && mkdir dist > /dev/null || echo > /dev/null && npm install",
+    "build": "npm run prebuild && npm run format && npm run webpack",
+    "build:watch": "npm run prebuild && npm run webpack -- --watch",
+
     "start": "electron build",
     "start:build": "npm run build && npm run start",
-    "package":"npm run build && mkdir dist > /dev/null || echo > /dev/null && electron-packager build sinap --out=dist --no-prune --platform=all --arch=all --overwrite",
-    "package:darwin":"npm run build && mkdir dist > /dev/null || echo > /dev/null && electron-packager build sinap --out=dist --no-prune --platform=darwin --arch=all --overwrite"
+
+    "electron-packager": "electron-packager build sinap --out=dist --no-prune --arch=all --overwrite",
+    "prepackage": "npm run clean && npm run build && cp package.json build",
+    "package": "npm run prepackage && npm run electron-packager -- --platform=all",
+    "package:darwin": "npm run prepackage && npm run electron-packager -- --platform=darwin",
+
+    "clean:win": "if exist node_modules rmdir /s /q node_modules & if exist build rmdir /s /q build & if exist dist rmdir /s /q dist",
+    "prebuild:win": "if not exist build mkdir build & if not exist dist mkdir dist & npm install",
+    "build:win": "npm run prebuild:win && npm run webpack",
+    "build:win:watch": "npm run prebuild:win && npm run webpack -- --watch",
+    "start:build:win": "npm run build:win && npm run start",
+    "start:build:win:watch": "npm run build:win:watch && npm run start"
   },
   "dependencies": {
     "@angular/common": "2.4.x",
@@ -34,13 +51,14 @@
   "devDependencies": {
     "@types/electron": "1.4.30",
     "@types/node": "6.0.x",
-    
+
     "electron": "1.4.8",
     "electron-packager": "8.4.x",
-    
+
     "typescript": "2.1.x",
 
     "webpack": "1.14.x",
+    "typescript-formatter": "4.0.x",
     "html-webpack-plugin": "2.16.x",
     "angular2-template-loader": "0.6.x",
     "style-loader": "0.13.x",

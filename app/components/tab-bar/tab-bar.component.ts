@@ -39,7 +39,7 @@ export class TabBarComponent {
         }
     }
 
-    private findTab(index: Number):Tab|null {
+    private findTab(index: Number): Tab | null {
         for (let tab of this.tabs) {
             if (tab.index == index) {
                 return tab;
@@ -57,7 +57,7 @@ export class TabBarComponent {
         }
 
         var reselect = false;
-        
+
         if (this.active == tab.index) {
             reselect = true;
         }
@@ -83,7 +83,7 @@ export class TabBarComponent {
     }
 
     // This will give you the number to identify this tab with.
-    newTab(name: String):Number {
+    newTab(name: String): Number {
         let tab = {
             'name': name,
             'index': this.index++,
@@ -102,9 +102,9 @@ export class TabBarComponent {
 }
 
 export interface TabDelegate {
-    deletedTab:(i: Number)=>void;
-    selectedTab:(i: Number)=>void; // -1 = no tabs
-    createNewTab:()=>void;
+    deletedTab: (i: Number) => void;
+    selectedTab: (i: Number) => void; // -1 = no tabs
+    createNewTab: () => void;
 }
 
 interface Tab {
