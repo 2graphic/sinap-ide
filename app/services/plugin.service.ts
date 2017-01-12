@@ -151,8 +151,9 @@ export class Error {
 export class InterpeterError extends Error {
 }
 
-export interface Interpreter {
-    run(input: String): boolean;
-    message(): string;
-    check(): InterpeterError | null;
+type Program = (input: any) => any;
+type Interpreter = (graph: Graph) => Program;
+
+class ProgramContext {
+    public setMenuBar(message: string): void;
 }
