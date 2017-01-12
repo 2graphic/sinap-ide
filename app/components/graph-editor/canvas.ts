@@ -1,4 +1,4 @@
-// File: draw.ts
+// File: canvas.ts
 // Created by: CJ Dimaano
 // Date created: January 9, 2016
 //
@@ -9,6 +9,29 @@ import * as CONST from "./constants";
 import * as Drawables from "./drawable-interfaces";
 import * as MathEx from "./math";
 
+
+/**
+ * getMousePt  
+ *   Gets the canvas coordinates from a mouse event.
+ */
+export function getMousePt(g : CanvasRenderingContext2D, e: MouseEvent) : number[] {
+  let canvas = g.canvas;
+  let r = canvas.getBoundingClientRect();
+  return [
+    (e.clientX - r.left) / (r.right - r.left) * canvas.width / CONST.AA_SCALE,
+    (e.clientY - r.top) / (r.bottom - r.top) * canvas.height / CONST.AA_SCALE
+  ];
+}
+
+/**
+ * clear  
+ *   Clears the canvas.
+ */
+export function clear(g : CanvasRenderingContext2D, bgColor : string) : void {
+  let canvas = g.canvas;
+  g.fillStyle = bgColor;
+  g.fillRect(0, 0, canvas.width, canvas.height);
+}
 
 /**
  * drawSelectionBox  

@@ -52,7 +52,7 @@ function isItThat(it : any, that : any) : boolean {
  *   Creates a cloned edge.
  */
 export function cloneEdge(e : DrawableEdge) : DrawableEdge {
-  let clone = new DummyEdge();
+  let clone = new DefaultEdge();
   clone.source = e.source;
   clone.destination = e.destination;
   clone.showSourceArrow = e.showSourceArrow;
@@ -69,7 +69,7 @@ export function cloneEdge(e : DrawableEdge) : DrawableEdge {
  *   Creates a cloned node.
  */
 export function cloneNode(n : DrawableNode) : DrawableNode {
-  let clone = new DummyNode(n.x, n.y);
+  let clone = new DefaultNode(n.x, n.y);
   clone.label = n.label;
   clone.shape = n.shape;
   clone.color = n.color;
@@ -288,10 +288,10 @@ export interface DrawableNode {
 
 
 /**
- * DummyNode  
- *   Creates a dummy node with default properties.
+ * DefaultNode  
+ *   Creates a drawable node with default properties.
  */
-export class DummyNode implements DrawableNode {
+export class DefaultNode implements DrawableNode {
   label : string = NODE_DEFAULTS.label;
   shape: string = NODE_DEFAULTS.shape;
   color : string = NODE_DEFAULTS.color;
@@ -303,10 +303,10 @@ export class DummyNode implements DrawableNode {
 }
 
 /**
- * DummyEdge  
- *   Creates a dummy edge with default properties.
+ * DefaultEdge  
+ *   Creates a drawable edge with default properties.
  */
-export class DummyEdge implements DrawableEdge {
+export class DefaultEdge implements DrawableEdge {
   source : DrawableNode | null = EDGE_DEFAULTS.source;
   destination : DrawableNode | null = EDGE_DEFAULTS.destination;
   showSourceArrow : boolean = EDGE_DEFAULTS.showSourceArrow;
