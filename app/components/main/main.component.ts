@@ -170,7 +170,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             }
             let graph = {
                 'sinap-file-format-version': "0.0.1",
-                'graph': (this.context.graph as Graph).serialize()
+                'graph': this.context.graph.serialize()
             };
             fs.writeFile(filename, JSON.stringify(graph), 'utf8', (err: any) => {
                 if (err)
