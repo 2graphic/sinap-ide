@@ -84,19 +84,10 @@ export {
     isDrawableNode
 } from "./drawable-interfaces";
 
-
 // Type aliases ////////////////////////////////////////////////////////////////
-
-
-/**
- * Drawable  
- *   Type alias for the the union type of `DrawableEdge` and `DrawableNode`.
- */
-type Drawable = Drawables.DrawableEdge | Drawables.DrawableNode;
-
+type Drawable = Drawables.Drawable;
 
 // Graph Editor Angular Component //////////////////////////////////////////////
-
 
 @Component({
     selector: "sinap-graph-editor",
@@ -129,6 +120,12 @@ export class GraphEditorComponent implements AfterViewInit {
      *   The graph object.
      */
     private graph: Drawables.DrawableGraph;
+    
+    /**
+     * graph  
+     *   The graph object.
+     */
+    private context: Drawables.GraphContext;
 
     /**
      * gridOriginPt  
@@ -165,12 +162,6 @@ export class GraphEditorComponent implements AfterViewInit {
      *   The edge to be replaced once the new edge has been created.
      */
     private moveEdge: Drawables.DrawableEdge | null = null;
-
-    /**
-     * selectedItems  
-     *   The set of selected graph components.
-     */
-    private selectedItems: Set<Drawable> = new Set<Drawable>();
 
     /**
      * unselectedItems  
@@ -214,9 +205,10 @@ export class GraphEditorComponent implements AfterViewInit {
      * graph  
      *   Input property for the graph object.
      */
-    @Input("graph")
-    set setGraph(value: Drawables.DrawableGraph) {
-        this.graph = value;
+    @Input("context")
+    set setGraphContext(value: Drawables.GraphContext) {
+        this.context = value;
+        this.graph = value.graph;
         if (this.g) {
             // TODO:
             // The graph object should keep track of its selected items.
@@ -254,7 +246,7 @@ export class GraphEditorComponent implements AfterViewInit {
         // TODO:
         // Probably separate clearing the selection from initializing graph
         // elements.
-        this.selectedItems.clear();
+        this.context.selectedDrawables.clear();
         this.unselectedItems.clear();
         this.drawMap.clear();
         this.drawList = new Array<Drawable>();
@@ -275,7 +267,7 @@ export class GraphEditorComponent implements AfterViewInit {
             }
             this.drawList = this.drawList.reverse();
             this.selectionChanged.emit(
-                new Set<Drawable>(this.selectedItems)
+                new Set<Drawable>(this.context.selectedDrawables)
             );
         }
     }
@@ -920,7 +912,7 @@ export class GraphEditorComponent implements AfterViewInit {
         if (this.graph && (e.keyCode == 46 || e.keyCode == 8)) {
             let edges = new Set<Drawables.DrawableEdge>();
             let nodes = new Set<Drawables.DrawableNode>();
-            for (let ele of this.selectedItems) {
+            for (let ele of this.context.selectedDrawables) {
                 if (Drawables.isDrawableEdge(ele))
                     edges.add(ele);
                 else if (Drawables.isDrawableNode(ele))
@@ -1058,16 +1050,16 @@ export class GraphEditorComponent implements AfterViewInit {
                         let rect = canvas.makeRect(downPt[0], downPt[1], ePt[0], ePt[1]);
 
                         // Update the selected components.
-                        for (let i of this.selectedItems) {
+                        for (let i of this.context.selectedDrawables) {
                             if (!this.rectHitTest(i, rect))
-                                moveItem(this.selectedItems, this.unselectedItems, i);
+                                moveItem(this.context.selectedDrawables, this.unselectedItems, i);
                         }
                         for (let i of this.unselectedItems) {
                             if (this.rectHitTest(i, rect))
-                                moveItem(this.unselectedItems, this.selectedItems, i);
+                                moveItem(this.unselectedItems, this.context.selectedDrawables, i);
                         }
                         this.selectionChanged.emit(new Set<Drawable>(
-                            this.selectedItems
+                            this.context.selectedDrawables
                         ));
 
                         // Update the canvas.
@@ -1087,12 +1079,12 @@ export class GraphEditorComponent implements AfterViewInit {
                     // Update node position if dragging node.
                     else if (Drawables.isDrawableNode(this.dragObject)) {
                         if (
-                            this.selectedItems.has(this.dragObject) &&
-                            this.selectedItems.size > 0
+                            this.context.selectedDrawables.has(this.dragObject) &&
+                            this.context.selectedDrawables.size > 0
                         ) {
                             let dx = ePt[0] - this.dragObject.x;
                             let dy = ePt[1] - this.dragObject.y;
-                            for (let o of this.selectedItems) {
+                            for (let o of this.context.selectedDrawables) {
                                 if (Drawables.isDrawableNode(o)) {
                                     o.x += dx;
                                     o.y += dy;
@@ -1177,12 +1169,12 @@ export class GraphEditorComponent implements AfterViewInit {
             // Drop the node if one is being dragged.
             else if (Drawables.isDrawableNode(this.dragObject)) {
                 if (
-                    this.selectedItems.has(this.dragObject) &&
-                    this.selectedItems.size > 0
+                    this.context.selectedDrawables.has(this.dragObject) &&
+                    this.context.selectedDrawables.size > 0
                 ) {
                     let dx = ePt[0] - this.dragObject.x;
                     let dy = ePt[1] - this.dragObject.y;
-                    for (let o of this.selectedItems) {
+                    for (let o of this.context.selectedDrawables) {
                         if (Drawables.isDrawableNode(o)) {
                             o.x += dx;
                             o.y += dy;
@@ -1200,7 +1192,7 @@ export class GraphEditorComponent implements AfterViewInit {
             }
 
             // Reset the selected item.
-            if (this.dragObject && this.selectedItems.size < 2) {
+            if (this.dragObject && this.context.selectedDrawables.size < 2) {
                 this.clearSelected();
                 this.addSelectedItem(this.dragObject);
             }
@@ -1240,7 +1232,7 @@ export class GraphEditorComponent implements AfterViewInit {
         canvas.clear(this.g, this.graph ? this.graph.backgroundColor : "AppWorkspace");
         if (this.graph) {
             canvas.drawGrid(this.g, this.gridOriginPt);
-            for(const d of this.drawList)
+            for (const d of this.drawList)
                 (this.drawMap.get(d) as () => void)();
             // for (let e of this.graph.edges)
             //     this.drawEdge(e);
@@ -1458,8 +1450,8 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Adds an item to the selected items set.
      */
     private addSelectedItem(item: Drawable) {
-        moveItem(this.unselectedItems, this.selectedItems, item);
-        this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
+        moveItem(this.unselectedItems, this.context.selectedDrawables, item);
+        this.selectionChanged.emit(new Set<Drawable>(this.context.selectedDrawables));
     }
 
     /**
@@ -1467,8 +1459,8 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Removes an item from the selected items set.
      */
     private removeSelectedItem(item: Drawable) {
-        moveItem(this.selectedItems, this.unselectedItems, item);
-        this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
+        moveItem(this.context.selectedDrawables, this.unselectedItems, item);
+        this.selectionChanged.emit(new Set<Drawable>(this.context.selectedDrawables));
     }
 
     /**
