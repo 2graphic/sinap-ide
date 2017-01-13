@@ -498,22 +498,24 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private setUnselectedEdgeDraw(e: Drawables.DrawableEdge): void {
         let pts = this.edgePoints.get(e) as number[];
-        switch (pts.length) {
+        if (pts) {
+            switch (pts.length) {
 
-            // Straight line
-            case 4:
-                this.setUnselectedStraightEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]]);
-                break;
+                // Straight line
+                case 4:
+                    this.setUnselectedStraightEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]]);
+                    break;
 
-            // Quadratic line
-            case 6:
-                this.setUnselectedQuadraticEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]], [pts[4], pts[5]]);
-                break;
+                // Quadratic line
+                case 6:
+                    this.setUnselectedQuadraticEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]], [pts[4], pts[5]]);
+                    break;
 
-            // Bezier line
-            case 8:
-                this.setUnselectedBezierEdgeDraw(e);
-                break;
+                // Bezier line
+                case 8:
+                    this.setUnselectedBezierEdgeDraw(e);
+                    break;
+            }
         }
     }
 
@@ -1274,8 +1276,12 @@ export class GraphEditorComponent implements AfterViewInit {
         canvas.clear(this.g, this.graph ? this.graph.backgroundColor : "AppWorkspace");
         if (this.graph) {
             canvas.drawGrid(this.g, this.gridOriginPt);
-            for (const d of this.drawList)
-                (this.drawMap.get(d) as () => void)();
+            for (const d of this.drawList) {
+                if (this.drawMap.has(d)) {
+                    (this.drawMap.get(d) as () => void)();
+                }
+            }
+
             // for (let e of this.graph.edges)
             //     this.drawEdge(e);
             // for (let n of this.graph.nodes)
