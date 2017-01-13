@@ -191,11 +191,13 @@ export class GraphEditorComponent implements AfterViewInit {
     private drawList: Array<Drawable> = new Array<Drawable>();
 
     /**
-     * edgeEndpoints  
-     *   Maps edges to endpoints.  
-     *   [x1, y1, x2, y2]
+     * edgePoints  
+     *   Maps edges to points.  
+     * 
+     *   The first two points are the end points. All other points are control
+     *   points for bezier curves.
      */
-    private edgeEndpoints: Map<Drawables.DrawableEdge, number[]> =
+    private edgePoints: Map<Drawables.DrawableEdge, number[]> =
     new Map<Drawables.DrawableEdge, number[]>();
 
     private nodeDimensions: Map<Drawables.DrawableNode, any> =
@@ -256,12 +258,13 @@ export class GraphEditorComponent implements AfterViewInit {
         this.unselectedItems.clear();
         this.drawMap.clear();
         this.drawList = new Array<Drawable>();
-        this.edgeEndpoints.clear();
+        this.edgePoints.clear();
         this.nodeDimensions.clear();
         if (this.graph) {
             for (const n of this.graph.nodes) {
                 this.unselectedItems.add(n);
                 this.drawList.push(n);
+                this.setNodeDimensions(n);
                 this.setUnselectedNodeDraw(n);
             }
             for (const e of this.graph.edges) {
@@ -295,119 +298,614 @@ export class GraphEditorComponent implements AfterViewInit {
         return false;
     }
 
-    private setEdgePoints(e: Drawables.DrawableEdge, x?: number, y?: number): void {
-        console.assert(e.source || e.destination,
-            "error GraphEditorComponent.setEdgeEndpoints: drawable edge must have either a source or a destination");
-        if (e.source && e.destination) {
-            if (e.source === e.destination) {
-                // TODO:
-                // Draw loop.
-            }
-            else if (this.isOverlapping(e)) {
-                let v = [
-                    e.destination.x - e.source.x,
-                    e.destination.y - e.source.y
-                ];
-                let d = MathEx.mag(v);
-                let n = [
-                    v[1] / d,
-                    -v[0] / d
-                ];
+    /**
+     * getEdgePtShift  
+     *   Gets the vector in the direction of `u` that is on the boundary of a
+     *   node based on its geometry.
+     */
+    private getEdgePtShift(u: number[], n: Drawables.DrawableNode): number[] {
+        let v = [0, 0];
 
-                // TODO:
-                // this.getEdgePtShift
+        // The boundary of a circle is just its radius plus half its border width.
+        if (n.shape === "circle") {
+            v[0] = u[0] * this.nodeDimensions.get(n).r + n.borderWidth / 2;
+            v[1] = u[1] * this.nodeDimensions.get(n).r + n.borderWidth / 2;
+        }
 
-                if (e.source.shape === "circle") {
-                    let pt1 = [
-                        v[0] / 2 + n[0] * CONST.GRID_SPACING,
-                        v[1] / 2 + n[1] * CONST.GRID_SPACING
-                    ];
-                    d = MathEx.mag(pt1);
-                    let pt0 = [
-                        e.source.x + pt1[0] / d * this.nodeDimensions.get(e.source).r,
-                        e.source.y + pt1[1] / d * this.nodeDimensions.get(e.source).r
-                    ];
-                    let pt2 = [
-                        e.source.x + v[0] + (pt1[0] - v[0]) / d * this.nodeDimensions.get(e.destination)
-                    ];
-                }
-                else if (e.source.shape === "square") {
-                    // TODO:
-                }
+        // The boundary of a square depends on the direction of u.
+        else if (n.shape === "square") {
+            let up = [
+                (u[0] < 0 ? -u[0] : u[0]),
+                (u[1] < 0 ? -u[1] : u[1])
+            ];
+            let s = this.nodeDimensions.get(n).s;
+            if (up[0] < up[1]) {
+                let ratio = up[0] / up[1];
+                let b = s / up[1];
+                let a = ratio * up[0];
+                s = MathEx.mag([a, b]);
             }
             else {
-
+                let ratio = up[1] / up[0];
+                let a = s / up[0];
+                let b = ratio * up[1];
+                s = MathEx.mag([a, b]);
             }
+            v[0] = u[0] * s + n.borderWidth / 2;
+            v[1] = u[1] * s + n.borderWidth / 2;
         }
-        else if (e.source) {
+        return v;
+    }
 
+    /**
+     * setEdgePoints  
+     *   Sets the end points and any control points associated with an edge.
+     */
+    private setEdgePoints(
+        e: Drawables.DrawableEdge,
+        x?: number,
+        y?: number
+    ): void {
+        console.assert(e.source || e.destination,
+            "error GraphEditorComponent.setEdgePoints: drawable edge must have either a source or a destination");
+        if (e.source && e.destination) {
+            if (e.source === e.destination)
+                this.setLoopEdgePoints(e, e.source);
+            else if (this.isOverlapping(e))
+                this.setQuadraticEdgePoints(e, e.source, e.destination);
+            else
+                this.setStraightEdgePoints(e, x, y);
         }
-        else if (e.destination) {
+        else
+            this.setStraightEdgePoints(e, x, y);
+    }
 
+    /**
+     * setStraightEdgePoints  
+     *   Sets the end points of a straight line.
+     */
+    private setStraightEdgePoints(e: Drawables.DrawableEdge, x?: number, y?: number): void {
+        if (e.source && e.destination) {
+            let v = [
+                e.destination.x - e.source.x,
+                e.destination.y - e.source.y
+            ];
+            let d = MathEx.mag(v);
+            let u = [v[0] / d, v[1] / d];
+            let shiftPt = this.getEdgePtShift(u, e.source);
+            let pts: number[] = [];
+            pts.push(e.source.x + shiftPt[0]);
+            pts.push(e.source.y + shiftPt[1]);
+            u[0] *= -1;
+            u[1] *= -1;
+            shiftPt = this.getEdgePtShift(u, e.destination);
+            pts.push(e.source.x + v[0] + shiftPt[0]);
+            pts.push(e.source.y + v[1] + shiftPt[1]);
+        }
+        else if (e.source && !e.destination) {
+            console.assert(x && y, "error GraphEditorComponent.setStraightEdgePoints: x and y must be defined.");
+            let v = [
+                x - e.source.x,
+                y - e.source.y
+            ];
+            let d = MathEx.mag(v);
+            let u = [v[0] / d, v[1] / d];
+            let shiftPt = this.getEdgePtShift(u, e.source);
+            let pts: number[] = [];
+            pts.push(e.source.x + shiftPt[0]);
+            pts.push(e.source.y + shiftPt[1]);
+            pts.push(x as number);
+            pts.push(y as number);
+        }
+        else if (!e.source && e.destination) {
+            console.assert(x && y, "error GraphEditorComponent.setStraightEdgePoints: x and y must be defined.");
+            let v = [
+                e.destination.x - x,
+                e.destination.y - y
+            ];
+            let d = MathEx.mag(v);
+            let u = [-v[0] / d, -v[1] / d];
+            let pts: number[] = [];
+            pts.push(x as number);
+            pts.push(y as number);
+            let shiftPt = this.getEdgePtShift(u, e.destination);
+            pts.push(x + v[0] + shiftPt[0]);
+            pts.push(y + v[1] + shiftPt[1]);
         }
     }
 
+    /**
+     * setLoopEdgePoints  
+     *   Sets the edge points of a self-referencing node.
+     */
+    private setLoopEdgePoints(e: Drawables.DrawableEdge, n: Drawables.DrawableNode): void {
+        // TODO:
+        this.edgePoints.set(e, []);
+    }
+
+    /**
+     * setQuadraticEdgePoints  
+     *   Sets the edge points of an overlapping edge.
+     */
+    private setQuadraticEdgePoints(
+        e: Drawables.DrawableEdge,
+        src: Drawables.DrawableNode,
+        dst: Drawables.DrawableNode
+    ): void {
+        let v = [
+            dst.x - src.x,
+            dst.y - src.y
+        ];
+        let d = MathEx.mag(v);
+        let n = [
+            v[1] / d,
+            -v[0] / d
+        ];
+
+        let pt1 = [
+            v[0] / 2 + n[0] * CONST.GRID_SPACING,
+            v[1] / 2 + n[1] * CONST.GRID_SPACING
+        ];
+        d = MathEx.mag(pt1);
+        let shiftPt = this.getEdgePtShift([pt1[0] / d, pt1[1] / d], src);
+        let pt0 = [
+            src.x + shiftPt[0],
+            src.y + shiftPt[1]
+        ];
+        shiftPt = this.getEdgePtShift([(pt1[0] - v[0]) / d, (pt1[1] - v[1]) / d], dst);
+        let pt2 = [
+            src.x + v[0] + shiftPt[0],
+            src.y + v[1] + shiftPt[1]
+        ];
+        this.edgePoints.set(e, [pt0[0], pt0[1], pt2[0], pt2[1], pt1[0], pt1[1]]);
+    }
+
+    /**
+     * setUnselectedEdgeDraw  
+     *   Sets the unselected edge draw function.
+     */
     private setUnselectedEdgeDraw(e: Drawables.DrawableEdge): void {
-        this.drawMap.set(e, () => {
+        let pts = this.edgePoints.get(e) as number[];
+        switch (pts.length) {
 
-            // Edge
-            this.g.strokeStyle = e.color;
-            this.g.lineWidth = e.lineWidth;
-            canvas.setLineStyle(this.g, e.lineStyle, e.lineWidth);
-            if (x && y) {
-                if (e.source)
-                    canvas.drawLine(this.g, e.source.x, e.source.y, x, y);
-                else if (e.destination)
-                    canvas.drawLine(this.g, x, y, e.destination.x, e.destination.y);
-            }
-            else if (e.source && e.destination) {
-                canvas.drawLine(this.g, e.source.x, e.source.y, e.destination.x, e.destination.y);
-                if (e.showSourceArrow)
-                    canvas.drawArrow(this.g, e.destination, e.source);
-                if (e.showDestinationArrow)
-                    canvas.drawArrow(this.g, e.source, e.destination);
-            }
+            // Straight line
+            case 4:
+                this.setUnselectedStraightEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]]);
+                break;
 
-            // Label
-            if (e.source && e.destination && e.label && e.label.trim() !== "") {
-                let lines = e.label.split("\n");
-                let size = canvas.getTextSize(this.g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
-                let srcPt = canvas.getEdgeBorderPt(this.g, e.destination, e.source);
-                let dstPt = canvas.getEdgeBorderPt(this.g, e.source, e.destination);
-                let rect = makeRect(
-                    srcPt.x, srcPt.y,
-                    dstPt.x, dstPt.y
-                );
-                x = rect.x + rect.w / 2;
-                y = rect.y + rect.h / 2;
-                size.w /= 2;
-                size.h /= 2;
-                rect = makeRect(
-                    x - size.w - 6, y - size.h,
-                    x + size.w + 6, y + size.h);
-                this.g.lineWidth = e.lineWidth;
-                this.g.fillStyle = this.graph.backgroundColor;
-                canvas.setLineStyle(this.g, e.lineStyle);
-                this.g.lineJoin = "round";
-                this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
-                this.g.shadowBlur = 0;
-                this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
-                canvas.drawText(
-                    this.g,
-                    x, y - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
-                    lines,
-                    CONST.EDGE_FONT_SIZE,
-                    CONST.EDGE_FONT_FAMILY,
-                    "#000"
+            // Quadratic line
+            case 6:
+                this.setUnselectedQuadraticEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]], [pts[4], pts[5]]);
+                break;
+
+            // Bezier line
+            case 8:
+                this.setUnselectedBezierEdgeDraw(e);
+                break;
+        }
+    }
+
+    /**
+     * setUnselectedStraightEdgeDraw  
+     *   Sets the edge draw function with a straight line.
+     */
+    private setUnselectedStraightEdgeDraw(
+        e: Drawables.DrawableEdge,
+        srcPt: number[],
+        dstPt: number[]
+    ): void {
+
+        // With both arrows...
+        if (e.showSourceArrow && e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedStraightEdgeWithBothArrowsAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
                 );
             }
-            else
-                this.g.shadowBlur = 0;
-        });
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedStraightEdgeWithBothArrowsNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With source arrow...
+        else if (e.showSourceArrow && !e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedStraightEdgeWithSourceArrowAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedStraightEdgeWithSourceArrowNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With destination arrow...
+        else if (!e.showSourceArrow && e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedStraightEdgeWithDestinationArrowAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedStraightEdgeWithDestinationArrowNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With no arrows...
+        else {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedStraightEdgeWithNoArrowsAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedStraightEdgeWithNoArrowsNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+    }
+
+    private setUnselectedQuadraticEdgeDraw(
+        e: Drawables.DrawableEdge,
+        srcPt: number[],
+        dstPt: number[],
+        ctlPt: number[]
+    ): void {
+
+        // With both arrows...
+        if (e.showSourceArrow && e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedQuadraticEdgeWithBothArrowsAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedQuadraticEdgeWithBothArrowsNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With source arrow...
+        else if (e.showSourceArrow && !e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedQuadraticEdgeWithSourceArrowAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedQuadraticEdgeWithSourceArrowNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With destination arrow...
+        else if (!e.showSourceArrow && e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedQuadraticEdgeWithDestinationArrowAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedQuadraticEdgeWithDestinationArrowNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With no arrows...
+        else {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedQuadraticEdgeWithNoArrowsAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnUnselectedQuadraticEdgeWithNoArrowsNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+    }
+
+    private setUnselectedBezierEdgeDraw(e: Drawables.DrawableEdge): void {
+        // TODO:
+        this.drawMap.set(e, () => { });
+    }
+
+    private setNodeDimensions(n: Drawables.DrawableNode): void {
+        if (n.shape === "circle") {
+            let lines = n.label.split("\n");
+            let size = canvas.getTextSize(
+                this.g,
+                lines,
+                CONST.NODE_FONT_FAMILY,
+                CONST.NODE_FONT_SIZE
+            );
+            let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
+                CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
+            this.nodeDimensions.set(n, { r: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s) / 2 });
+        }
+        else if (n.shape === "square") {
+            let lines = n.label.split("\n");
+            let size = canvas.getTextSize(
+                this.g,
+                lines,
+                CONST.NODE_FONT_FAMILY,
+                CONST.NODE_FONT_SIZE
+            );
+            let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
+                CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
+            this.nodeDimensions.set(n, { s: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s) });
+        }
     }
 
     private setUnselectedNodeDraw(n: Drawables.DrawableNode): void {
+        switch (n.shape) {
+            case "circle":
+                if (n.label.trim() !== "") {
+                    this.drawMap.set(
+                        n,
+                        canvas.makeFnUnselectedCircleNodeWithLabel(
+                            this.g,
+                            [n.x, n.y],
+                            this.nodeDimensions.get(n).r,
+                            n.label.split("\n"),
+                            n.borderStyle,
+                            n.borderWidth,
+                            n.borderColor,
+                            n.color,
+                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+                        )
+                    );
+                }
+                else {
+                    this.drawMap.set(
+                        n,
+                        canvas.makeFnUnselectedCircleNodeWithNoLabel(
+                            this.g,
+                            [n.x, n.y],
+                            this.nodeDimensions.get(n).r,
+                            n.borderStyle,
+                            n.borderWidth,
+                            n.borderColor,
+                            n.color,
+                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+                        )
+                    );
+                }
+                break;
 
+            case "square":
+                if (n.label.trim() !== "") {
+                    this.drawMap.set(
+                        n,
+                        canvas.makeFnUnselectedSquareNodeWithLabel(
+                            this.g,
+                            [n.x, n.y],
+                            this.nodeDimensions.get(n).r,
+                            n.label.split("\n"),
+                            n.borderStyle,
+                            n.borderWidth,
+                            n.borderColor,
+                            n.color,
+                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+                        )
+                    );
+                }
+                else {
+                    this.drawMap.set(
+                        n,
+                        canvas.makeFnUnselectedSquareNodeWithNoLabel(
+                            this.g,
+                            [n.x, n.y],
+                            this.nodeDimensions.get(n).r,
+                            n.borderStyle,
+                            n.borderWidth,
+                            n.borderColor,
+                            n.color,
+                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+                        )
+                    );
+                }
+                break;
+        }
     }
 
     /**
@@ -491,7 +989,8 @@ export class GraphEditorComponent implements AfterViewInit {
                         this.dragObject.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
                         this.redraw();
                         this.g.globalAlpha = 0.5;
-                        this.drawEdge(this.dragObject, downPt[0], downPt[1]);
+                        // TODO:
+                        // this.drawEdge(this.dragObject, downPt[0], downPt[1]);
                         this.g.globalAlpha = 1;
                     }
 
@@ -501,7 +1000,8 @@ export class GraphEditorComponent implements AfterViewInit {
                         this.dragObject.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
                         this.redraw();
                         this.g.globalAlpha = 0.3;
-                        this.drawEdge(this.dragObject, downPt[0], downPt[1]);
+                        // TODO:
+                        // this.drawEdge(this.dragObject, downPt[0], downPt[1]);
                         this.g.globalAlpha = 1;
                     }
                 }
@@ -555,7 +1055,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
                     // Update the selection box if selecting.
                     if (!this.dragObject) {
-                        let rect = makeRect(downPt[0], downPt[1], ePt[0], ePt[1]);
+                        let rect = canvas.makeRect(downPt[0], downPt[1], ePt[0], ePt[1]);
 
                         // Update the selected components.
                         for (let i of this.selectedItems) {
@@ -579,7 +1079,8 @@ export class GraphEditorComponent implements AfterViewInit {
                     else if (Drawables.isDrawableEdge(this.dragObject)) {
                         this.redraw();
                         this.g.globalAlpha = 0.3;
-                        this.drawEdge(this.dragObject, ePt[0], ePt[1]);
+                        // TODO:
+                        // this.drawEdge(this.dragObject, ePt[0], ePt[1]);
                         this.g.globalAlpha = 1;
                     }
 
@@ -739,216 +1240,218 @@ export class GraphEditorComponent implements AfterViewInit {
         canvas.clear(this.g, this.graph ? this.graph.backgroundColor : "AppWorkspace");
         if (this.graph) {
             canvas.drawGrid(this.g, this.gridOriginPt);
-            for (let e of this.graph.edges)
-                this.drawEdge(e);
-            for (let n of this.graph.nodes)
-                this.drawNode(n);
+            for(const d of this.drawList)
+                (this.drawMap.get(d) as () => void)();
+            // for (let e of this.graph.edges)
+            //     this.drawEdge(e);
+            // for (let n of this.graph.nodes)
+            //     this.drawNode(n);
 
-            if (Drawables.isDrawableEdge(this.hoverObject)) {
-                //
-                // TODO:
-                // Draw anchor points
-                //
-            }
+            // if (Drawables.isDrawableEdge(this.hoverObject)) {
+            //     //
+            //     // TODO:
+            //     // Draw anchor points
+            //     //
+            // }
         }
     }
 
-    /**
-     * drawNode  
-     *   Draws a node on the canvas.
-     */
-    private drawNode(n: Drawables.DrawableNode): void {
+    // /**
+    //  * drawNode  
+    //  *   Draws a node on the canvas.
+    //  */
+    // private drawNode(n: Drawables.DrawableNode): void {
 
-        // Calculate the radius.
-        let lines = n.label.split("\n");
-        let size = canvas.getTextSize(
-            this.g,
-            lines,
-            CONST.NODE_FONT_FAMILY,
-            CONST.NODE_FONT_SIZE
-        );
-        let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
-            CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
-        s = (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s);
+    //     // Calculate the radius.
+    //     let lines = n.label.split("\n");
+    //     let size = canvas.getTextSize(
+    //         this.g,
+    //         lines,
+    //         CONST.NODE_FONT_FAMILY,
+    //         CONST.NODE_FONT_SIZE
+    //     );
+    //     let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
+    //         CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
+    //     s = (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s);
 
-        // Draw selected shape.
-        if (this.selectedItems.has(n)) {
-            if (n.shape === "circle") {
-                canvas.drawCircle(
-                    this.g,
-                    n.x, n.y,
-                    (s + n.borderWidth) / 2 + 2,
-                    "solid",
-                    n.borderWidth,
-                    CONST.SELECTION_COLOR,
-                    CONST.SELECTION_COLOR,
-                    (n === this.dragObject || n === this.hoverObject ?
-                        20 * CONST.AA_SCALE : undefined),
-                    (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                        (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                );
-                canvas.drawCircle(
-                    this.g,
-                    n.x, n.y,
-                    s / 2,
-                    n.borderStyle,
-                    n.borderWidth,
-                    n.borderColor,
-                    n.color
-                );
-            }
-            else if (n.shape === "square") {
-                let hs = (s + n.borderWidth) / 2 + 2;
-                canvas.drawSquare(
-                    this.g,
-                    n.x - hs,
-                    n.y - hs,
-                    2 * hs,
-                    2 * hs,
-                    "solid",
-                    n.borderWidth,
-                    CONST.SELECTION_COLOR,
-                    CONST.SELECTION_COLOR,
-                    (n === this.dragObject || n === this.hoverObject ?
-                        20 * CONST.AA_SCALE : undefined),
-                    (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                        (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                );
-                hs = s / 2;
-                canvas.drawSquare(
-                    this.g,
-                    n.x - hs, n.y - hs,
-                    hs * 2, hs * 2,
-                    n.borderStyle,
-                    n.borderWidth,
-                    n.borderColor,
-                    n.color
-                );
-            }
-        }
+    //     // Draw selected shape.
+    //     if (this.selectedItems.has(n)) {
+    //         if (n.shape === "circle") {
+    //             canvas.drawCircle(
+    //                 this.g,
+    //                 n.x, n.y,
+    //                 (s + n.borderWidth) / 2 + 2,
+    //                 "solid",
+    //                 n.borderWidth,
+    //                 CONST.SELECTION_COLOR,
+    //                 CONST.SELECTION_COLOR,
+    //                 (n === this.dragObject || n === this.hoverObject ?
+    //                     20 * CONST.AA_SCALE : undefined),
+    //                 (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+    //                     (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+    //             );
+    //             canvas.drawCircle(
+    //                 this.g,
+    //                 n.x, n.y,
+    //                 s / 2,
+    //                 n.borderStyle,
+    //                 n.borderWidth,
+    //                 n.borderColor,
+    //                 n.color
+    //             );
+    //         }
+    //         else if (n.shape === "square") {
+    //             let hs = (s + n.borderWidth) / 2 + 2;
+    //             canvas.drawSquare(
+    //                 this.g,
+    //                 n.x - hs,
+    //                 n.y - hs,
+    //                 2 * hs,
+    //                 2 * hs,
+    //                 "solid",
+    //                 n.borderWidth,
+    //                 CONST.SELECTION_COLOR,
+    //                 CONST.SELECTION_COLOR,
+    //                 (n === this.dragObject || n === this.hoverObject ?
+    //                     20 * CONST.AA_SCALE : undefined),
+    //                 (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+    //                     (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+    //             );
+    //             hs = s / 2;
+    //             canvas.drawSquare(
+    //                 this.g,
+    //                 n.x - hs, n.y - hs,
+    //                 hs * 2, hs * 2,
+    //                 n.borderStyle,
+    //                 n.borderWidth,
+    //                 n.borderColor,
+    //                 n.color
+    //             );
+    //         }
+    //     }
 
-        // Draw unselected shape.
-        else {
-            if (n.shape === "circle") {
-                canvas.drawCircle(
-                    this.g,
-                    n.x, n.y,
-                    s / 2,
-                    n.borderStyle,
-                    n.borderWidth,
-                    n.borderColor,
-                    n.color,
-                    (n === this.dragObject || n === this.hoverObject ?
-                        20 * CONST.AA_SCALE : undefined),
-                    (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                        (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                );
-            }
-            else if (n.shape === "square") {
-                let hs = s / 2;
-                canvas.drawSquare(
-                    this.g,
-                    n.x - hs, n.y - hs,
-                    hs * 2, hs * 2,
-                    n.borderStyle,
-                    n.borderWidth,
-                    n.borderColor,
-                    n.color,
-                    (n === this.dragObject || n === this.hoverObject ?
-                        20 * CONST.AA_SCALE : undefined),
-                    (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                        (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                );
-            }
-        }
+    //     // Draw unselected shape.
+    //     else {
+    //         if (n.shape === "circle") {
+    //             canvas.drawCircle(
+    //                 this.g,
+    //                 n.x, n.y,
+    //                 s / 2,
+    //                 n.borderStyle,
+    //                 n.borderWidth,
+    //                 n.borderColor,
+    //                 n.color,
+    //                 (n === this.dragObject || n === this.hoverObject ?
+    //                     20 * CONST.AA_SCALE : undefined),
+    //                 (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+    //                     (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+    //             );
+    //         }
+    //         else if (n.shape === "square") {
+    //             let hs = s / 2;
+    //             canvas.drawSquare(
+    //                 this.g,
+    //                 n.x - hs, n.y - hs,
+    //                 hs * 2, hs * 2,
+    //                 n.borderStyle,
+    //                 n.borderWidth,
+    //                 n.borderColor,
+    //                 n.color,
+    //                 (n === this.dragObject || n === this.hoverObject ?
+    //                     20 * CONST.AA_SCALE : undefined),
+    //                 (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+    //                     (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+    //             );
+    //         }
+    //     }
 
-        // Label
-        canvas.drawText(
-            this.g,
-            n.x, n.y - size.h / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
-            lines,
-            CONST.NODE_FONT_SIZE,
-            CONST.NODE_FONT_FAMILY,
-            "#fff",
-            2,
-            "#000"
-        );
-    }
+    //     // Label
+    //     canvas.drawText(
+    //         this.g,
+    //         n.x, n.y - size.h / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
+    //         lines,
+    //         CONST.NODE_FONT_SIZE,
+    //         CONST.NODE_FONT_FAMILY,
+    //         "#fff",
+    //         2,
+    //         "#000"
+    //     );
+    // }
 
-    /**
-     * drawEdge  
-     *   Draws an edge on the canvas.
-     */
-    private drawEdge(e: Drawables.DrawableEdge, x?: number, y?: number): void {
+    // /**
+    //  * drawEdge  
+    //  *   Draws an edge on the canvas.
+    //  */
+    // private drawEdge(e: Drawables.DrawableEdge, x?: number, y?: number): void {
 
-        // Edge
-        if (e === this.hoverObject) {
-            this.g.shadowColor = CONST.SELECTION_COLOR;
-            this.g.shadowBlur = 20 * CONST.AA_SCALE;
-        }
-        if (this.selectedItems.has(e)) {
-            let d = Drawables.cloneEdge(e);
-            d.color = CONST.SELECTION_COLOR;
-            d.lineStyle = "solid";
-            d.lineWidth += 3;
-            this.drawEdge(d);
-        }
-        if (e === this.moveEdge)
-            this.g.globalAlpha = 0.3;
-        this.g.strokeStyle = e.color;
-        this.g.lineWidth = e.lineWidth;
-        canvas.setLineStyle(this.g, e.lineStyle, e.lineWidth);
-        if (x && y) {
-            if (e.source)
-                canvas.drawLine(this.g, e.source.x, e.source.y, x, y);
-            else if (e.destination)
-                canvas.drawLine(this.g, x, y, e.destination.x, e.destination.y);
-        }
-        else if (e.source && e.destination) {
-            canvas.drawLine(this.g, e.source.x, e.source.y, e.destination.x, e.destination.y);
-            if (e.showSourceArrow)
-                canvas.drawArrow(this.g, e.destination, e.source);
-            if (e.showDestinationArrow)
-                canvas.drawArrow(this.g, e.source, e.destination);
-        }
-        this.g.globalAlpha = 1;
+    //     // Edge
+    //     if (e === this.hoverObject) {
+    //         this.g.shadowColor = CONST.SELECTION_COLOR;
+    //         this.g.shadowBlur = 20 * CONST.AA_SCALE;
+    //     }
+    //     if (this.selectedItems.has(e)) {
+    //         let d = Drawables.cloneEdge(e);
+    //         d.color = CONST.SELECTION_COLOR;
+    //         d.lineStyle = "solid";
+    //         d.lineWidth += 3;
+    //         this.drawEdge(d);
+    //     }
+    //     if (e === this.moveEdge)
+    //         this.g.globalAlpha = 0.3;
+    //     this.g.strokeStyle = e.color;
+    //     this.g.lineWidth = e.lineWidth;
+    //     canvas.setLineStyle(this.g, e.lineStyle, e.lineWidth);
+    //     if (x && y) {
+    //         if (e.source)
+    //             canvas.drawLine(this.g, e.source.x, e.source.y, x, y);
+    //         else if (e.destination)
+    //             canvas.drawLine(this.g, x, y, e.destination.x, e.destination.y);
+    //     }
+    //     else if (e.source && e.destination) {
+    //         canvas.drawLine(this.g, e.source.x, e.source.y, e.destination.x, e.destination.y);
+    //         if (e.showSourceArrow)
+    //             canvas.drawArrow(this.g, e.destination, e.source);
+    //         if (e.showDestinationArrow)
+    //             canvas.drawArrow(this.g, e.source, e.destination);
+    //     }
+    //     this.g.globalAlpha = 1;
 
-        // Label
-        if (e.source && e.destination && e.label && e.label.trim() !== "") {
-            let lines = e.label.split("\n");
-            let size = canvas.getTextSize(this.g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
-            let srcPt = canvas.getEdgeBorderPt(this.g, e.destination, e.source);
-            let dstPt = canvas.getEdgeBorderPt(this.g, e.source, e.destination);
-            let rect = makeRect(
-                srcPt.x, srcPt.y,
-                dstPt.x, dstPt.y
-            );
-            x = rect.x + rect.w / 2;
-            y = rect.y + rect.h / 2;
-            size.w /= 2;
-            size.h /= 2;
-            rect = makeRect(
-                x - size.w - 6, y - size.h,
-                x + size.w + 6, y + size.h);
-            this.g.lineWidth = e.lineWidth;
-            this.g.fillStyle = this.graph.backgroundColor;
-            canvas.setLineStyle(this.g, e.lineStyle);
-            this.g.lineJoin = "round";
-            this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
-            this.g.shadowBlur = 0;
-            this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
-            canvas.drawText(
-                this.g,
-                x, y - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
-                lines,
-                CONST.EDGE_FONT_SIZE,
-                CONST.EDGE_FONT_FAMILY,
-                "#000"
-            );
-        }
-        else
-            this.g.shadowBlur = 0;
-    }
+    //     // Label
+    //     if (e.source && e.destination && e.label && e.label.trim() !== "") {
+    //         let lines = e.label.split("\n");
+    //         let size = canvas.getTextSize(this.g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+    //         let srcPt = canvas.getEdgeBorderPt(this.g, e.destination, e.source);
+    //         let dstPt = canvas.getEdgeBorderPt(this.g, e.source, e.destination);
+    //         let rect = makeRect(
+    //             srcPt.x, srcPt.y,
+    //             dstPt.x, dstPt.y
+    //         );
+    //         x = rect.x + rect.w / 2;
+    //         y = rect.y + rect.h / 2;
+    //         size.w /= 2;
+    //         size.h /= 2;
+    //         rect = makeRect(
+    //             x - size.w - 6, y - size.h,
+    //             x + size.w + 6, y + size.h);
+    //         this.g.lineWidth = e.lineWidth;
+    //         this.g.fillStyle = this.graph.backgroundColor;
+    //         canvas.setLineStyle(this.g, e.lineStyle);
+    //         this.g.lineJoin = "round";
+    //         this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
+    //         this.g.shadowBlur = 0;
+    //         this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    //         canvas.drawText(
+    //             this.g,
+    //             x, y - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
+    //             lines,
+    //             CONST.EDGE_FONT_SIZE,
+    //             CONST.EDGE_FONT_FAMILY,
+    //             "#000"
+    //         );
+    //     }
+    //     else
+    //         this.g.shadowBlur = 0;
+    // }
 
     /**
      * addSelectedItem  
@@ -1074,19 +1577,4 @@ function moveItem(
 ): void {
     src.delete(itm);
     dst.add(itm);
-}
-
-/**
- * makeRect  
- *   Makes a rectangle object with the bottom-left corner and height and width.
- */
-function makeRect(x1: number, y1: number, x2: number, y2: number) {
-    let w = x2 - x1;
-    let h = y2 - y1;
-    return {
-        x: (w < 0 ? x2 : x1),
-        y: (h < 0 ? y2 : y1),
-        w: (w < 0 ? -1 * w : w),
-        h: (h < 0 ? -1 * h : h)
-    };
 }

@@ -10,24 +10,15 @@ import * as Drawables from "./drawable-interfaces";
 import * as MathEx from "./math";
 
 
-/**
- * getMousePt  
- *   Gets the canvas coordinates from a mouse event.
- */
-export function getMousePt(g : CanvasRenderingContext2D, e: MouseEvent) : number[] {
-  let canvas = g.canvas;
-  let r = canvas.getBoundingClientRect();
-  return [
-    (e.clientX - r.left) / (r.right - r.left) * canvas.width / CONST.AA_SCALE,
-    (e.clientY - r.top) / (r.bottom - r.top) * canvas.height / CONST.AA_SCALE
-  ];
-}
+
+// Draw functions //////////////////////////////////////////////////////////////
+
 
 /**
  * clear  
  *   Clears the canvas.
  */
-export function clear(g : CanvasRenderingContext2D, bgColor : string) : void {
+export function clear(g: CanvasRenderingContext2D, bgColor: string): void {
   let canvas = g.canvas;
   g.fillStyle = bgColor;
   g.fillRect(0, 0, canvas.width, canvas.height);
@@ -37,7 +28,7 @@ export function clear(g : CanvasRenderingContext2D, bgColor : string) : void {
  * drawSelectionBox  
  *   Draws the selection box.
  */
-export function drawSelectionBox(g : CanvasRenderingContext2D, rect : any) : void {
+export function drawSelectionBox(g: CanvasRenderingContext2D, rect: any): void {
   g.strokeStyle = CONST.SELECTION_COLOR;
   g.fillStyle = CONST.SELECTION_COLOR;
   g.globalAlpha = 0.1;
@@ -53,13 +44,13 @@ export function drawSelectionBox(g : CanvasRenderingContext2D, rect : any) : voi
  *   Draws a line.
  */
 export function drawLine(
-  g : CanvasRenderingContext2D,
-  x1 : number, y1 : number,
-  x2 : number, y2 : number
-) : void {
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[]
+): void {
   g.beginPath();
-  g.moveTo(x1, y1);
-  g.lineTo(x2, y2);
+  g.moveTo(src[0], src[1]);
+  g.lineTo(dst[0], dst[1]);
   g.stroke();
 }
 
@@ -68,35 +59,18 @@ export function drawLine(
  *   Draws a quadratic line between two points.
  */
 export function drawQuadraticLine(
-  g : CanvasRenderingContext2D,
-  x1 : number, y1 : number,
-  x2 : number, y2 : number
-) : void {
-
-  // Get the vector from point 1 to point 2.
-  let v = [
-    x2 - x1,
-    y2 - y1
-  ];
-
-  // Get the magnitude of the vector.
-  let d = MathEx.mag(v);
-
-  // Get the normal of the vector, rotated 180 degrees.
-  let n = [
-    v[1] / d,
-    -v[0] / d
-  ];
-
-  // Draw the quadric curve.
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  ctl: number[]
+): void {
   g.beginPath();
-  g.moveTo(x1, y1);
+  g.moveTo(src[0], src[1]);
   g.quadraticCurveTo(
-    x1 + v[0] / 2 + n[0] * CONST.GRID_SPACING, y1 + v[1] / 2 + n[1] * CONST.GRID_SPACING,
-    x2, y2
+    ctl[0], ctl[1],
+    dst[0], dst[1]
   );
   g.stroke();
-
 }
 
 /**
@@ -104,25 +78,33 @@ export function drawQuadraticLine(
  *   Draws an arrow towards the destination node.
  */
 export function drawArrow(
-  g : CanvasRenderingContext2D,
-  src : Drawables.DrawableNode,
-  dst : Drawables.DrawableNode
-) : void {
-
-  let pt = getEdgeBorderPt(g, src, dst);
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[]
+): void {
+  let v = [
+    dst[0] - src[0],
+    dst[1] - src[1]
+  ];
+  let d = MathEx.mag(v);
+  let u = [v[0] / d, v[1] / d];
 
   // Draw arrow.
   drawLine(
     g,
-    pt.x, pt.y,
-    pt.x + CONST.GRID_SPACING * (pt.u[0] * CONST.COS_150 - pt.u[1] * CONST.SIN_150) / 2,
-    pt.y + CONST.GRID_SPACING * (pt.u[0] * CONST.SIN_150 + pt.u[1] * CONST.COS_150) / 2
+    dst,
+    [
+      dst[0] + CONST.GRID_SPACING * (u[0] * CONST.COS_150 - u[1] * CONST.SIN_150) / 2,
+      dst[1] + CONST.GRID_SPACING * (u[0] * CONST.SIN_150 + u[1] * CONST.COS_150) / 2
+    ]
   );
   drawLine(
     g,
-    pt.x, pt.y,
-    pt.x + CONST.GRID_SPACING * (pt.u[0] * CONST.COS_150 + pt.u[1] * CONST.SIN_150) / 2,
-    pt.y + CONST.GRID_SPACING * (-pt.u[0] * CONST.SIN_150 + pt.u[1] * CONST.COS_150) / 2
+    dst,
+    [
+      dst[0] + CONST.GRID_SPACING * (u[0] * CONST.COS_150 + u[1] * CONST.SIN_150) / 2,
+      dst[1] + CONST.GRID_SPACING * (-u[0] * CONST.SIN_150 + u[1] * CONST.COS_150) / 2
+    ]
   );
 
 }
@@ -132,27 +114,26 @@ export function drawArrow(
  *   Draws a circle.
  */
 export function drawCircle(
-  g : CanvasRenderingContext2D,
-  x : number,
-  y : number,
-  r : number,
-  borderStyle : string,
-  borderWidth : number,
-  borderColor : string,
-  fillColor : string,
-  shadowBlur? : number,
-  shadowColor? : string
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number,
+  borderStyle: string,
+  borderWidth: number,
+  borderColor: string,
+  fillColor: string,
+  shadowColor?: string
 ) {
   g.beginPath();
   g.arc(x, y, r, 0, 2 * Math.PI);
   g.fillStyle = fillColor;
-  if(shadowBlur && shadowColor) {
-    g.shadowBlur = shadowBlur;
+  if (shadowColor) {
+    g.shadowBlur = 20 * CONST.AA_SCALE;
     g.shadowColor = shadowColor;
   }
   g.fill();
   g.shadowBlur = 0;
-  if(borderWidth > 0) {
+  if (borderWidth > 0) {
     setLineStyle(g, borderStyle, borderWidth);
     g.lineWidth = borderWidth;
     g.strokeStyle = borderColor;
@@ -165,26 +146,25 @@ export function drawCircle(
  *   Draws a square.
  */
 export function drawSquare(
-  g : CanvasRenderingContext2D,
-  x : number,
-  y : number,
-  w : number,
-  h : number,
-  borderStyle : string,
-  borderWidth : number,
-  borderColor : string,
-  fillColor : string,
-  shadowBlur? : number,
-  shadowColor? : string
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  borderStyle: string,
+  borderWidth: number,
+  borderColor: string,
+  fillColor: string,
+  shadowColor?: string
 ) {
   g.fillStyle = fillColor;
-  if(shadowBlur && shadowColor) {
-    g.shadowBlur = shadowBlur;
+  if (shadowColor) {
+    g.shadowBlur = 20 * CONST.AA_SCALE;
     g.shadowColor = shadowColor;
   }
   g.fillRect(x, y, w, h);
   g.shadowBlur = 0;
-  if(borderWidth > 0) {
+  if (borderWidth > 0) {
     setLineStyle(g, borderStyle, borderWidth);
     g.lineWidth = borderWidth;
     g.strokeStyle = borderColor;
@@ -196,26 +176,26 @@ export function drawSquare(
  * drawGrid  
  *   Draws the editor grid.
  */
-export function drawGrid(g : CanvasRenderingContext2D, originPt : number[]) {
+export function drawGrid(g: CanvasRenderingContext2D, originPt: number[]) {
 
   let w = g.canvas.width;
   let h = g.canvas.height;
 
-  for(
+  for (
     let x = originPt[0] % CONST.GRID_SPACING - CONST.GRID_SPACING;
-    x < w + CONST.GRID_SPACING; 
+    x < w + CONST.GRID_SPACING;
     x += CONST.GRID_SPACING
   ) {
     g.strokeStyle = CONST.GRID_MAJOR_COLOR;
     g.lineWidth = CONST.GRID_MAJOR_WIDTH;
     setLineStyle(g, CONST.GRID_MAJOR_STYLE);
-    drawLine(g, x, 0, x, h);
+    drawLine(g, [x, 0], [x, h]);
     g.strokeStyle = CONST.GRID_MINOR_COLOR;
     g.lineWidth = CONST.GRID_MINOR_WIDTH;
     setLineStyle(g, CONST.GRID_MINOR_STYLE);
-    drawLine(g, x + CONST.GRID_MINOR_OFFSET, 0, x + CONST.GRID_MINOR_OFFSET, h);
+    drawLine(g, [x + CONST.GRID_MINOR_OFFSET, 0], [x + CONST.GRID_MINOR_OFFSET, h]);
   }
-  for(
+  for (
     let y = originPt[1] % CONST.GRID_SPACING - CONST.GRID_SPACING;
     y < h + CONST.GRID_SPACING;
     y += CONST.GRID_SPACING
@@ -223,11 +203,11 @@ export function drawGrid(g : CanvasRenderingContext2D, originPt : number[]) {
     g.strokeStyle = CONST.GRID_MAJOR_COLOR;
     g.lineWidth = CONST.GRID_MAJOR_WIDTH;
     setLineStyle(g, CONST.GRID_MAJOR_STYLE);
-    drawLine(g, 0, y, w, y);
+    drawLine(g, [0, y], [w, y]);
     g.strokeStyle = CONST.GRID_MINOR_COLOR;
     g.lineWidth = CONST.GRID_MINOR_WIDTH;
     setLineStyle(g, CONST.GRID_MINOR_STYLE);
-    drawLine(g, 0, y + CONST.GRID_MINOR_OFFSET, w, y + CONST.GRID_MINOR_OFFSET);
+    drawLine(g, [0, y + CONST.GRID_MINOR_OFFSET], [w, y + CONST.GRID_MINOR_OFFSET]);
   }
 
 }
@@ -237,123 +217,59 @@ export function drawGrid(g : CanvasRenderingContext2D, originPt : number[]) {
  *   Draws text.
  */
 export function drawText(
-  g : CanvasRenderingContext2D,
-  x : number,
-  y : number,
-  lines : Array<string>,
-  fontSize : number,
-  fontFamily : string,
-  color : string,
-  borderWidth? : number,
-  borderColor? : string
+  g: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  lines: Array<string>,
+  fontSize: number,
+  fontFamily: string,
+  color: string,
+  borderWidth?: number,
+  borderColor?: string
 ) {
-    g.font = fontSize + "pt " + fontFamily;
-    g.textAlign = "center";
-    g.textBaseline = "middle";
-    g.fillStyle = color;
-    if(borderWidth && borderColor) {
-      g.lineWidth = 2;
-      g.strokeStyle = "#000";
-      setLineStyle(g, "solid");
-      for(let l = 0; l < lines.length; l++) {
-        g.strokeText(lines[l], x, y);
-        g.fillText(lines[l], x, y);
-        y += 1.5 * fontSize;
-      }
+  g.font = fontSize + "pt " + fontFamily;
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.fillStyle = color;
+  if (borderWidth && borderColor) {
+    g.lineWidth = 2;
+    g.strokeStyle = "#000";
+    setLineStyle(g, "solid");
+    for (let l = 0; l < lines.length; l++) {
+      g.strokeText(lines[l], x, y);
+      g.fillText(lines[l], x, y);
+      y += 1.5 * fontSize;
     }
-    else {
-      for(let l = 0; l < lines.length; l++) {
-        g.fillText(lines[l], x, y);
-        y += 1.5 * fontSize;
-      }
+  }
+  else {
+    for (let l = 0; l < lines.length; l++) {
+      g.fillText(lines[l], x, y);
+      y += 1.5 * fontSize;
     }
+  }
 }
+
+
+// Get and Set functions ///////////////////////////////////////////////////////
+
 
 /**
  * setLineStyle  
  *   Sets the line style of the rendering context.
  */
 export function setLineStyle(
-  g : CanvasRenderingContext2D,
-  value : string,
-  dotSize? : number
+  g: CanvasRenderingContext2D,
+  value: string,
+  dotSize?: number
 ) {
-  if(!dotSize)
+  if (!dotSize)
     dotSize = g.lineWidth;
-  if(value == "dashed")
+  if (value == "dashed")
     g.setLineDash([3 * dotSize, 6 * dotSize]);
-  else if(value == "dotted")
+  else if (value == "dotted")
     g.setLineDash([dotSize, 2 * dotSize]);
   else
     g.setLineDash([1, 0]);
-}
-
-/**
- * getEdgeBorderPt  
- *   Gets the point were the edge intersects the border of the specified
- *   destination node.
- */
-export function getEdgeBorderPt(
-  g : CanvasRenderingContext2D,
-  src : Drawables.DrawableNode,
-  dst : Drawables.DrawableNode
-) {
-
-  //
-  // TODO:
-  // Either DrawableNode or DrawableEdge needs to define anchor points, and the
-  // DrawableEdge must specify which anchor it is attached to for src and dst.
-  //
-
-  // Get the vector from src to dst.
-  let v = [
-    dst.x - src.x,
-    dst.y - src.y
-  ];
-
-  // Get destination node radius.
-  let lines = dst.label.split("\n");
-  let size = getTextSize(g, lines, CONST.NODE_FONT_FAMILY, CONST.NODE_FONT_SIZE);
-  let r = (size.h + 1.5 * CONST.NODE_FONT_SIZE > size.w + CONST.NODE_FONT_SIZE ?
-            size.h + 1.5 * CONST.NODE_FONT_SIZE : size.w + CONST.NODE_FONT_SIZE);
-  r = (CONST.GRID_SPACING > r ? CONST.GRID_SPACING : r);
-  r /= 2;
-
-  // Get the distance from src to dst.
-  let d = MathEx.mag(v);
-
-  // Get the unit vector from src to dst.
-  let u = [
-    v[0] / d,
-    v[1] / d
-  ];
-
-  // Extend the radius if the shape is a square.
-  if(dst.shape === "square") {
-    let up = [
-      (u[0] < 0 ? -u[0] : u[0]),
-      (u[1] < 0 ? -u[1] : u[1])
-    ];
-    if(up[0] < up[1]) {
-      let ratio = up[0] / up[1];
-      let b = r / up[1];
-      let a = ratio * up[0];
-      r = MathEx.mag([ a, b ]);
-    }
-    else {
-      let ratio = up[1] / up[0];
-      let a = r / up[0];
-      let b = ratio * up[1];
-      r = MathEx.mag([ a, b ]);
-    }
-  }
-
-  // Get the point where the edge meets the node border.
-  v[0] = u[0] * (d - r) + src.x;
-  v[1] = u[1] * (d - r) + src.y;
-
-  return { x: v[0], y: v[1], u: u };
-
 }
 
 /**
@@ -361,18 +277,806 @@ export function getEdgeBorderPt(
  *   Gets the bounding box of text.
  */
 export function getTextSize(
-  g : CanvasRenderingContext2D,
-  lines : Array<string>,
-  fontFamily : string,
-  fontSize : number
+  g: CanvasRenderingContext2D,
+  lines: Array<string>,
+  fontFamily: string,
+  fontSize: number
 ) {
   g.font = fontSize + "pt " + fontFamily;
   let textHeight = lines.length * 1.5 * fontSize;
   let textWidth = 0;
-  for(let l = 0; l < lines.length; l++) {
+  for (let l = 0; l < lines.length; l++) {
     let tw = g.measureText(lines[l]).width;
-    if(textWidth < tw)
+    if (textWidth < tw)
       textWidth = tw;
   }
   return { h: textHeight, w: textWidth };
+}
+
+/**
+ * getMousePt  
+ *   Gets the canvas coordinates from a mouse event.
+ */
+export function getMousePt(g: CanvasRenderingContext2D, e: MouseEvent): number[] {
+  let canvas = g.canvas;
+  let r = canvas.getBoundingClientRect();
+  return [
+    (e.clientX - r.left) / (r.right - r.left) * canvas.width / CONST.AA_SCALE,
+    (e.clientY - r.top) / (r.bottom - r.top) * canvas.height / CONST.AA_SCALE
+  ];
+}
+
+
+// Make functions //////////////////////////////////////////////////////////////
+
+
+/**
+ * makeRect  
+ *   Makes a rectangle object with the bottom-left corner and height and width.
+ */
+export function makeRect(x1: number, y1: number, x2: number, y2: number) {
+  let w = x2 - x1;
+  let h = y2 - y1;
+  return {
+    x: (w < 0 ? x2 : x1),
+    y: (h < 0 ? y2 : y1),
+    w: (w < 0 ? -1 * w : w),
+    h: (h < 0 ? -1 * h : h)
+  };
+}
+
+//// Unselected Node ///////////////////////////////////////////////////////////
+
+export function makeFnUnselectedCircleNodeWithLabel(
+  g: CanvasRenderingContext2D,
+  origin: number[],
+  r: number,
+  lines: string[],
+  borderStyle: string,
+  borderWidth: number,
+  borderColor: string,
+  color: string,
+  shadowColor?: string
+): () => void {
+  return () => {
+    // TODO:
+    // Remove lets from makeFns
+    let size = getTextSize(
+      g,
+      lines,
+      CONST.NODE_FONT_FAMILY,
+      CONST.NODE_FONT_SIZE
+    );
+    drawCircle(
+      g,
+      origin[0], origin[1],
+      r,
+      borderStyle,
+      borderWidth,
+      borderColor,
+      color,
+      shadowColor
+    );
+    drawText(
+      g,
+      origin[0], origin[1] - size.h / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
+      lines,
+      CONST.NODE_FONT_SIZE,
+      CONST.NODE_FONT_FAMILY,
+      "#fff",
+      2,
+      "#000"
+    );
+  };
+}
+
+export function makeFnUnselectedCircleNodeWithNoLabel(
+  g: CanvasRenderingContext2D,
+  origin: number[],
+  r: number,
+  borderStyle: string,
+  borderWidth: number,
+  borderColor: string,
+  color: string,
+  shadowColor?: string
+): () => void {
+  return () => {
+    drawCircle(
+      g,
+      origin[0], origin[1],
+      r,
+      borderStyle,
+      borderWidth,
+      borderColor,
+      color,
+      shadowColor
+    );
+  };
+}
+
+export function makeFnUnselectedSquareNodeWithLabel(
+  g: CanvasRenderingContext2D,
+  origin: number[],
+  s: number,
+  lines: string[],
+  borderStyle: string,
+  borderWidth: number,
+  borderColor: string,
+  color: string,
+  shadowColor?: string
+): () => void {
+  return () => {
+    let size = getTextSize(
+      g,
+      lines,
+      CONST.NODE_FONT_FAMILY,
+      CONST.NODE_FONT_SIZE
+    );
+    drawSquare(
+      g,
+      origin[0] - s / 2, origin[1] - s / 2,
+      s, s,
+      borderStyle,
+      borderWidth,
+      borderColor,
+      color,
+      shadowColor
+    );
+    drawText(
+      g,
+      origin[0], origin[1] - size.h / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
+      lines,
+      CONST.NODE_FONT_SIZE,
+      CONST.NODE_FONT_FAMILY,
+      "#fff",
+      2,
+      "#000"
+    );
+  };
+}
+
+export function makeFnUnselectedSquareNodeWithNoLabel(
+  g: CanvasRenderingContext2D,
+  origin: number[],
+  s: number,
+  borderStyle: string,
+  borderWidth: number,
+  borderColor: string,
+  color: string,
+  shadowColor?: string
+): () => void {
+  return () => {
+    drawSquare(
+      g,
+      origin[0] - s / 2, origin[1] - s / 2,
+      s, s,
+      borderStyle,
+      borderWidth,
+      borderColor,
+      color,
+      shadowColor
+    );
+  };
+}
+
+//// Unselected Straight Edge //////////////////////////////////////////////////
+
+/**
+ * makeFnUnselectedStraightEdgeWithBothArrowsAndLabel  
+ *   Returns a function that draws a straight edge with both arrows and a label.
+ */
+export function makeFnUnselectedStraightEdgeWithBothArrowsAndLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  lines: string[],
+  strokeStyle: string,
+  fillStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    let size = getTextSize(g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+    let rect = makeRect(
+      src[0], src[1],
+      dst[0], dst[1]
+    );
+    let labelPt = [
+      rect.x + rect.w / 2,
+      rect.y + rect.h / 2
+    ];
+    size.w /= 2;
+    size.h /= 2;
+    rect = makeRect(
+      labelPt[0] - size.w - 6, labelPt[1] - size.h,
+      labelPt[0] + size.w + 6, labelPt[1] + size.h
+    );
+
+    g.strokeStyle = strokeStyle;
+    g.fillStyle = fillStyle;
+    g.lineWidth = lineWidth;
+    g.lineJoin = "round";
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawLine(g, src, dst);
+    drawArrow(g, [dst[0], dst[1]], [src[0], src[1]]);
+    drawArrow(g, [src[0], src[1]], [dst[0], dst[1]]);
+
+    g.fillRect(rect.x, rect.y, rect.w, rect.h);
+    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    drawText(
+      g,
+      labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
+      lines,
+      CONST.EDGE_FONT_SIZE,
+      CONST.EDGE_FONT_FAMILY,
+      "#000"
+    );
+  };
+}
+
+/**
+ * makeFnUnselectedStraightEdgeWithBothArrowsNoLabel  
+ *   Returns a function that draws a straight edge with both arrows and no
+ *   label.
+ */
+export function makeFnUnselectedStraightEdgeWithBothArrowsNoLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  strokeStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawLine(g, src, dst);
+    drawArrow(g, [dst[0], dst[1]], [src[0], src[1]]);
+    drawArrow(g, [src[0], src[1]], [dst[0], dst[1]]);
+  };
+}
+
+/**
+ * makeFnUnselectedStraightEdgeWithSourceArrowAndLabel  
+ *   Returns a function that draws a straight edge with a source arrow and a
+ *   label.
+ */
+export function makeFnUnselectedStraightEdgeWithSourceArrowAndLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  lines: string[],
+  strokeStyle: string,
+  fillStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    let size = getTextSize(g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+    let rect = makeRect(
+      src[0], src[1],
+      dst[0], dst[1]
+    );
+    let labelPt = [
+      rect.x + rect.w / 2,
+      rect.y + rect.h / 2
+    ];
+    size.w /= 2;
+    size.h /= 2;
+    rect = makeRect(
+      labelPt[0] - size.w - 6, labelPt[1] - size.h,
+      labelPt[0] + size.w + 6, labelPt[1] + size.h
+    );
+
+    g.strokeStyle = strokeStyle;
+    g.fillStyle = fillStyle;
+    g.lineWidth = lineWidth;
+    g.lineJoin = "round";
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawLine(g, src, dst);
+    drawArrow(g, [dst[0], dst[1]], [src[0], src[1]]);
+
+    g.fillRect(rect.x, rect.y, rect.w, rect.h);
+    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    drawText(
+      g,
+      labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
+      lines,
+      CONST.EDGE_FONT_SIZE,
+      CONST.EDGE_FONT_FAMILY,
+      "#000"
+    );
+  };
+}
+
+/**
+ * makeFnUnselectedStraightEdgeWithSourceArrowNoLabel  
+ *   Returns a function that draws a straight edge with a source arrow and no
+ *   label.
+ */
+export function makeFnUnselectedStraightEdgeWithSourceArrowNoLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  strokeStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawLine(g, src, dst);
+    drawArrow(g, [dst[0], dst[1]], [src[0], src[1]]);
+  };
+}
+
+/**
+ * makeFnUnselectedStraightEdgeWithDestinationArrowAndLabel  
+ *   Returns a function that draws a straight edge with a destination arrow and
+ *   a label.
+ */
+export function makeFnUnselectedStraightEdgeWithDestinationArrowAndLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  lines: string[],
+  strokeStyle: string,
+  fillStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    let size = getTextSize(g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+    let rect = makeRect(
+      src[0], src[1],
+      dst[0], dst[1]
+    );
+    let labelPt = [
+      rect.x + rect.w / 2,
+      rect.y + rect.h / 2
+    ];
+    size.w /= 2;
+    size.h /= 2;
+    rect = makeRect(
+      labelPt[0] - size.w - 6, labelPt[1] - size.h,
+      labelPt[0] + size.w + 6, labelPt[1] + size.h
+    );
+
+    g.strokeStyle = strokeStyle;
+    g.fillStyle = fillStyle;
+    g.lineWidth = lineWidth;
+    g.lineJoin = "round";
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawLine(g, src, dst);
+    drawArrow(g, [src[0], src[1]], [dst[0], dst[1]]);
+
+    g.fillRect(rect.x, rect.y, rect.w, rect.h);
+    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    drawText(
+      g,
+      labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
+      lines,
+      CONST.EDGE_FONT_SIZE,
+      CONST.EDGE_FONT_FAMILY,
+      "#000"
+    );
+  };
+}
+
+/**
+ * makeFnUnselectedStraightEdgeWithDestinationArrowNoLabel  
+ *   Returns a function that draws a straight edge with a destination arrow and
+ *   no label.
+ */
+export function makeFnUnselectedStraightEdgeWithDestinationArrowNoLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  strokeStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawLine(g, src, dst);
+    drawArrow(g, [src[0], src[1]], [dst[0], dst[1]]);
+  };
+}
+
+/**
+ * makeFnUnselectedStraightEdgeWithNoArrowsAndLabel  
+ *   Returns a function that draws a straight edge with no arrows and a label.
+ */
+export function makeFnUnselectedStraightEdgeWithNoArrowsAndLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  lines: string[],
+  strokeStyle: string,
+  fillStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    let size = getTextSize(g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+    let rect = makeRect(
+      src[0], src[1],
+      dst[0], dst[1]
+    );
+    let labelPt = [
+      rect.x + rect.w / 2,
+      rect.y + rect.h / 2
+    ];
+    size.w /= 2;
+    size.h /= 2;
+    rect = makeRect(
+      labelPt[0] - size.w - 6, labelPt[1] - size.h,
+      labelPt[0] + size.w + 6, labelPt[1] + size.h
+    );
+
+    g.strokeStyle = strokeStyle;
+    g.fillStyle = fillStyle;
+    g.lineWidth = lineWidth;
+    g.lineJoin = "round";
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawLine(g, src, dst);
+
+    g.fillRect(rect.x, rect.y, rect.w, rect.h);
+    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    drawText(
+      g,
+      labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
+      lines,
+      CONST.EDGE_FONT_SIZE,
+      CONST.EDGE_FONT_FAMILY,
+      "#000"
+    );
+  };
+}
+
+/**
+ * makeFnUnselectedStraightEdgeWithNoArrowsNoLabel  
+ *   Returns a function that draws a straight edge with no arrows and no label.
+ */
+export function makeFnUnselectedStraightEdgeWithNoArrowsNoLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  strokeStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawLine(g, src, dst);
+  };
+}
+
+//// Unselected Quadratic Edge /////////////////////////////////////////////////
+
+/**
+ * makeFnUnselectedQuadraticEdgeWithBothArrowsAndLabel  
+ *   Returns a function that draws a straight edge with both arrows and a label.
+ */
+export function makeFnUnselectedQuadraticEdgeWithBothArrowsAndLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  ctl: number[],
+  lines: string[],
+  strokeStyle: string,
+  fillStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    let size = getTextSize(g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+    let rect = makeRect(
+      src[0], src[1],
+      dst[0], dst[1]
+    );
+    let labelPt = [
+      rect.x + rect.w / 2,
+      rect.y + rect.h / 2
+    ];
+    size.w /= 2;
+    size.h /= 2;
+    rect = makeRect(
+      labelPt[0] - size.w - 6, labelPt[1] - size.h,
+      labelPt[0] + size.w + 6, labelPt[1] + size.h
+    );
+
+    g.strokeStyle = strokeStyle;
+    g.fillStyle = fillStyle;
+    g.lineWidth = lineWidth;
+    g.lineJoin = "round";
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawQuadraticLine(g, src, dst, ctl);
+    drawArrow(g, [dst[0], dst[1]], [src[0], src[1]]);
+    drawArrow(g, [src[0], src[1]], [dst[0], dst[1]]);
+
+    g.fillRect(rect.x, rect.y, rect.w, rect.h);
+    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    drawText(
+      g,
+      labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
+      lines,
+      CONST.EDGE_FONT_SIZE,
+      CONST.EDGE_FONT_FAMILY,
+      "#000"
+    );
+  };
+}
+
+/**
+ * makeFnUnselectedQuadraticEdgeWithBothArrowsNoLabel  
+ *   Returns a function that draws a straight edge with both arrows and no
+ *   label.
+ */
+export function makeFnUnselectedQuadraticEdgeWithBothArrowsNoLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  ctl: number[],
+  strokeStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawQuadraticLine(g, src, dst, ctl);
+    drawArrow(g, [dst[0], dst[1]], [src[0], src[1]]);
+    drawArrow(g, [src[0], src[1]], [dst[0], dst[1]]);
+  };
+}
+
+/**
+ * makeFnUnselectedQuadraticEdgeWithSourceArrowAndLabel  
+ *   Returns a function that draws a straight edge with a source arrow and a
+ *   label.
+ */
+export function makeFnUnselectedQuadraticEdgeWithSourceArrowAndLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  ctl: number[],
+  lines: string[],
+  strokeStyle: string,
+  fillStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    let size = getTextSize(g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+    let rect = makeRect(
+      src[0], src[1],
+      dst[0], dst[1]
+    );
+    let labelPt = [
+      rect.x + rect.w / 2,
+      rect.y + rect.h / 2
+    ];
+    size.w /= 2;
+    size.h /= 2;
+    rect = makeRect(
+      labelPt[0] - size.w - 6, labelPt[1] - size.h,
+      labelPt[0] + size.w + 6, labelPt[1] + size.h
+    );
+
+    g.strokeStyle = strokeStyle;
+    g.fillStyle = fillStyle;
+    g.lineWidth = lineWidth;
+    g.lineJoin = "round";
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawQuadraticLine(g, src, dst, ctl);
+    drawArrow(g, [dst[0], dst[1]], [src[0], src[1]]);
+
+    g.fillRect(rect.x, rect.y, rect.w, rect.h);
+    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    drawText(
+      g,
+      labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
+      lines,
+      CONST.EDGE_FONT_SIZE,
+      CONST.EDGE_FONT_FAMILY,
+      "#000"
+    );
+  };
+}
+
+/**
+ * makeFnUnselectedQuadraticEdgeWithSourceArrowNoLabel  
+ *   Returns a function that draws a straight edge with a source arrow and no
+ *   label.
+ */
+export function makeFnUnselectedQuadraticEdgeWithSourceArrowNoLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  ctl: number[],
+  strokeStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawQuadraticLine(g, src, dst, ctl);
+    drawArrow(g, [dst[0], dst[1]], [src[0], src[1]]);
+  };
+}
+
+/**
+ * makeFnUnselectedQuadraticEdgeWithDestinationArrowAndLabel  
+ *   Returns a function that draws a straight edge with a destination arrow and
+ *   a label.
+ */
+export function makeFnUnselectedQuadraticEdgeWithDestinationArrowAndLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  ctl: number[],
+  lines: string[],
+  strokeStyle: string,
+  fillStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    let size = getTextSize(g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+    let rect = makeRect(
+      src[0], src[1],
+      dst[0], dst[1]
+    );
+    let labelPt = [
+      rect.x + rect.w / 2,
+      rect.y + rect.h / 2
+    ];
+    size.w /= 2;
+    size.h /= 2;
+    rect = makeRect(
+      labelPt[0] - size.w - 6, labelPt[1] - size.h,
+      labelPt[0] + size.w + 6, labelPt[1] + size.h
+    );
+
+    g.strokeStyle = strokeStyle;
+    g.fillStyle = fillStyle;
+    g.lineWidth = lineWidth;
+    g.lineJoin = "round";
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawQuadraticLine(g, src, dst, ctl);
+    drawArrow(g, [src[0], src[1]], [dst[0], dst[1]]);
+
+    g.fillRect(rect.x, rect.y, rect.w, rect.h);
+    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    drawText(
+      g,
+      labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
+      lines,
+      CONST.EDGE_FONT_SIZE,
+      CONST.EDGE_FONT_FAMILY,
+      "#000"
+    );
+  };
+}
+
+/**
+ * makeFnUnselectedQuadraticEdgeWithDestinationArrowNoLabel  
+ *   Returns a function that draws a straight edge with a destination arrow and
+ *   no label.
+ */
+export function makeFnUnselectedQuadraticEdgeWithDestinationArrowNoLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  ctl: number[],
+  strokeStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawQuadraticLine(g, src, dst, ctl);
+    drawArrow(g, [src[0], src[1]], [dst[0], dst[1]]);
+  };
+}
+
+/**
+ * makeFnUnselectedQuadraticEdgeWithNoArrowsAndLabel  
+ *   Returns a function that draws a straight edge with no arrows and a label.
+ */
+export function makeFnUnselectedQuadraticEdgeWithNoArrowsAndLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  ctl: number[],
+  lines: string[],
+  strokeStyle: string,
+  fillStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    let size = getTextSize(g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+    let rect = makeRect(
+      src[0], src[1],
+      dst[0], dst[1]
+    );
+    let labelPt = [
+      rect.x + rect.w / 2,
+      rect.y + rect.h / 2
+    ];
+    size.w /= 2;
+    size.h /= 2;
+    rect = makeRect(
+      labelPt[0] - size.w - 6, labelPt[1] - size.h,
+      labelPt[0] + size.w + 6, labelPt[1] + size.h
+    );
+
+    g.strokeStyle = strokeStyle;
+    g.fillStyle = fillStyle;
+    g.lineWidth = lineWidth;
+    g.lineJoin = "round";
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawQuadraticLine(g, src, dst, ctl);
+
+    g.fillRect(rect.x, rect.y, rect.w, rect.h);
+    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    drawText(
+      g,
+      labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
+      lines,
+      CONST.EDGE_FONT_SIZE,
+      CONST.EDGE_FONT_FAMILY,
+      "#000"
+    );
+  };
+}
+
+/**
+ * makeFnUnselectedQuadraticEdgeWithNoArrowsNoLabel  
+ *   Returns a function that draws a straight edge with no arrows and no label.
+ */
+export function makeFnUnselectedQuadraticEdgeWithNoArrowsNoLabel(
+  g: CanvasRenderingContext2D,
+  src: number[],
+  dst: number[],
+  ctl: number[],
+  strokeStyle: string,
+  lineWidth: number,
+  lineStyle: string
+): () => void {
+  return () => {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+
+    setLineStyle(g, lineStyle, lineWidth);
+    drawQuadraticLine(g, src, dst, ctl);
+  };
 }
