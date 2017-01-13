@@ -81,7 +81,9 @@ export {
     DrawableEdge,
     DrawableNode,
     isDrawableEdge,
-    isDrawableNode
+    isDrawableNode,
+    GraphContext,
+    Drawable
 } from "./drawable-interfaces";
 
 // Type aliases ////////////////////////////////////////////////////////////////
@@ -120,7 +122,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   The graph object.
      */
     private graph: Drawables.DrawableGraph;
-    
+
     /**
      * graph  
      *   The graph object.
@@ -206,14 +208,18 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Input property for the graph object.
      */
     @Input("context")
-    set setGraphContext(value: Drawables.GraphContext) {
-        this.context = value;
-        this.graph = value.graph;
-        if (this.g) {
-            // TODO:
-            // The graph object should keep track of its selected items.
-            this.clearSelected();
-            this.redraw();
+    set setGraphContext(value: Drawables.GraphContext | null) {
+        if (value) {
+            this.context = value;
+            this.graph = value.graph;
+            if (this.g) {
+                // TODO:
+                // The graph object should keep track of its selected items.
+                this.clearSelected();
+                this.redraw();
+            }
+        } else {
+            // TODO show empty graph
         }
     }
 
