@@ -84,10 +84,10 @@ export function cloneNode(n: DrawableNode): DrawableNode {
 
 
 /**
- * GraphContext
- * Interface that exposes a graph and any external properties that the 
- * editor needs to have to go with it. Specifically the set of selected
- * `DrawableNode | DrawableEdge`
+ * GraphContext  
+ *   Interface that exposes a graph and any external properties that the 
+ *   editor needs to have to go with it. Specifically the set of selected
+ *   `DrawableNode | DrawableEdge`
  */
 export interface GraphContext {
     readonly graph: DrawableGraph;
