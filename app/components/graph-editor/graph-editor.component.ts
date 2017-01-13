@@ -281,8 +281,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.drawList.push(n);
                 this.setNodeDimensions(n);
                 if (this.context.selectedDrawables.has(n)) {
-                    // TODO:
-                    // Set selected draw function.
+                    this.setSelectedNodeDraw(n);
                 }
                 else {
                     this.unselectedItems.add(n);
@@ -293,8 +292,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.drawList.push(e);
                 this.setEdgePoints(e);
                 if (this.context.selectedDrawables.has(e)) {
-                    // TODO:
-                    // Set selected draw function.
+                    this.setSelectedEdgeDraw(e);
                 }
                 else {
                     this.unselectedItems.add(e);
@@ -380,6 +378,8 @@ export class GraphEditorComponent implements AfterViewInit {
     ): void {
         console.assert(e.source || e.destination,
             "error GraphEditorComponent.setEdgePoints: drawable edge must have either a source or a destination");
+        // TODO:
+        // Something about anchor points for custom node images.
         if (e.source && e.destination) {
             if (e.source === e.destination)
                 this.setLoopEdgePoints(e, e.source);
@@ -492,6 +492,30 @@ export class GraphEditorComponent implements AfterViewInit {
         this.edgePoints.set(e, [pt0[0], pt0[1], pt2[0], pt2[1], pt1[0], pt1[1]]);
     }
 
+    private setSelectedEdgeDraw(e: Drawables.DrawableEdge): void {
+        let pts = this.edgePoints.get(e) as number[];
+        switch (pts.length) {
+
+            // Straight line
+            case 4:
+                this.setSelectedStraightEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]]);
+                break;
+
+            // Quadratic line
+            case 6:
+                this.setSelectedQuadraticEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]], [pts[4], pts[5]]);
+                break;
+
+            // Bezier line
+            case 8:
+                this.setSelectedBezierEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]], [pts[4], pts[5]], [pts[6],pts[7]]);
+                break;
+
+            default:
+                this.drawMap.set(e, () => { });
+        }
+    }
+
     /**
      * setUnselectedEdgeDraw  
      *   Sets the unselected edge draw function.
@@ -512,8 +536,11 @@ export class GraphEditorComponent implements AfterViewInit {
 
             // Bezier line
             case 8:
-                this.setUnselectedBezierEdgeDraw(e);
+                this.setUnselectedBezierEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]], [pts[4], pts[5]], [pts[6],pts[7]]);
                 break;
+
+            default:
+                this.drawMap.set(e, () => { });
         }
     }
 
@@ -832,7 +859,327 @@ export class GraphEditorComponent implements AfterViewInit {
         }
     }
 
-    private setUnselectedBezierEdgeDraw(e: Drawables.DrawableEdge): void {
+    private setUnselectedBezierEdgeDraw(e: Drawables.DrawableEdge, srcPt: number[], dstPt: number[], ctlPt1: number[], ctlPt2: number[]): void {
+        // TODO:
+        this.drawMap.set(e, () => { });
+    }
+
+    /**
+     * setUnselectedStraightEdgeDraw  
+     *   Sets the edge draw function with a straight line.
+     */
+    private setSelectedStraightEdgeDraw(
+        e: Drawables.DrawableEdge,
+        srcPt: number[],
+        dstPt: number[]
+    ): void {
+
+        // With both arrows...
+        if (e.showSourceArrow && e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedStraightEdgeWithBothArrowsAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedStraightEdgeWithBothArrowsNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With source arrow...
+        else if (e.showSourceArrow && !e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedStraightEdgeWithSourceArrowAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedStraightEdgeWithSourceArrowNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With destination arrow...
+        else if (!e.showSourceArrow && e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedStraightEdgeWithDestinationArrowAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedStraightEdgeWithDestinationArrowNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With no arrows...
+        else {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedStraightEdgeWithNoArrowsAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedStraightEdgeWithNoArrowsNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+    }
+
+    private setSelectedQuadraticEdgeDraw(
+        e: Drawables.DrawableEdge,
+        srcPt: number[],
+        dstPt: number[],
+        ctlPt: number[]
+    ): void {
+
+        // With both arrows...
+        if (e.showSourceArrow && e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedQuadraticEdgeWithBothArrowsAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedQuadraticEdgeWithBothArrowsNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With source arrow...
+        else if (e.showSourceArrow && !e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedQuadraticEdgeWithSourceArrowAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedQuadraticEdgeWithSourceArrowNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With destination arrow...
+        else if (!e.showSourceArrow && e.showDestinationArrow) {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedQuadraticEdgeWithDestinationArrowAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedQuadraticEdgeWithDestinationArrowNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+
+        // With no arrows...
+        else {
+
+            // ...and a label.
+            if (e.label && e.label.trim() !== "") {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedQuadraticEdgeWithNoArrowsAndLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.label.split("\n"),
+                        e.color,
+                        "#fff",
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+
+            // ...and no label.
+            else {
+                this.drawMap.set(
+                    e,
+                    canvas.makeFnSelectedQuadraticEdgeWithNoArrowsNoLabel(
+                        this.g,
+                        srcPt,
+                        dstPt,
+                        ctlPt,
+                        e.color,
+                        e.lineWidth,
+                        e.lineStyle
+                    )
+                );
+            }
+        }
+    }
+
+    private setSelectedBezierEdgeDraw(e: Drawables.DrawableEdge, srcPt: number[], dstPt: number[], ctlPt1: number[], ctlPt2: number[]): void {
         // TODO:
         this.drawMap.set(e, () => { });
     }
@@ -861,6 +1208,85 @@ export class GraphEditorComponent implements AfterViewInit {
             let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
                 CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
             this.nodeDimensions.set(n, { s: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s) });
+        }
+    }
+
+    private setSelectedNodeDraw(n: Drawables.DrawableNode): void {
+        switch (n.shape) {
+            case "circle":
+                if (n.label.trim() !== "") {
+                    this.drawMap.set(
+                        n,
+                        canvas.makeFnSelectedCircleNodeWithLabel(
+                            this.g,
+                            [n.x, n.y],
+                            this.nodeDimensions.get(n).r,
+                            n.label.split("\n"),
+                            n.borderStyle,
+                            n.borderWidth,
+                            n.borderColor,
+                            n.color,
+                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+                        )
+                    );
+                }
+                else {
+                    this.drawMap.set(
+                        n,
+                        canvas.makeFnSelectedCircleNodeWithNoLabel(
+                            this.g,
+                            [n.x, n.y],
+                            this.nodeDimensions.get(n).r,
+                            n.borderStyle,
+                            n.borderWidth,
+                            n.borderColor,
+                            n.color,
+                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+                        )
+                    );
+                }
+                break;
+
+            case "square":
+                if (n.label.trim() !== "") {
+                    this.drawMap.set(
+                        n,
+                        canvas.makeFnSelectedSquareNodeWithLabel(
+                            this.g,
+                            [n.x, n.y],
+                            this.nodeDimensions.get(n).r,
+                            n.label.split("\n"),
+                            n.borderStyle,
+                            n.borderWidth,
+                            n.borderColor,
+                            n.color,
+                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+                        )
+                    );
+                }
+                else {
+                    this.drawMap.set(
+                        n,
+                        canvas.makeFnSelectedSquareNodeWithNoLabel(
+                            this.g,
+                            [n.x, n.y],
+                            this.nodeDimensions.get(n).r,
+                            n.borderStyle,
+                            n.borderWidth,
+                            n.borderColor,
+                            n.color,
+                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
+                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
+                        )
+                    );
+                }
+                break;
+
+            default:
+                this.drawMap.set(n, () => { });
         }
     }
 
@@ -937,6 +1363,9 @@ export class GraphEditorComponent implements AfterViewInit {
                     );
                 }
                 break;
+
+            default:
+                this.drawMap.set(n, () => { });
         }
     }
 
