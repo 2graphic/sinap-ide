@@ -75,6 +75,33 @@ export function isEdgeOverlapped(e: DrawableEdge, nodeEdges: Map<DrawableNode, S
 }
 
 /**
+ * getOverlappedEdges  
+ *   Gets the set of edges that overlap with a given edge.  
+ *   It is assumed that the edge being checked does not have the same source
+ *   and destination nodes.
+ */
+export function getOverlappedEdges(e: DrawableEdge, nodeEdges: Map<DrawableNode, Set<DrawableEdge>>): Set<DrawableEdge> {
+    let overlapped = new Set<DrawableEdge>();
+    for (const edge of (nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>)) {
+        if (
+            e !== edge &&
+            e.source === edge.destination &&
+            e.destination === edge.source
+        )
+            overlapped.add(edge);
+    }
+    for (const edge of (nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)) {
+        if (
+            e !== edge &&
+            e.source === edge.destination &&
+            e.destination === edge.source
+        )
+            overlapped.add(edge);
+    }
+    return overlapped;
+}
+
+/**
  * cloneEdge  
  *   Creates a cloned edge.
  */

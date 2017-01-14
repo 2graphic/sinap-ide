@@ -74,21 +74,6 @@ export function drawQuadraticLine(
         dst[0], dst[1]
     );
     g.stroke();
-
-    // TODO:
-    // Remove.
-    g.beginPath();
-    g.arc(ctl[0], ctl[1], 3, 0, 2 * Math.PI);
-    g.fillStyle = "#f00";
-    g.fill();
-    g.beginPath();
-    g.arc(src[0], src[1], 3, 0, 2 * Math.PI);
-    g.fillStyle = "#0f0";
-    g.fill();
-    g.beginPath();
-    g.arc(dst[0], dst[1], 3, 0, 2 * Math.PI);
-    g.fillStyle = "#00f";
-    g.fill();
 }
 
 /**
@@ -466,8 +451,8 @@ export function getQuadraticEdgePoints(
     ];
 
     let pt1 = [
-        v[0] / 2 + n[0] * CONST.GRID_SPACING,
-        v[1] / 2 + n[1] * CONST.GRID_SPACING
+        v[0] / 2 + v[1] / d * CONST.GRID_SPACING,
+        v[1] / 2 - v[0] / d * CONST.GRID_SPACING
     ];
     d = MathEx.mag(pt1);
     let shiftPt = getEdgePtShift([pt1[0] / d, pt1[1] / d], src, srcDim);
@@ -475,12 +460,12 @@ export function getQuadraticEdgePoints(
         src.x + shiftPt[0],
         src.y + shiftPt[1]
     ];
-    shiftPt = getEdgePtShift([(v[0] - pt1[0]) / d, (v[1] - pt1[1]) / d], dst, dstDim);
+    shiftPt = getEdgePtShift([(pt1[0] - v[0]) / d, (pt1[1] - v[1]) / d], dst, dstDim);
     let pt2 = [
         src.x + v[0] + shiftPt[0],
         src.y + v[1] + shiftPt[1]
     ];
-    return [pt0[0], pt0[1], pt2[0], pt2[1], pt1[0], pt1[1]];
+    return [pt0[0], pt0[1], pt2[0], pt2[1], pt1[0] + src.x, pt1[1] + src.y];
 }
 
 export function getNodeDimensions(

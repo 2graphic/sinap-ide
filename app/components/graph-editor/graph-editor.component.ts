@@ -32,6 +32,7 @@
 //
 // TODO:
 // - Need a way to listen for label change events.
+// - Edge label positions for curved lines.
 // - Zoom and Pan
 //   pinch to zoom/two-touch drag to pan
 // - Snap to grid.
@@ -436,9 +437,6 @@ export class GraphEditorComponent implements AfterViewInit {
     private addNode(pt?: number[]): DrawableNode | null {
         if (this.graph) {
             let n = this.graph.createNode();
-            // TODO:
-            // Remove
-            n.color = "rgba(0, 0, 0, 0)";
             if (pt) {
                 n.x = pt[0];
                 n.y = pt[1];
@@ -454,6 +452,8 @@ export class GraphEditorComponent implements AfterViewInit {
 
     private removeNode(n: DrawableNode): void {
         if (this.graph) {
+            if (n === this.hoverObject)
+                this.setHoverObject(null);
             let edges = [...(this.nodeEdges.get(n) as EdgeSet)];
             for (const e of edges)
                 this.removeEdge(e);
@@ -482,6 +482,12 @@ export class GraphEditorComponent implements AfterViewInit {
             this.drawList.push(e);
             this.drawList.push(src);
             this.drawList.push(dst);
+            if (src !== dst) {
+                for (let edge of Drawables.getOverlappedEdges(e, this.nodeEdges)) {
+                    this.setEdgePoints(edge);
+                    this.updateDrawable(edge);
+                }
+            }
             return e;
         }
         return null;
@@ -489,6 +495,8 @@ export class GraphEditorComponent implements AfterViewInit {
 
     private removeEdge(e: DrawableEdge): void {
         if (this.graph) {
+            if (e === this.hoverObject)
+                this.setHoverObject(null);
             if (e.source)
                 (this.nodeEdges.get(e.source) as EdgeSet).delete(e);
             if (e.destination)
@@ -500,6 +508,10 @@ export class GraphEditorComponent implements AfterViewInit {
             this.drawList = this.drawList.filter((v) => {
                 return (v !== e);
             });
+            if (e.source !== e.destination) {
+                for (let edge of Drawables.getOverlappedEdges(e, this.nodeEdges))
+                    this.updateDrawable(edge);
+            }
         }
     }
 
@@ -535,6 +547,7 @@ export class GraphEditorComponent implements AfterViewInit {
                             if ((this.dragObject = this.addNode(downPt))) {
                                 this.clearSelected();
                                 this.addSelectedItem(this.dragObject);
+                                this.updateDrawable(this.dragObject);
                                 this.redraw();
                             }
                         }
@@ -615,6 +628,10 @@ export class GraphEditorComponent implements AfterViewInit {
                     // Clear the drag object if it is an edge.
                     else if (Drawables.isDrawableEdge(this.dragObject))
                         this.dragObject = null;
+
+                    // Update the drag object if it is a node.
+                    else if (Drawables.isDrawableNode(this.dragObject))
+                        this.updateDrawable(this.dragObject);
                 }
 
                 // Update the canvas if waiting is not set.
