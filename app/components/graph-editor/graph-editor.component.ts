@@ -336,8 +336,6 @@ export class GraphEditorComponent implements AfterViewInit {
     private updateDrawable(d: Drawable): void {
         if (this.graph && d) {
             if (Drawables.isDrawableEdge(d)) {
-                // TODO:
-                // Update edge points.
                 this.drawMap.set(
                     d,
                     makeFnEdge(
@@ -351,8 +349,6 @@ export class GraphEditorComponent implements AfterViewInit {
                 );
             }
             else if (Drawables.isDrawableNode(d)) {
-                // TODO:
-                // Update edge points.
                 this.drawMap.set(
                     d,
                     makeFnNode(
@@ -369,72 +365,12 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * isOverlapping  
-     *   Checks if two edges are overlapping.  
-     *   It is assumed that the edge being checked does not have the same source
-     *   and destination nodes.
-     */
-    private isOverlapping(e: Drawables.DrawableEdge): boolean {
-        if (this.graph) {
-            for (const edge of this.graph.edges) {
-                if (
-                    e !== edge &&
-                    e.source === edge.destination &&
-                    e.destination === edge.source
-                )
-                    return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * getEdgePtShift  
-     *   Gets the vector in the direction of `u` that is on the boundary of a
-     *   node based on its geometry.
-     */
-    private getEdgePtShift(u: number[], n: Drawables.DrawableNode): number[] {
-        let v = [0, 0];
-
-        // The boundary of a circle is just its radius plus half its border width.
-        if (n.shape === "circle") {
-            v[0] = u[0] * this.nodeDimensions.get(n).r + n.borderWidth / 2;
-            v[1] = u[1] * this.nodeDimensions.get(n).r + n.borderWidth / 2;
-        }
-
-        // The boundary of a square depends on the direction of u.
-        else if (n.shape === "square") {
-            let up = [
-                (u[0] < 0 ? -u[0] : u[0]),
-                (u[1] < 0 ? -u[1] : u[1])
-            ];
-            let s = this.nodeDimensions.get(n).s;
-            if (up[0] < up[1]) {
-                let ratio = up[0] / up[1];
-                let b = s / up[1];
-                let a = ratio * up[0];
-                s = MathEx.mag([a, b]);
-            }
-            else {
-                let ratio = up[1] / up[0];
-                let a = s / up[0];
-                let b = ratio * up[1];
-                s = MathEx.mag([a, b]);
-            }
-            v[0] = u[0] * s + n.borderWidth / 2;
-            v[1] = u[1] * s + n.borderWidth / 2;
-        }
-        return v;
-    }
-
-    /**
      * setEdgePoints  
      *   Sets the end points and any control points associated with an edge.
      */
     private setEdgePoints(
-        e: Drawables.DrawableEdge,
-        x?: number,
-        y?: number
+        e: DrawableEdge,
+        pt?: number[]
     ): void {
         console.assert(e.source || e.destination,
             "error GraphEditorComponent.setEdgePoints: drawable edge must have either a source or a destination");
@@ -442,140 +378,37 @@ export class GraphEditorComponent implements AfterViewInit {
         // Something about anchor points for custom node images.
         if (e.source && e.destination) {
             if (e.source === e.destination)
-                this.setLoopEdgePoints(e, e.source);
-            else if (this.isOverlapping(e))
-                this.setQuadraticEdgePoints(e, e.source, e.destination);
+                this.edgePoints.set(e, canvas.getLoopEdgePoints(e))
+            else if (Drawables.isEdgeOverlapped(e, this.nodeEdges))
+                this.edgePoints.set(e, canvas.getQuadraticEdgePoints(e, e.source, e.destination, this.nodeDimensions.get(e.source), this.nodeDimensions.get(e.destination)));
             else
-                this.setStraightEdgePoints(e, x, y);
+                this.edgePoints.set(
+                    e,
+                    canvas.getStraightEdgePoints(
+                        e,
+                        this.nodeDimensions.get(e.source),
+                        this.nodeDimensions.get(e.destination),
+                        pt
+                    )
+                )
         }
         else
-            this.setStraightEdgePoints(e, x, y);
+            this.edgePoints.set(
+                e,
+                canvas.getStraightEdgePoints(
+                    e,
+                    (e.source ? this.nodeDimensions.get(e.source) : undefined),
+                    (e.destination ? this.nodeDimensions.get(e.destination) : undefined),
+                    pt
+                )
+            )
     }
 
-    /**
-     * setStraightEdgePoints  
-     *   Sets the end points of a straight line.
-     */
-    private setStraightEdgePoints(e: Drawables.DrawableEdge, x?: number, y?: number): void {
-        let pts: number[] = [];
-        this.edgePoints.set(e, pts);
-        if (e.source && e.destination) {
-            let v = [
-                e.destination.x - e.source.x,
-                e.destination.y - e.source.y
-            ];
-            let d = MathEx.mag(v);
-            let u = [v[0] / d, v[1] / d];
-            let shiftPt = this.getEdgePtShift(u, e.source);
-            pts.push(e.source.x + shiftPt[0]);
-            pts.push(e.source.y + shiftPt[1]);
-            u[0] *= -1;
-            u[1] *= -1;
-            shiftPt = this.getEdgePtShift(u, e.destination);
-            pts.push(e.source.x + v[0] + shiftPt[0]);
-            pts.push(e.source.y + v[1] + shiftPt[1]);
-        }
-        else if (e.source && !e.destination) {
-            console.assert(x && y, "error GraphEditorComponent.setStraightEdgePoints: x and y must be defined.");
-            let v = [
-                x - e.source.x,
-                y - e.source.y
-            ];
-            let d = MathEx.mag(v);
-            let u = [v[0] / d, v[1] / d];
-            let shiftPt = this.getEdgePtShift(u, e.source);
-            pts.push(e.source.x + shiftPt[0]);
-            pts.push(e.source.y + shiftPt[1]);
-            pts.push(x as number);
-            pts.push(y as number);
-        }
-        else if (!e.source && e.destination) {
-            console.assert(x && y, "error GraphEditorComponent.setStraightEdgePoints: x and y must be defined.");
-            let v = [
-                e.destination.x - x,
-                e.destination.y - y
-            ];
-            let d = MathEx.mag(v);
-            let u = [-v[0] / d, -v[1] / d];
-            pts.push(x as number);
-            pts.push(y as number);
-            let shiftPt = this.getEdgePtShift(u, e.destination);
-            pts.push(x + v[0] + shiftPt[0]);
-            pts.push(y + v[1] + shiftPt[1]);
-        }
-    }
-
-    /**
-     * setLoopEdgePoints  
-     *   Sets the edge points of a self-referencing node.
-     */
-    private setLoopEdgePoints(e: Drawables.DrawableEdge, n: Drawables.DrawableNode): void {
-        // TODO:
-        this.edgePoints.set(e, []);
-    }
-
-    /**
-     * setQuadraticEdgePoints  
-     *   Sets the edge points of an overlapping edge.
-     */
-    private setQuadraticEdgePoints(
-        e: Drawables.DrawableEdge,
-        src: Drawables.DrawableNode,
-        dst: Drawables.DrawableNode
-    ): void {
-        let v = [
-            dst.x - src.x,
-            dst.y - src.y
-        ];
-        let d = MathEx.mag(v);
-        let n = [
-            v[1] / d,
-            -v[0] / d
-        ];
-
-        let pt1 = [
-            v[0] / 2 + n[0] * CONST.GRID_SPACING,
-            v[1] / 2 + n[1] * CONST.GRID_SPACING
-        ];
-        d = MathEx.mag(pt1);
-        let shiftPt = this.getEdgePtShift([pt1[0] / d, pt1[1] / d], src);
-        let pt0 = [
-            src.x + shiftPt[0],
-            src.y + shiftPt[1]
-        ];
-        shiftPt = this.getEdgePtShift([(pt1[0] - v[0]) / d, (pt1[1] - v[1]) / d], dst);
-        let pt2 = [
-            src.x + v[0] + shiftPt[0],
-            src.y + v[1] + shiftPt[1]
-        ];
-        this.edgePoints.set(e, [pt0[0], pt0[1], pt2[0], pt2[1], pt1[0], pt1[1]]);
-    }
-
-    private setNodeDimensions(n: Drawables.DrawableNode): void {
-        if (n.shape === "circle") {
-            let lines = n.label.split("\n");
-            let size = canvas.getTextSize(
-                this.g,
-                lines,
-                CONST.NODE_FONT_FAMILY,
-                CONST.NODE_FONT_SIZE
-            );
-            let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
-                CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
-            this.nodeDimensions.set(n, { r: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s) / 2, th: size.h });
-        }
-        else if (n.shape === "square") {
-            let lines = n.label.split("\n");
-            let size = canvas.getTextSize(
-                this.g,
-                lines,
-                CONST.NODE_FONT_FAMILY,
-                CONST.NODE_FONT_SIZE
-            );
-            let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
-                CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
-            this.nodeDimensions.set(n, { s: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s), th: size.h });
-        }
+    private setNodeDimensions(n: DrawableNode): void {
+        this.nodeDimensions.set(
+            n,
+            canvas.getNodeDimensions(this.g, n)
+        );
     }
 
     /**
@@ -589,7 +422,7 @@ export class GraphEditorComponent implements AfterViewInit {
         // Delete keyCode is 46; backspace is 8.
         if (this.graph && (e.keyCode == 46 || e.keyCode == 8)) {
             let remove = [...this.selectedItems];
-            for (const item in remove) {
+            for (const item of remove) {
                 if (Drawables.isDrawableEdge(item))
                     this.removeEdge(item);
                 else if (Drawables.isDrawableNode(item))
@@ -603,6 +436,9 @@ export class GraphEditorComponent implements AfterViewInit {
     private addNode(pt?: number[]): DrawableNode | null {
         if (this.graph) {
             let n = this.graph.createNode();
+            // TODO:
+            // Remove
+            n.color = "rgba(0, 0, 0, 0)";
             if (pt) {
                 n.x = pt[0];
                 n.y = pt[1];
@@ -695,10 +531,12 @@ export class GraphEditorComponent implements AfterViewInit {
                         // if (this.graph) {
                         // Create a new node and set it as the drag object if no drag object
                         // was set.
-                        if (!this.dragObject && (this.dragObject = this.addNode(downPt))) {
-                            this.clearSelected();
-                            this.addSelectedItem(this.dragObject);
-                            this.redraw();
+                        if (!this.dragObject) {
+                            if ((this.dragObject = this.addNode(downPt))) {
+                                this.clearSelected();
+                                this.addSelectedItem(this.dragObject);
+                                this.redraw();
+                            }
                         }
 
                         // Set the drag object to some dummy edge and the replace edge to the
@@ -712,14 +550,10 @@ export class GraphEditorComponent implements AfterViewInit {
                             this.dragObject = Drawables.cloneEdge(this.moveEdge);
                             this.dragObject.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
                             this.dragObject.destination = null;
-                            this.setEdgePoints(this.dragObject, downPt[0], downPt[1]);
-                            this.updateDrawable(this.dragObject);
                             this.drawList.push(this.dragObject);
+                            this.setEdgePoints(this.dragObject, downPt);
+                            this.updateDrawable(this.dragObject);
                             this.redraw();
-                            // this.g.globalAlpha = 0.5;
-                            // TODO:
-                            // this.drawEdge(this.dragObject, downPt[0], downPt[1]);
-                            // this.g.globalAlpha = 1;
                         }
 
                         // Create a new dummy edge with the source node as the drag object.
@@ -727,14 +561,10 @@ export class GraphEditorComponent implements AfterViewInit {
                             this.dragObject = new Drawables.DefaultEdge(this.dragObject);
                             this.dragObject.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
                             this.dragObject.destination = null;
-                            this.setEdgePoints(this.dragObject, downPt[0], downPt[1]);
-                            this.updateDrawable(this.dragObject);
                             this.drawList.push(this.dragObject);
+                            this.setEdgePoints(this.dragObject, downPt);
+                            this.updateDrawable(this.dragObject);
                             this.redraw();
-                            // this.g.globalAlpha = 0.3;
-                            // TODO:
-                            // this.drawEdge(this.dragObject, downPt[0], downPt[1]);
-                            // this.g.globalAlpha = 1;
                         }
                         // }
                     }
@@ -818,13 +648,9 @@ export class GraphEditorComponent implements AfterViewInit {
 
                     // Update edge endpoint if dragging edge.
                     else if (Drawables.isDrawableEdge(this.dragObject)) {
-                        this.setEdgePoints(this.dragObject, downPt[0], downPt[1]);
+                        this.setEdgePoints(this.dragObject, ePt);
                         this.updateDrawable(this.dragObject);
                         this.redraw();
-                        // this.g.globalAlpha = 0.3;
-                        // TODO:
-                        // this.drawEdge(this.dragObject, ePt[0], ePt[1]);
-                        // this.g.globalAlpha = 1;
                     }
 
                     // Update node position if dragging node.
@@ -873,8 +699,10 @@ export class GraphEditorComponent implements AfterViewInit {
     private updateDragNode(n: DrawableNode, dPt: point): void {
         n.x += dPt[0];
         n.y += dPt[1];
-        for (let e of (this.nodeEdges.get(n) as Set<Drawables.DrawableEdge>))
+        for (let e of (this.nodeEdges.get(n) as Set<Drawables.DrawableEdge>)) {
+            this.setEdgePoints(e);
             this.updateDrawable(e);
+        }
     }
 
     /**
@@ -893,14 +721,12 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.dragObject = this.hitTest(ePt);
             }
 
-            // Set the selected graph component if none is set and the mouse is
-            // hovering over a component.
-            // else if (!this.dragObject && this.hoverObject) {
-            //     this.dragObject = this.hoverObject;
-            // }
-
             // Create the edge if one is being dragged.
             else if (Drawables.isDrawableEdge(this.dragObject)) {
+
+                let dummyEdge = this.drawList.pop() as DrawableEdge;
+                this.drawMap.delete(dummyEdge);
+                this.edgePoints.delete(dummyEdge);
 
                 // Check that the mouse was released at a node.
                 let hit = this.hitTest(ePt);
@@ -914,7 +740,7 @@ export class GraphEditorComponent implements AfterViewInit {
                     ) {
                         this.removeEdge(this.moveEdge);
                         this.dragObject =
-                        this.addEdge(this.dragObject.source, hit, this.moveEdge);
+                            this.addEdge(this.dragObject.source, hit, this.moveEdge);
                     }
 
                     // Create a new edge if none is being moved and it can be created.
@@ -925,9 +751,13 @@ export class GraphEditorComponent implements AfterViewInit {
                     ) {
                         this.clearSelected();
                         this.dragObject =
-                        this.addEdge(this.dragObject.source, hit);
+                            this.addEdge(this.dragObject.source, hit);
                     }
                 }
+
+                // Clear the drag object if the edge was dropped on nothing.
+                else
+                    this.dragObject = null;
             }
 
             // Drop the node if one is being dragged.
@@ -960,9 +790,6 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.clearSelected();
                 this.addSelectedItem(this.dragObject);
             }
-
-            if (this.dragObject && !this.selectedItems.has(this.dragObject) && !this.unselectedItems.has(this.dragObject))
-                this.drawList.pop();
 
             // Reset input states.
             clearTimeout(this.stickyTimeout as NodeJS.Timer);
@@ -1001,223 +828,8 @@ export class GraphEditorComponent implements AfterViewInit {
             canvas.drawGrid(this.g, this.gridOriginPt);
             for (const d of this.drawList)
                 (this.drawMap.get(d) as () => void)();
-
-            // if (Drawables.isDrawableEdge(this.dragObject)) {
-            //     this.g.globalAlpha = 0.5;
-            //     (this.drawMap.get(this.dragObject) as () => void)();
-            //     this.g.globalAlpha = 1;
-            // }
-
-            // for (let e of this.graph.edges)
-            //     this.drawEdge(e);
-            // for (let n of this.graph.nodes)
-            //     this.drawNode(n);
-
-            // if (Drawables.isDrawableEdge(this.hoverObject)) {
-            //     //
-            //     // TODO:
-            //     // Draw anchor points
-            //     //
-            // }
         }
     }
-
-    // /**
-    //  * drawNode  
-    //  *   Draws a node on the canvas.
-    //  */
-    // private drawNode(n: Drawables.DrawableNode): void {
-
-    //     // Calculate the radius.
-    //     let lines = n.label.split("\n");
-    //     let size = canvas.getTextSize(
-    //         this.g,
-    //         lines,
-    //         CONST.NODE_FONT_FAMILY,
-    //         CONST.NODE_FONT_SIZE
-    //     );
-    //     let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
-    //         CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
-    //     s = (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s);
-
-    //     // Draw selected shape.
-    //     if (this.selectedItems.has(n)) {
-    //         if (n.shape === "circle") {
-    //             canvas.drawCircle(
-    //                 this.g,
-    //                 n.x, n.y,
-    //                 (s + n.borderWidth) / 2 + 2,
-    //                 "solid",
-    //                 n.borderWidth,
-    //                 CONST.SELECTION_COLOR,
-    //                 CONST.SELECTION_COLOR,
-    //                 (n === this.dragObject || n === this.hoverObject ?
-    //                     20 * CONST.AA_SCALE : undefined),
-    //                 (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-    //                     (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-    //             );
-    //             canvas.drawCircle(
-    //                 this.g,
-    //                 n.x, n.y,
-    //                 s / 2,
-    //                 n.borderStyle,
-    //                 n.borderWidth,
-    //                 n.borderColor,
-    //                 n.color
-    //             );
-    //         }
-    //         else if (n.shape === "square") {
-    //             let hs = (s + n.borderWidth) / 2 + 2;
-    //             canvas.drawSquare(
-    //                 this.g,
-    //                 n.x - hs,
-    //                 n.y - hs,
-    //                 2 * hs,
-    //                 2 * hs,
-    //                 "solid",
-    //                 n.borderWidth,
-    //                 CONST.SELECTION_COLOR,
-    //                 CONST.SELECTION_COLOR,
-    //                 (n === this.dragObject || n === this.hoverObject ?
-    //                     20 * CONST.AA_SCALE : undefined),
-    //                 (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-    //                     (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-    //             );
-    //             hs = s / 2;
-    //             canvas.drawSquare(
-    //                 this.g,
-    //                 n.x - hs, n.y - hs,
-    //                 hs * 2, hs * 2,
-    //                 n.borderStyle,
-    //                 n.borderWidth,
-    //                 n.borderColor,
-    //                 n.color
-    //             );
-    //         }
-    //     }
-
-    //     // Draw unselected shape.
-    //     else {
-    //         if (n.shape === "circle") {
-    //             canvas.drawCircle(
-    //                 this.g,
-    //                 n.x, n.y,
-    //                 s / 2,
-    //                 n.borderStyle,
-    //                 n.borderWidth,
-    //                 n.borderColor,
-    //                 n.color,
-    //                 (n === this.dragObject || n === this.hoverObject ?
-    //                     20 * CONST.AA_SCALE : undefined),
-    //                 (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-    //                     (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-    //             );
-    //         }
-    //         else if (n.shape === "square") {
-    //             let hs = s / 2;
-    //             canvas.drawSquare(
-    //                 this.g,
-    //                 n.x - hs, n.y - hs,
-    //                 hs * 2, hs * 2,
-    //                 n.borderStyle,
-    //                 n.borderWidth,
-    //                 n.borderColor,
-    //                 n.color,
-    //                 (n === this.dragObject || n === this.hoverObject ?
-    //                     20 * CONST.AA_SCALE : undefined),
-    //                 (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-    //                     (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-    //             );
-    //         }
-    //     }
-
-    //     // Label
-    //     canvas.drawText(
-    //         this.g,
-    //         n.x, n.y - size.h / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
-    //         lines,
-    //         CONST.NODE_FONT_SIZE,
-    //         CONST.NODE_FONT_FAMILY,
-    //         "#fff",
-    //         2,
-    //         "#000"
-    //     );
-    // }
-
-    // /**
-    //  * drawEdge  
-    //  *   Draws an edge on the canvas.
-    //  */
-    // private drawEdge(e: Drawables.DrawableEdge, x?: number, y?: number): void {
-
-    //     // Edge
-    //     if (e === this.hoverObject) {
-    //         this.g.shadowColor = CONST.SELECTION_COLOR;
-    //         this.g.shadowBlur = 20 * CONST.AA_SCALE;
-    //     }
-    //     if (this.selectedItems.has(e)) {
-    //         let d = Drawables.cloneEdge(e);
-    //         d.color = CONST.SELECTION_COLOR;
-    //         d.lineStyle = "solid";
-    //         d.lineWidth += 3;
-    //         this.drawEdge(d);
-    //     }
-    //     if (e === this.moveEdge)
-    //         this.g.globalAlpha = 0.3;
-    //     this.g.strokeStyle = e.color;
-    //     this.g.lineWidth = e.lineWidth;
-    //     canvas.setLineStyle(this.g, e.lineStyle, e.lineWidth);
-    //     if (x && y) {
-    //         if (e.source)
-    //             canvas.drawLine(this.g, e.source.x, e.source.y, x, y);
-    //         else if (e.destination)
-    //             canvas.drawLine(this.g, x, y, e.destination.x, e.destination.y);
-    //     }
-    //     else if (e.source && e.destination) {
-    //         canvas.drawLine(this.g, e.source.x, e.source.y, e.destination.x, e.destination.y);
-    //         if (e.showSourceArrow)
-    //             canvas.drawArrow(this.g, e.destination, e.source);
-    //         if (e.showDestinationArrow)
-    //             canvas.drawArrow(this.g, e.source, e.destination);
-    //     }
-    //     this.g.globalAlpha = 1;
-
-    //     // Label
-    //     if (e.source && e.destination && e.label && e.label.trim() !== "") {
-    //         let lines = e.label.split("\n");
-    //         let size = canvas.getTextSize(this.g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
-    //         let srcPt = canvas.getEdgeBorderPt(this.g, e.destination, e.source);
-    //         let dstPt = canvas.getEdgeBorderPt(this.g, e.source, e.destination);
-    //         let rect = makeRect(
-    //             srcPt.x, srcPt.y,
-    //             dstPt.x, dstPt.y
-    //         );
-    //         x = rect.x + rect.w / 2;
-    //         y = rect.y + rect.h / 2;
-    //         size.w /= 2;
-    //         size.h /= 2;
-    //         rect = makeRect(
-    //             x - size.w - 6, y - size.h,
-    //             x + size.w + 6, y + size.h);
-    //         this.g.lineWidth = e.lineWidth;
-    //         this.g.fillStyle = this.graph.backgroundColor;
-    //         canvas.setLineStyle(this.g, e.lineStyle);
-    //         this.g.lineJoin = "round";
-    //         this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
-    //         this.g.shadowBlur = 0;
-    //         this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
-    //         canvas.drawText(
-    //             this.g,
-    //             x, y - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
-    //             lines,
-    //             CONST.EDGE_FONT_SIZE,
-    //             CONST.EDGE_FONT_FAMILY,
-    //             "#000"
-    //         );
-    //     }
-    //     else
-    //         this.g.shadowBlur = 0;
-    // }
 
     /**
      * addSelectedItem  
@@ -1243,13 +855,14 @@ export class GraphEditorComponent implements AfterViewInit {
 
     /**
      * hitTest  
-     *   Gets the first graph component that is hit by a point.
+     *   Gets the first graph component that is hit by a point.  
      * 
-     * <p>
      *   Nodes take priority over edges.
-     * </p>
      */
     private hitTest(pt: number[]): Drawable | null {
+
+        // TODO:
+        // This needs to be reworked to handle curved edges.
 
         if (this.graph) {
             // Hit test nodes first.
@@ -1322,6 +935,11 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Checks if a graph component was hit by a rectangle.
      */
     private rectHitTest(c: Drawable, rect: any): boolean {
+
+        // TODO:
+        // A possible solution is to check if the boundary of the selection box
+        // intersects with the boundary of a node or edge.
+
         return (Drawables.isDrawableNode(c) &&
             c.x >= rect.x && c.x <= rect.x + rect.w &&
             c.y >= rect.y && c.y <= rect.y + rect.h) ||

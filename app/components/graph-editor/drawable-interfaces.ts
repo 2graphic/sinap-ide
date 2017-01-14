@@ -7,6 +7,7 @@
 
 
 import { EDGE_DEFAULTS, NODE_DEFAULTS } from "./constants";
+import * as MathEx from "./math";
 
 
 // Functions ///////////////////////////////////////////////////////////////////
@@ -45,6 +46,32 @@ function isItThat(it: any, that: any): boolean {
             return false;
     }
     return result;
+}
+
+/**
+ * isEdgeOverlapped  
+ *   Checks if two edges are overlapping.  
+ *   It is assumed that the edge being checked does not have the same source
+ *   and destination nodes.
+ */
+export function isEdgeOverlapped(e: DrawableEdge, nodeEdges: Map<DrawableNode, Set<DrawableEdge>>): boolean {
+    for (const edge of (nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>)) {
+        if (
+            e !== edge &&
+            e.source === edge.destination &&
+            e.destination === edge.source
+        )
+            return true;
+    }
+    for (const edge of (nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)) {
+        if (
+            e !== edge &&
+            e.source === edge.destination &&
+            e.destination === edge.source
+        )
+            return true;
+    }
+    return false;
 }
 
 /**

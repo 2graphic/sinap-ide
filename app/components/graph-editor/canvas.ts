@@ -7,8 +7,11 @@
 
 
 import * as CONST from "./constants";
-import * as Drawables from "./drawable-interfaces";
 import * as MathEx from "./math";
+import {
+    DrawableEdge,
+    DrawableNode
+} from "./drawable-interfaces";
 
 
 // Draw functions //////////////////////////////////////////////////////////////
@@ -71,6 +74,21 @@ export function drawQuadraticLine(
         dst[0], dst[1]
     );
     g.stroke();
+
+    // TODO:
+    // Remove.
+    g.beginPath();
+    g.arc(ctl[0], ctl[1], 3, 0, 2 * Math.PI);
+    g.fillStyle = "#f00";
+    g.fill();
+    g.beginPath();
+    g.arc(src[0], src[1], 3, 0, 2 * Math.PI);
+    g.fillStyle = "#0f0";
+    g.fill();
+    g.beginPath();
+    g.arc(dst[0], dst[1], 3, 0, 2 * Math.PI);
+    g.fillStyle = "#00f";
+    g.fill();
 }
 
 /**
@@ -180,34 +198,39 @@ export function drawGrid(g: CanvasRenderingContext2D, originPt: number[]) {
     let w = g.canvas.width;
     let h = g.canvas.height;
 
+    // Major grid.
+    g.strokeStyle = CONST.GRID_MAJOR_COLOR;
+    g.lineWidth = CONST.GRID_MAJOR_WIDTH;
+    setLineStyle(g, CONST.GRID_MAJOR_STYLE);
     for (
         let x = originPt[0] % CONST.GRID_SPACING - CONST.GRID_SPACING;
         x < w + CONST.GRID_SPACING;
         x += CONST.GRID_SPACING
-    ) {
-        g.strokeStyle = CONST.GRID_MAJOR_COLOR;
-        g.lineWidth = CONST.GRID_MAJOR_WIDTH;
-        setLineStyle(g, CONST.GRID_MAJOR_STYLE);
+    )
         drawLine(g, [x, 0], [x, h]);
-        g.strokeStyle = CONST.GRID_MINOR_COLOR;
-        g.lineWidth = CONST.GRID_MINOR_WIDTH;
-        setLineStyle(g, CONST.GRID_MINOR_STYLE);
-        drawLine(g, [x + CONST.GRID_MINOR_OFFSET, 0], [x + CONST.GRID_MINOR_OFFSET, h]);
-    }
     for (
         let y = originPt[1] % CONST.GRID_SPACING - CONST.GRID_SPACING;
         y < h + CONST.GRID_SPACING;
         y += CONST.GRID_SPACING
-    ) {
-        g.strokeStyle = CONST.GRID_MAJOR_COLOR;
-        g.lineWidth = CONST.GRID_MAJOR_WIDTH;
-        setLineStyle(g, CONST.GRID_MAJOR_STYLE);
+    )
         drawLine(g, [0, y], [w, y]);
-        g.strokeStyle = CONST.GRID_MINOR_COLOR;
-        g.lineWidth = CONST.GRID_MINOR_WIDTH;
-        setLineStyle(g, CONST.GRID_MINOR_STYLE);
-        drawLine(g, [0, y + CONST.GRID_MINOR_OFFSET], [w, y + CONST.GRID_MINOR_OFFSET]);
-    }
+
+    // Minor grid.
+    g.strokeStyle = CONST.GRID_MINOR_COLOR;
+    g.lineWidth = CONST.GRID_MINOR_WIDTH;
+    setLineStyle(g, CONST.GRID_MINOR_STYLE);
+    for (
+        let x = originPt[0] % CONST.GRID_SPACING - CONST.GRID_SPACING + CONST.GRID_MINOR_OFFSET;
+        x < w + CONST.GRID_SPACING;
+        x += CONST.GRID_SPACING
+    )
+        drawLine(g, [x, 0], [x, h]);
+    for (
+        let y = originPt[1] % CONST.GRID_SPACING - CONST.GRID_SPACING + CONST.GRID_MINOR_OFFSET;
+        y < h + CONST.GRID_SPACING;
+        y += CONST.GRID_SPACING
+    )
+        drawLine(g, [0, y], [w, y]);
 
 }
 
@@ -303,6 +326,183 @@ export function getMousePt(g: CanvasRenderingContext2D, e: MouseEvent): number[]
         (e.clientX - r.left) / (r.right - r.left) * canvas.width / CONST.AA_SCALE,
         (e.clientY - r.top) / (r.bottom - r.top) * canvas.height / CONST.AA_SCALE
     ];
+}
+
+/**
+ * getEdgePtShift  
+ *   Gets the vector in the direction of `u` that is on the boundary of a
+ *   node based on its geometry.
+ */
+export function getEdgePtShift(
+    u: number[],
+    n: DrawableNode,
+    dim: any
+): number[] {
+    let v = [0, 0];
+
+    switch (n.shape) {
+        // The boundary of a circle is just its radius plus half its border width.
+        case "circle":
+            v[0] = u[0] * dim.r + n.borderWidth / 2;
+            v[1] = u[1] * dim.r + n.borderWidth / 2;
+            break;
+
+        // The boundary of a square depends on the direction of u.
+        case "square":
+            let up = [
+                (u[0] < 0 ? -u[0] : u[0]),
+                (u[1] < 0 ? -u[1] : u[1])
+            ];
+            let s = dim.s;
+            if (up[0] < up[1]) {
+                let ratio = up[0] / up[1];
+                let b = s / up[1];
+                let a = ratio * up[0];
+                s = MathEx.mag([a, b]);
+            }
+            else {
+                let ratio = up[1] / up[0];
+                let a = s / up[0];
+                let b = ratio * up[1];
+                s = MathEx.mag([a, b]);
+            }
+            v[0] = u[0] * s + n.borderWidth / 2;
+            v[1] = u[1] * s + n.borderWidth / 2;
+            break;
+    }
+    return v;
+}
+
+/**
+ * getStraightEdgePoints  
+ *   Gets the end points of a straight line.
+ */
+export function getStraightEdgePoints(
+    e: DrawableEdge,
+    srcDim?: any,
+    dstDim?: any,
+    pt?: number[]
+): number[] {
+    let pts: number[] = [];
+    if (e.source && e.destination) {
+        console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
+        console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
+        let v = [
+            e.destination.x - e.source.x,
+            e.destination.y - e.source.y
+        ];
+        let d = MathEx.mag(v);
+        let u = [v[0] / d, v[1] / d];
+        let shiftPt = getEdgePtShift(u, e.source, srcDim);
+        pts.push(e.source.x + shiftPt[0]);
+        pts.push(e.source.y + shiftPt[1]);
+        u[0] *= -1;
+        u[1] *= -1;
+        shiftPt = getEdgePtShift(u, e.destination, dstDim);
+        pts.push(e.source.x + v[0] + shiftPt[0]);
+        pts.push(e.source.y + v[1] + shiftPt[1]);
+    }
+    else if (e.source && !e.destination) {
+        console.assert(pt, "error getStraightEdgePoints: pt undefined");
+        console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
+        let v = [
+            (pt as number[])[0] - e.source.x,
+            (pt as number[])[1] - e.source.y
+        ];
+        let d = MathEx.mag(v);
+        let u = [v[0] / d, v[1] / d];
+        let shiftPt = getEdgePtShift(u, e.source, srcDim);
+        pts.push(e.source.x + shiftPt[0]);
+        pts.push(e.source.y + shiftPt[1]);
+        pts.push((pt as number[])[0]);
+        pts.push((pt as number[])[1]);
+    }
+    else if (!e.source && e.destination) {
+        console.assert(pt, "error getStraightEdgePoints: pt undefined");
+        console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
+        let v = [
+            e.destination.x - (pt as number[])[0],
+            e.destination.y - (pt as number[])[1]
+        ];
+        let d = MathEx.mag(v);
+        let u = [-v[0] / d, -v[1] / d];
+        pts.push((pt as number[])[0]);
+        pts.push((pt as number[])[1]);
+        let shiftPt = getEdgePtShift(u, e.destination, dstDim);
+        pts.push((pt as number[])[0] + v[0] + shiftPt[0]);
+        pts.push((pt as number[])[1] + v[1] + shiftPt[1]);
+    }
+    return pts;
+}
+
+/**
+ * getLoopEdgePoints  
+ *   Gets the edge points of a self-referencing node.
+ */
+export function getLoopEdgePoints(e: DrawableEdge): number[] {
+    // TODO:
+    return [];
+}
+
+/**
+ * getQuadraticEdgePoints  
+ *   Sets the edge points of an overlapping edge.
+ */
+export function getQuadraticEdgePoints(
+    e: DrawableEdge,
+    src: DrawableNode,
+    dst: DrawableNode,
+    srcDim: any,
+    dstDim: any
+): number[] {
+    let v = [
+        dst.x - src.x,
+        dst.y - src.y
+    ];
+    let d = MathEx.mag(v);
+    let n = [
+        v[1] / d,
+        -v[0] / d
+    ];
+
+    let pt1 = [
+        v[0] / 2 + n[0] * CONST.GRID_SPACING,
+        v[1] / 2 + n[1] * CONST.GRID_SPACING
+    ];
+    d = MathEx.mag(pt1);
+    let shiftPt = getEdgePtShift([pt1[0] / d, pt1[1] / d], src, srcDim);
+    let pt0 = [
+        src.x + shiftPt[0],
+        src.y + shiftPt[1]
+    ];
+    shiftPt = getEdgePtShift([(v[0] - pt1[0]) / d, (v[1] - pt1[1]) / d], dst, dstDim);
+    let pt2 = [
+        src.x + v[0] + shiftPt[0],
+        src.y + v[1] + shiftPt[1]
+    ];
+    return [pt0[0], pt0[1], pt2[0], pt2[1], pt1[0], pt1[1]];
+}
+
+export function getNodeDimensions(
+    g: CanvasRenderingContext2D,
+    n: DrawableNode
+): any {
+    let lines = n.label.split("\n");
+    let size = getTextSize(
+        g,
+        lines,
+        CONST.NODE_FONT_FAMILY,
+        CONST.NODE_FONT_SIZE
+    );
+    let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
+        CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
+    switch (n.shape) {
+        case "circle":
+            return { r: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s) / 2, th: size.h };
+
+        case "square":
+            return { s: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s), th: size.h };
+    }
 }
 
 

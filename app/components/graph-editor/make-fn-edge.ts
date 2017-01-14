@@ -4,6 +4,8 @@
 //
 // THIS FILE IS INTENDED TO BE IMPORTED ONLY INTO graph-editor.component.ts
 //
+// TODO:
+// - Draw anchor points.
 
 
 import * as CONST from "./constants";
