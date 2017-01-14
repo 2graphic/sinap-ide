@@ -91,7 +91,7 @@ export function cloneNode(n: DrawableNode): DrawableNode {
  */
 export interface GraphContext {
     readonly graph: DrawableGraph;
-    selectedDrawables: Set<Drawable>;
+    readonly selectedDrawables: Set<Drawable>;
 }
 
 /**
@@ -295,6 +295,7 @@ export interface DrawableNode {
 }
 
 // Type aliases ////////////////////////////////////////////////////////////////
+
 
 /**
  * Drawable  

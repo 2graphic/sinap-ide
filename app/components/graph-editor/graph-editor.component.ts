@@ -31,7 +31,7 @@
 //
 //
 // TODO:
-// - Consider mapping drawable components to draw functions.
+// - Need a way to listen for label change events.
 // - Zoom and Pan
 //   pinch to zoom/two-touch drag to pan
 // - Snap to grid.
@@ -72,6 +72,9 @@ import * as Drawables from "./drawable-interfaces";
 import * as MathEx from "./math";
 import * as canvas from "./canvas";
 
+import { makeFnEdge } from "./make-fn-edge";
+import { makeFnNode } from "./make-fn-node";
+
 
 // Re-exports //////////////////////////////////////////////////////////////////
 
@@ -91,6 +94,21 @@ export {
 
 
 type Drawable = Drawables.Drawable;
+type DrawableGraph = Drawables.DrawableGraph;
+type DrawableEdge = Drawables.DrawableEdge;
+type DrawableNode = Drawables.DrawableNode;
+type GraphContext = Drawables.GraphContext;
+
+type point = number[];
+type DrawableSet = Set<Drawable>;
+type timer = NodeJS.Timer | number;
+type callback = () => void;
+type DrawMap = Map<Drawable, callback>;
+type DrawList = Array<Drawable>;
+type EdgePointMap = Map<DrawableEdge, number[]>;
+type NodeDimensionMap = Map<DrawableNode, any>;
+type EdgeSet = Set<DrawableEdge>;
+type NodeEdgeMap = Map<DrawableNode, EdgeSet>;
 
 
 // Graph Editor Angular Component //////////////////////////////////////////////
@@ -126,19 +144,13 @@ export class GraphEditorComponent implements AfterViewInit {
      * graph  
      *   The graph object.
      */
-    private graph: Drawables.DrawableGraph | null;
-
-    /**
-     * context  
-     *   The graph context.
-     */
-    private context: Drawables.GraphContext | null;
+    private graph: DrawableGraph | null = null;
 
     /**
      * gridOriginPt  
      *   The coordinates of the grid origin.
      */
-    private gridOriginPt: number[] = [0, 0];
+    private gridOriginPt: point = [0, 0];
 
     /**
      * downEvt  
@@ -150,7 +162,7 @@ export class GraphEditorComponent implements AfterViewInit {
      * stickyTimeout  
      *   Timer reference for the sticky delay.
      */
-    private stickyTimeout: NodeJS.Timer | number | null = null;
+    private stickyTimeout: timer | null = null;
 
     /**
      * dragObect  
@@ -168,25 +180,31 @@ export class GraphEditorComponent implements AfterViewInit {
      * moveEdge  
      *   The edge to be replaced once the new edge has been created.
      */
-    private moveEdge: Drawables.DrawableEdge | null = null;
+    private moveEdge: DrawableEdge | null = null;
 
     /**
      * unselectedItems  
      *   The set of unselected graph components.
      */
-    private unselectedItems: Set<Drawable> = new Set<Drawable>();
+    private unselectedItems: DrawableSet = new Set<Drawable>();
+
+    /**
+     * senectedItems  
+     *   The set of selected graph components.
+     */
+    private selectedItems: DrawableSet;
 
     /**
      * drawMap  
      *   Maps drawable nodes and edges to draw functions.
      */
-    private drawMap: Map<Drawable, () => void> = new Map<Drawable, () => void>();
+    private drawMap: DrawMap = new Map<Drawable, callback>();
 
     /**
      * drawList  
      *   Maintains the draw order of drawable graph elements.
      */
-    private drawList: Array<Drawable> = new Array<Drawable>();
+    private drawList: DrawList = new Array<Drawable>();
 
     /**
      * edgePoints  
@@ -195,15 +213,19 @@ export class GraphEditorComponent implements AfterViewInit {
      *   The first two points are the end points. All other points are control
      *   points for bezier curves.
      */
-    private edgePoints: Map<Drawables.DrawableEdge, number[]> =
-    new Map<Drawables.DrawableEdge, number[]>();
+    private edgePoints: EdgePointMap = new Map<DrawableEdge, number[]>();
 
     /**
      * nodeDimensions  
      *   Maps nodes to geometry dimensions.
      */
-    private nodeDimensions: Map<Drawables.DrawableNode, any> =
-    new Map<Drawables.DrawableNode, any>();
+    private nodeDimensions: NodeDimensionMap = new Map<DrawableNode, any>();
+
+    /**
+     * nodeEdges  
+     *   Maps nodes to incoming and outgoing edges.
+     */
+    private nodeEdges: NodeEdgeMap = new Map<DrawableNode, EdgeSet>();
 
     /**
      * selectionChanged  
@@ -217,21 +239,25 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Input property for the graph context.
      */
     @Input("context")
-    set setGraphContext(value: Drawables.GraphContext | null) {
+    set setGraphContext(value: GraphContext | null) {
         if (value) {
-            this.context = value;
             this.graph = value.graph;
-            if (this.g) {
-                this.updateSelected();
+            this.selectedItems = value.selectedDrawables;
+            this.initSelectedItems();
+            if (this.g)
                 this.redraw();
-            }
         } else {
             // TODO:
             // Discuss what it means when the graph context is set to null.
-            this.context = null;
+            // this.context = null;
             this.graph = null;
             if (this.g)
-                this.g.clearRect(0, 0, this.g.canvas.width, this.g.canvas.height);
+                this.g.clearRect(
+                    0,
+                    0,
+                    this.g.canvas.width,
+                    this.g.canvas.height
+                );
         }
     }
 
@@ -240,7 +266,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Sets the node being dragged by the cursor.
      */
     @Input()
-    dragNode(value: Drawables.DrawableNode) {
+    dragNode(value: DrawableNode) {
         this.dragObject = value;
     }
 
@@ -261,51 +287,85 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Clears the selected items.
      */
     clearSelected(): void {
-        if (this.context)
-            this.context.selectedDrawables.clear();
-        this.updateSelected();
+        if (this.graph) {
+            for (const d of this.selectedItems)
+                this.removeSelectedItem(d);
+        }
     }
 
-    /**
-     * updateSelected  
-     *   Updates the selected drawable items.
-     */
-    private updateSelected(): void {
+    private initSelectedItems(): void {
         this.unselectedItems.clear();
         this.drawMap.clear();
         this.drawList = new Array<Drawable>();
         this.edgePoints.clear();
         this.nodeDimensions.clear();
-        if (this.context && this.graph) {
+        this.nodeEdges.clear();
+        if (this.graph) {
             for (const n of this.graph.nodes) {
-                this.drawList.push(n);
-                this.setNodeDimensions(n);
-                if (this.context.selectedDrawables.has(n)) {
-                    this.setSelectedNodeDraw(n);
-                }
-                else {
+                if (!this.selectedItems.has(n))
                     this.unselectedItems.add(n);
-                    this.setUnselectedNodeDraw(n);
-                }
+                this.drawList.push(n);
+                this.nodeEdges.set(n, new Set<DrawableEdge>());
+                this.setNodeDimensions(n);
+                this.updateDrawable(n);
             }
             for (const e of this.graph.edges) {
-                this.drawList.push(e);
-                this.setEdgePoints(e);
-                if (this.context.selectedDrawables.has(e)) {
-                    this.setSelectedEdgeDraw(e);
-                }
-                else {
+                if (!this.selectedItems.has(e))
                     this.unselectedItems.add(e);
-                    this.setUnselectedEdgeDraw(e);
-                }
+                this.drawList.push(e);
+                this.addNodeEdge(e);
+                this.setEdgePoints(e);
+                this.updateDrawable(e);
             }
             this.drawList = this.drawList.reverse();
             this.selectionChanged.emit(
-                new Set<Drawable>(this.context.selectedDrawables)
+                new Set<Drawable>(this.selectedItems)
             );
         }
         else
             this.selectionChanged.emit(new Set<Drawable>());
+    }
+
+    private addNodeEdge(e: DrawableEdge): void {
+        if (e.source)
+            (this.nodeEdges.get(e.source) as EdgeSet).add(e);
+        if (e.destination)
+            (this.nodeEdges.get(e.destination) as EdgeSet).add(e);
+    }
+
+    private updateDrawable(d: Drawable): void {
+        if (this.graph && d) {
+            if (Drawables.isDrawableEdge(d)) {
+                // TODO:
+                // Update edge points.
+                this.drawMap.set(
+                    d,
+                    makeFnEdge(
+                        this.g,
+                        d,
+                        this.edgePoints.get(d) as number[],
+                        d === this.dragObject,
+                        d === this.hoverObject,
+                        this.selectedItems.has(d)
+                    )
+                );
+            }
+            else if (Drawables.isDrawableNode(d)) {
+                // TODO:
+                // Update edge points.
+                this.drawMap.set(
+                    d,
+                    makeFnNode(
+                        this.g,
+                        d,
+                        this.nodeDimensions.get(d),
+                        d === this.dragObject,
+                        d === this.hoverObject,
+                        this.selectedItems.has(d)
+                    )
+                );
+            }
+        }
     }
 
     /**
@@ -397,6 +457,8 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Sets the end points of a straight line.
      */
     private setStraightEdgePoints(e: Drawables.DrawableEdge, x?: number, y?: number): void {
+        let pts: number[] = [];
+        this.edgePoints.set(e, pts);
         if (e.source && e.destination) {
             let v = [
                 e.destination.x - e.source.x,
@@ -405,7 +467,6 @@ export class GraphEditorComponent implements AfterViewInit {
             let d = MathEx.mag(v);
             let u = [v[0] / d, v[1] / d];
             let shiftPt = this.getEdgePtShift(u, e.source);
-            let pts: number[] = [];
             pts.push(e.source.x + shiftPt[0]);
             pts.push(e.source.y + shiftPt[1]);
             u[0] *= -1;
@@ -423,7 +484,6 @@ export class GraphEditorComponent implements AfterViewInit {
             let d = MathEx.mag(v);
             let u = [v[0] / d, v[1] / d];
             let shiftPt = this.getEdgePtShift(u, e.source);
-            let pts: number[] = [];
             pts.push(e.source.x + shiftPt[0]);
             pts.push(e.source.y + shiftPt[1]);
             pts.push(x as number);
@@ -437,7 +497,6 @@ export class GraphEditorComponent implements AfterViewInit {
             ];
             let d = MathEx.mag(v);
             let u = [-v[0] / d, -v[1] / d];
-            let pts: number[] = [];
             pts.push(x as number);
             pts.push(y as number);
             let shiftPt = this.getEdgePtShift(u, e.destination);
@@ -492,698 +551,6 @@ export class GraphEditorComponent implements AfterViewInit {
         this.edgePoints.set(e, [pt0[0], pt0[1], pt2[0], pt2[1], pt1[0], pt1[1]]);
     }
 
-    private setSelectedEdgeDraw(e: Drawables.DrawableEdge): void {
-        let pts = this.edgePoints.get(e) as number[];
-        switch (pts.length) {
-
-            // Straight line
-            case 4:
-                this.setSelectedStraightEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]]);
-                break;
-
-            // Quadratic line
-            case 6:
-                this.setSelectedQuadraticEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]], [pts[4], pts[5]]);
-                break;
-
-            // Bezier line
-            case 8:
-                this.setSelectedBezierEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]], [pts[4], pts[5]], [pts[6],pts[7]]);
-                break;
-
-            default:
-                this.drawMap.set(e, () => { });
-        }
-    }
-
-    /**
-     * setUnselectedEdgeDraw  
-     *   Sets the unselected edge draw function.
-     */
-    private setUnselectedEdgeDraw(e: Drawables.DrawableEdge): void {
-        let pts = this.edgePoints.get(e) as number[];
-        switch (pts.length) {
-
-            // Straight line
-            case 4:
-                this.setUnselectedStraightEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]]);
-                break;
-
-            // Quadratic line
-            case 6:
-                this.setUnselectedQuadraticEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]], [pts[4], pts[5]]);
-                break;
-
-            // Bezier line
-            case 8:
-                this.setUnselectedBezierEdgeDraw(e, [pts[0], pts[1]], [pts[2], pts[3]], [pts[4], pts[5]], [pts[6],pts[7]]);
-                break;
-
-            default:
-                this.drawMap.set(e, () => { });
-        }
-    }
-
-    /**
-     * setUnselectedStraightEdgeDraw  
-     *   Sets the edge draw function with a straight line.
-     */
-    private setUnselectedStraightEdgeDraw(
-        e: Drawables.DrawableEdge,
-        srcPt: number[],
-        dstPt: number[]
-    ): void {
-
-        // With both arrows...
-        if (e.showSourceArrow && e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedStraightEdgeWithBothArrowsAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedStraightEdgeWithBothArrowsNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With source arrow...
-        else if (e.showSourceArrow && !e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedStraightEdgeWithSourceArrowAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedStraightEdgeWithSourceArrowNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With destination arrow...
-        else if (!e.showSourceArrow && e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedStraightEdgeWithDestinationArrowAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedStraightEdgeWithDestinationArrowNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With no arrows...
-        else {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedStraightEdgeWithNoArrowsAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedStraightEdgeWithNoArrowsNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-    }
-
-    private setUnselectedQuadraticEdgeDraw(
-        e: Drawables.DrawableEdge,
-        srcPt: number[],
-        dstPt: number[],
-        ctlPt: number[]
-    ): void {
-
-        // With both arrows...
-        if (e.showSourceArrow && e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedQuadraticEdgeWithBothArrowsAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedQuadraticEdgeWithBothArrowsNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With source arrow...
-        else if (e.showSourceArrow && !e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedQuadraticEdgeWithSourceArrowAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedQuadraticEdgeWithSourceArrowNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With destination arrow...
-        else if (!e.showSourceArrow && e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedQuadraticEdgeWithDestinationArrowAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedQuadraticEdgeWithDestinationArrowNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With no arrows...
-        else {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedQuadraticEdgeWithNoArrowsAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnUnselectedQuadraticEdgeWithNoArrowsNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-    }
-
-    private setUnselectedBezierEdgeDraw(e: Drawables.DrawableEdge, srcPt: number[], dstPt: number[], ctlPt1: number[], ctlPt2: number[]): void {
-        // TODO:
-        this.drawMap.set(e, () => { });
-    }
-
-    /**
-     * setUnselectedStraightEdgeDraw  
-     *   Sets the edge draw function with a straight line.
-     */
-    private setSelectedStraightEdgeDraw(
-        e: Drawables.DrawableEdge,
-        srcPt: number[],
-        dstPt: number[]
-    ): void {
-
-        // With both arrows...
-        if (e.showSourceArrow && e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedStraightEdgeWithBothArrowsAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedStraightEdgeWithBothArrowsNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With source arrow...
-        else if (e.showSourceArrow && !e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedStraightEdgeWithSourceArrowAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedStraightEdgeWithSourceArrowNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With destination arrow...
-        else if (!e.showSourceArrow && e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedStraightEdgeWithDestinationArrowAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedStraightEdgeWithDestinationArrowNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With no arrows...
-        else {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedStraightEdgeWithNoArrowsAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedStraightEdgeWithNoArrowsNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-    }
-
-    private setSelectedQuadraticEdgeDraw(
-        e: Drawables.DrawableEdge,
-        srcPt: number[],
-        dstPt: number[],
-        ctlPt: number[]
-    ): void {
-
-        // With both arrows...
-        if (e.showSourceArrow && e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedQuadraticEdgeWithBothArrowsAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedQuadraticEdgeWithBothArrowsNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With source arrow...
-        else if (e.showSourceArrow && !e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedQuadraticEdgeWithSourceArrowAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedQuadraticEdgeWithSourceArrowNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With destination arrow...
-        else if (!e.showSourceArrow && e.showDestinationArrow) {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedQuadraticEdgeWithDestinationArrowAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedQuadraticEdgeWithDestinationArrowNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-
-        // With no arrows...
-        else {
-
-            // ...and a label.
-            if (e.label && e.label.trim() !== "") {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedQuadraticEdgeWithNoArrowsAndLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.label.split("\n"),
-                        e.color,
-                        "#fff",
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-
-            // ...and no label.
-            else {
-                this.drawMap.set(
-                    e,
-                    canvas.makeFnSelectedQuadraticEdgeWithNoArrowsNoLabel(
-                        this.g,
-                        srcPt,
-                        dstPt,
-                        ctlPt,
-                        e.color,
-                        e.lineWidth,
-                        e.lineStyle
-                    )
-                );
-            }
-        }
-    }
-
-    private setSelectedBezierEdgeDraw(e: Drawables.DrawableEdge, srcPt: number[], dstPt: number[], ctlPt1: number[], ctlPt2: number[]): void {
-        // TODO:
-        this.drawMap.set(e, () => { });
-    }
-
     private setNodeDimensions(n: Drawables.DrawableNode): void {
         if (n.shape === "circle") {
             let lines = n.label.split("\n");
@@ -1195,7 +562,7 @@ export class GraphEditorComponent implements AfterViewInit {
             );
             let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
                 CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
-            this.nodeDimensions.set(n, { r: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s) / 2 });
+            this.nodeDimensions.set(n, { r: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s) / 2, th: size.h });
         }
         else if (n.shape === "square") {
             let lines = n.label.split("\n");
@@ -1207,165 +574,7 @@ export class GraphEditorComponent implements AfterViewInit {
             );
             let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
                 CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
-            this.nodeDimensions.set(n, { s: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s) });
-        }
-    }
-
-    private setSelectedNodeDraw(n: Drawables.DrawableNode): void {
-        switch (n.shape) {
-            case "circle":
-                if (n.label.trim() !== "") {
-                    this.drawMap.set(
-                        n,
-                        canvas.makeFnSelectedCircleNodeWithLabel(
-                            this.g,
-                            [n.x, n.y],
-                            this.nodeDimensions.get(n).r,
-                            n.label.split("\n"),
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                        )
-                    );
-                }
-                else {
-                    this.drawMap.set(
-                        n,
-                        canvas.makeFnSelectedCircleNodeWithNoLabel(
-                            this.g,
-                            [n.x, n.y],
-                            this.nodeDimensions.get(n).r,
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                        )
-                    );
-                }
-                break;
-
-            case "square":
-                if (n.label.trim() !== "") {
-                    this.drawMap.set(
-                        n,
-                        canvas.makeFnSelectedSquareNodeWithLabel(
-                            this.g,
-                            [n.x, n.y],
-                            this.nodeDimensions.get(n).r,
-                            n.label.split("\n"),
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                        )
-                    );
-                }
-                else {
-                    this.drawMap.set(
-                        n,
-                        canvas.makeFnSelectedSquareNodeWithNoLabel(
-                            this.g,
-                            [n.x, n.y],
-                            this.nodeDimensions.get(n).r,
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                        )
-                    );
-                }
-                break;
-
-            default:
-                this.drawMap.set(n, () => { });
-        }
-    }
-
-    private setUnselectedNodeDraw(n: Drawables.DrawableNode): void {
-        switch (n.shape) {
-            case "circle":
-                if (n.label.trim() !== "") {
-                    this.drawMap.set(
-                        n,
-                        canvas.makeFnUnselectedCircleNodeWithLabel(
-                            this.g,
-                            [n.x, n.y],
-                            this.nodeDimensions.get(n).r,
-                            n.label.split("\n"),
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                        )
-                    );
-                }
-                else {
-                    this.drawMap.set(
-                        n,
-                        canvas.makeFnUnselectedCircleNodeWithNoLabel(
-                            this.g,
-                            [n.x, n.y],
-                            this.nodeDimensions.get(n).r,
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                        )
-                    );
-                }
-                break;
-
-            case "square":
-                if (n.label.trim() !== "") {
-                    this.drawMap.set(
-                        n,
-                        canvas.makeFnUnselectedSquareNodeWithLabel(
-                            this.g,
-                            [n.x, n.y],
-                            this.nodeDimensions.get(n).r,
-                            n.label.split("\n"),
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                        )
-                    );
-                }
-                else {
-                    this.drawMap.set(
-                        n,
-                        canvas.makeFnUnselectedSquareNodeWithNoLabel(
-                            this.g,
-                            [n.x, n.y],
-                            this.nodeDimensions.get(n).r,
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            (n === this.dragObject ? CONST.NODE_DRAG_SHADOW_COLOR :
-                                (n === this.hoverObject ? CONST.SELECTION_COLOR : undefined))
-                        )
-                    );
-                }
-                break;
-
-            default:
-                this.drawMap.set(n, () => { });
+            this.nodeDimensions.set(n, { s: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s), th: size.h });
         }
     }
 
@@ -1378,29 +587,83 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private onKeyDown(e: KeyboardEvent): void {
         // Delete keyCode is 46; backspace is 8.
-        if (this.graph && this.context && (e.keyCode == 46 || e.keyCode == 8)) {
-            let edges = new Set<Drawables.DrawableEdge>();
-            let nodes = new Set<Drawables.DrawableNode>();
-            for (let ele of this.context.selectedDrawables) {
-                if (Drawables.isDrawableEdge(ele))
-                    edges.add(ele);
-                else if (Drawables.isDrawableNode(ele))
-                    nodes.add(ele);
+        if (this.graph && (e.keyCode == 46 || e.keyCode == 8)) {
+            let remove = [...this.selectedItems];
+            for (const item in remove) {
+                if (Drawables.isDrawableEdge(item))
+                    this.removeEdge(item);
+                else if (Drawables.isDrawableNode(item))
+                    this.removeNode(item);
             }
-            let unselectedEdges = [...this.graph.edges].filter(x => !edges.has(x));
-
-            for (let n of nodes) {
-                for (let e of unselectedEdges.filter(u =>
-                    (u.source === n || u.destination === n))) {
-                    edges.add(e);
-                }
-                this.graph.removeNode(n);
-
-            }
-            for (let e of edges)
-                this.graph.removeEdge(e);
             this.clearSelected();
             this.redraw();
+        }
+    }
+
+    private addNode(pt?: number[]): DrawableNode | null {
+        if (this.graph) {
+            let n = this.graph.createNode();
+            if (pt) {
+                n.x = pt[0];
+                n.y = pt[1];
+            }
+            this.nodeEdges.set(n, new Set<Drawables.DrawableEdge>());
+            this.setNodeDimensions(n);
+            this.updateDrawable(n);
+            this.drawList.push(n);
+            return n;
+        }
+        return null;
+    }
+
+    private removeNode(n: DrawableNode): void {
+        if (this.graph) {
+            let edges = [...(this.nodeEdges.get(n) as EdgeSet)];
+            for (const e of edges)
+                this.removeEdge(e);
+            this.graph.removeNode(n);
+            this.removeSelectedItem(n);
+            this.unselectedItems.delete(n);
+            this.nodeEdges.delete(n);
+            this.nodeDimensions.delete(n);
+            this.drawMap.delete(n);
+            this.drawList = this.drawList.filter((v) => {
+                return (v !== n);
+            });
+        }
+    }
+
+    private addEdge(src: DrawableNode, dst: DrawableNode, like?: DrawableEdge): DrawableEdge | null {
+        if (this.graph) {
+            let e = this.graph.createEdge(src, dst, like);
+            (this.nodeEdges.get(src) as EdgeSet).add(e);
+            (this.nodeEdges.get(dst) as EdgeSet).add(e);
+            this.setEdgePoints(e);
+            this.updateDrawable(e);
+            this.drawList = this.drawList.filter((v) => {
+                return v !== src && v !== dst;
+            });
+            this.drawList.push(e);
+            this.drawList.push(src);
+            this.drawList.push(dst);
+            return e;
+        }
+        return null;
+    }
+
+    private removeEdge(e: DrawableEdge): void {
+        if (this.graph) {
+            if (e.source)
+                (this.nodeEdges.get(e.source) as EdgeSet).delete(e);
+            if (e.destination)
+                (this.nodeEdges.get(e.destination) as EdgeSet).delete(e);
+            this.graph.removeEdge(e);
+            this.removeSelectedItem(e);
+            this.unselectedItems.delete(e);
+            this.edgePoints.delete(e);
+            this.drawList = this.drawList.filter((v) => {
+                return (v !== e);
+            });
         }
     }
 
@@ -1414,26 +677,25 @@ export class GraphEditorComponent implements AfterViewInit {
         if (this.graph && e.buttons == 1) {
 
             // Clear the hover object.
-            this.hoverObject = null;
+            this.setHoverObject(null);
 
             // Save mouse click canvas coordinates and set waiting to true.
             this.downEvt = e;
 
             // Set a timeout.
-            this.stickyTimeout = setTimeout(() => {
+            this.stickyTimeout = setTimeout(
+                () => {
+                    // Set the drag object and reset sticky.
+                    if (this.downEvt) {
+                        let downPt = canvas.getMousePt(this.g, this.downEvt);
+                        clearTimeout(this.stickyTimeout as NodeJS.Timer);
+                        this.stickyTimeout = null;
+                        this.dragObject = this.hitTest(downPt);
 
-                // Set the drag object and reset sticky.
-                if (this.downEvt) {
-                    let downPt = canvas.getMousePt(this.g, this.downEvt);
-                    clearTimeout(this.stickyTimeout as NodeJS.Timer);
-                    this.stickyTimeout = null;
-                    this.dragObject = this.hitTest(downPt);
-
-                    if (this.graph) {
+                        // if (this.graph) {
                         // Create a new node and set it as the drag object if no drag object
                         // was set.
-                        if (!this.dragObject) {
-                            this.dragObject = this.graph.createNode(downPt[0], downPt[1]);
+                        if (!this.dragObject && (this.dragObject = this.addNode(downPt))) {
                             this.clearSelected();
                             this.addSelectedItem(this.dragObject);
                             this.redraw();
@@ -1449,26 +711,36 @@ export class GraphEditorComponent implements AfterViewInit {
                             this.moveEdge = this.dragObject;
                             this.dragObject = Drawables.cloneEdge(this.moveEdge);
                             this.dragObject.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
+                            this.dragObject.destination = null;
+                            this.setEdgePoints(this.dragObject, downPt[0], downPt[1]);
+                            this.updateDrawable(this.dragObject);
+                            this.drawList.push(this.dragObject);
                             this.redraw();
-                            this.g.globalAlpha = 0.5;
+                            // this.g.globalAlpha = 0.5;
                             // TODO:
                             // this.drawEdge(this.dragObject, downPt[0], downPt[1]);
-                            this.g.globalAlpha = 1;
+                            // this.g.globalAlpha = 1;
                         }
 
                         // Create a new dummy edge with the source node as the drag object.
                         else if (Drawables.isDrawableNode(this.dragObject)) {
                             this.dragObject = new Drawables.DefaultEdge(this.dragObject);
                             this.dragObject.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
+                            this.dragObject.destination = null;
+                            this.setEdgePoints(this.dragObject, downPt[0], downPt[1]);
+                            this.updateDrawable(this.dragObject);
+                            this.drawList.push(this.dragObject);
                             this.redraw();
-                            this.g.globalAlpha = 0.3;
+                            // this.g.globalAlpha = 0.3;
                             // TODO:
                             // this.drawEdge(this.dragObject, downPt[0], downPt[1]);
-                            this.g.globalAlpha = 1;
+                            // this.g.globalAlpha = 1;
                         }
+                        // }
                     }
-                }
-            }, CONST.STICKY_DELAY);
+                },
+                CONST.STICKY_DELAY
+            );
         }
     }
 
@@ -1477,7 +749,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Handles the mousemove event.
      */
     private onMouseMove(e: MouseEvent): void {
-        if (this.graph && this.context) {
+        if (this.graph) {
             let ePt = canvas.getMousePt(this.g, e);
 
             // Capture the down event if the drag object has been set.
@@ -1489,14 +761,16 @@ export class GraphEditorComponent implements AfterViewInit {
 
                 // Get the change in x and y locations of the cursor.
                 let downPt = canvas.getMousePt(this.g, this.downEvt);
-                let dx = downPt[0] - ePt[0];
-                let dy = downPt[1] - ePt[1];
+                let dPt = [
+                    downPt[0] - ePt[0],
+                    downPt[1] - ePt[1]
+                ];
 
                 // Reset waiting if waiting is still active and the mouse has moved too
                 // far.
                 if (
                     this.stickyTimeout &&
-                    (dx * dx + dy * dy > CONST.NUDGE * CONST.NUDGE)
+                    (MathEx.dot(dPt, dPt) > CONST.NUDGE * CONST.NUDGE)
                 ) {
                     clearTimeout(this.stickyTimeout as NodeJS.Timer);
                     this.stickyTimeout = null;
@@ -1521,16 +795,20 @@ export class GraphEditorComponent implements AfterViewInit {
                         let rect = canvas.makeRect(downPt[0], downPt[1], ePt[0], ePt[1]);
 
                         // Update the selected components.
-                        for (let i of this.context.selectedDrawables) {
-                            if (!this.rectHitTest(i, rect))
-                                moveItem(this.context.selectedDrawables, this.unselectedItems, i);
+                        for (let i of this.selectedItems) {
+                            if (!this.rectHitTest(i, rect)) {
+                                moveItem(this.selectedItems, this.unselectedItems, i);
+                                this.updateDrawable(i);
+                            }
                         }
                         for (let i of this.unselectedItems) {
-                            if (this.rectHitTest(i, rect))
-                                moveItem(this.unselectedItems, this.context.selectedDrawables, i);
+                            if (this.rectHitTest(i, rect)) {
+                                moveItem(this.unselectedItems, this.selectedItems, i);
+                                this.updateDrawable(i);
+                            }
                         }
                         this.selectionChanged.emit(new Set<Drawable>(
-                            this.context.selectedDrawables
+                            this.selectedItems
                         ));
 
                         // Update the canvas.
@@ -1540,46 +818,63 @@ export class GraphEditorComponent implements AfterViewInit {
 
                     // Update edge endpoint if dragging edge.
                     else if (Drawables.isDrawableEdge(this.dragObject)) {
+                        this.setEdgePoints(this.dragObject, downPt[0], downPt[1]);
+                        this.updateDrawable(this.dragObject);
                         this.redraw();
-                        this.g.globalAlpha = 0.3;
+                        // this.g.globalAlpha = 0.3;
                         // TODO:
                         // this.drawEdge(this.dragObject, ePt[0], ePt[1]);
-                        this.g.globalAlpha = 1;
+                        // this.g.globalAlpha = 1;
                     }
 
                     // Update node position if dragging node.
                     else if (Drawables.isDrawableNode(this.dragObject)) {
-                        if (
-                            this.context.selectedDrawables.has(this.dragObject) &&
-                            this.context.selectedDrawables.size > 0
-                        ) {
-                            let dx = ePt[0] - this.dragObject.x;
-                            let dy = ePt[1] - this.dragObject.y;
-                            for (let o of this.context.selectedDrawables) {
-                                if (Drawables.isDrawableNode(o)) {
-                                    o.x += dx;
-                                    o.y += dy;
-                                }
-                            }
-                        }
-                        else {
-                            this.dragObject.x = ePt[0];
-                            this.dragObject.y = ePt[1];
-                        }
-                        this.redraw();
+                        this.updateDragNodes(
+                            this.dragObject,
+                            [ePt[0] - this.dragObject.x, ePt[1] - this.dragObject.y]
+                        );
                     }
                 }
             }
 
-            // Mouse hover
+            // Mouse hover.
             else {
-                let hit = this.hitTest(ePt);
-                if (hit !== this.hoverObject) {
-                    this.hoverObject = hit;
-                    this.redraw();
-                }
+                this.setHoverObject(this.hitTest(ePt));
             }
         }
+    }
+
+    private setHoverObject(value: Drawable | null): void {
+        if (value !== this.hoverObject) {
+            let prev = this.hoverObject;
+            this.hoverObject = value;
+            if (prev)
+                this.updateDrawable(prev);
+            if (this.hoverObject)
+                this.updateDrawable(this.hoverObject);
+            this.redraw();
+        }
+    }
+
+    private updateDragNodes(dragNode: DrawableNode, dPt: point) {
+        if (
+            this.selectedItems.has(dragNode) &&
+            this.selectedItems.size > 0
+        ) {
+            for (let o of this.selectedItems)
+                if (Drawables.isDrawableNode(o))
+                    this.updateDragNode(o, dPt);
+        }
+        else
+            this.updateDragNode(dragNode, dPt);
+        this.redraw();
+    }
+
+    private updateDragNode(n: DrawableNode, dPt: point): void {
+        n.x += dPt[0];
+        n.y += dPt[1];
+        for (let e of (this.nodeEdges.get(n) as Set<Drawables.DrawableEdge>))
+            this.updateDrawable(e);
     }
 
     /**
@@ -1589,7 +884,7 @@ export class GraphEditorComponent implements AfterViewInit {
     private onMouseUp(e: MouseEvent): void {
 
         // Make sure a mousedown event was previously captured.
-        if (this.graph && this.context && this.downEvt) {
+        if (this.graph && this.downEvt) {
             let ePt = canvas.getMousePt(this.g, e);
 
             // Set the selected graph component if waiting.
@@ -1600,9 +895,9 @@ export class GraphEditorComponent implements AfterViewInit {
 
             // Set the selected graph component if none is set and the mouse is
             // hovering over a component.
-            else if (!this.dragObject && this.hoverObject) {
-                this.dragObject = this.hoverObject;
-            }
+            // else if (!this.dragObject && this.hoverObject) {
+            //     this.dragObject = this.hoverObject;
+            // }
 
             // Create the edge if one is being dragged.
             else if (Drawables.isDrawableEdge(this.dragObject)) {
@@ -1617,11 +912,9 @@ export class GraphEditorComponent implements AfterViewInit {
                         this.dragObject.source &&
                         this.graph.canCreateEdge(this.dragObject.source, hit, this.moveEdge)
                     ) {
-                        this.removeSelectedItem(this.moveEdge);
-                        this.graph.removeEdge(this.moveEdge);
-                        this.dragObject = this.graph.createEdge(
-                            this.dragObject.source, hit, this.moveEdge
-                        );
+                        this.removeEdge(this.moveEdge);
+                        this.dragObject =
+                        this.addEdge(this.dragObject.source, hit, this.moveEdge);
                     }
 
                     // Create a new edge if none is being moved and it can be created.
@@ -1632,7 +925,7 @@ export class GraphEditorComponent implements AfterViewInit {
                     ) {
                         this.clearSelected();
                         this.dragObject =
-                            this.graph.createEdge(this.dragObject.source, hit);
+                        this.addEdge(this.dragObject.source, hit);
                     }
                 }
             }
@@ -1640,12 +933,12 @@ export class GraphEditorComponent implements AfterViewInit {
             // Drop the node if one is being dragged.
             else if (Drawables.isDrawableNode(this.dragObject)) {
                 if (
-                    this.context.selectedDrawables.has(this.dragObject) &&
-                    this.context.selectedDrawables.size > 0
+                    this.selectedItems.has(this.dragObject) &&
+                    this.selectedItems.size > 0
                 ) {
                     let dx = ePt[0] - this.dragObject.x;
                     let dy = ePt[1] - this.dragObject.y;
-                    for (let o of this.context.selectedDrawables) {
+                    for (let o of this.selectedItems) {
                         if (Drawables.isDrawableNode(o)) {
                             o.x += dx;
                             o.y += dy;
@@ -1663,10 +956,13 @@ export class GraphEditorComponent implements AfterViewInit {
             }
 
             // Reset the selected item.
-            if (this.dragObject && this.context.selectedDrawables.size < 2) {
+            if (this.dragObject && this.selectedItems.size < 2) {
                 this.clearSelected();
                 this.addSelectedItem(this.dragObject);
             }
+
+            if (this.dragObject && !this.selectedItems.has(this.dragObject) && !this.unselectedItems.has(this.dragObject))
+                this.drawList.pop();
 
             // Reset input states.
             clearTimeout(this.stickyTimeout as NodeJS.Timer);
@@ -1705,6 +1001,13 @@ export class GraphEditorComponent implements AfterViewInit {
             canvas.drawGrid(this.g, this.gridOriginPt);
             for (const d of this.drawList)
                 (this.drawMap.get(d) as () => void)();
+
+            // if (Drawables.isDrawableEdge(this.dragObject)) {
+            //     this.g.globalAlpha = 0.5;
+            //     (this.drawMap.get(this.dragObject) as () => void)();
+            //     this.g.globalAlpha = 1;
+            // }
+
             // for (let e of this.graph.edges)
             //     this.drawEdge(e);
             // for (let n of this.graph.nodes)
@@ -1921,9 +1224,9 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Adds an item to the selected items set.
      */
     private addSelectedItem(item: Drawable) {
-        if (this.context) {
-            moveItem(this.unselectedItems, this.context.selectedDrawables, item);
-            this.selectionChanged.emit(new Set<Drawable>(this.context.selectedDrawables));
+        if (this.graph && moveItem(this.unselectedItems, this.selectedItems, item)) {
+            this.updateDrawable(item);
+            this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
         }
     }
 
@@ -1932,9 +1235,9 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Removes an item from the selected items set.
      */
     private removeSelectedItem(item: Drawable) {
-        if (this.context) {
-            moveItem(this.context.selectedDrawables, this.unselectedItems, item);
-            this.selectionChanged.emit(new Set<Drawable>(this.context.selectedDrawables));
+        if (this.graph && moveItem(this.selectedItems, this.unselectedItems, item)) {
+            this.updateDrawable(item);
+            this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
         }
     }
 
@@ -2043,7 +1346,7 @@ function moveItem(
     src: Set<Drawable>,
     dst: Set<Drawable>,
     itm: Drawable
-): void {
-    src.delete(itm);
+): boolean {
     dst.add(itm);
+    return src.delete(itm);
 }
