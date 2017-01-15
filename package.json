@@ -23,12 +23,15 @@
     "prepackage": "npm run clean && npm run build && cp package.json build",
     "package": "npm run prepackage && npm run electron-packager -- --platform=all",
     "package:darwin": "npm run prepackage && npm run electron-packager -- --platform=darwin",
-    "clean:win": "if exist node_modules rmdir /s /q node_modules & if exist build rmdir /s /q build & if exist dist rmdir /s /q dist",
+    "clean:win": "if exist build rmdir /s /q build & if exist dist rmdir /s /q dist",
+    "clean:win:node": "if exist node_modules rmdir /s /q node_modules",
     "prebuild:win": "if not exist build mkdir build & if not exist dist mkdir dist & npm install",
     "build:win": "npm run prebuild:win && npm run webpack",
     "build:win:watch": "npm run prebuild:win && npm run webpack -- --watch",
     "start:build:win": "npm run build:win && npm run start",
-    "start:build:win:watch": "concurrently \"npm run build:win:watch\" \"npm run start\""
+    "start:build:win:watch": "concurrently \"npm run build:win:watch\" \"npm run start\"",
+    "prepackage:win": "npm run clean:win && npm run build:win && copy /v /y package.json build",
+    "package:win": "npm run prepackage:win && npm run electron-packager -- --platform=all"
   },
   "dependencies": {
     "@angular/common": "2.4.x",
