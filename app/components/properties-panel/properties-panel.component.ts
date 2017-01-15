@@ -16,13 +16,6 @@ import { SinapType } from "../../models/types";
 export class PropertiesPanelComponent {
     public selectedEntity: PropertiedEntity | null = null;
     public console = console;
-    // get selectedEntity() {
-    //   return this._selectedEntity;
-    // }
-    // set selectedEntity(e) {
-    //   console.log(e);
-    //   this._selectedEntity = e;
-    // }
 
     private isEmpty() {
         if (this.selectedEntity) {
@@ -37,12 +30,17 @@ export class PropertiesPanelComponent {
         return true;
     }
 
-    private groups = [["General", "pluginProperties"], ["Display", "displayProperties"]];
+    private groups = [["General", "pluginProperties"], ["Display", "drawableProperties"]];
+}
+
+export interface PropertyList {
+    readonly properties: [string, SinapType][];
+    get(property: string): any;
+    set(property: string, value: any): void;
 }
 
 export interface PropertiedEntity {
-    readonly displayProperties: Iterable<[string, SinapType]>;
-    readonly pluginProperties: Iterable<[string, SinapType]>;
-    readonly propertyValues: any;
+    readonly drawableProperties: PropertyList;
+    readonly pluginProperties: PropertyList;
     readonly entityName: string;
 }

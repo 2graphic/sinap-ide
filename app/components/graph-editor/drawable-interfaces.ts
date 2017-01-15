@@ -123,7 +123,7 @@ export function cloneEdge(e: DrawableEdge): DrawableEdge {
  *   Creates a cloned node.
  */
 export function cloneNode(n: DrawableNode): DrawableNode {
-    let clone = new DefaultNode(n.x, n.y);
+    let clone = new DefaultNode(n.position);
     clone.label = n.label;
     clone.shape = n.shape;
     clone.color = n.color;
@@ -138,22 +138,12 @@ export function cloneNode(n: DrawableNode): DrawableNode {
 
 
 /**
- * GraphContext  
- *   Interface that exposes a graph and any external properties that the 
- *   editor needs to have to go with it. Specifically the set of selected
- *   `DrawableNode | DrawableEdge`
- */
-export interface GraphContext {
-    readonly graph: DrawableGraph;
-    readonly selectedDrawables: Set<Drawable>;
-}
-
-/**
  * DrawableGraph  
  *   Interface that exposes drawable graph properties and methods.
  */
 export interface DrawableGraph {
 
+    selection: Set<Drawable>;
     /**
      * nodes  
      *   The collection of drawable nodes that are part of the graph.
@@ -216,12 +206,6 @@ export interface DrawableGraph {
         dst: DrawableNode,
         like?: DrawableEdge
     ): DrawableEdge;
-
-    /**
-     * replaceEdge  
-     *   This method has been replaced by `createEdge` and is no longer needed.
-     */
-    replaceEdge(original: DrawableEdge, replacement: DrawableEdge): void;
 
     /**
      * removeEdge  
@@ -296,16 +280,10 @@ export interface DrawableEdge {
 export interface DrawableNode {
 
     /**
-     * x  
-     *   The x-coordinate of the center of the node.
+     * position  
+     *   The coordinates of the center of the node.
      */
-    x: number;
-
-    /**
-     * y  
-     *   The y-coordinate of the center of the node.
-     */
-    y: number;
+    position: { x: number, y: number };
 
     /**
      * label  
@@ -373,7 +351,7 @@ export class DefaultNode implements DrawableNode {
     borderStyle: string = NODE_DEFAULTS.borderStyle;
     borderWidth: number = NODE_DEFAULTS.borderWidth;
 
-    constructor(public x: number, public y: number) { }
+    constructor(public position: { x: number, y: number }) { }
 }
 
 /**

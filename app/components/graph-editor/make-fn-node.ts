@@ -31,7 +31,7 @@ export function makeFnNode(
                     return () => {
                         canvas.drawCircle(
                             g,
-                            n.x, n.y,
+                            n.position.x, n.position.y,
                             dim.r + n.borderWidth / 2 + 2,
                             "solid",
                             n.borderWidth,
@@ -41,7 +41,7 @@ export function makeFnNode(
                         );
                         canvas.drawCircle(
                             g,
-                            n.x, n.y,
+                            n.position.x, n.position.y,
                             dim.r,
                             n.borderStyle,
                             n.borderWidth,
@@ -51,7 +51,7 @@ export function makeFnNode(
                         );
                         canvas.drawText(
                             g,
-                            n.x, n.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
+                            n.position.x, n.position.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
                             n.label.split("\n"),
                             CONST.NODE_FONT_SIZE,
                             CONST.NODE_FONT_FAMILY,
@@ -64,7 +64,7 @@ export function makeFnNode(
                 return () => {
                     canvas.drawCircle(
                         g,
-                        n.x, n.y,
+                        n.position.x, n.position.y,
                         dim.r + n.borderWidth / 2 + 2,
                         "solid",
                         n.borderWidth,
@@ -74,7 +74,7 @@ export function makeFnNode(
                     );
                     canvas.drawCircle(
                         g,
-                        n.x, n.y,
+                        n.position.x, n.position.y,
                         dim.r,
                         n.borderStyle,
                         n.borderWidth,
@@ -88,7 +88,7 @@ export function makeFnNode(
                 return () => {
                     canvas.drawCircle(
                         g,
-                        n.x, n.y,
+                        n.position.x, n.position.y,
                         dim.r,
                         n.borderStyle,
                         n.borderWidth,
@@ -98,7 +98,7 @@ export function makeFnNode(
                     );
                     canvas.drawText(
                         g,
-                        n.x, n.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
+                        n.position.x, n.position.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
                         n.label.split("\n"),
                         CONST.NODE_FONT_SIZE,
                         CONST.NODE_FONT_FAMILY,
@@ -111,7 +111,7 @@ export function makeFnNode(
             return () => {
                 canvas.drawCircle(
                     g,
-                    n.x, n.y,
+                    n.position.x, n.position.y,
                     dim.r,
                     n.borderStyle,
                     n.borderWidth,
@@ -127,7 +127,7 @@ export function makeFnNode(
                     return () => {
                         canvas.drawSquare(
                             g,
-                            n.x - dim.s / 2, n.y - dim.s / 2,
+                            n.position.x - dim.s / 2, n.position.y - dim.s / 2,
                             dim.s + n.borderWidth / 2 + 2,
                             "solid",
                             n.borderWidth,
@@ -137,7 +137,7 @@ export function makeFnNode(
                         );
                         canvas.drawSquare(
                             g,
-                            n.x - dim.s / 2, n.y - dim.s / 2,
+                            n.position.x - dim.s / 2, n.position.y - dim.s / 2,
                             dim.s,
                             n.borderStyle,
                             n.borderWidth,
@@ -147,7 +147,7 @@ export function makeFnNode(
                         );
                         canvas.drawText(
                             g,
-                            n.x, n.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
+                            n.position.x, n.position.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
                             n.label.split("\n"),
                             CONST.NODE_FONT_SIZE,
                             CONST.NODE_FONT_FAMILY,
@@ -160,7 +160,7 @@ export function makeFnNode(
                 return () => {
                     canvas.drawSquare(
                         g,
-                        n.x - dim.s / 2, n.y - dim.s / 2,
+                        n.position.x - dim.s / 2, n.position.y - dim.s / 2,
                         dim.s + n.borderWidth / 2 + 2,
                         "solid",
                         n.borderWidth,
@@ -170,7 +170,7 @@ export function makeFnNode(
                     );
                     canvas.drawSquare(
                         g,
-                        n.x - dim.s / 2, n.y - dim.s / 2,
+                        n.position.x - dim.s / 2, n.position.y - dim.s / 2,
                         dim.s,
                         n.borderStyle,
                         n.borderWidth,
@@ -184,7 +184,7 @@ export function makeFnNode(
                 return () => {
                     canvas.drawSquare(
                         g,
-                        n.x - dim.s / 2, n.y - dim.s / 2,
+                        n.position.x - dim.s / 2, n.position.y - dim.s / 2,
                         dim.s,
                         n.borderStyle,
                         n.borderWidth,
@@ -194,7 +194,7 @@ export function makeFnNode(
                     );
                     canvas.drawText(
                         g,
-                        n.x, n.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
+                        n.position.x, n.position.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
                         n.label.split("\n"),
                         CONST.NODE_FONT_SIZE,
                         CONST.NODE_FONT_FAMILY,
@@ -207,7 +207,7 @@ export function makeFnNode(
             return () => {
                 canvas.drawSquare(
                     g,
-                    n.x - dim.s / 2, n.y - dim.s / 2,
+                    n.position.x - dim.s / 2, n.position.y - dim.s / 2,
                     dim.s,
                     n.borderStyle,
                     n.borderWidth,

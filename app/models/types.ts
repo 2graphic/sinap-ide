@@ -71,3 +71,4 @@ export const SinapEdge = new SinapType("edge", () => null);
 export const SinapColor = new SinapType("color", () => "#000000");
 export const SinapShape = new SinapEnumType(["circle", "square"]);
 export const SinapLineStyles = new SinapEnumType(["dotted", "solid", "dashed"]);
+export const SinapPoint = new SinapStructType(new Map<string, SinapType>([['x', SinapNumber], ['y', SinapNumber]]));

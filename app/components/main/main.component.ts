@@ -9,7 +9,7 @@
 
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service"
-import { GraphEditorComponent, GraphContext, Drawable } from "../graph-editor/graph-editor.component"
+import { GraphEditorComponent, Drawable } from "../graph-editor/graph-editor.component"
 import { PluginService } from "../../services/plugin.service"
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "../properties-panel/properties-panel.component"
@@ -17,7 +17,8 @@ import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
 import { TestPanelComponent } from "../test-panel/test-panel.component"
 import { StatusBarComponent } from "../status-bar/status-bar.component"
 import { SinapFile } from "../../models/types";
-import { Element, Graph, deserializeGraph } from "../../models/graph"
+import { ConcreteDrawableGraph } from "../../models/graph"
+import * as Core from "../../models/core"
 import { SideBarComponent } from "../side-bar/side-bar.component"
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
 
@@ -31,6 +32,14 @@ const {dialog} = remote;
     styleUrls: ["./main.component.css"],
     providers: [MenuService, PluginService]
 })
+
+class DummyMLPluginClass extends Core.DummyPlugin {
+
+}
+
+const DummyMLPlugin = new DummyMLPluginClass();
+const DummyDFAPlugin = new DummyMLPluginClass();
+
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private changeDetectorRef: ChangeDetectorRef) {
     }
@@ -85,36 +94,34 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 this.graphEditor.redraw();
             }
             if (this.pluginService) {
-                if (this.context.graph.pluginManager.kind == "machine-learning.sinap.graph-kind") {
-                    this.barMessages = []
-                    this.package = "Machine Learning"
-                } else {
-                    let interp = this.pluginService.getInterpreter(this.context.graph);
-                    this.barMessages = ["DFA", interp.message()];
-                    this.package = "Finite Automata";
+                // if (this.context.graph.pluginManager.kind == "machine-learning.sinap.graph-kind") {
+                //     this.barMessages = []
+                //     this.package = "Machine Learning"
+                // } else {
+                let interp = this.pluginService.getInterpreter(this.context.graph);
+                this.barMessages = ["DFA", interp.message()];
+                this.package = "Finite Automata";
 
-                    if (interp.check()) {
-                        for (let triplet of this.testComponent.tests) {
-                            triplet[2] = interp.run(triplet[0] as string);
-                        }
+                if (interp.check()) {
+                    for (let triplet of this.testComponent.tests) {
+                        triplet[2] = interp.run(triplet[0] as string);
                     }
                 }
+                // }
             }
         }
     };
 
-    newFile(f?: String, g?: Graph) {
+    newFile(f?: String, g?: Core.Graph) {
         if (!f && this.toolsPanel.activeGraphType == "Machine Learning") {
-            g = new Graph([["Input File", SinapFile],
-            ["Weights File", SinapFile]], this.onContextChanged,
-                this.pluginService.getManager("machine-learning.sinap.graph-kind"));
+            g = new Core.Graph(DummyMLPlugin);
         }
 
+        g = g ? g : new Core.Graph(DummyDFAPlugin);
         let filename = f ? f : "Untitled";
         let tabNumber = this.tabBar.newTab(filename);
-        this.tabs.set(tabNumber,
-            new TabContext((g ? g : (new Graph([], this.onContextChanged,
-                this.pluginService.getManager("dfa.sinap.graph-kind")))), null, filename));
+
+        this.tabs.set(tabNumber, new TabContext(new ConcreteDrawableGraph(g), filename));
         this.selectedTab(tabNumber);
     }
 
@@ -129,7 +136,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         let context = this.tabs.get(i);
         if (context) {
             this.context = context;
-            this.toolsPanel.manager = this.context.graph.pluginManager;
+            // this.toolsPanel.manager = this.context.graph.pluginManager;
 
             // TODO: GraphEditor needs a way to set selected elements
             this.onContextChanged();
@@ -162,42 +169,42 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     saveFile() {
-        dialog.showSaveDialog({}, (filename) => {
-            if (!this.context) {
-                // todo, make this a real error
-                alert("No open graph to save");
-                return;
-            }
-            let graph = {
-                'sinap-file-format-version': "0.0.1",
-                'graph': this.context.graph.serialize()
-            };
-            fs.writeFile(filename, JSON.stringify(graph), 'utf8', (err: any) => {
-                if (err)
-                    alert(`Error occurred while saving to file ${filename}: ${err}.`);
-            });
-        })
+        // dialog.showSaveDialog({}, (filename) => {
+        //     if (!this.context) {
+        //         // todo, make this a real error
+        //         alert("No open graph to save");
+        //         return;
+        //     }
+        //     let graph = {
+        //         'sinap-file-format-version': "0.0.1",
+        //         'graph': this.context.graph.serialize()
+        //     };
+        //     fs.writeFile(filename, JSON.stringify(graph), 'utf8', (err: any) => {
+        //         if (err)
+        //             alert(`Error occurred while saving to file ${filename}: ${err}.`);
+        //     });
+        // })
     }
 
     loadFile() {
-        dialog.showOpenDialog({}, (files) => {
-            // TODO: Make this actually handle multiple files.
-            let filename = files[0];
-            fs.readFile(filename, 'utf8', (err: any, data: string) => {
-                if (err) {
-                    alert(`Error reading file ${filename}: ${err}`);
-                }
-                try {
-                    let pojo = JSON.parse(data);
+        // dialog.showOpenDialog({}, (files) => {
+        //     // TODO: Make this actually handle multiple files.
+        //     let filename = files[0];
+        //     fs.readFile(filename, 'utf8', (err: any, data: string) => {
+        //         if (err) {
+        //             alert(`Error reading file ${filename}: ${err}`);
+        //         }
+        //         try {
+        //             let pojo = JSON.parse(data);
 
-                    this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
-                        filename.lastIndexOf("\\")) + 1),
-                        deserializeGraph(pojo, this.onContextChanged, this.pluginService.getManager("dfa.sinap.graph-kind")));
-                } catch (e) {
-                    alert(`Could not serialize graph: ${e}.`);
-                }
-            })
-        });
+        //             this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
+        //                 filename.lastIndexOf("\\")) + 1),
+        //                 deserializeGraph(pojo, this.onContextChanged, this.pluginService.getManager("dfa.sinap.graph-kind")));
+        //         } catch (e) {
+        //             alert(`Could not serialize graph: ${e}.`);
+        //         }
+        //     })
+        // });
     }
 
     run(input: String): String {
@@ -209,35 +216,35 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         }
     }
 
-    graphSelectionChanged(selected: Set<PropertiedEntity>) {
-        let newSelectedEntity: PropertiedEntity | null = null;
-        if (selected.size > 0) {
-            for (let x of selected) {
-                // this cast is safe because we know that the only Drawables that we
-                // ever give the `graphEditor` are `Element`s
-                newSelectedEntity = x;
-                break;
-            }
-        } else {
-            if (this.context) {
-                newSelectedEntity = this.context.graph;
-            } else {
-                throw "How did graph selection change, there's no context? ";
+    // graphSelectionChanged(selected: Set<PropertiedEntity>) {
+    //     let newSelectedEntity: PropertiedEntity | null = null;
+    //     if (selected.size > 0) {
+    //         for (let x of selected) {
+    //             // this cast is safe because we know that the only Drawables that we
+    //             // ever give the `graphEditor` are `Element`s
+    //             newSelectedEntity = x;
+    //             break;
+    //         }
+    //     } else {
+    //         if (this.context) {
+    //             newSelectedEntity = this.context.graph;
+    //         } else {
+    //             throw "How did graph selection change, there's no context? ";
 
-            }
-        }
-        // ugly trick to silence the fact that things seem to get emitted too often
-        // TODO, reduce the frequency things are emitted
-        if (this.propertiesPanel.selectedEntity != newSelectedEntity) {
-            if (this.context) {
-                this.context.selectedEntity = newSelectedEntity;
-            }
-            this.propertiesPanel.selectedEntity = newSelectedEntity;
-        }
-    }
+    //         }
+    //     }
+    //     // ugly trick to silence the fact that things seem to get emitted too often
+    //     // TODO, reduce the frequency things are emitted
+    //     if (this.propertiesPanel.selectedEntity != newSelectedEntity) {
+    //         if (this.context) {
+    //             this.context.selectedEntity = newSelectedEntity;
+    //         }
+    //         this.propertiesPanel.selectedEntity = newSelectedEntity;
+    //     }
+    // }
 }
 
-class TabContext implements GraphContext {
+class TabContext {
     selectedDrawables = new Set<Drawable>();
-    constructor(public graph: Graph, public selectedEntity: PropertiedEntity | null, public filename?: String) { };
+    constructor(public graph: ConcreteDrawableGraph, public filename?: String) { };
 }

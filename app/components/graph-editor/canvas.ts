@@ -373,32 +373,32 @@ export function getStraightEdgePoints(
         console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
         console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
         let v = [
-            e.destination.x - e.source.x,
-            e.destination.y - e.source.y
+            e.destination.position.x - e.source.position.x,
+            e.destination.position.y - e.source.position.y
         ];
         let d = MathEx.mag(v);
         let u = [v[0] / d, v[1] / d];
         let shiftPt = getEdgePtShift(u, e.source, srcDim);
-        pts.push(e.source.x + shiftPt[0]);
-        pts.push(e.source.y + shiftPt[1]);
+        pts.push(e.source.position.x + shiftPt[0]);
+        pts.push(e.source.position.y + shiftPt[1]);
         u[0] *= -1;
         u[1] *= -1;
         shiftPt = getEdgePtShift(u, e.destination, dstDim);
-        pts.push(e.source.x + v[0] + shiftPt[0]);
-        pts.push(e.source.y + v[1] + shiftPt[1]);
+        pts.push(e.source.position.x + v[0] + shiftPt[0]);
+        pts.push(e.source.position.y + v[1] + shiftPt[1]);
     }
     else if (e.source && !e.destination) {
         console.assert(pt, "error getStraightEdgePoints: pt undefined");
         console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
         let v = [
-            (pt as number[])[0] - e.source.x,
-            (pt as number[])[1] - e.source.y
+            (pt as number[])[0] - e.source.position.x,
+            (pt as number[])[1] - e.source.position.y
         ];
         let d = MathEx.mag(v);
         let u = [v[0] / d, v[1] / d];
         let shiftPt = getEdgePtShift(u, e.source, srcDim);
-        pts.push(e.source.x + shiftPt[0]);
-        pts.push(e.source.y + shiftPt[1]);
+        pts.push(e.source.position.x + shiftPt[0]);
+        pts.push(e.source.position.y + shiftPt[1]);
         pts.push((pt as number[])[0]);
         pts.push((pt as number[])[1]);
     }
@@ -406,8 +406,8 @@ export function getStraightEdgePoints(
         console.assert(pt, "error getStraightEdgePoints: pt undefined");
         console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
         let v = [
-            e.destination.x - (pt as number[])[0],
-            e.destination.y - (pt as number[])[1]
+            e.destination.position.x - (pt as number[])[0],
+            e.destination.position.y - (pt as number[])[1]
         ];
         let d = MathEx.mag(v);
         let u = [-v[0] / d, -v[1] / d];
@@ -441,8 +441,8 @@ export function getQuadraticEdgePoints(
     dstDim: any
 ): number[] {
     let v = [
-        dst.x - src.x,
-        dst.y - src.y
+        dst.position.x - src.position.x,
+        dst.position.y - src.position.y
     ];
     let d = MathEx.mag(v);
     let n = [
@@ -457,15 +457,15 @@ export function getQuadraticEdgePoints(
     d = MathEx.mag(pt1);
     let shiftPt = getEdgePtShift([pt1[0] / d, pt1[1] / d], src, srcDim);
     let pt0 = [
-        src.x + shiftPt[0],
-        src.y + shiftPt[1]
+        src.position.x + shiftPt[0],
+        src.position.y + shiftPt[1]
     ];
     shiftPt = getEdgePtShift([(pt1[0] - v[0]) / d, (pt1[1] - v[1]) / d], dst, dstDim);
     let pt2 = [
-        src.x + v[0] + shiftPt[0],
-        src.y + v[1] + shiftPt[1]
+        src.position.x + v[0] + shiftPt[0],
+        src.position.y + v[1] + shiftPt[1]
     ];
-    return [pt0[0], pt0[1], pt2[0], pt2[1], pt1[0] + src.x, pt1[1] + src.y];
+    return [pt0[0], pt0[1], pt2[0], pt2[1], pt1[0] + src.position.x, pt1[1] + src.position.y];
 }
 
 export function getNodeDimensions(
