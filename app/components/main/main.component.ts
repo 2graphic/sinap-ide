@@ -9,7 +9,7 @@
 
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service"
-import { GraphEditorComponent } from "../graph-editor/graph-editor.component"
+import { GraphEditorComponent, GraphContext, Drawable } from "../graph-editor/graph-editor.component"
 import { PluginService } from "../../services/plugin.service"
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "../properties-panel/properties-panel.component"
@@ -79,20 +79,17 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     @ViewChild(StatusBarComponent)
     private statusBar: StatusBarComponent;
 
-    // TODO: Probably always refer to the graph in the tab's context
-    graph: Graph | null;
-
-    onGraphChanged = () => { // arrow syntax to bind correct "this"
-        if (this.graph) {
+    onContextChanged = () => { // arrow syntax to bind correct "this"
+        if (this.context) {
             if (this.graphEditor) {
                 this.graphEditor.redraw();
             }
             if (this.pluginService) {
-                if (this.graph.pluginManager.kind == "machine-learning.sinap.graph-kind") {
+                if (this.context.graph.pluginManager.kind == "machine-learning.sinap.graph-kind") {
                     this.barMessages = []
                     this.package = "Machine Learning"
                 } else {
-                    let interp = this.pluginService.getInterpreter(this.graph);
+                    let interp = this.pluginService.getInterpreter(this.context.graph);
                     this.barMessages = ["DFA", interp.message()];
                     this.package = "Finite Automata";
 
@@ -109,14 +106,14 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     newFile(f?: String, g?: Graph) {
         if (!f && this.toolsPanel.activeGraphType == "Machine Learning") {
             g = new Graph([["Input File", SinapFile],
-            ["Weights File", SinapFile]], this.onGraphChanged,
+            ["Weights File", SinapFile]], this.onContextChanged,
                 this.pluginService.getManager("machine-learning.sinap.graph-kind"));
         }
 
         let filename = f ? f : "Untitled";
-        let tabNumber = this.tabBar.newTab(f ? f : "Untitled");
+        let tabNumber = this.tabBar.newTab(filename);
         this.tabs.set(tabNumber,
-            new TabContext((g ? g : (new Graph([], this.onGraphChanged,
+            new TabContext((g ? g : (new Graph([], this.onContextChanged,
                 this.pluginService.getManager("dfa.sinap.graph-kind")))), null, filename));
         this.selectedTab(tabNumber);
     }
@@ -129,18 +126,17 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     selectedTab(i: Number) {
-        if (i == -1) {
-            // No tabs
-            this.graph = null;
-            this.context = null;
-            this.onGraphChanged();
-        } else if (this.tabs.has(i)) {
-            this.context = this.tabs.get(i) as TabContext;
-            this.graph = this.context.graph;
-            this.toolsPanel.manager = this.graph.pluginManager;
+        let context = this.tabs.get(i);
+        if (context) {
+            this.context = context;
+            this.toolsPanel.manager = this.context.graph.pluginManager;
 
             // TODO: GraphEditor needs a way to set selected elements
-            this.onGraphChanged();
+            this.onContextChanged();
+        } else {
+            // No tabs
+            this.context = null;
+            this.onContextChanged();
         }
     }
 
@@ -167,9 +163,14 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     saveFile() {
         dialog.showSaveDialog({}, (filename) => {
+            if (!this.context) {
+                // todo, make this a real error
+                alert("No open graph to save");
+                return;
+            }
             let graph = {
                 'sinap-file-format-version': "0.0.1",
-                'graph': (this.graph as Graph).serialize()
+                'graph': this.context.graph.serialize()
             };
             fs.writeFile(filename, JSON.stringify(graph), 'utf8', (err: any) => {
                 if (err)
@@ -191,7 +192,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
                     this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
                         filename.lastIndexOf("\\")) + 1),
-                        deserializeGraph(pojo, this.onGraphChanged, this.pluginService.getManager("dfa.sinap.graph-kind")));
+                        deserializeGraph(pojo, this.onContextChanged, this.pluginService.getManager("dfa.sinap.graph-kind")));
                 } catch (e) {
                     alert(`Could not serialize graph: ${e}.`);
                 }
@@ -200,8 +201,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     run(input: String): String {
-        if (this.graph) {
-            let interpreter = this.pluginService.getInterpreter(this.graph);
+        if (this.context) {
+            let interpreter = this.pluginService.getInterpreter(this.context.graph);
             return interpreter.run(input) + "";
         } else {
             throw new Error("No Graph to Run");
@@ -218,7 +219,12 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 break;
             }
         } else {
-            newSelectedEntity = this.graph;
+            if (this.context) {
+                newSelectedEntity = this.context.graph;
+            } else {
+                throw "How did graph selection change, there's no context? ";
+
+            }
         }
         // ugly trick to silence the fact that things seem to get emitted too often
         // TODO, reduce the frequency things are emitted
@@ -231,6 +237,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 }
 
-class TabContext {
+class TabContext implements GraphContext {
+    selectedDrawables = new Set<Drawable>();
     constructor(public graph: Graph, public selectedEntity: PropertiedEntity | null, public filename?: String) { };
 }
