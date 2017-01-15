@@ -31,6 +31,7 @@ let win: Electron.BrowserWindow | null;
  */
 function createWindow() {
     win = new BrowserWindow({
+        icon: require("./images/icons/icon.png"),
         width: 1150,
         height: 720,
         center: true
