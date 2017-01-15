@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { DFAInterpreter } from '../interpreters/dfa-interpreter';
+import { dfaInterpreter } from '../interpreters/dfa-interpreter';
 
 // TODO, reconsider this
-import { Graph } from '../models/graph'
+import { Graph as GUIGraph} from '../models/graph'
 import { PluginManagement } from "../components/tools-panel/tools-panel.component"
 import { SinapType, SinapBoolean, SinapStructType, SinapColor, SinapNumber, SinapString } from "../models/types"
 import { PropertiedEntity } from "../components/properties-panel/properties-panel.component"
@@ -124,10 +124,10 @@ class MachineLearningPluginManager extends PluginManager {
 export class PluginService {
     constructor() { }
 
-    public getInterpreter(withGraph: Graph): Interpreter {
+    public getInterpreter(withGraph: GUIGraph): Program | InterpreterError {
         switch (withGraph.pluginManager.kind) {
             case "dfa.sinap.graph-kind":
-                return new DFAInterpreter(withGraph);
+                return dfaInterpreter(new InterpreterGraph(withGraph, console.log));
             default:
                 throw new Error("Unsupported Filetype");
         }
@@ -145,15 +145,52 @@ export class PluginService {
 }
 
 
-export class Error {
-    constructor(public message: string) { }
-}
-export class InterpeterError extends Error {
+export class InterpreterError {
+    constructor(readonly message: string) {
+    }
 }
 
-type Program = (input: any) => any;
-type Interpreter = (graph: Graph) => Program;
+export type ProgramInput = string;
+export type ProgramOutput = string | boolean;
+export type Interpreter = (graph: InterpreterGraph) => Program | InterpreterError; // Program is allowed in case the plugin does not wish to use computed properties.
 
-class ProgramContext {
-    public setMenuBar(message: string): void;
+export interface RunningProgram {
+    debugProperties: [string];
+    isComplete: boolean;
+    step(): void;
+    stepBack(): void;
+    getDebugValue(property: string): ProgramOutput;
+    getResult(): ProgramOutput; // May throw an exception if it is not complete when this is called.
+}
+
+// Though both methods are optional, at least one must be provided.
+export interface Program {
+    run?(input: ProgramInput): ProgramOutput | InterpreterError; // This should be filled in by fillInProgram if not present.
+    initDebugging?(input: ProgramInput): RunningProgram; // This is completely optional and must be checked.
+}
+
+function fillInProgram(program: Program): Program | InterpreterError {
+    let error = new InterpreterError("Program must have either a run method or debugging support.");
+    if (!program.run && !program.initDebugging) {
+        return error; 
+    }
+    if (!program.run) {
+        program.run = (input) => {
+            if (program.initDebugging) {
+                let debug = program.initDebugging(input);
+                while(!debug.isComplete) {
+                    debug.step();
+                }
+                return debug.getResult();
+            } else {
+                return error;
+            }
+        }
+    }
+    return program;
+}
+
+export class InterpreterGraph {
+    public constructor(readonly graph: GUIGraph, readonly setInfoBar: (message: string) => void) {
+    }
 }

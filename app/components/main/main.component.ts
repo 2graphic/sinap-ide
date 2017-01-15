@@ -10,7 +10,7 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service"
 import { GraphEditorComponent, GraphContext, Drawable } from "../graph-editor/graph-editor.component"
-import { PluginService } from "../../services/plugin.service"
+import { PluginService, InterpreterError, Program} from "../../services/plugin.service"
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "../properties-panel/properties-panel.component"
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
@@ -90,12 +90,13 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                     this.package = "Machine Learning"
                 } else {
                     let interp = this.pluginService.getInterpreter(this.context.graph);
-                    this.barMessages = ["DFA", interp.message()];
+                    // this.barMessages = ["DFA", interp.message()];
                     this.package = "Finite Automata";
 
-                    if (interp.check()) {
+                    let program: Program = interp;
+                    if (program && program.run) {
                         for (let triplet of this.testComponent.tests) {
-                            triplet[2] = interp.run(triplet[0] as string);
+                            triplet[2] = program.run(triplet[0] as string) as boolean;
                         }
                     }
                 }
@@ -200,10 +201,13 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         });
     }
 
-    run(input: String): String {
+    run(input: string): string {
         if (this.context) {
-            let interpreter = this.pluginService.getInterpreter(this.context.graph);
-            return interpreter.run(input) + "";
+            let interpreter: Program = this.pluginService.getInterpreter(this.context.graph);
+            if (interpreter && interpreter.run)
+                return interpreter.run(input) as string + "";
+            else
+                return "Error";
         } else {
             throw new Error("No Graph to Run");
         }
