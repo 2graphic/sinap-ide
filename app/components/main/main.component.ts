@@ -20,19 +20,16 @@ import { SinapFile } from "../../models/types";
 import { Element, Graph, deserializeGraph } from "../../models/graph"
 import { SideBarComponent } from "../side-bar/side-bar.component"
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
-
-import { remote } from 'electron';
-const fs = remote.require('fs');
-const {dialog} = remote;
+import { FileService } from "../../services/files.service";
 
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.css"],
-    providers: [MenuService, PluginService]
+    providers: [MenuService, PluginService, FileService]
 })
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private fileService: FileService, private changeDetectorRef: ChangeDetectorRef) {
     }
 
     ngOnInit(): void {
@@ -163,42 +160,44 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     saveFile() {
-        dialog.showSaveDialog({}, (filename) => {
-            if (!this.context) {
-                // todo, make this a real error
-                alert("No open graph to save");
-                return;
-            }
-            let graph = {
-                'sinap-file-format-version': "0.0.1",
-                'graph': this.context.graph.serialize()
-            };
-            fs.writeFile(filename, JSON.stringify(graph), 'utf8', (err: any) => {
-                if (err)
-                    alert(`Error occurred while saving to file ${filename}: ${err}.`);
+        this.fileService.requestFilename(true)
+            .then((filename: string) => {
+                if (!this.context) {
+                    alert("No open graph to save");
+                    return;
+                }
+
+
+                let graph = {
+                    'sinap-file-format-version': "0.0.1",
+                    'graph': this.context.graph.serialize()
+                };
+                this.fileService.writeFile(filename, JSON.stringify(graph))
+                    .catch((err) => {
+                        alert(`Error occurred while saving to file ${filename}: ${err}.`);
+                    });
             });
-        })
     }
 
     loadFile() {
-        dialog.showOpenDialog({}, (files) => {
-            // TODO: Make this actually handle multiple files.
-            let filename = files[0];
-            fs.readFile(filename, 'utf8', (err: any, data: string) => {
-                if (err) {
-                    alert(`Error reading file ${filename}: ${err}`);
-                }
-                try {
-                    let pojo = JSON.parse(data);
+        this.fileService.requestFilename(false)
+            .then((filename: string) => {
+                this.fileService.readFile(filename)
+                    .then((data: string) => {
+                        try {
+                            let pojo = JSON.parse(data);
 
-                    this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
-                        filename.lastIndexOf("\\")) + 1),
-                        deserializeGraph(pojo, this.onContextChanged, this.pluginService.getManager("dfa.sinap.graph-kind")));
-                } catch (e) {
-                    alert(`Could not serialize graph: ${e}.`);
-                }
-            })
-        });
+                            this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
+                                filename.lastIndexOf("\\")) + 1),
+                                deserializeGraph(pojo, this.onContextChanged, this.pluginService.getManager("dfa.sinap.graph-kind")));
+                        } catch (e) {
+                            alert(`Could not de-serialize graph: ${e}.`);
+                        }
+                    })
+                    .catch((err) => {
+                        alert(`Error reading file ${filename}: ${err}`);
+                    });
+            });
     }
 
     run(input: string): string {
