@@ -152,30 +152,46 @@ export class InterpreterError {
 
 export type ProgramInput = string;
 export type ProgramOutput = string | boolean;
-export type Interpreter = (graph: InterpreterGraph) => Program | InterpreterError; // Program is allowed in case the plugin does not wish to use computed properties.
+export type Interpreter = (graph: InterpreterGraph) => Program | InterpreterError; 
 
 export interface RunningProgram {
     debugProperties: [string];
     isComplete: boolean;
     step(): void;
-    stepBack(): void;
+    stepBack?(): void;
     getDebugValue(property: string): ProgramOutput;
     getResult(): ProgramOutput; // May throw an exception if it is not complete when this is called.
 }
 
 // Though both methods are optional, at least one must be provided.
 export interface Program {
-    run?(input: ProgramInput): ProgramOutput | InterpreterError; // This should be filled in by fillInProgram if not present.
+    compilationMessage?: string;
+    run(input: ProgramInput): ProgramOutput | InterpreterError; // This should be filled in by fillInProgram if not present.
     initDebugging?(input: ProgramInput): RunningProgram; // This is completely optional and must be checked.
 }
 
-function fillInProgram(program: Program): Program | InterpreterError {
+function fillInDebug(runningProgram: any): RunningProgram | null {
+    if (!(runningProgram.getResult && runningProgram.getDebugValue && runningProgram.isComplete && runningProgram.debugProperties)) {
+        return null;
+    }
+    if (!runningProgram.step) {
+        return null;
+    }
+    if (!runningProgram.stepBack) {
+        runningProgram.stepBack = () => {
+
+        };
+    }
+    return null;
+}
+
+function fillInProgram(program: any): Program | InterpreterError {
     let error = new InterpreterError("Program must have either a run method or debugging support.");
     if (!program.run && !program.initDebugging) {
         return error; 
     }
     if (!program.run) {
-        program.run = (input) => {
+        program.run = (input: ProgramInput) => {
             if (program.initDebugging) {
                 let debug = program.initDebugging(input);
                 while(!debug.isComplete) {

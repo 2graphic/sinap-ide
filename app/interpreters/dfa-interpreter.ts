@@ -60,12 +60,15 @@ export function dfaInterpreter(igraph: InterpreterGraph): Program | InterpreterE
 
     let alphabetString = [...alphabet.values()];
     alphabetString.sort();
-    igraph.setInfoBar("Alphabet: " + alphabetString.join(" "));
-    return new DFAProgram(transitions, start_state, accept_states);
+    let compilationMessage = "Alphabet: " + alphabetString.join(" ");
+    return new DFAProgram(compilationMessage, transitions, start_state, accept_states);
 }
 
 export class DFAProgram implements Program {
-    constructor(private transitions: Map<number, Map<string, number>>, private start_state: number, private accept_states: Set<number>) {
+    constructor(readonly compilationMessage: string,
+        private transitions: Map<number, Map<string, number>>,
+        private start_state: number,
+        private accept_states: Set<number>) {
     }
 
     run(input: ProgramInput): ProgramOutput | InterpreterError {

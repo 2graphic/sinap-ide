@@ -90,7 +90,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                     // this.barMessages = ["DFA", interp.message()];
                     this.package = "Finite Automata";
 
-                    let program: Program = interp;
+                    let program: Program = interp as Program;
                     if (program && program.run) {
                         for (let triplet of this.testComponent.tests) {
                             triplet[2] = program.run(triplet[0] as string) as boolean;
@@ -202,7 +202,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     run(input: string): string {
         if (this.context) {
-            let interpreter: Program = this.pluginService.getInterpreter(this.context.graph);
+            let interpreter: Program = this.pluginService.getInterpreter(this.context.graph) as Program;
             if (interpreter && interpreter.run)
                 return interpreter.run(input) as string + "";
             else
@@ -226,7 +226,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 newSelectedEntity = this.context.graph;
             } else {
                 throw "How did graph selection change, there's no context? ";
-
             }
         }
         // ugly trick to silence the fact that things seem to get emitted too often
