@@ -6,6 +6,9 @@ function coerceBoolean(s: any) {
     return !!s && s != "false" && s != "0" && s != "f" && s != "no";
 }
 
+/**
+ * This function compiles a DFA.
+ */
 export function dfaInterpreter(igraph: InterpreterGraph): Program | InterpreterError {
     let graph = igraph.graph;
     let nodes = [...graph.nodes];
@@ -72,7 +75,9 @@ export class DFAProgram implements Program {
         private accept_states: Set<number>) {
     }
 
-    run(input: ProgramInput): ProgramOutput | InterpreterError {
+    // TODO: Implement debugging.
+
+    run(input: ProgramInput): ProgramOutput {
         return this.interpret(this.transitions, this.start_state, this.accept_states, input);
     }
 
