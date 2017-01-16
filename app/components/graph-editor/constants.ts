@@ -97,8 +97,7 @@ export const SIN_150: number = Math.sin(5 * Math.PI / 6);
  *   Default property values for drawable nodes.
  */
 export const NODE_DEFAULTS: DrawableNode = {
-    x: 0,
-    y: 0,
+    position: { x: 0, y: 0 },
     label: "",
     shape: "circle",
     color: "#fff200",

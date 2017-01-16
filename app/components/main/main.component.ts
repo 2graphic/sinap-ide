@@ -36,9 +36,12 @@ const {dialog} = remote;
 class DummyMLPluginClass extends Core.DummyPlugin {
 
 }
+class DummyDFAPluginClass extends Core.DummyPlugin {
+
+}
 
 const DummyMLPlugin = new DummyMLPluginClass();
-const DummyDFAPlugin = new DummyMLPluginClass();
+const DummyDFAPlugin = new DummyDFAPluginClass();
 
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private changeDetectorRef: ChangeDetectorRef) {
@@ -94,11 +97,12 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 this.graphEditor.redraw();
             }
             if (this.pluginService) {
+                // TODO: add back
                 // if (this.context.graph.pluginManager.kind == "machine-learning.sinap.graph-kind") {
                 //     this.barMessages = []
                 //     this.package = "Machine Learning"
                 // } else {
-                let interp = this.pluginService.getInterpreter(this.context.graph);
+                let interp = this.pluginService.getInterpreter(this.context.graph.graph);
                 this.barMessages = ["DFA", interp.message()];
                 this.package = "Finite Automata";
 
@@ -136,6 +140,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         let context = this.tabs.get(i);
         if (context) {
             this.context = context;
+            // TODO: add back
             // this.toolsPanel.manager = this.context.graph.pluginManager;
 
             // TODO: GraphEditor needs a way to set selected elements
@@ -169,6 +174,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     saveFile() {
+        // TODO: add back
         // dialog.showSaveDialog({}, (filename) => {
         //     if (!this.context) {
         //         // todo, make this a real error
@@ -187,6 +193,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     loadFile() {
+        // TODO: add back
         // dialog.showOpenDialog({}, (files) => {
         //     // TODO: Make this actually handle multiple files.
         //     let filename = files[0];
@@ -209,13 +216,14 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     run(input: String): String {
         if (this.context) {
-            let interpreter = this.pluginService.getInterpreter(this.context.graph);
+            let interpreter = this.pluginService.getInterpreter(this.context.graph.graph);
             return interpreter.run(input) + "";
         } else {
             throw new Error("No Graph to Run");
         }
     }
 
+    // TODO: add back
     // graphSelectionChanged(selected: Set<PropertiedEntity>) {
     //     let newSelectedEntity: PropertiedEntity | null = null;
     //     if (selected.size > 0) {

@@ -1,5 +1,5 @@
 import { Interpreter, InterpeterError } from '../services/plugin.service';
-import { Graph } from '../models/graph'
+import { Graph } from '../models/core'
 
 
 function coerceBoolean(s: any) {
@@ -26,8 +26,8 @@ export class DFAInterpreter implements Interpreter {
 
             this.alphabet.add(sym);
 
-            let src = nodes.indexOf(edge.propertyValues["Source"]);
-            let dst = nodes.indexOf(edge.propertyValues["Destination"]);
+            let src = nodes.indexOf(edge.drawableProperties.get("Source"));
+            let dst = nodes.indexOf(edge.drawableProperties.get("Destination"));
 
             if (src == -1 || dst == -1) {
                 this.error_message = new InterpeterError("Unknown node referenced");
@@ -45,14 +45,14 @@ export class DFAInterpreter implements Interpreter {
         this.accept_states = new Set<number>();
 
         for (let n of nodes) {
-            if (coerceBoolean(n.propertyValues["Start State"])) {
+            if (coerceBoolean(n.pluginProperties.get("Start State"))) {
                 if (this.start_state != null) {
                     this.error_message = new InterpeterError("Too many start states");
                     return;
                 }
                 this.start_state = nodes.indexOf(n);
             }
-            if (coerceBoolean(n.propertyValues["Accept State"])) {
+            if (coerceBoolean(n.pluginProperties.get("Accept State"))) {
                 this.accept_states.add(nodes.indexOf(n));
             }
         }

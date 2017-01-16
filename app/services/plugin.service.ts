@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { DFAInterpreter } from '../interpreters/dfa-interpreter';
 
 // TODO, reconsider this
-import { Graph } from '../models/graph'
+import { Graph } from '../models/core'
 import { PluginManagement } from "../components/tools-panel/tools-panel.component"
 import { SinapType, SinapBoolean, SinapStructType, SinapColor, SinapNumber, SinapString } from "../models/types"
 import { PropertiedEntity } from "../components/properties-panel/properties-panel.component"
@@ -44,7 +44,7 @@ class DFAPluginManager extends PluginManager {
     }
 
     getEdgeComputedProperties(): Array<[string, SinapType, (entity: PropertiedEntity) => void]> {
-        return [["Label", SinapString, (th) => (th as any)["Label"] = th.propertyValues["Symbol"]]];
+        return [["Label", SinapString, (th) => (th as any)["Label"] = th.pluginProperties.get("Symbol")]];
     }
 
     getEdgeProperties(): Array<[string, SinapType]> {
@@ -97,19 +97,19 @@ class MachineLearningPluginManager extends PluginManager {
                 let contentString = "";
                 switch (th.entityName) {
                     case "Input":
-                        contentString = "Shape: " + th.propertyValues["shape"];
+                        contentString = "Shape: " + th.pluginProperties.get("shape");
                         break;
                     case "Output":
                     case "Fully Connected":
                         break;
                     case "Conv2D":
-                        contentString = "Stride: (" + th.propertyValues["stride"].x + ", " + th.propertyValues["stride"].y + ")\nOutput Depth: " + th.propertyValues["output depth"];
+                        contentString = "Stride: (" + th.pluginProperties.get("stride").x + ", " + th.pluginProperties.get("stride").y + ")\nOutput Depth: " + th.pluginProperties.get("output depth");
                         break;
                     case "Max Pooling":
-                        contentString = "Size: (" + th.propertyValues["size"].x + ", " + th.propertyValues["size"].y + ")";
+                        contentString = "Size: (" + th.pluginProperties.get("size").x + ", " + th.pluginProperties.get("size").y + ")";
                         break;
                     case "Reshape":
-                        contentString = "Shape: " + th.propertyValues["shape"];
+                        contentString = "Shape: " + th.pluginProperties.get("shape");
                         break;
                     default:
                         break;
@@ -125,12 +125,13 @@ export class PluginService {
     constructor() { }
 
     public getInterpreter(withGraph: Graph): Interpreter {
-        switch (withGraph.pluginManager.kind) {
-            case "dfa.sinap.graph-kind":
-                return new DFAInterpreter(withGraph);
-            default:
-                throw new Error("Unsupported Filetype");
-        }
+        // TODO: add back
+        // switch (withGraph.pluginManager.kind) {
+        //     case "dfa.sinap.graph-kind":
+        return new DFAInterpreter(withGraph);
+        //     default:
+        //         throw new Error("Unsupported Filetype");
+        // }
     }
 
     public getManager(kind: string) {
