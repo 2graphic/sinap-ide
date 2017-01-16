@@ -87,13 +87,17 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                     this.package = "Machine Learning"
                 } else {
                     let interp = this.pluginService.getInterpreter(this.context.graph);
-                    // this.barMessages = ["DFA", interp.message()];
                     this.package = "Finite Automata";
-
-                    let program: Program = interp as Program;
-                    if (program && program.run) {
+                    if (interp instanceof InterpreterError) {
+                        this.barMessages = ["Compilation Error", interp.message];
+                    } else {
+                        this.barMessages = interp.compilationMessages;
                         for (let triplet of this.testComponent.tests) {
-                            triplet[2] = program.run(triplet[0] as string) as boolean;
+                            try {
+                                triplet[2] = interp.run(triplet[0] as string) as boolean;
+                            } catch (err) {
+                                console.log(err);
+                            }
                         }
                     }
                 }
@@ -202,11 +206,12 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     run(input: string): string {
         if (this.context) {
-            let interpreter: Program = this.pluginService.getInterpreter(this.context.graph) as Program;
-            if (interpreter && interpreter.run)
+            let interpreter = this.pluginService.getInterpreter(this.context.graph);
+            if (interpreter instanceof InterpreterError) {
+                return "ERROR: " + interpreter.message;
+            } else {
                 return interpreter.run(input) as string + "";
-            else
-                return "Error";
+            }
         } else {
             throw new Error("No Graph to Run");
         }

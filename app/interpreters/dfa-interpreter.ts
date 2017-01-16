@@ -61,11 +61,12 @@ export function dfaInterpreter(igraph: InterpreterGraph): Program | InterpreterE
     let alphabetString = [...alphabet.values()];
     alphabetString.sort();
     let compilationMessage = "Alphabet: " + alphabetString.join(" ");
-    return new DFAProgram(compilationMessage, transitions, start_state, accept_states);
+    let messages: [string] = ["DFA", compilationMessage];
+    return new DFAProgram(messages, transitions, start_state, accept_states);
 }
 
 export class DFAProgram implements Program {
-    constructor(readonly compilationMessage: string,
+    constructor(readonly compilationMessages: [string],
         private transitions: Map<number, Map<string, number>>,
         private start_state: number,
         private accept_states: Set<number>) {

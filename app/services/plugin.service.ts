@@ -165,7 +165,7 @@ export interface RunningProgram {
 
 // Though both methods are optional, at least one must be provided.
 export interface Program {
-    compilationMessage?: string;
+    compilationMessages: [string];
     run(input: ProgramInput): ProgramOutput | InterpreterError; // This should be filled in by fillInProgram if not present.
     initDebugging?(input: ProgramInput): RunningProgram; // This is completely optional and must be checked.
 }
@@ -187,9 +187,11 @@ function fillInDebug(runningProgram: any): RunningProgram | null {
 
 function fillInProgram(program: any): Program | InterpreterError {
     let error = new InterpreterError("Program must have either a run method or debugging support.");
+
     if (!program.run && !program.initDebugging) {
         return error; 
     }
+
     if (!program.run) {
         program.run = (input: ProgramInput) => {
             if (program.initDebugging) {
@@ -202,6 +204,10 @@ function fillInProgram(program: any): Program | InterpreterError {
                 return error;
             }
         }
+    }
+
+    if (!program.compilationMessages) {
+        program.compilationMessages = ["Compiled graph successfully."];
     }
     return program;
 }
