@@ -10,7 +10,8 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service"
 import { GraphEditorComponent, GraphContext, Drawable } from "../graph-editor/graph-editor.component"
-import { PluginService, InterpreterError, Program} from "../../services/plugin.service"
+import { PluginService} from "../../services/plugin.service"
+import {InterpreterError, Program} from "../../models/plugin";
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "../properties-panel/properties-panel.component"
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"

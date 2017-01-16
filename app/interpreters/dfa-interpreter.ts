@@ -1,4 +1,4 @@
-import { Interpreter, InterpreterGraph, Program, InterpreterError, ProgramInput, ProgramOutput, RunningProgram } from '../services/plugin.service';
+import { Interpreter, InterpreterGraph, Program, InterpreterError, ProgramInput, ProgramOutput, RunningProgram } from '../models/plugin';
 import { Graph } from '../models/graph'
 
 
