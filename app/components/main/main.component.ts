@@ -10,7 +10,8 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service"
 import { GraphEditorComponent, GraphContext, Drawable } from "../graph-editor/graph-editor.component"
-import { PluginService } from "../../services/plugin.service"
+import { PluginService} from "../../services/plugin.service"
+import {InterpreterError, Program} from "../../models/plugin";
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "../properties-panel/properties-panel.component"
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
@@ -20,19 +21,16 @@ import { SinapFile } from "../../models/types";
 import { Element, Graph, deserializeGraph } from "../../models/graph"
 import { SideBarComponent } from "../side-bar/side-bar.component"
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
-
-import { remote } from 'electron';
-const fs = remote.require('fs');
-const {dialog} = remote;
+import { FileService } from "../../services/files.service";
 
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.css"],
-    providers: [MenuService, PluginService]
+    providers: [MenuService, PluginService, FileService]
 })
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private fileService: FileService, private changeDetectorRef: ChangeDetectorRef) {
     }
 
     ngOnInit(): void {
@@ -90,12 +88,17 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                     this.package = "Machine Learning"
                 } else {
                     let interp = this.pluginService.getInterpreter(this.context.graph);
-                    this.barMessages = ["DFA", interp.message()];
                     this.package = "Finite Automata";
-
-                    if (interp.check()) {
+                    if (interp instanceof InterpreterError) {
+                        this.barMessages = ["Compilation Error", interp.message];
+                    } else {
+                        this.barMessages = interp.compilationMessages;
                         for (let triplet of this.testComponent.tests) {
-                            triplet[2] = interp.run(triplet[0] as string);
+                            try {
+                                triplet[2] = interp.run(triplet[0] as string) as boolean;
+                            } catch (err) {
+                                console.log(err);
+                            }
                         }
                     }
                 }
@@ -162,48 +165,53 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     saveFile() {
-        dialog.showSaveDialog({}, (filename) => {
-            if (!this.context) {
-                // todo, make this a real error
-                alert("No open graph to save");
-                return;
-            }
-            let graph = {
-                'sinap-file-format-version': "0.0.1",
-                'graph': this.context.graph.serialize()
-            };
-            fs.writeFile(filename, JSON.stringify(graph), 'utf8', (err: any) => {
-                if (err)
-                    alert(`Error occurred while saving to file ${filename}: ${err}.`);
+        this.fileService.requestFilename(true)
+            .then((filename: string) => {
+                if (!this.context) {
+                    alert("No open graph to save");
+                    return;
+                }
+
+                let graph = {
+                    'sinap-file-format-version': "0.0.1",
+                    'graph': this.context.graph.serialize()
+                };
+                this.fileService.writeFile(filename, JSON.stringify(graph))
+                    .catch((err) => {
+                        alert(`Error occurred while saving to file ${filename}: ${err}.`);
+                    });
             });
-        })
     }
 
     loadFile() {
-        dialog.showOpenDialog({}, (files) => {
-            // TODO: Make this actually handle multiple files.
-            let filename = files[0];
-            fs.readFile(filename, 'utf8', (err: any, data: string) => {
-                if (err) {
-                    alert(`Error reading file ${filename}: ${err}`);
-                }
-                try {
-                    let pojo = JSON.parse(data);
+        this.fileService.requestFilename(false)
+            .then((filename: string) => {
+                this.fileService.readFile(filename)
+                    .then((data: string) => {
+                        try {
+                            let pojo = JSON.parse(data);
 
-                    this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
-                        filename.lastIndexOf("\\")) + 1),
-                        deserializeGraph(pojo, this.onContextChanged, this.pluginService.getManager("dfa.sinap.graph-kind")));
-                } catch (e) {
-                    alert(`Could not serialize graph: ${e}.`);
-                }
-            })
-        });
+                            this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
+                                filename.lastIndexOf("\\")) + 1),
+                                deserializeGraph(pojo, this.onContextChanged, this.pluginService.getManager("dfa.sinap.graph-kind")));
+                        } catch (e) {
+                            alert(`Could not de-serialize graph: ${e}.`);
+                        }
+                    })
+                    .catch((err) => {
+                        alert(`Error reading file ${filename}: ${err}`);
+                    });
+            });
     }
 
-    run(input: String): String {
+    run(input: string): string {
         if (this.context) {
             let interpreter = this.pluginService.getInterpreter(this.context.graph);
-            return interpreter.run(input) + "";
+            if (interpreter instanceof InterpreterError) {
+                return "ERROR: " + interpreter.message;
+            } else {
+                return interpreter.run(input) as string + "";
+            }
         } else {
             throw new Error("No Graph to Run");
         }
@@ -223,7 +231,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 newSelectedEntity = this.context.graph;
             } else {
                 throw "How did graph selection change, there's no context? ";
-
             }
         }
         // ugly trick to silence the fact that things seem to get emitted too often

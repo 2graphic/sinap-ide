@@ -1,4 +1,4 @@
-import { Interpreter, InterpeterError } from '../services/plugin.service';
+import { Interpreter, InterpreterGraph, Program, InterpreterError, ProgramInput, ProgramOutput, RunningProgram } from '../models/plugin';
 import { Graph } from '../models/graph'
 
 
@@ -6,83 +6,80 @@ function coerceBoolean(s: any) {
     return !!s && s != "false" && s != "0" && s != "f" && s != "no";
 }
 
-export class DFAInterpreter implements Interpreter {
+/**
+ * This function compiles a DFA.
+ */
+export function dfaInterpreter(igraph: InterpreterGraph): Program | InterpreterError {
+    let graph = igraph.graph;
+    let nodes = [...graph.nodes];
+    let alphabet = new Set<string>();
+    let transitions = new Map<number, Map<string, number>>();
+    let accept_states = new Set<number>();
 
-    transitions = new Map<number, Map<string, number>>();
-    start_state: number
-    accept_states: Set<number>
-    error_message: InterpeterError | null = null;
-    alphabet: Set<string> = new Set<string>();
+    var start_state: number | null = null;
 
-    constructor(graph: Graph) {
-        let nodes = [...graph.nodes];
-
-        for (let edge of graph.edges) {
-            let sym: string = edge.label;
-            if (sym.length != 1) {
-                this.error_message = new InterpeterError("Symbols must be one character");
-                return
-            }
-
-            this.alphabet.add(sym);
-
-            let src = nodes.indexOf(edge.propertyValues["Source"]);
-            let dst = nodes.indexOf(edge.propertyValues["Destination"]);
-
-            if (src == -1 || dst == -1) {
-                this.error_message = new InterpeterError("Unknown node referenced");
-                return;
-            }
-
-            let map2 = this.transitions.get(src);
-            if (!map2) {
-                map2 = new Map<string, number>();
-                this.transitions.set(src, map2);
-            }
-            map2.set(sym, dst);
+    for (let edge of graph.edges) {
+        let sym: string = edge.label;
+        if (sym.length != 1) {
+            return new InterpreterError("Symbols must be one character");
         }
 
-        this.accept_states = new Set<number>();
+        alphabet.add(sym);
 
-        for (let n of nodes) {
-            if (coerceBoolean(n.propertyValues["Start State"])) {
-                if (this.start_state != null) {
-                    this.error_message = new InterpeterError("Too many start states");
-                    return;
-                }
-                this.start_state = nodes.indexOf(n);
+        let src = nodes.indexOf(edge.propertyValues["Source"]);
+        let dst = nodes.indexOf(edge.propertyValues["Destination"]);
+
+        if (src == -1 || dst == -1) {
+            return new InterpreterError("Unknown node referenced");
+        }
+
+        let map2 = transitions.get(src);
+        if (!map2) {
+            map2 = new Map<string, number>();
+            transitions.set(src, map2);
+        }
+        map2.set(sym, dst);
+    }
+
+    accept_states = new Set<number>();
+
+    for (let n of nodes) {
+        if (coerceBoolean(n.propertyValues["Start State"])) {
+            if (start_state != null) {
+                return new InterpreterError("Too many start states.");
             }
-            if (coerceBoolean(n.propertyValues["Accept State"])) {
-                this.accept_states.add(nodes.indexOf(n));
-            }
+            start_state = nodes.indexOf(n);
+        }
+        if (coerceBoolean(n.propertyValues["Accept State"])) {
+            accept_states.add(nodes.indexOf(n));
         }
     }
 
-    check(): null | InterpeterError {
-        if (this.error_message) {
-            return this.error_message;
-        }
-        if (this.start_state == null) {
-            return new InterpeterError("No start state");
-        }
-        if (this.accept_states.size == 0) {
-            return new InterpeterError("No accept states");
-        }
-        return null;
+    if (start_state == null) {
+        return new InterpreterError("No start state.");
+    } else if (accept_states.size == 0) {
+        return new InterpreterError("No accept states.");
     }
 
-    message(): string {
-        let check = this.check();
-        if (check) {
-            return check.message;
-        }
-        let a = [...this.alphabet.values()]
-        a.sort()
+    let alphabetString = [...alphabet.values()];
+    alphabetString.sort();
+    let compilationMessage = "Alphabet: " + alphabetString.join(" ");
+    let messages: [string] = ["DFA", compilationMessage];
+    return new DFAProgram(messages, transitions, start_state, accept_states);
+}
 
-        return "Alphabet: " + a.join(" ");
+export class DFAProgram implements Program {
+    constructor(readonly compilationMessages: [string],
+        private transitions: Map<number, Map<string, number>>,
+        private start_state: number,
+        private accept_states: Set<number>) {
     }
 
+    // TODO: Implement debugging.
 
+    run(input: ProgramInput): ProgramOutput {
+        return this.interpret(this.transitions, this.start_state, this.accept_states, input);
+    }
 
     interpret<Sym, Sta>(transitions: Map<Sta, Map<Sym, Sta>>,
         start_state: Sta,
@@ -101,10 +98,5 @@ export class DFAInterpreter implements Interpreter {
             state = state_maybe;
         }
         return accept_states.has(state);
-    }
-
-
-    public run(input: String): boolean {
-        return this.interpret(this.transitions, this.start_state, this.accept_states, input);
     }
 }
