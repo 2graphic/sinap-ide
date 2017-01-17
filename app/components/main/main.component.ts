@@ -11,6 +11,7 @@ import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service"
 import { GraphEditorComponent, GraphContext, Drawable } from "../graph-editor/graph-editor.component"
 import { PluginService } from "../../services/plugin.service"
+import { WindowService, WindowInfo } from "../../services/window.service"
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "../properties-panel/properties-panel.component"
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
@@ -29,10 +30,10 @@ const {dialog} = remote;
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.css"],
-    providers: [MenuService, PluginService]
+    providers: [MenuService, PluginService, WindowService]
 })
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) {
     }
 
     ngOnInit(): void {
@@ -150,7 +151,9 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     menuEvent(e: MenuEvent) {
         switch (e) {
             case MenuEvent.NEW_FILE:
-                this.newFile();
+                this.windowService.createWindow("sinap-new-file").then((result: WindowInfo) => {
+                    this.newFile(result.data);
+                })
                 break;
             case MenuEvent.LOAD_FILE:
                 this.loadFile();

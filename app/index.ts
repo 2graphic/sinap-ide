@@ -14,7 +14,8 @@
 // References to app and BrowserWindow are needed in order to start an Electron
 // application.
 //
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
+import { WindowInfo } from "./services/window.service";
 
 
 /**
@@ -23,7 +24,6 @@ import { app, BrowserWindow } from "electron";
  *   collected while it is still being used.
  */
 let win: Electron.BrowserWindow | null;
-
 
 /**
  * createWindow
@@ -50,16 +50,23 @@ function createWindow() {
 //
 // Create the window when the application is ready.
 //
-app.on("ready", createWindow);
+app.on("ready", () => {
+    createWindow();
+});
 
 
 //
 // Terminates the application when all windows have been closed.
 //
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-        app.quit();
-    }
+    //if (process.platform !== "darwin") {
+    //    app.quit();
+    //}
+
+
+    // It's becoming more common in macOS to just quit the application and 
+    // Save state between launches.
+    app.quit();
 });
 
 
@@ -67,8 +74,64 @@ app.on("window-all-closed", () => {
 // Recreates the window if it has been lost while the application was inactive.
 // This will likely occur on mobile devices with limited resources.
 //
-app.on("activate", () => {
-    if (win === null) {
-        createWindow();
+// app.on("activate", () => {
+//     if (win === null) {
+//         createWindow();
+//     }
+// });
+
+
+
+
+
+/** Managing Additional Windows **/
+// TODO: probs should split this into it's own file.
+
+var windows = new Map<Number, [Electron.BrowserWindow, WindowInfo]>();
+
+ipcMain.on('createWindow', (event, arg) => {
+    event.returnValue = createNewWindow(arg);
+});
+
+ipcMain.on('windowResult', (event, arg: WindowInfo) => {
+    if (win) {
+        win.webContents.send('windowResult', arg);
+    }
+
+    var window = windows.get(arg.id);
+    if (window) { // TODO: I think there's syntax sugar to make this more readable. 
+        window[0].close();
     }
 });
+
+ipcMain.on('getWindowInfo', (event, arg:Number) => {
+    var window = windows.get(arg);
+    event.returnValue = window?window[1]:null;
+});
+
+function createNewWindow(kind: string): Number {
+    var newWindow = new BrowserWindow({
+        width: 550,
+        height: 400,
+        center: true
+    });
+
+    var info: WindowInfo = {
+        id: newWindow.id,
+        kind: kind,
+        data: null
+    }
+    windows.set(info.id, [newWindow, info]);
+
+    console.log(info);
+
+    newWindow.loadURL(`file://${__dirname}/new-file.html`);
+
+    newWindow.on("closed", () => {
+        windows.delete(info.id);
+    });
+
+    return info.id;
+}
+
+/***********************************/
