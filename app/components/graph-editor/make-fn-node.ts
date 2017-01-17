@@ -46,8 +46,7 @@ export function makeFnNode(
                             n.borderStyle,
                             n.borderWidth,
                             n.borderColor,
-                            n.color,
-                            shadowColor
+                            n.color
                         );
                         canvas.drawText(
                             g,
@@ -79,8 +78,7 @@ export function makeFnNode(
                         n.borderStyle,
                         n.borderWidth,
                         n.borderColor,
-                        n.color,
-                        shadowColor
+                        n.color
                     );
                 };
             }
@@ -142,8 +140,7 @@ export function makeFnNode(
                             n.borderStyle,
                             n.borderWidth,
                             n.borderColor,
-                            n.color,
-                            shadowColor
+                            n.color
                         );
                         canvas.drawText(
                             g,
@@ -175,8 +172,7 @@ export function makeFnNode(
                         n.borderStyle,
                         n.borderWidth,
                         n.borderColor,
-                        n.color,
-                        shadowColor
+                        n.color
                     );
                 };
             }

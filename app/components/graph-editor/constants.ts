@@ -10,7 +10,7 @@
 //
 
 
-import { DrawableEdge, DrawableNode } from "./drawable-interfaces";
+import { DrawableEdge, DrawableNode, LineStyles } from "./drawable-interfaces";
 
 
 /**
@@ -93,6 +93,18 @@ export const COS_150: number = Math.cos(5 * Math.PI / 6);
 export const SIN_150: number = Math.sin(5 * Math.PI / 6);
 
 /**
+ * COS_22_5  
+ *   Used in the rotation matrix for calculating edge loopback points.
+ */
+export const COS_22_5: number = Math.cos(Math.PI / 8);
+
+/**
+ * SIN_22_5  
+ *   Used in the rotation matrix for calculating edge loopback points.
+ */
+export const SIN_22_5: number = Math.sin(Math.PI / 8);
+
+/**
  * NODE_DEFAULTS  
  *   Default property values for drawable nodes.
  */
@@ -147,7 +159,7 @@ export const EDGE_HIT_MARGIN: number = 20;
  * EDGE_DRAG_LINESTYLE  
  *   Linestyle for dragging an edge.
  */
-export const EDGE_DRAG_LINESTYLE: string = "dotted";
+export const EDGE_DRAG_LINESTYLE: LineStyles = "dotted";
 
 /**
  * EDGE_DEFAULTS  

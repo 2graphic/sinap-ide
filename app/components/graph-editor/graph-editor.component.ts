@@ -87,7 +87,9 @@ export {
     isDrawableEdge,
     isDrawableNode,
     GraphContext,
-    Drawable
+    Drawable,
+    LineStyles,
+    Shapes
 } from "./drawable-interfaces";
 
 
@@ -106,7 +108,7 @@ type timer = NodeJS.Timer | number;
 type callback = () => void;
 type DrawMap = Map<Drawable, callback>;
 type DrawList = Array<Drawable>;
-type EdgePointMap = Map<DrawableEdge, number[]>;
+type EdgePointMap = Map<DrawableEdge, number[][]>;
 type NodeDimensionMap = Map<DrawableNode, any>;
 type EdgeSet = Set<DrawableEdge>;
 type NodeEdgeMap = Map<DrawableNode, EdgeSet>;
@@ -214,7 +216,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   The first two points are the end points. All other points are control
      *   points for bezier curves.
      */
-    private edgePoints: EdgePointMap = new Map<DrawableEdge, number[]>();
+    private edgePoints: EdgePointMap = new Map<DrawableEdge, number[][]>();
 
     /**
      * nodeDimensions  
@@ -244,7 +246,7 @@ export class GraphEditorComponent implements AfterViewInit {
         if (value) {
             this.graph = value.graph;
             this.selectedItems = value.selectedDrawables;
-            this.initSelectedItems();
+            this.initDrawables();
             if (this.g)
                 this.redraw();
         } else {
@@ -294,7 +296,7 @@ export class GraphEditorComponent implements AfterViewInit {
         }
     }
 
-    private initSelectedItems(): void {
+    private initDrawables(): void {
         this.unselectedItems.clear();
         this.drawMap.clear();
         this.drawList = new Array<Drawable>();
@@ -342,7 +344,7 @@ export class GraphEditorComponent implements AfterViewInit {
                     makeFnEdge(
                         this.g,
                         d,
-                        this.edgePoints.get(d) as number[],
+                        this.edgePoints.get(d) as number[][],
                         d === this.dragObject,
                         d === this.hoverObject,
                         this.selectedItems.has(d)
@@ -379,19 +381,45 @@ export class GraphEditorComponent implements AfterViewInit {
         // Something about anchor points for custom node images.
         if (e.source && e.destination) {
             if (e.source === e.destination)
-                this.edgePoints.set(e, canvas.getLoopEdgePoints(e))
-            else if (Drawables.isEdgeOverlapped(e, this.nodeEdges))
-                this.edgePoints.set(e, canvas.getQuadraticEdgePoints(e, e.source, e.destination, this.nodeDimensions.get(e.source), this.nodeDimensions.get(e.destination)));
-            else
-                this.edgePoints.set(
-                    e,
-                    canvas.getStraightEdgePoints(
+                this.edgePoints.set(e, canvas.getLoopEdgePoints(e, e.source, this.nodeDimensions.get(e.source)));
+            else {
+                let overlapped = Drawables.getOverlappedEdges(e, this.nodeEdges);
+                if (overlapped.size > 0) {
+                    this.edgePoints.set(
                         e,
-                        this.nodeDimensions.get(e.source),
-                        this.nodeDimensions.get(e.destination),
-                        pt
-                    )
-                )
+                        canvas.getQuadraticEdgePoints(
+                            e,
+                            e.source,
+                            e.destination,
+                            this.nodeDimensions.get(e.source),
+                            this.nodeDimensions.get(e.destination)
+                        )
+                    );
+                    for (let edge of overlapped) {
+                        this.edgePoints.set(
+                            edge,
+                            canvas.getQuadraticEdgePoints(
+                                edge,
+                                e.destination,
+                                e.source,
+                                this.nodeDimensions.get(e.destination),
+                                this.nodeDimensions.get(e.source)
+                            )
+                        );
+                        this.updateDrawable(edge);
+                    }
+                }
+                else
+                    this.edgePoints.set(
+                        e,
+                        canvas.getStraightEdgePoints(
+                            e,
+                            this.nodeDimensions.get(e.source),
+                            this.nodeDimensions.get(e.destination),
+                            pt
+                        )
+                    );
+            }
         }
         else
             this.edgePoints.set(
@@ -482,12 +510,6 @@ export class GraphEditorComponent implements AfterViewInit {
             this.drawList.push(e);
             this.drawList.push(src);
             this.drawList.push(dst);
-            if (src !== dst) {
-                for (let edge of Drawables.getOverlappedEdges(e, this.nodeEdges)) {
-                    this.setEdgePoints(edge);
-                    this.updateDrawable(edge);
-                }
-            }
             return e;
         }
         return null;

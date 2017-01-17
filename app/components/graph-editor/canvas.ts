@@ -76,6 +76,23 @@ export function drawQuadraticLine(
     g.stroke();
 }
 
+export function drawBezierLine(
+    g: CanvasRenderingContext2D,
+    src: number[],
+    dst: number[],
+    ctl1: number[],
+    ctl2: number[]
+): void {
+    g.beginPath();
+    g.moveTo(src[0], src[1]);
+    g.bezierCurveTo(
+        ctl1[0], ctl1[1],
+        ctl2[0], ctl2[1],
+        dst[0], dst[1]
+    );
+    g.stroke();
+}
+
 /**
  * drawArrow  
  *   Draws an arrow towards the destination node.
@@ -367,8 +384,8 @@ export function getStraightEdgePoints(
     srcDim?: any,
     dstDim?: any,
     pt?: number[]
-): number[] {
-    let pts: number[] = [];
+): number[][] {
+    let pts: number[][] = [];
     if (e.source && e.destination) {
         console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
         console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
@@ -379,43 +396,51 @@ export function getStraightEdgePoints(
         let d = MathEx.mag(v);
         let u = [v[0] / d, v[1] / d];
         let shiftPt = getEdgePtShift(u, e.source, srcDim);
-        pts.push(e.source.x + shiftPt[0]);
-        pts.push(e.source.y + shiftPt[1]);
+        pts.push([
+            e.source.x + shiftPt[0],
+            e.source.y + shiftPt[1]
+        ]);
         u[0] *= -1;
         u[1] *= -1;
         shiftPt = getEdgePtShift(u, e.destination, dstDim);
-        pts.push(e.source.x + v[0] + shiftPt[0]);
-        pts.push(e.source.y + v[1] + shiftPt[1]);
+        pts.push([
+            e.source.x + v[0] + shiftPt[0],
+            e.source.y + v[1] + shiftPt[1]
+        ]);
     }
     else if (e.source && !e.destination) {
         console.assert(pt, "error getStraightEdgePoints: pt undefined");
         console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
+        let p = pt as number[];
         let v = [
-            (pt as number[])[0] - e.source.x,
-            (pt as number[])[1] - e.source.y
+            p[0] - e.source.x,
+            p[1] - e.source.y
         ];
         let d = MathEx.mag(v);
         let u = [v[0] / d, v[1] / d];
         let shiftPt = getEdgePtShift(u, e.source, srcDim);
-        pts.push(e.source.x + shiftPt[0]);
-        pts.push(e.source.y + shiftPt[1]);
-        pts.push((pt as number[])[0]);
-        pts.push((pt as number[])[1]);
+        pts.push([
+            e.source.x + shiftPt[0],
+            e.source.y + shiftPt[1]
+        ]);
+        pts.push(p);
     }
     else if (!e.source && e.destination) {
         console.assert(pt, "error getStraightEdgePoints: pt undefined");
         console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
+        let p = pt as number[];
         let v = [
-            e.destination.x - (pt as number[])[0],
-            e.destination.y - (pt as number[])[1]
+            e.destination.x - p[0],
+            e.destination.y - p[1]
         ];
         let d = MathEx.mag(v);
         let u = [-v[0] / d, -v[1] / d];
-        pts.push((pt as number[])[0]);
-        pts.push((pt as number[])[1]);
+        pts.push(p);
         let shiftPt = getEdgePtShift(u, e.destination, dstDim);
-        pts.push((pt as number[])[0] + v[0] + shiftPt[0]);
-        pts.push((pt as number[])[1] + v[1] + shiftPt[1]);
+        pts.push([
+            p[0] + v[0] + shiftPt[0],
+            p[1] + v[1] + shiftPt[1]
+        ]);
     }
     return pts;
 }
@@ -424,9 +449,24 @@ export function getStraightEdgePoints(
  * getLoopEdgePoints  
  *   Gets the edge points of a self-referencing node.
  */
-export function getLoopEdgePoints(e: DrawableEdge): number[] {
-    // TODO:
-    return [];
+export function getLoopEdgePoints(
+    e: DrawableEdge,
+    src: DrawableNode,
+    srcDim: any
+): number[][] {
+    let u = [CONST.SIN_22_5, -CONST.COS_22_5];
+    let v = [-CONST.SIN_22_5, -CONST.COS_22_5];
+    let pt0 = getEdgePtShift(u, src, srcDim);
+    let pt1 = getEdgePtShift(v, src, srcDim);
+    let pt2 = [
+        src.x + 2 * CONST.GRID_SPACING * u[0],
+        src.y + 2 * CONST.GRID_SPACING * u[1]
+    ];
+    let pt3 = [
+        src.x + 2 * CONST.GRID_SPACING * v[0],
+        src.y + 2 * CONST.GRID_SPACING * v[1]
+    ];
+    return [[src.x + pt0[0], src.y + pt0[1]], [src.x + pt1[0], src.y + pt1[1]], pt2, pt3];
 }
 
 /**
@@ -439,7 +479,7 @@ export function getQuadraticEdgePoints(
     dst: DrawableNode,
     srcDim: any,
     dstDim: any
-): number[] {
+): number[][] {
     let v = [
         dst.x - src.x,
         dst.y - src.y
@@ -465,7 +505,7 @@ export function getQuadraticEdgePoints(
         src.x + v[0] + shiftPt[0],
         src.y + v[1] + shiftPt[1]
     ];
-    return [pt0[0], pt0[1], pt2[0], pt2[1], pt1[0] + src.x, pt1[1] + src.y];
+    return [pt0, pt2, [pt1[0] + src.x, pt1[1] + src.y]];
 }
 
 export function getNodeDimensions(
