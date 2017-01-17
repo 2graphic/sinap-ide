@@ -212,6 +212,9 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         }
     }
 
+    propertyChanged(){
+        this.graphEditor.redraw();
+    }
     graphSelectionChanged(selected: Set<PropertiedEntity>) {
         let newSelectedEntity: PropertiedEntity | null = null;
         if (selected.size > 0) {

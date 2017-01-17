@@ -16,7 +16,7 @@
           }]">
       </sinap-side-bar>
       <div id="side-panel">
-        <sinap-properties-panel [hidden]="!(leftSideBar.active == 'Properties')">
+        <sinap-properties-panel [hidden]="!(leftSideBar.active == 'Properties')" (propertyChanged)="propertyChanged($event)">
         </sinap-properties-panel>
         <sinap-tools-panel [hidden]="!(leftSideBar.active == 'Tools')">
         </sinap-tools-panel>

@@ -12,11 +12,11 @@
                     <td class="label">{{pair[0]}}</td>
                     <td [ngSwitch]="pair[1].topLevelKind">
                         <div *ngSwitchCase="'number'">
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="selectedEntity[group[1]].set(pair[0], $event)" type="number" 
+                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="number" 
                                 class="number-input"/>
                         </div>
                         <div *ngSwitchCase="'boolean'">
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="selectedEntity[group[1]].set(pair[0], $event); console.log(selectedEntity[group[1]])" type="checkbox" />
+                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="checkbox" />
                         </div>
                         <div *ngSwitchCase="'node'">
                             <label class="node-label">
@@ -24,29 +24,29 @@
                             </label>
                         </div>
                         <div *ngSwitchCase="'enum'">
-                            <select [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="selectedEntity[group[1]].set(pair[0], $event)">
+                            <select [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)">
                                 <option *ngFor="let lit of pair[1].literals" [ngValue]="lit">{{lit}}</option>
                             </select>
                         </div>
                         <div *ngSwitchCase="'file'">
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="selectedEntity[group[1]].set(pair[0], $event)" type="file" />
+                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="file" />
                         </div>
                         <div *ngSwitchCase="'struct'">
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0]).x" (ngModelChange)="selectedEntity[group[1]].set(pair[0], {x: $event, y: selectedEntity[group[1]].get(pair[0]).y})" type="number" placeholder="x" step="0.1"
+                            <input [ngModel]="selectedEntity[group[1]].get(pair[0]).x" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event, ['x'])" type="number" placeholder="x" step="0.1"
                                 class="text-input tuple-input"/>
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0]).x" (ngModelChange)="selectedEntity[group[1]].set(pair[0], {y: $event, x: selectedEntity[group[1]].get(pair[0]).x})" type="number" placeholder="y" step="0.1"
+                            <input [ngModel]="selectedEntity[group[1]].get(pair[0]).y" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event, ['y'])" type="number" placeholder="y" step="0.1"
                             class="text-input tuple-input"/>
                         </div>
                         <div *ngSwitchCase="'color'">
                             <label class="color-label" for="property{{pair[0]}}">
                                 <span class="color-preview" [style.background-color]="selectedEntity[group[1]].get(pair[0])"></span>
                                 {{selectedEntity[group[1]].get(pair[0])}}
-                                <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="selectedEntity[group[1]].set(pair[0], $event)" id="property{{pair[0]}}" type="color" class="color-input"/>
+                                <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" id="property{{pair[0]}}" type="color" class="color-input"/>
                             </label>
                         </div>
                         <div *ngSwitchDefault> 
                             <!-- default or 'string' -->
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="selectedEntity[group[1]].set(pair[0], $event)" type="text" 
+                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="text" 
                                 class="text-input"/>
                         </div>
                     </td>
