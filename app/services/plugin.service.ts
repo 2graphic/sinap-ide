@@ -1,13 +1,12 @@
 import { Injectable } from '@angular/core';
 import { DFAInterpreter } from '../interpreters/dfa-interpreter';
-
-import { SinapType, SinapBoolean, SinapStructType, SinapColor, SinapNumber, SinapString } from "../models/types"
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
+
 import * as Type from "../models/types";
 import * as Core from '../models/core'
 
 class ConcretePropertyList implements PropertyList {
-    constructor(public properties: [string, Type.SinapType][], private backerObject: any) {
+    constructor(public properties: [string, Type.Type][], private backerObject: any) {
 
     }
     get(property: string) {
@@ -22,7 +21,7 @@ class ConcretePropertyList implements PropertyList {
 class PluginPropertyData implements Core.PluginData {
     backer: any = {};
     propertyList: PropertyList;
-    constructor(public type: string, types: [string, Type.SinapType][]) {
+    constructor(public type: string, types: [string, Type.Type][]) {
         this.propertyList = new ConcretePropertyList(types, this.backer);
     }
 }
@@ -43,8 +42,8 @@ class DFAPlugin implements Core.Plugin {
     }
     nodePluginData(type: string) {
         return new PluginPropertyData(type, [
-            ["Start State", SinapBoolean],
-            ["Accept State", SinapBoolean],
+            ["Start State", Type.Boolean],
+            ["Accept State", Type.Boolean],
         ]);
     }
     edgePluginData(type: string) {
@@ -74,23 +73,23 @@ class MLPlugin implements Core.Plugin {
         return new PluginPropertyData(type, this.nodePluginDataHelper(type));
     }
 
-    private nodePluginDataHelper(type: string) : [string, SinapType][] {
+    private nodePluginDataHelper(type: string): [string, Type.Type][] {
         switch (type) {
             case "Input":
-                return [["shape", SinapString]];
+                return [["shape", Type.String]];
             case "Fully Connected":
                 return [];
             case "Conv2D":
-                return [["stride", new SinapStructType(new Map([["y", SinapNumber], ["x", SinapNumber]]))],
-                ["output depth", SinapNumber]];
+                return [["stride", new Type.StructType(new Map([["y", Type.Number], ["x", Type.Number]]))],
+                ["output depth", Type.Number]];
             case "Max Pooling":
-                return [["size", new SinapStructType(new Map([["y", SinapNumber], ["x", SinapNumber]]))]];
+                return [["size", new Type.StructType(new Map([["y", Type.Number], ["x", Type.Number]]))]];
             case "Reshape":
-                return [["shape", SinapString]];
+                return [["shape", Type.String]];
             case "Output":
                 return [];
             default:
-                return [["beta", SinapBoolean]];
+                return [["beta", Type.Boolean]];
         }
     }
 
@@ -98,8 +97,8 @@ class MLPlugin implements Core.Plugin {
         return new PluginPropertyData("Edge", []);
     };
 
-    // getNodeComputedProperties(): Array<[string, SinapType, (entity: PropertiedEntity) => void]> {
-    //     return [["Label", SinapString,
+    // getNodeComputedProperties(): Array<[string, Type.Type, (entity: PropertiedEntity) => void]> {
+    //     return [["Label", Type.String,
     //         (th: PropertiedEntity) => {
     //             let contentString = "";
     //             switch (th.entityName) {

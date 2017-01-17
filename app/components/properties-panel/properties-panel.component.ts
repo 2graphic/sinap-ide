@@ -4,7 +4,7 @@
 
 
 import { Component, SimpleChanges } from "@angular/core";
-import { SinapType } from "../../models/types";
+import * as Type from "../../models/types";
 
 
 @Component({
@@ -16,7 +16,7 @@ export class PropertiesPanelComponent {
     public selectedEntity: PropertiedEntity | null = null;
     public console = console;
 
-    ngOnChanges(changes : SimpleChanges){
+    ngOnChanges(changes: SimpleChanges) {
         console.log("changes");
     }
 
@@ -40,7 +40,7 @@ export class PropertiesPanelComponent {
 }
 
 export interface PropertyList {
-    readonly properties: [string, SinapType][];
+    readonly properties: [string, Type.Type][];
     get(property: string): any;
     set(property: string, value: any): void;
 }

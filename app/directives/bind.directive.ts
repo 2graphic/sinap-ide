@@ -3,22 +3,22 @@ import { PropertiedEntityLists, PropertiedEntity } from "../components/propertie
 import { FormsModule } from '@angular/forms';
 
 @Directive({
-	selector: '[snpBind]',
-	// host: {'[ngModel]': 'selectedElement'},
+    selector: '[snpBind]',
+    // host: {'[ngModel]': 'selectedElement'},
 })
 export class BindingDirective {
-	
-	@Input("snpBind") selectedElement: PropertiedEntity;
-	@Input() group: keyof PropertiedEntityLists;
-	@Input() key: string;
 
-	@HostListener("change") onModelChange(){
-		this.selectedElement[this.group].set(this.key, this.el.nativeElement.value)
-	}
+    @Input("snpBind") selectedElement: PropertiedEntity;
+    @Input() group: keyof PropertiedEntityLists;
+    @Input() key: string;
 
-	ngOnChanges(changes: SimpleChanges) {
-		console.log(changes)
-  	}
+    @HostListener("change") onModelChange() {
+        this.selectedElement[this.group].set(this.key, this.el.nativeElement.value)
+    }
+
+    ngOnChanges(changes: SimpleChanges) {
+        console.log(changes)
+    }
 
 
     constructor(private el: ElementRef) {

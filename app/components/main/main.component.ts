@@ -16,7 +16,6 @@ import { PropertiesPanelComponent, PropertiedEntity } from "../properties-panel/
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
 import { TestPanelComponent } from "../test-panel/test-panel.component"
 import { StatusBarComponent } from "../status-bar/status-bar.component"
-import { SinapFile } from "../../models/types";
 import { ConcreteDrawableGraph } from "../../models/graph"
 import * as Core from "../../models/core"
 import { SideBarComponent } from "../side-bar/side-bar.component"

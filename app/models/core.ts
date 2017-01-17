@@ -6,13 +6,13 @@ export interface PluginData {
     type: string;
 }
 export interface Plugin {
-    kind : string;
+    kind: string;
     validator: {
         isValidEdge(t: string, src: string, dst: string): boolean;
     }
 
-    nodeTypes : string[];
-    edgeTypes : string[];
+    nodeTypes: string[];
+    edgeTypes: string[];
 
     graphPluginData(): PluginData;
     nodePluginData(type: string): PluginData;
@@ -24,7 +24,7 @@ class Element implements PropertiedEntity {
     public drawableProperties: PropertyList;
     public entityName = "duh";
 
-    constructor(public pluginData: PluginData, private drawablePropertyMap: Map<string, [string, Type.SinapType]>) {
+    constructor(public pluginData: PluginData, private drawablePropertyMap: Map<string, [string, Type.Type]>) {
         this.drawableProperties = new MappedPropertyList(drawablePropertyMap, this);
         this.pluginProperties = pluginData.propertyList;
     }
@@ -59,8 +59,8 @@ export class Graph extends Element {
     public backgroundColor = "#ffffff";
 
     constructor(public plugin: Plugin) {
-        super(plugin.graphPluginData(), new Map<string, [string, Type.SinapType]>([
-            ["Background", ["backgroundColor", Type.SinapColor]],
+        super(plugin.graphPluginData(), new Map<string, [string, Type.Type]>([
+            ["Background", ["backgroundColor", Type.Color]],
         ]));
     }
 }
@@ -75,14 +75,14 @@ export class Node extends Element {
     public position = { x: 0, y: 0 };
 
     constructor(pluginData: PluginData) {
-        super(pluginData, new Map<string, [keyof Node, Type.SinapType]>([
-            ["Label", ["label", Type.SinapString]],
-            ["Shape", ["shape", Type.SinapShape]],
-            ["Color", ["color", Type.SinapColor]],
-            ["Border Color", ["borderColor", Type.SinapColor]],
-            ["Border Style", ["borderStyle", Type.SinapLineStyles]],
-            ["Border Width", ["borderWidth", Type.SinapNumber]],
-            ["Position", ["position", Type.SinapPoint]],
+        super(pluginData, new Map<string, [keyof Node, Type.Type]>([
+            ["Label", ["label", Type.String]],
+            ["Shape", ["shape", Type.Shape]],
+            ["Color", ["color", Type.Color]],
+            ["Border Color", ["borderColor", Type.Color]],
+            ["Border Style", ["borderStyle", Type.LineStyles]],
+            ["Border Width", ["borderWidth", Type.Number]],
+            ["Position", ["position", Type.Point]],
         ]));
     }
 }
@@ -95,15 +95,15 @@ export class Edge extends Element {
     public lineStyle = "solid";
     public lineWidth = 1;
     public constructor(pluginData: PluginData, public source: Node, public destination: Node) {
-        super(pluginData, new Map<string, [keyof Edge, Type.SinapType]>([
-            ["Source Arrow", ["showSourceArrow", Type.SinapBoolean]],
-            ["Destination Arrow", ["showDestinationArrow", Type.SinapBoolean]],
-            ["Label", ["label", Type.SinapString]],
-            ["Color", ["color", Type.SinapColor]],
-            ["Line Style", ["lineStyle", Type.SinapLineStyles]],
-            ["Line Width", ["lineWidth", Type.SinapNumber]],
-            ["Source", ["source", Type.SinapNode]],
-            ["Destination", ["destination", Type.SinapNode]],
+        super(pluginData, new Map<string, [keyof Edge, Type.Type]>([
+            ["Source Arrow", ["showSourceArrow", Type.Boolean]],
+            ["Destination Arrow", ["showDestinationArrow", Type.Boolean]],
+            ["Label", ["label", Type.String]],
+            ["Color", ["color", Type.Color]],
+            ["Line Style", ["lineStyle", Type.LineStyles]],
+            ["Line Width", ["lineWidth", Type.Number]],
+            ["Source", ["source", Type.Node]],
+            ["Destination", ["destination", Type.Node]],
         ]));
     }
 }
@@ -112,8 +112,8 @@ export class Edge extends Element {
 // HELPER CLASSES /////////////////////////////////////////////////////////////
 
 class MappedPropertyList implements PropertyList {
-    properties: [string, Type.SinapType][] = [];
-    constructor(private propertyMap: Map<string, [string, Type.SinapType]>, private backerObject: any) {
+    properties: [string, Type.Type][] = [];
+    constructor(private propertyMap: Map<string, [string, Type.Type]>, private backerObject: any) {
         for (let ent of propertyMap.entries()) {
             this.properties.push([ent[0], ent[1][1]]);
         }
