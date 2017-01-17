@@ -239,6 +239,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     @Input("graph")
     set setGraph(value: DrawableGraph | null) {
+        console.log("meh");
         if (value) {
             this.graph = value;
             this.selectedItems = value.selection;
@@ -956,8 +957,8 @@ export class GraphEditorComponent implements AfterViewInit {
         // intersects with the boundary of a node or edge.
 
         return (Drawables.isDrawableNode(c) &&
-            c.position.x >= rect.position.x && c.position.x <= rect.position.x + rect.w &&
-            c.position.y >= rect.position.y && c.position.y <= rect.position.y + rect.h) ||
+            c.position.x >= rect.x && c.position.x <= rect.x + rect.w &&
+            c.position.y >= rect.y && c.position.y <= rect.y + rect.h) ||
             (Drawables.isDrawableEdge(c) &&
                 (c.source && c.destination) &&
                 (this.rectHitTest(c.source, rect) ||

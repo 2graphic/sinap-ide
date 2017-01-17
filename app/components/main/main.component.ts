@@ -33,16 +33,6 @@ const {dialog} = remote;
     providers: [MenuService, PluginService]
 })
 
-class DummyMLPluginClass extends Core.DummyPlugin {
-
-}
-class DummyDFAPluginClass extends Core.DummyPlugin {
-
-}
-
-const DummyMLPlugin = new DummyMLPluginClass();
-const DummyDFAPlugin = new DummyDFAPluginClass();
-
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private changeDetectorRef: ChangeDetectorRef) {
     }
@@ -102,26 +92,26 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 //     this.barMessages = []
                 //     this.package = "Machine Learning"
                 // } else {
-                let interp = this.pluginService.getInterpreter(this.context.graph.graph);
-                this.barMessages = ["DFA", interp.message()];
-                this.package = "Finite Automata";
+                // let interp = this.pluginService.getInterpreter(this.context.graph.graph);
+                // this.barMessages = ["DFA", interp.message()];
+                // this.package = "Finite Automata";
 
-                if (interp.check()) {
-                    for (let triplet of this.testComponent.tests) {
-                        triplet[2] = interp.run(triplet[0] as string);
-                    }
-                }
+                // if (interp.check()) {
+                //     // TODO Add back
+                //     // for (let triplet of this.testComponent.tests) {
+                //     //     triplet[2] = interp.run(triplet[0] as string);
+                //     // }
                 // }
+                // // }
             }
         }
     };
 
     newFile(f?: String, g?: Core.Graph) {
-        if (!f && this.toolsPanel.activeGraphType == "Machine Learning") {
-            g = new Core.Graph(DummyMLPlugin);
-        }
+        const kind = this.toolsPanel.activeGraphType == "Machine Learning" ?
+            "machine-learning.sinap.graph-kind" : "dfa.sinap.graph-kind";
 
-        g = g ? g : new Core.Graph(DummyDFAPlugin);
+        g = g ? g : new Core.Graph(this.pluginService.getPlugin(kind));
         let filename = f ? f : "Untitled";
         let tabNumber = this.tabBar.newTab(filename);
 
@@ -223,33 +213,29 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         }
     }
 
-    // TODO: add back
-    // graphSelectionChanged(selected: Set<PropertiedEntity>) {
-    //     let newSelectedEntity: PropertiedEntity | null = null;
-    //     if (selected.size > 0) {
-    //         for (let x of selected) {
-    //             // this cast is safe because we know that the only Drawables that we
-    //             // ever give the `graphEditor` are `Element`s
-    //             newSelectedEntity = x;
-    //             break;
-    //         }
-    //     } else {
-    //         if (this.context) {
-    //             newSelectedEntity = this.context.graph;
-    //         } else {
-    //             throw "How did graph selection change, there's no context? ";
+    graphSelectionChanged(selected: Set<PropertiedEntity>) {
+        let newSelectedEntity: PropertiedEntity | null = null;
+        if (selected.size > 0) {
+            for (let x of selected) {
+                // this cast is safe because we know that the only Drawables that we
+                // ever give the `graphEditor` are `Element`s
+                newSelectedEntity = x;
+                break;
+            }
+        } else {
+            if (this.context) {
+                newSelectedEntity = this.context.graph.graph;
+            } else {
+                throw "How did graph selection change, there's no context? ";
 
-    //         }
-    //     }
-    //     // ugly trick to silence the fact that things seem to get emitted too often
-    //     // TODO, reduce the frequency things are emitted
-    //     if (this.propertiesPanel.selectedEntity != newSelectedEntity) {
-    //         if (this.context) {
-    //             this.context.selectedEntity = newSelectedEntity;
-    //         }
-    //         this.propertiesPanel.selectedEntity = newSelectedEntity;
-    //     }
-    // }
+            }
+        }
+        // ugly trick to silence the fact that things seem to get emitted too often
+        // TODO, reduce the frequency things are emitted
+        if (this.propertiesPanel.selectedEntity != newSelectedEntity) {
+            this.propertiesPanel.selectedEntity = newSelectedEntity;
+        }
+    }
 }
 
 class TabContext {

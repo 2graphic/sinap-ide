@@ -1,68 +1,22 @@
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 import * as Type from "./types";
-import { PluginManager } from "../services/plugin.service";
 
-export class DummyPlugin {
-    // TODO: remove (rename and move) this class
-    validator = {
-        isValidEdge(t: string, src: string, dst: string) {
-            return true;
-        }
-    }
-
-    graphPluginData(): PluginPropertyData {
-        return new PluginPropertyData("graph", []);
-    }
-    nodePluginData(type: string): PluginPropertyData {
-        return new PluginPropertyData(type, []);
-    }
-    edgePluginData(type: string): PluginPropertyData {
-        return new PluginPropertyData(type, []);
-    }
-}
-
-class ConcretePropertyList implements PropertyList {
-    constructor(public properties: [string, Type.SinapType][], private backerObject: any) {
-
-    }
-    get(property: string) {
-        return this.backerObject[property];
-    }
-    set(property: string, value: any) {
-        this.backerObject[property] = value;
-    }
-}
-
-
-class PluginPropertyData {
-    backer: any = {};
+export interface PluginData {
     propertyList: PropertyList;
-    constructor(public type: string, types: [string, Type.SinapType][]) {
-        this.propertyList = new ConcretePropertyList(types, this.backer);
-    }
+    type: string;
 }
-
-class MappedPropertyList implements PropertyList {
-    properties: [string, Type.SinapType][] = [];
-    constructor(private propertyMap: Map<string, [string, Type.SinapType]>, private backerObject: any) {
-        for (let ent of propertyMap.entries()) {
-            this.properties.push([ent[0], ent[1][1]]);
-        }
-    }
-    private key(property: string) {
-        const key = this.propertyMap.get(property);
-        if (!key) {
-            throw "reading a bad key from this property list";
-        }
-        return key[0];
+export interface Plugin {
+    kind : string;
+    validator: {
+        isValidEdge(t: string, src: string, dst: string): boolean;
     }
 
-    get(property: string) {
-        return this.backerObject[this.key(property)];
-    }
-    set(property: string, value: any) {
-        this.backerObject[this.key(property)] = value;
-    }
+    nodeTypes : string[];
+    edgeTypes : string[];
+
+    graphPluginData(): PluginData;
+    nodePluginData(type: string): PluginData;
+    edgePluginData(type: string): PluginData;
 }
 
 class Element implements PropertiedEntity {
@@ -70,18 +24,16 @@ class Element implements PropertiedEntity {
     public drawableProperties: PropertyList;
     public entityName = "duh";
 
-    private pluginPropertyBack: any = {};
-
-    constructor(public pluginData: PluginPropertyData, private drawablePropertyMap: Map<string, [string, Type.SinapType]>) {
+    constructor(public pluginData: PluginData, private drawablePropertyMap: Map<string, [string, Type.SinapType]>) {
         this.drawableProperties = new MappedPropertyList(drawablePropertyMap, this);
         this.pluginProperties = pluginData.propertyList;
     }
 }
 
 export class Graph extends Element {
-    public nodes: Node[];
-    public edges: Edge[];
-    public pluginData: PluginPropertyData;
+    public nodes: Node[] = [];
+    public edges: Edge[] = [];
+    public pluginData: PluginData;
 
     createNode(type: string) {
         const node = new Node(this.plugin.nodePluginData(type));
@@ -106,7 +58,7 @@ export class Graph extends Element {
 
     public backgroundColor = "#ffffff";
 
-    constructor(private plugin: DummyPlugin) {
+    constructor(public plugin: Plugin) {
         super(plugin.graphPluginData(), new Map<string, [string, Type.SinapType]>([
             ["Background", ["backgroundColor", Type.SinapColor]],
         ]));
@@ -122,8 +74,8 @@ export class Node extends Element {
     public borderWidth = 1;
     public position = { x: 0, y: 0 };
 
-    constructor(pluginData: PluginPropertyData) {
-        super(pluginData, new Map<string, [string, Type.SinapType]>([
+    constructor(pluginData: PluginData) {
+        super(pluginData, new Map<string, [keyof Node, Type.SinapType]>([
             ["Label", ["label", Type.SinapString]],
             ["Shape", ["shape", Type.SinapShape]],
             ["Color", ["color", Type.SinapColor]],
@@ -142,8 +94,8 @@ export class Edge extends Element {
     public color = "#000";
     public lineStyle = "solid";
     public lineWidth = 1;
-    public constructor(pluginData: PluginPropertyData, public source: Node, public destination: Node) {
-        super(pluginData, new Map<string, [string, Type.SinapType]>([
+    public constructor(pluginData: PluginData, public source: Node, public destination: Node) {
+        super(pluginData, new Map<string, [keyof Edge, Type.SinapType]>([
             ["Source Arrow", ["showSourceArrow", Type.SinapBoolean]],
             ["Destination Arrow", ["showDestinationArrow", Type.SinapBoolean]],
             ["Label", ["label", Type.SinapString]],
@@ -153,5 +105,31 @@ export class Edge extends Element {
             ["Source", ["source", Type.SinapNode]],
             ["Destination", ["destination", Type.SinapNode]],
         ]));
+    }
+}
+
+
+// HELPER CLASSES /////////////////////////////////////////////////////////////
+
+class MappedPropertyList implements PropertyList {
+    properties: [string, Type.SinapType][] = [];
+    constructor(private propertyMap: Map<string, [string, Type.SinapType]>, private backerObject: any) {
+        for (let ent of propertyMap.entries()) {
+            this.properties.push([ent[0], ent[1][1]]);
+        }
+    }
+    private key(property: string) {
+        const key = this.propertyMap.get(property);
+        if (!key) {
+            throw "reading a bad key from this property list";
+        }
+        return key[0];
+    }
+
+    get(property: string) {
+        return this.backerObject[this.key(property)];
+    }
+    set(property: string, value: any) {
+        this.backerObject[this.key(property)] = value;
     }
 }
