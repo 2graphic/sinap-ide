@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { DFAInterpreter } from '../interpreters/dfa-interpreter';
+import { dfaInterpreter } from '../interpreters/dfa-interpreter';
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 
 import * as Type from "../models/types";
 import * as Core from '../models/core'
+import { Program, InterpreterError, InterpreterGraph } from "../models/plugin"
 
 class ConcretePropertyList implements PropertyList {
     constructor(public properties: [string, Type.Type][], private backerObject: any) {
@@ -130,10 +131,10 @@ class MLPlugin implements Core.Plugin {
 export class PluginService {
     constructor() { }
 
-    public getInterpreter(withGraph: Core.Graph): Interpreter {
+    public getInterpreter(withGraph: Core.Graph): Program | InterpreterError {
         switch (withGraph.plugin.kind) {
             case "dfa.sinap.graph-kind":
-                return new DFAInterpreter(withGraph);
+                return dfaInterpreter(new InterpreterGraph(withGraph));
             default:
                 throw new Error("Unsupported Filetype");
         }
@@ -149,17 +150,4 @@ export class PluginService {
                 throw new Error("Unsupported Filetype");
         }
     }
-}
-
-
-export class Error {
-    constructor(public message: string) { }
-}
-export class InterpeterError extends Error {
-}
-
-export interface Interpreter {
-    run(input: String): boolean;
-    message(): string;
-    check(): InterpeterError | null;
 }

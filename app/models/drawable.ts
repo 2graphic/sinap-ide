@@ -7,7 +7,7 @@
 import { DrawableEdge, DrawableGraph, DrawableNode, Drawable } from "../components/graph-editor/graph-editor.component";
 import * as Core from "./core";
 
-export class ConcreteDrawableGraph implements DrawableGraph {
+export class ConcreteGraph implements DrawableGraph {
     activeNodeType: string;
     activeEdgeType: string;
     selection = new Set<Drawable>();
@@ -28,24 +28,24 @@ export class ConcreteDrawableGraph implements DrawableGraph {
     createNode() {
         return this.graph.createNode(this.activeNodeType);
     }
-    createEdge(src: ConcreteDrawableNode, dest: ConcreteDrawableNode, like?: ConcreteDrawableEdge) {
+    createEdge(src: ConcreteNode, dest: ConcreteNode, like?: ConcreteEdge) {
         return this.graph.createEdge(this.activeEdgeType, src, dest, like);
     }
-    canCreateEdge(src: ConcreteDrawableNode, dest: ConcreteDrawableNode, like?: ConcreteDrawableEdge) {
+    canCreateEdge(src: ConcreteNode, dest: ConcreteNode, like?: ConcreteEdge) {
         return this.graph.canCreateEdge(this.activeEdgeType, src, dest, like);
     }
-    removeNode(n: ConcreteDrawableNode) {
+    removeNode(n: ConcreteNode) {
         this.graph.removeNode(n);
     }
-    removeEdge(e: ConcreteDrawableEdge) {
+    removeEdge(e: ConcreteEdge) {
         this.graph.removeEdge(e);
     }
 }
 
-export class ConcreteDrawableNode extends Core.Node implements DrawableNode {
+export class ConcreteNode extends Core.Node implements DrawableNode {
 
 }
 
-export class ConcreteDrawableEdge extends Core.Edge implements DrawableEdge {
+export class ConcreteEdge extends Core.Edge implements DrawableEdge {
 
 }

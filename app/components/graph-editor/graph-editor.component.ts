@@ -334,7 +334,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     public update(d: Drawable | DrawableGraph, key: string) {
-        if (Drawables.isDrawableEdge(d) || Drawables.isDrawableNode(d)){
+        if (Drawables.isDrawableEdge(d) || Drawables.isDrawableNode(d)) {
             this.updateDrawable(d);
         }
         this.redraw();
@@ -444,8 +444,7 @@ export class GraphEditorComponent implements AfterViewInit {
         if (this.graph) {
             let n = this.graph.createNode();
             if (pt) {
-                n.position.x = pt[0];
-                n.position.y = pt[1];
+                [n.position.x, n.position.y] = pt;
             }
             this.nodeEdges.set(n, new Set<Drawables.DrawableEdge>());
             this.setNodeDimensions(n);

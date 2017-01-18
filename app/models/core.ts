@@ -60,7 +60,11 @@ export class Graph extends Element {
     @DrawableProperty("Background", Type.Color)
     backgroundColor = "#ffffff";
 
-    constructor(public plugin: Plugin) {
+    serialize(): any {
+
+    }
+
+    constructor(public plugin: Plugin, fromSerial?: any) {
         super(plugin.graphPluginData());
     }
 }
@@ -132,7 +136,7 @@ function DrawableProperty(name: string, type: Type.Type) {
         if (propertyKey instanceof Symbol) {
             propertyKey = propertyKey.toString();
         }
-        if (! target.drawablePropertyTypes){
+        if (!target.drawablePropertyTypes) {
             target.drawablePropertyTypes = [];
         }
         target.drawablePropertyTypes.push([name, propertyKey, type]);
