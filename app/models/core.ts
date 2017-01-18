@@ -1,6 +1,7 @@
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 import * as Type from "./types";
 
+
 export interface PluginData {
     propertyList: PropertyList;
     type: string;
@@ -32,8 +33,12 @@ class Element implements PropertiedEntity {
 }
 
 export class Graph extends Element {
+    @DrawableProperty("Nodes", new Type.ListType(Type.Node))
     public nodes: Node[] = [];
+
+    @DrawableProperty("Edges", new Type.ListType(Type.Edge))
     public edges: Edge[] = [];
+
     public pluginData: PluginData;
 
     createNode(type: string) {
@@ -60,11 +65,7 @@ export class Graph extends Element {
     @DrawableProperty("Background", Type.Color)
     backgroundColor = "#ffffff";
 
-    serialize(): any {
-
-    }
-
-    constructor(public plugin: Plugin, fromSerial?: any) {
+    constructor(public plugin: Plugin) {
         super(plugin.graphPluginData());
     }
 }
