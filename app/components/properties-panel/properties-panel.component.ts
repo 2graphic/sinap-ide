@@ -14,7 +14,7 @@ import * as Type from "../../models/types";
 export class PropertiesPanelComponent {
     public selectedEntity: PropertiedEntity | null = null;
     public console = console;
-    
+
     @Output() propertyChanged = new EventEmitter();
 
     // TODO: 
@@ -25,7 +25,7 @@ export class PropertiesPanelComponent {
     // I've mostly got it, but it needs to somehow link in the forms module
     // I'll talk more in person.
     doChange(entity: PropertiedEntity, group: keyof PropertiedEntityLists, key: string, newValue: any, keyPath?: string[]) {
-        if (keyPath){
+        if (keyPath) {
             // TODO: put this logic in a helper function
 
             // given some old object obj
@@ -39,10 +39,10 @@ export class PropertiesPanelComponent {
             // walk through keys in the key path, so if keyPath = ['a', 'b', 'c']
             // get el = value.a.b
             let el = value;
-            for(let pathEl of keyPath.slice(0, -1)){
+            for (let pathEl of keyPath.slice(0, -1)) {
                 el = el[pathEl];
             }
-            const lastOfKeyPath = keyPath[keyPath.length-1];
+            const lastOfKeyPath = keyPath[keyPath.length - 1];
             // for the last key in the path, assign it the new value, so:
             // in the above example, el.c = newValue
             el[lastOfKeyPath] = newValue;
@@ -51,7 +51,7 @@ export class PropertiesPanelComponent {
             newValue = value;
         }
 
-        this.propertyChanged.emit();
+        this.propertyChanged.emit([entity, group, key, keyPath]);
 
         entity[group].set(key, newValue);
     }

@@ -20,7 +20,6 @@ export class BindingDirective {
         console.log(changes)
     }
 
-
     constructor(private el: ElementRef) {
     }
 }

@@ -333,6 +333,13 @@ export class GraphEditorComponent implements AfterViewInit {
             (this.nodeEdges.get(e.destination) as EdgeSet).add(e);
     }
 
+    public update(d: Drawable | DrawableGraph, key: string) {
+        if (Drawables.isDrawableEdge(d) || Drawables.isDrawableNode(d)){
+            this.updateDrawable(d);
+        }
+        this.redraw();
+    }
+
     private updateDrawable(d: Drawable): void {
         if (this.graph && d) {
             if (Drawables.isDrawableEdge(d)) {

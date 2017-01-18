@@ -12,7 +12,7 @@ import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.s
 import { GraphEditorComponent, Drawable } from "../graph-editor/graph-editor.component"
 import { PluginService } from "../../services/plugin.service"
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
-import { PropertiesPanelComponent, PropertiedEntity } from "../properties-panel/properties-panel.component"
+import { PropertiesPanelComponent, PropertiedEntity, PropertiedEntityLists } from "../properties-panel/properties-panel.component"
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
 import { TestPanelComponent } from "../test-panel/test-panel.component"
 import { StatusBarComponent } from "../status-bar/status-bar.component"
@@ -212,8 +212,15 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         }
     }
 
-    propertyChanged(){
-        this.graphEditor.redraw();
+    propertyChanged(event: [PropertiedEntity, keyof PropertiedEntityLists, string, string[]]) {
+        // THIS IS SUPER DIRTY AND CJ SHOULD REALLY HOOK THE CHANGE DETECTOR
+        // TODO: KILL THIS WITH FIRE
+        let [entity, group, key, keyPath] = event;
+        if (group == "drawableProperties") {
+            const lst = entity.drawableProperties as Core.MappedPropertyList;
+            const drawableKey = lst.key(key);
+            this.graphEditor.update(entity as any, drawableKey);
+        }
     }
     graphSelectionChanged(selected: Set<PropertiedEntity>) {
         let newSelectedEntity: PropertiedEntity | null = null;

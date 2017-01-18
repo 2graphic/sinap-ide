@@ -20,12 +20,13 @@ export interface Plugin {
 }
 
 class Element implements PropertiedEntity {
+    drawablePropertyTypes: [string, string, Type.Type][];
     public pluginProperties: PropertyList;
     public drawableProperties: PropertyList;
     public entityName = "duh";
 
-    constructor(public pluginData: PluginData, private drawablePropertyMap: Map<string, [string, Type.Type]>) {
-        this.drawableProperties = new MappedPropertyList(drawablePropertyMap, this);
+    constructor(public pluginData: PluginData) {
+        this.drawableProperties = new MappedPropertyList(this.drawablePropertyTypes, this);
         this.pluginProperties = pluginData.propertyList;
     }
 }
@@ -56,74 +57,104 @@ export class Graph extends Element {
         return this.plugin.validator.isValidEdge(type, src.pluginData.type, dest.pluginData.type);
     }
 
-    public backgroundColor = "#ffffff";
+    @DrawableProperty("Background", Type.Color)
+    backgroundColor = "#ffffff";
 
     constructor(public plugin: Plugin) {
-        super(plugin.graphPluginData(), new Map<string, [string, Type.Type]>([
-            ["Background", ["backgroundColor", Type.Color]],
-        ]));
+        super(plugin.graphPluginData());
     }
 }
 
 export class Node extends Element {
-    public label = "q0";
-    public shape = "circle";
-    public color = "#ff7";
-    public borderColor = "#000";
-    public borderStyle = "solid";
-    public borderWidth = 1;
-    public position = { x: 0, y: 0 };
+    @DrawableProperty("Label", Type.String)
+    label = "q0";
+
+    @DrawableProperty("Shape", Type.Shape)
+    shape = "circle";
+
+    @DrawableProperty("Color", Type.Color)
+    color = "#ff7";
+
+    @DrawableProperty("Border Color", Type.Color)
+    borderColor = "#000";
+
+    @DrawableProperty("Border Style", Type.LineStyles)
+    borderStyle = "solid";
+
+    @DrawableProperty("Border Width", Type.Number)
+    borderWidth = 1;
+
+    @DrawableProperty("Position", Type.Point)
+    position = { x: 0, y: 0 };
 
     constructor(pluginData: PluginData) {
-        super(pluginData, new Map<string, [keyof Node, Type.Type]>([
-            ["Label", ["label", Type.String]],
-            ["Shape", ["shape", Type.Shape]],
-            ["Color", ["color", Type.Color]],
-            ["Border Color", ["borderColor", Type.Color]],
-            ["Border Style", ["borderStyle", Type.LineStyles]],
-            ["Border Width", ["borderWidth", Type.Number]],
-            ["Position", ["position", Type.Point]],
-        ]));
+        super(pluginData);
     }
 }
 
 export class Edge extends Element {
-    public showSourceArrow = false;
-    public showDestinationArrow = true;
-    public label = "";
-    public color = "#000";
-    public lineStyle = "solid";
-    public lineWidth = 1;
-    public constructor(pluginData: PluginData, public source: Node, public destination: Node) {
-        super(pluginData, new Map<string, [keyof Edge, Type.Type]>([
-            ["Source Arrow", ["showSourceArrow", Type.Boolean]],
-            ["Destination Arrow", ["showDestinationArrow", Type.Boolean]],
-            ["Label", ["label", Type.String]],
-            ["Color", ["color", Type.Color]],
-            ["Line Style", ["lineStyle", Type.LineStyles]],
-            ["Line Width", ["lineWidth", Type.Number]],
-            ["Source", ["source", Type.Node]],
-            ["Destination", ["destination", Type.Node]],
-        ]));
+    @DrawableProperty("Source Arrow", Type.Boolean)
+    showSourceArrow = false;
+
+    @DrawableProperty("Destination Arrow", Type.Boolean)
+    showDestinationArrow = true;
+
+    @DrawableProperty("Label", Type.String)
+    label = "";
+
+    @DrawableProperty("Color", Type.Color)
+    color = "#000";
+
+    @DrawableProperty("Line Style", Type.LineStyles)
+    lineStyle = "solid";
+
+    @DrawableProperty("Line Width", Type.Number)
+    lineWidth = 1;
+
+    @DrawableProperty("Source", Type.Node)
+    source: Node;
+
+    @DrawableProperty("Destination", Type.Node)
+    destination: Node;
+
+    constructor(pluginData: PluginData, source: Node, destination: Node) {
+        super(pluginData);
+        this.source = source;
+        this.destination = destination;
     }
 }
 
 
 // HELPER CLASSES /////////////////////////////////////////////////////////////
 
-class MappedPropertyList implements PropertyList {
+function DrawableProperty(name: string, type: Type.Type) {
+    return (target: Element, propertyKey: string | Symbol) => {
+        if (propertyKey instanceof Symbol) {
+            propertyKey = propertyKey.toString();
+        }
+        if (! target.drawablePropertyTypes){
+            target.drawablePropertyTypes = [];
+        }
+        target.drawablePropertyTypes.push([name, propertyKey, type]);
+    };
+}
+
+
+export class MappedPropertyList implements PropertyList {
     properties: [string, Type.Type][] = [];
-    constructor(private propertyMap: Map<string, [string, Type.Type]>, private backerObject: any) {
-        for (let ent of propertyMap.entries()) {
-            this.properties.push([ent[0], ent[1][1]]);
+    propertyMap = new Map<string, string>();
+    constructor(properties: [string, string, Type.Type][], private backerObject: any) {
+        for (let ent of properties) {
+            this.properties.push([ent[0], ent[2]]);
+            this.propertyMap.set(ent[0], ent[1]);
         }
     }
-    private key(property: string) {
+    key(property: string) {
         const key = this.propertyMap.get(property);
         if (!key) {
-            throw "reading a bad key from this property list";
+            throw "this property list doesn't have a key for '" + property + "'";
         }
-        return key[0];
+        return key;
     }
 
     get(property: string) {
