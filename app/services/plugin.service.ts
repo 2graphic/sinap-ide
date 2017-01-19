@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { DFAInterpreter } from '../interpreters/dfa-interpreter';
+import { dfaInterpreter } from '../interpreters/dfa-interpreter';
 
 // TODO, reconsider this
-import { Graph } from '../models/graph'
+import { Graph as GUIGraph} from "../models/graph"
 import { PluginManagement } from "../components/tools-panel/tools-panel.component"
 import { SinapType, SinapBoolean, SinapStructType, SinapColor, SinapNumber, SinapString } from "../models/types"
 import { PropertiedEntity } from "../components/properties-panel/properties-panel.component"
+import { Program, InterpreterError, InterpreterGraph } from "../models/plugin"
 
 export class PluginManager implements PluginManagement {
 
@@ -124,10 +125,10 @@ class MachineLearningPluginManager extends PluginManager {
 export class PluginService {
     constructor() { }
 
-    public getInterpreter(withGraph: Graph): Interpreter {
+    public getInterpreter(withGraph: GUIGraph): Program | InterpreterError {
         switch (withGraph.pluginManager.kind) {
             case "dfa.sinap.graph-kind":
-                return new DFAInterpreter(withGraph);
+                return dfaInterpreter(new InterpreterGraph(withGraph));
             default:
                 throw new Error("Unsupported Filetype");
         }
@@ -142,17 +143,4 @@ export class PluginService {
 
         throw new Error("Plugin Manager " + kind + " is not available.")
     }
-}
-
-
-export class Error {
-    constructor(public message: string) { }
-}
-export class InterpeterError extends Error {
-}
-
-export interface Interpreter {
-    run(input: String): boolean;
-    message(): string;
-    check(): InterpeterError | null;
 }
