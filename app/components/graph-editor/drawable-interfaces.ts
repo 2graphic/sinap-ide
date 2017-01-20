@@ -19,13 +19,18 @@ import * as MathEx from "./math";
  */
 export type Drawable = DrawableEdge | DrawableNode;
 
-
+/**
+ * LineStyles
+ */
 export type LineStyles = "solid" | "dotted" | "dashed";
 
-
- // TODO:
- // -For now this only supports circles and squares.
- export type Shapes = "circle" | "square";
+/**
+ * Shapes  
+ * 
+ * TODO:  
+ * -For now this only supports circles and squares.
+ */
+export type Shapes = "circle" | "square";
 
 
 // Interfaces //////////////////////////////////////////////////////////////////
@@ -33,9 +38,9 @@ export type LineStyles = "solid" | "dotted" | "dashed";
 
 /**
  * GraphContext  
- *   Interface that exposes a graph and any external properties that the 
- *   editor needs to have to go with it. Specifically the set of selected
- *   `DrawableNode | DrawableEdge`
+ *   Interface that exposes a graph and any external properties that the editor
+ *   needs to have to go with it. Specifically the set of selected
+ *   `DrawableNode | DrawableEdge`.
  */
 export interface GraphContext {
     readonly graph: DrawableGraph;

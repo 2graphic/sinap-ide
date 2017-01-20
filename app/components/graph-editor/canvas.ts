@@ -59,7 +59,7 @@ export function drawLine(
 
 /**
  * drawQuadraticLine  
- *   Draws a quadratic line between two points.
+ *   Draws a quadratic bezier line between two points.
  */
 export function drawQuadraticLine(
     g: CanvasRenderingContext2D,
@@ -76,7 +76,11 @@ export function drawQuadraticLine(
     g.stroke();
 }
 
-export function drawBezierLine(
+/**
+ * drawCubicLine  
+ *   Draws a cubic bezier line between two points.
+ */
+export function drawCubicLine(
     g: CanvasRenderingContext2D,
     src: number[],
     dst: number[],
@@ -95,13 +99,18 @@ export function drawBezierLine(
 
 /**
  * drawArrow  
- *   Draws an arrow towards the destination node.
+ *   Draws an arrow towards the destination point.
+ * 
+ *   The arrow is drawn by computing the unit vector from the given source and
+ *   destination points and rotating, scaling, and translating the unit vector
+ *   before drawing the left and right sides of the arrow.
  */
 export function drawArrow(
     g: CanvasRenderingContext2D,
     src: number[],
     dst: number[]
 ): void {
+    // Get the unit vector from the source point to the destination point.
     let v = [
         dst[0] - src[0],
         dst[1] - src[1]
@@ -114,16 +123,16 @@ export function drawArrow(
         g,
         dst,
         [
-            dst[0] + CONST.GRID_SPACING * (u[0] * CONST.COS_150 - u[1] * CONST.SIN_150) / 2,
-            dst[1] + CONST.GRID_SPACING * (u[0] * CONST.SIN_150 + u[1] * CONST.COS_150) / 2
+            dst[0] + CONST.GRID_SPACING * (u[0] * MathEx.COS_150 - u[1] * MathEx.SIN_150) / 2,
+            dst[1] + CONST.GRID_SPACING * (u[0] * MathEx.SIN_150 + u[1] * MathEx.COS_150) / 2
         ]
     );
     drawLine(
         g,
         dst,
         [
-            dst[0] + CONST.GRID_SPACING * (u[0] * CONST.COS_150 + u[1] * CONST.SIN_150) / 2,
-            dst[1] + CONST.GRID_SPACING * (-u[0] * CONST.SIN_150 + u[1] * CONST.COS_150) / 2
+            dst[0] + CONST.GRID_SPACING * (u[0] * MathEx.COS_150 + u[1] * MathEx.SIN_150) / 2,
+            dst[1] + CONST.GRID_SPACING * (-u[0] * MathEx.SIN_150 + u[1] * MathEx.COS_150) / 2
         ]
     );
 
@@ -286,14 +295,19 @@ export function setLineStyle(
     value: string,
     dotSize?: number
 ) {
-    if (!dotSize)
-        dotSize = g.lineWidth;
-    if (value == "dashed")
-        g.setLineDash([3 * dotSize, 6 * dotSize]);
-    else if (value == "dotted")
-        g.setLineDash([dotSize, 2 * dotSize]);
-    else
-        g.setLineDash([1, 0]);
+    dotSize = (dotSize ? dotSize : g.lineWidth);
+    switch (value) {
+        case "dashed":
+            g.setLineDash([3 * dotSize, 6 * dotSize]);
+            break;
+
+        case "dotted":
+            g.setLineDash([dotSize, 2 * dotSize]);
+            break;
+
+        default:
+            g.setLineDash([1, 0]);
+    }
 }
 
 /**
@@ -377,7 +391,7 @@ export function getEdgePtShift(
 
 /**
  * getStraightEdgePoints  
- *   Gets the end points of a straight line.
+ *   Gets the end points and midpoint of a straight line.
  */
 export function getStraightEdgePoints(
     e: DrawableEdge,
@@ -442,20 +456,24 @@ export function getStraightEdgePoints(
             p[1] + v[1] + shiftPt[1]
         ]);
     }
+    pts.push([
+        (pts[0][0] + pts[1][0]) / 2,
+        (pts[0][1] + pts[1][1]) / 2
+    ]);
     return pts;
 }
 
 /**
  * getLoopEdgePoints  
- *   Gets the edge points of a self-referencing node.
+ *   Gets the edge points and midpoint of a self-referencing node.
  */
 export function getLoopEdgePoints(
     e: DrawableEdge,
     src: DrawableNode,
     srcDim: any
 ): number[][] {
-    let u = [CONST.SIN_22_5, -CONST.COS_22_5];
-    let v = [-CONST.SIN_22_5, -CONST.COS_22_5];
+    let u = [MathEx.SIN_22_5, -MathEx.COS_22_5];
+    let v = [-MathEx.SIN_22_5, -MathEx.COS_22_5];
     let pt0 = getEdgePtShift(u, src, srcDim);
     let pt1 = getEdgePtShift(v, src, srcDim);
     let pt2 = [
@@ -466,12 +484,21 @@ export function getLoopEdgePoints(
         src.x + 2 * CONST.GRID_SPACING * v[0],
         src.y + 2 * CONST.GRID_SPACING * v[1]
     ];
-    return [[src.x + pt0[0], src.y + pt0[1]], [src.x + pt1[0], src.y + pt1[1]], pt2, pt3];
+    let pts = [];
+    pts.push([src.x + pt0[0], src.y + pt0[1]]);
+    pts.push([src.x + pt1[0], src.y + pt1[1]]);
+    pts.push([
+        MathEx._5_3 * (pts[0][0] + 3 * (pt2[0] + pt3[0]) + pts[1][0]),
+        MathEx._5_3 * (pts[0][1] + 3 * (pt2[1] + pt3[1]) + pts[1][1])
+    ]);
+    pts.push(pt2);
+    pts.push(pt3);
+    return pts;
 }
 
 /**
  * getQuadraticEdgePoints  
- *   Sets the edge points of an overlapping edge.
+ *   Gets the edge points and midpoint of an overlapping edge.
  */
 export function getQuadraticEdgePoints(
     e: DrawableEdge,
@@ -480,34 +507,56 @@ export function getQuadraticEdgePoints(
     srcDim: any,
     dstDim: any
 ): number[][] {
+    // Get a vector from the source node to the destination node.
     let v = [
         dst.x - src.x,
         dst.y - src.y
     ];
+    // Get the normal to the vector.
     let d = MathEx.mag(v);
     let n = [
         v[1] / d,
         -v[0] / d
     ];
 
+    // Set the control point to the midpoint of the vector plus the scaled
+    // normal.
     let pt1 = [
         v[0] / 2 + v[1] / d * CONST.GRID_SPACING,
         v[1] / 2 - v[0] / d * CONST.GRID_SPACING
     ];
+    // Shift the source endpoint.
     d = MathEx.mag(pt1);
     let shiftPt = getEdgePtShift([pt1[0] / d, pt1[1] / d], src, srcDim);
     let pt0 = [
         src.x + shiftPt[0],
         src.y + shiftPt[1]
     ];
+    // Shift the destination endpoint.
     shiftPt = getEdgePtShift([(pt1[0] - v[0]) / d, (pt1[1] - v[1]) / d], dst, dstDim);
     let pt2 = [
         src.x + v[0] + shiftPt[0],
         src.y + v[1] + shiftPt[1]
     ];
-    return [pt0, pt2, [pt1[0] + src.x, pt1[1] + src.y]];
+    // Translate the controlpoint by the position of the source node.
+    pt1[0] += src.x;
+    pt1[1] += src.y;
+    let pts = [];
+    pts.push(pt0);
+    pts.push(pt2);
+    // Midpoint.
+    pts.push([
+        MathEx._5_2 * (pt0[0] + 2 * pt1[0] + pt2[0]),
+        MathEx._5_2 * (pt0[1] + 2 * pt1[1] + pt2[1])
+    ]);
+    pts.push(pt1);
+    return pts;
 }
 
+/**
+ * getNodeDimensions  
+ *   Gets the deminsions of a given node based on its geometry.
+ */
 export function getNodeDimensions(
     g: CanvasRenderingContext2D,
     n: DrawableNode
@@ -536,7 +585,8 @@ export function getNodeDimensions(
 
 /**
  * makeRect  
- *   Makes a rectangle object with the bottom-left corner and height and width.
+ *   Makes a rectangle object with the bottom-left corner and height and width
+ *   using the given opposing corner points.
  */
 export function makeRect(x1: number, y1: number, x2: number, y2: number) {
     let w = x2 - x1;

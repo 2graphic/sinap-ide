@@ -81,30 +81,6 @@ export const NUDGE: number = 3;
 export const STICKY_DELAY: number = 500;
 
 /**
- * COS_150  
- *   Used in the rotation matrix for drawing edge arrows.
- */
-export const COS_150: number = Math.cos(5 * Math.PI / 6);
-
-/**
- * SIN_150  
- *   Used in the rotation matrix for drawing edge arrows.
- */
-export const SIN_150: number = Math.sin(5 * Math.PI / 6);
-
-/**
- * COS_22_5  
- *   Used in the rotation matrix for calculating edge loopback points.
- */
-export const COS_22_5: number = Math.cos(Math.PI / 8);
-
-/**
- * SIN_22_5  
- *   Used in the rotation matrix for calculating edge loopback points.
- */
-export const SIN_22_5: number = Math.sin(Math.PI / 8);
-
-/**
  * NODE_DEFAULTS  
  *   Default property values for drawable nodes.
  */
