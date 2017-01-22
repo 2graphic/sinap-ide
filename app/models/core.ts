@@ -24,7 +24,10 @@ class Element implements PropertiedEntity {
     drawablePropertyTypes: [string, string, Type.Type][];
     public pluginProperties: PropertyList;
     public drawableProperties: PropertyList;
-    public entityName = "duh";
+
+    public get entityKind(){
+        return this.pluginData.type;
+    }
 
     constructor(public pluginData: PluginData) {
         this.drawableProperties = new MappedPropertyList(this.drawablePropertyTypes, this);

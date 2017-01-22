@@ -181,7 +181,7 @@ export interface DrawableGraph {
      * createNode  
      *   Creates a drawable node with an optional position.
      */
-    createNode(x?: number, y?: number): DrawableNode;
+    createNode(): DrawableNode;
 
     /**
      * removeNode  

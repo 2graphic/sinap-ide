@@ -86,5 +86,5 @@ export interface PropertiedEntityLists {
     readonly pluginProperties: PropertyList;
 }
 export interface PropertiedEntity extends PropertiedEntityLists {
-    readonly entityName: string;
+    readonly entityKind: string;
 }

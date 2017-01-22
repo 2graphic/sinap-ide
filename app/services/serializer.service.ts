@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { PropertiedEntity, PropertyList, PropertiedEntityLists } from "../components/properties-panel/properties-panel.component";
+import * as Core from '../models/core'
 
 function isPropertiedEntity(src: any): src is PropertiedEntity {
     return !!(src && src.drawableProperties && src.pluginProperties && src.entityName);
@@ -37,7 +38,8 @@ class Store {
 
 function serialize(entity: PropertiedEntity, store: Store): any {
     const index = store.add(entity);
-    const result: any = {'entityName' : entity.entityName};
+
+    const result: { [a: string]: any; } = {'entityKind' : entity.entityKind};
 
     for (const key of ['drawableProperties', 'pluginProperties'] as (keyof PropertiedEntityLists)[]){
         const list: any = {};
@@ -61,12 +63,16 @@ function serialize(entity: PropertiedEntity, store: Store): any {
 export class SerializerService {
     constructor() { }
 
-    public serialize(entity: PropertiedEntity): any {
+    public serialize(entity: PropertiedEntity): [{"pointerTo" : number}, any[]] {
         const store = new Store();
         return [serialize(entity,store), store.transformed];
     }
 
-    public deserialize(a: any): PropertiedEntity {
+    public deserialize(a: [{"pointerTo" : number}, any[]], plugin: Plugin): PropertiedEntity {
+        const [initialPointer, store] = a;
+        store[initialPointer.pointerTo];
+
+
         return {} as PropertiedEntity;
     }
 }

@@ -17,9 +17,15 @@ export class CompositeType extends Type {
     }
 }
 
+export class NodeType extends CompositeType {
+    constructor(public nodeKind: string) {
+        super("node", nodeKind, () => null);
+    }
+}
+
 export class OptionalType extends CompositeType {
     constructor(public baseType: Type) {
-        super("option", baseType.type, () => null);
+        super("option", baseType.type, () => "");
     }
 }
 
