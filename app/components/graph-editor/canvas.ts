@@ -282,6 +282,179 @@ export function drawText(
     }
 }
 
+/**
+ * drawEdgeLabel  
+ *   Draws the edge label.
+ */
+export function drawEdgeLabel(
+    g: CanvasRenderingContext2D,
+    rect: { x: number, y: number, w: number, h: number },
+    labelPt: number[],
+    height: number,
+    lines: string[]
+): void {
+    g.fillStyle = "#fff";
+    g.fillRect(rect.x, rect.y, rect.w, rect.h);
+    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    drawText(
+        g,
+        labelPt[0], labelPt[1] - height + 1.5 * CONST.EDGE_FONT_SIZE / 2,
+        lines,
+        CONST.EDGE_FONT_SIZE,
+        CONST.EDGE_FONT_FAMILY,
+        "#000"
+    );
+}
+
+export function drawCubicEdgeBothArrows(
+    g: CanvasRenderingContext2D,
+    strokeStyle: string,
+    lineWidth: number,
+    lineStyle: string,
+    src: number[],
+    dst: number[],
+    ctl1: number[],
+    ctl2: number[]
+): void {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+    setLineStyle(g, lineStyle);
+    drawCubicLine(g, src, dst, ctl1, ctl2);
+    drawArrow(g, ctl1, src);
+    drawArrow(g, ctl2, dst);
+}
+
+export function drawCubicEdgeOneArrow(
+    g: CanvasRenderingContext2D,
+    strokeStyle: string,
+    lineWidth: number,
+    lineStyle: string,
+    src: number[],
+    dst: number[],
+    ctl1: number[],
+    ctl2: number[],
+    asrc: number[],
+    adst: number[]
+): void {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+    setLineStyle(g, lineStyle);
+    drawCubicLine(g, src, dst, ctl1, ctl2);
+    drawArrow(g, asrc, adst);
+}
+
+export function drawCubicEdgeNoArrows(
+    g: CanvasRenderingContext2D,
+    strokeStyle: string,
+    lineWidth: number,
+    lineStyle: string,
+    src: number[],
+    dst: number[],
+    ctl1: number[],
+    ctl2: number[]
+): void {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+    setLineStyle(g, lineStyle);
+    drawCubicLine(g, src, dst, ctl1, ctl2);
+}
+
+export function drawQuadraticEdgeBothArrows(
+    g: CanvasRenderingContext2D,
+    strokeStyle: string,
+    lineWidth: number,
+    lineStyle: string,
+    src: number[],
+    dst: number[],
+    ctl: number[]
+): void {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+    setLineStyle(g, lineStyle);
+    drawQuadraticLine(g, src, dst, ctl);
+    drawArrow(g, ctl, src);
+    drawArrow(g, ctl, dst);
+}
+
+export function drawQuadraticEdgeOneArrow(
+    g: CanvasRenderingContext2D,
+    strokeStyle: string,
+    lineWidth: number,
+    lineStyle: string,
+    src: number[],
+    dst: number[],
+    ctl: number[],
+    adst: number[]
+): void {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+    setLineStyle(g, lineStyle);
+    drawQuadraticLine(g, src, dst, ctl);
+    drawArrow(g, ctl, adst);
+}
+
+export function drawQuadraticEdgeNoArrows(
+    g: CanvasRenderingContext2D,
+    strokeStyle: string,
+    lineWidth: number,
+    lineStyle: string,
+    src: number[],
+    dst: number[],
+    ctl: number[]
+): void {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+    setLineStyle(g, lineStyle);
+    drawQuadraticLine(g, src, dst, ctl);
+}
+
+export function drawStraightEdgeBothArrows(
+    g: CanvasRenderingContext2D,
+    strokeStyle: string,
+    lineWidth: number,
+    lineStyle: string,
+    src: number[],
+    dst: number[]
+): void {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+    setLineStyle(g, lineStyle);
+    drawLine(g, src, dst);
+    drawArrow(g, dst, src);
+    drawArrow(g, src, dst);
+}
+
+export function drawStraightEdgeOneArrow(
+    g: CanvasRenderingContext2D,
+    strokeStyle: string,
+    lineWidth: number,
+    lineStyle: string,
+    src: number[],
+    dst: number[],
+    asrc: number[],
+    adst: number[]
+): void {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+    setLineStyle(g, lineStyle);
+    drawLine(g, src, dst);
+    drawArrow(g, asrc, adst);
+}
+
+export function drawStraightEdgeNoArrows(
+    g: CanvasRenderingContext2D,
+    strokeStyle: string,
+    lineWidth: number,
+    lineStyle: string,
+    src: number[],
+    dst: number[]
+): void {
+    g.strokeStyle = strokeStyle;
+    g.lineWidth = lineWidth;
+    setLineStyle(g, lineStyle);
+    drawLine(g, src, dst);
+}
+
 
 // Get and Set functions ///////////////////////////////////////////////////////
 
