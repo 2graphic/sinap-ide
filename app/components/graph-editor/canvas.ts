@@ -542,7 +542,7 @@ export function getEdgePtShift(
                 (u[0] < 0 ? -u[0] : u[0]),
                 (u[1] < 0 ? -u[1] : u[1])
             ];
-            let s = dim.s;
+            let s = dim.s / 2;
             if (up[0] < up[1]) {
                 let ratio = up[0] / up[1];
                 let b = s / up[1];

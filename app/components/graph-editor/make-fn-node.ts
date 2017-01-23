@@ -69,11 +69,12 @@ export function makeFnNode(
                     };
 
                 case "square":
+                let ss = dim.s + n.borderWidth + 4;
                     return () => {
                         canvas.drawSquare(
                             g,
-                            n.position.x - dim.s / 2, n.position.y - dim.s / 2,
-                            dim.s + n.borderWidth / 2 + 2,
+                            n.position.x - ss / 2, n.position.y - ss / 2,
+                            ss,
                             "solid",
                             n.borderWidth,
                             CONST.SELECTION_COLOR,
@@ -116,7 +117,8 @@ export function makeFnNode(
                         n.borderStyle,
                         n.borderWidth,
                         n.borderColor,
-                        n.color
+                        n.color,
+                        shadowColor
                     );
                     canvas.drawText(
                         g,
@@ -139,7 +141,8 @@ export function makeFnNode(
                         n.borderStyle,
                         n.borderWidth,
                         n.borderColor,
-                        n.color
+                        n.color,
+                        shadowColor
                     );
                     canvas.drawText(
                         g,
@@ -185,11 +188,12 @@ export function makeFnNode(
                 };
 
             case "square":
+                let ss = dim.s + n.borderWidth + 4;
                 return () => {
                     canvas.drawSquare(
                         g,
-                        n.position.x - dim.s / 2, n.position.y - dim.s / 2,
-                        dim.s + n.borderWidth / 2 + 2,
+                        n.position.x - ss / 2, n.position.y - ss / 2,
+                        ss,
                         "solid",
                         n.borderWidth,
                         CONST.SELECTION_COLOR,
@@ -222,7 +226,8 @@ export function makeFnNode(
                     n.borderStyle,
                     n.borderWidth,
                     n.borderColor,
-                    n.color
+                    n.color,
+                    shadowColor
                 );
             };
 
@@ -235,7 +240,8 @@ export function makeFnNode(
                     n.borderStyle,
                     n.borderWidth,
                     n.borderColor,
-                    n.color
+                    n.color,
+                    shadowColor
                 );
             };
     }

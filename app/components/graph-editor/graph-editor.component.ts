@@ -62,17 +62,29 @@ resizing for the canvas will stretch the image on the cavas as well as its
 - Update hit detection.
   - Either map drawables to hit functions or utilize built-in canvas hit
     regions.
-- Need a way to listen for label change events.
+- Drawable elements need to update geometry based on properties. [This is
+  related to property binding.]
+  - Node Position
+  - Node Shape
+  - Edge Arrows
+  - Label
+  - LineWidth
+  - LineStyle
 - Zoom and Pan
-  pinch to zoom/two-touch drag to pan
+  - pinch to zoom/two-touch drag to pan
 - Snap to grid.
-- Custom shapes/images for nodes.
-- Custom lines for edges (default/quadratic/bezier/orthogonal).
+- More shapes/custom images for nodes.
+  - Anchor points on nodes for edges?
+- Orthogonal Lines. [Should users be able to have full control over bezier
+  curves?]
 - Make sure to handle hit testing of custom shapes.
 - Make it so that if any part of a component is caught within the selection box,
   it is selected.
-- @Input height/width
-- Something about deep binding for the graph components? [For now, use redraw].
+- @Input height/width?
+- Change edge creation behavior.
+  Highlight edge creation region around the boundary of a node [or nearby anchor
+  points if those get implemented] to indicate that an edge will be created if
+  the user clicks and drags from within the region.
 - Have a visual indication for determining if an edge can be moved from one node
   to another.
 - Text location options. [Maybe]
@@ -132,12 +144,10 @@ type DrawableEdge = Drawables.DrawableEdge;
 type DrawableNode = Drawables.DrawableNode;
 
 type point = number[];
-type DrawableSet = Set<Drawable>;
-type timer = NodeJS.Timer | number;
 type callback = () => void;
 type DrawMap = Map<Drawable, callback>;
 type DrawList = Array<Drawable>;
-type EdgePointMap = Map<DrawableEdge, number[][]>;
+type EdgePointMap = Map<DrawableEdge, point[]>;
 type NodeDimensionMap = Map<DrawableNode, any>;
 type EdgeSet = Set<DrawableEdge>;
 type NodeEdgeMap = Map<DrawableNode, EdgeSet>;
@@ -158,6 +168,10 @@ type NodeEdgeMap = Map<DrawableNode, EdgeSet>;
  *   Angular2 component that provides a canvas for drawing nodes and edges.
  */
 export class GraphEditorComponent implements AfterViewInit {
+
+
+    // Private Fields //////////////////////////////////////////////////////////
+
 
     /**
      * graphEditorCanvas  
@@ -194,7 +208,7 @@ export class GraphEditorComponent implements AfterViewInit {
      * stickyTimeout  
      *   Timer reference for the sticky delay.
      */
-    private stickyTimeout: timer | null = null;
+    private stickyTimeout: NodeJS.Timer | number | null = null;
 
     /**
      * dragObect  
@@ -218,13 +232,13 @@ export class GraphEditorComponent implements AfterViewInit {
      * unselectedItems  
      *   The set of unselected graph components.
      */
-    private unselectedItems: DrawableSet = new Set<Drawable>();
+    private unselectedItems: Set<Drawable> = new Set<Drawable>();
 
     /**
      * senectedItems  
      *   The set of selected graph components.
      */
-    private selectedItems: DrawableSet;
+    private selectedItems: Set<Drawable>;
 
     /**
      * drawMap  
@@ -245,7 +259,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   The first two points are the end points; the third point is the
      *   midpoint. All other points are control points for bezier curves.
      */
-    private edgePoints: EdgePointMap = new Map<DrawableEdge, number[][]>();
+    private edgePoints: EdgePointMap = new Map<DrawableEdge, point[]>();
 
     /**
      * nodeDimensions  
@@ -258,6 +272,10 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Maps nodes to incoming and outgoing edges.
      */
     private nodeEdges: NodeEdgeMap = new Map<DrawableNode, EdgeSet>();
+
+
+    // Public Fields ///////////////////////////////////////////////////////////
+
 
     /**
      * selectionChanged  
@@ -272,7 +290,6 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     @Input("graph")
     set setGraph(value: DrawableGraph | null) {
-        console.log("meh");
         if (value) {
             this.graph = value;
             this.selectedItems = value.selection;
@@ -303,6 +320,10 @@ export class GraphEditorComponent implements AfterViewInit {
         this.dragObject = value;
     }
 
+
+    // Public Methods //////////////////////////////////////////////////////////
+
+
     /**
      * ngAfterViewInit  
      *   Gets the canvas rendering context and resizes the canvas element.
@@ -329,11 +350,28 @@ export class GraphEditorComponent implements AfterViewInit {
         }
     }
 
-    public update(d: Drawable | DrawableGraph, key: string) {
-        if (Drawables.isDrawableEdge(d) || Drawables.isDrawableNode(d)) {
-            this.updateDrawable(d);
-        }
-        this.redraw();
+    /**
+     * update  
+     *   Temporary to force update drawable element geometries.
+     * 
+     *   TODO:
+     *   Replace this with property binding on drawable elements.
+     */
+    update(d: Drawable | DrawableGraph, key: string) {
+        setTimeout(() => {
+            if (Drawables.isDrawableNode(d)) {
+                this.setNodeDimensions(d);
+                this.updateDrawable(d);
+                for (const e of (this.nodeEdges.get(d) as EdgeSet)) {
+                    this.setEdgePoints(e);
+                    this.updateDrawable(e);
+                }
+            }
+            else if (Drawables.isDrawableEdge(d)) {
+                this.updateDrawable(d);
+            }
+            this.redraw();
+        }, 0);
     }
 
     /**
@@ -360,9 +398,13 @@ export class GraphEditorComponent implements AfterViewInit {
         if (this.graph) {
             canvas.drawGrid(this.g, this.gridOriginPt);
             for (const d of this.drawList)
-                (this.drawMap.get(d) as () => void)();
+                (this.drawMap.get(d) as callback)();
         }
     }
+
+
+    // Private Methods /////////////////////////////////////////////////////////
+
 
     /**
      * onKeyDown  

@@ -53,7 +53,12 @@ export interface GraphContext {
  */
 export interface DrawableGraph {
 
-    selection: Set<Drawable>;
+    /**
+     * selection  
+     *   The set of selected nodes and edges for the graph.
+     */
+    readonly selection: Set<Drawable>;
+
     /**
      * nodes  
      *   The collection of drawable nodes that are part of the graph.
