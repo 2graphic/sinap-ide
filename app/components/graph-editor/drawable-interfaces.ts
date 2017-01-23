@@ -314,16 +314,14 @@ export function isDrawableNode(obj: any): obj is DrawableNode {
 function isItThat(it: any, that: any): boolean {
     if (!it)
         return false;
-    let result = true;
     for (let p in that) {
-        result =
-            result &&
+        if (!(
             (p in it) &&
-            (typeof that[p] === typeof it[p]);
-        if (!result)
+            (typeof that[p] === typeof it[p])
+        ))
             return false;
     }
-    return result;
+    return true;
 }
 
 /**
@@ -332,16 +330,16 @@ function isItThat(it: any, that: any): boolean {
  *   It is assumed that the edge being checked does not have the same source
  *   and destination nodes.
  */
-export function isEdgeOverlapped(e: DrawableEdge, nodeEdges: Map<DrawableNode, Set<DrawableEdge>>): boolean {
-    for (const edge of (nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>)) {
-        if (
-            e !== edge &&
-            e.source === edge.destination &&
-            e.destination === edge.source
-        )
-            return true;
-    }
-    for (const edge of (nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)) {
+export function isEdgeOverlapped(
+    e: DrawableEdge,
+    nodeEdges: Map<DrawableNode,
+        Set<DrawableEdge>>
+): boolean {
+    let edges = new Set<DrawableEdge>([
+        ...(nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>),
+        ...(nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)
+    ]);
+    for (const edge of edges) {
         if (
             e !== edge &&
             e.source === edge.destination &&
