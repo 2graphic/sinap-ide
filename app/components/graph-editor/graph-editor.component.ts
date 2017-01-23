@@ -130,7 +130,6 @@ type Drawable = Drawables.Drawable;
 type DrawableGraph = Drawables.DrawableGraph;
 type DrawableEdge = Drawables.DrawableEdge;
 type DrawableNode = Drawables.DrawableNode;
-type GraphContext = Drawables.GraphContext;
 
 type point = number[];
 type DrawableSet = Set<Drawable>;
@@ -268,14 +267,15 @@ export class GraphEditorComponent implements AfterViewInit {
     selectionChanged = new EventEmitter();
 
     /**
-     * setGraphContext    
+     * setGraph   
      *   Input property for the graph context.
      */
-    @Input("context")
-    set setGraphContext(value: GraphContext | null) {
+    @Input("graph")
+    set setGraph(value: DrawableGraph | null) {
+        console.log("meh");
         if (value) {
-            this.graph = value.graph;
-            this.selectedItems = value.selectedDrawables;
+            this.graph = value;
+            this.selectedItems = value.selection;
             this.initDrawables();
             if (this.g)
                 this.redraw();
@@ -327,6 +327,13 @@ export class GraphEditorComponent implements AfterViewInit {
             }
             this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
         }
+    }
+
+    public update(d: Drawable | DrawableGraph, key: string) {
+        if (Drawables.isDrawableEdge(d) || Drawables.isDrawableNode(d)) {
+            this.updateDrawable(d);
+        }
+        this.redraw();
     }
 
     /**
@@ -556,8 +563,8 @@ export class GraphEditorComponent implements AfterViewInit {
                         this.updateDragNodes(
                             this.dragObject,
                             [
-                                ePt[0] - this.dragObject.x,
-                                ePt[1] - this.dragObject.y
+                                ePt[0] - this.dragObject.position.x,
+                                ePt[1] - this.dragObject.position.y
                             ]
                         );
                     }
@@ -642,12 +649,12 @@ export class GraphEditorComponent implements AfterViewInit {
                     this.selectedItems.has(this.dragObject) &&
                     this.selectedItems.size > 0
                 ) {
-                    let dx = ePt[0] - this.dragObject.x;
-                    let dy = ePt[1] - this.dragObject.y;
+                    let dx = ePt[0] - this.dragObject.position.x;
+                    let dy = ePt[1] - this.dragObject.position.y;
                     for (let o of this.selectedItems) {
                         if (Drawables.isDrawableNode(o)) {
-                            o.x += dx;
-                            o.y += dy;
+                            o.position.x += dx;
+                            o.position.y += dy;
                         }
                     }
                 }
@@ -656,8 +663,8 @@ export class GraphEditorComponent implements AfterViewInit {
                     // TODO:
                     // Pevent nodes from being dropped on top of eachother.
                     //
-                    this.dragObject.x = ePt[0];
-                    this.dragObject.y = ePt[1];
+                    this.dragObject.position.x = ePt[0];
+                    this.dragObject.position.y = ePt[1];
                 }
             }
 
@@ -867,8 +874,8 @@ export class GraphEditorComponent implements AfterViewInit {
         if (this.graph) {
             let n = this.graph.createNode();
             if (pt) {
-                n.x = pt[0];
-                n.y = pt[1];
+                n.position.x = pt[0];
+                n.position.y = pt[1];
             }
             this.nodeEdges.set(n, new Set<Drawables.DrawableEdge>());
             this.setNodeDimensions(n);
@@ -995,8 +1002,8 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Updates a single node being dragged.
      */
     private updateDragNode(n: DrawableNode, dPt: point): void {
-        n.x += dPt[0];
-        n.y += dPt[1];
+        n.position.x += dPt[0];
+        n.position.y += dPt[1];
         for (let e of (this.nodeEdges.get(n) as Set<Drawables.DrawableEdge>)) {
             this.setEdgePoints(e);
             this.updateDrawable(e);
@@ -1047,8 +1054,8 @@ export class GraphEditorComponent implements AfterViewInit {
         if (this.graph) {
             // Hit test nodes first.
             for (let n of this.graph.nodes) {
-                let dx = n.x - pt[0];
-                let dy = n.y - pt[1];
+                let dx = n.position.x - pt[0];
+                let dy = n.position.y - pt[1];
                 let size = canvas.getTextSize(
                     this.g,
                     n.label.split("\n"),
@@ -1067,8 +1074,8 @@ export class GraphEditorComponent implements AfterViewInit {
                 ) / 2;
                 if ((n.shape === "circle" && dx * dx + dy * dy <= hs * hs) ||
                     (n.shape === "square" &&
-                        pt[0] <= n.x + hs && pt[0] >= n.x - hs &&
-                        pt[1] <= n.y + hs && pt[1] >= n.y - hs))
+                        pt[0] <= n.position.x + hs && pt[0] >= n.position.x - hs &&
+                        pt[1] <= n.position.y + hs && pt[1] >= n.position.y - hs))
                     return n;
             }
 
@@ -1077,13 +1084,13 @@ export class GraphEditorComponent implements AfterViewInit {
                 if (e.source && e.destination) {
                     // Edge vector src -> dst
                     let ve = [
-                        e.destination.x - e.source.x,
-                        e.destination.y - e.source.y,
+                        e.destination.position.x - e.source.position.x,
+                        e.destination.position.y - e.source.position.y,
                     ];
                     // Cursor vector e.src -> mouse
                     let vm = [
-                        pt[0] - e.source.x,
-                        pt[1] - e.source.y
+                        pt[0] - e.source.position.x,
+                        pt[1] - e.source.position.y
                     ];
                     let dotee = MathEx.dot(ve, ve); // edge dot edge
                     let dotem = MathEx.dot(ve, vm); // edge dot mouse
@@ -1134,8 +1141,8 @@ export class GraphEditorComponent implements AfterViewInit {
         // intersects with the boundary of a node or edge.
 
         return (Drawables.isDrawableNode(c) &&
-            c.x >= rect.x && c.x <= rect.x + rect.w &&
-            c.y >= rect.y && c.y <= rect.y + rect.h) ||
+            c.position.x >= rect.x && c.position.x <= rect.x + rect.w &&
+            c.position.y >= rect.y && c.position.y <= rect.y + rect.h) ||
             (Drawables.isDrawableEdge(c) &&
                 (c.source && c.destination) &&
                 (this.rectHitTest(c.source, rect) ||

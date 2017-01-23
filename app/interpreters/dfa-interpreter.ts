@@ -1,5 +1,5 @@
 import { Interpreter, InterpreterGraph, Program, InterpreterError, ProgramInput, ProgramOutput, RunningProgram } from '../models/plugin';
-import { Graph } from '../models/graph'
+import * as Core from '../models/core'
 
 
 function coerceBoolean(s: any) {
@@ -26,8 +26,8 @@ export function dfaInterpreter(igraph: InterpreterGraph): Program | InterpreterE
 
         alphabet.add(sym);
 
-        let src = nodes.indexOf(edge.propertyValues["Source"]);
-        let dst = nodes.indexOf(edge.propertyValues["Destination"]);
+        let src = nodes.indexOf(edge.drawableProperties.get("Source"));
+        let dst = nodes.indexOf(edge.drawableProperties.get("Destination"));
 
         if (src == -1 || dst == -1) {
             return new InterpreterError("Unknown node referenced");
@@ -44,13 +44,13 @@ export function dfaInterpreter(igraph: InterpreterGraph): Program | InterpreterE
     accept_states = new Set<number>();
 
     for (let n of nodes) {
-        if (coerceBoolean(n.propertyValues["Start State"])) {
+        if (coerceBoolean(n.pluginProperties.get("Start State"))) {
             if (start_state != null) {
                 return new InterpreterError("Too many start states.");
             }
             start_state = nodes.indexOf(n);
         }
-        if (coerceBoolean(n.propertyValues["Accept State"])) {
+        if (coerceBoolean(n.pluginProperties.get("Accept State"))) {
             accept_states.add(nodes.indexOf(n));
         }
     }
