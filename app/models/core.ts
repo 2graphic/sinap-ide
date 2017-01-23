@@ -1,6 +1,6 @@
 // File: core.ts
 // Created by: Sheyne Anderson
-// Date created: January 22, 2016
+// Date created: January 22, 2017
 //
 //
 
