@@ -1,3 +1,9 @@
+// File: core.ts
+// Created by: Sheyne Anderson
+// Date created: January 22, 2017
+//
+//
+
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 import { LineStyles, Shapes } from "../components/graph-editor/graph-editor.component";
 import * as Type from "./types";
