@@ -1,0 +1,73 @@
+{
+	"sinap-file-format-version": "0.0.2",
+	"graph": [{
+			"pointerTo": 0
+		},
+		[{
+			"entityName": "duh",
+			"drawableProperties": {
+				"Nodes": [{
+					"pointerTo": 1
+				}, {
+					"pointerTo": 2
+				}],
+				"Edges": [{
+					"pointerTo": 3
+				}],
+				"Background": "#ffffff"
+			},
+			"pluginProperties": {}
+		}, {
+			"entityName": "duh",
+			"drawableProperties": {
+				"Label": "q0",
+				"Shape": "circle",
+				"Color": "#ff7",
+				"Border Color": "#000",
+				"Border Style": "solid",
+				"Border Width": 1,
+				"Position": {
+					"x": 274,
+					"y": 212
+				}
+			},
+			"pluginProperties": {
+				"Accept State": true
+			}
+		}, {
+			"entityName": "duh",
+			"drawableProperties": {
+				"Label": "q0",
+				"Shape": "circle",
+				"Color": "#ff7",
+				"Border Color": "#000",
+				"Border Style": "solid",
+				"Border Width": 1,
+				"Position": {
+					"x": 455.00000000000006,
+					"y": 290
+				}
+			},
+			"pluginProperties": {
+				"Start State": true,
+				"Accept State": true
+			}
+		}, {
+			"entityName": "duh",
+			"drawableProperties": {
+				"Destination Arrow": true,
+				"Label": "0",
+				"Color": "#000",
+				"Line Style": "solid",
+				"Line Width": 1,
+				"Source": {
+					"pointerTo": 2
+				},
+				"Destination": {
+					"pointerTo": 1
+				}
+			},
+			"pluginProperties": {}
+		}]
+	]
+}

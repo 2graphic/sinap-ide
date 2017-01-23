@@ -1,4 +1,5 @@
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
+import { LineStyles, Shapes } from "../components/graph-editor/graph-editor.component";
 import * as Type from "./types";
 
 
@@ -25,7 +26,7 @@ class Element implements PropertiedEntity {
     public pluginProperties: PropertyList;
     public drawableProperties: PropertyList;
 
-    public get entityKind(){
+    public get entityKind() {
         return this.pluginData.type;
     }
 
@@ -78,7 +79,7 @@ export class Node extends Element {
     label = "q0";
 
     @DrawableProperty("Shape", Type.Shape)
-    shape = "circle";
+    shape: Shapes = "circle";
 
     @DrawableProperty("Color", Type.Color)
     color = "#ff7";
@@ -87,7 +88,7 @@ export class Node extends Element {
     borderColor = "#000";
 
     @DrawableProperty("Border Style", Type.LineStyles)
-    borderStyle = "solid";
+    borderStyle: LineStyles = "solid";
 
     @DrawableProperty("Border Width", Type.Number)
     borderWidth = 1;
@@ -114,7 +115,7 @@ export class Edge extends Element {
     color = "#000";
 
     @DrawableProperty("Line Style", Type.LineStyles)
-    lineStyle = "solid";
+    lineStyle: LineStyles = "solid";
 
     @DrawableProperty("Line Width", Type.Number)
     lineWidth = 1;

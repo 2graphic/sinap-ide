@@ -10,7 +10,7 @@ class Store {
     private entities: PropertiedEntity[] = [];
     transformed: any[] = [];
 
-    add(pe: PropertiedEntity){
+    add(pe: PropertiedEntity) {
         this.entities.push(pe);
         this.transformed.push(null);
         return this.entities.length - 1;
@@ -26,10 +26,10 @@ class Store {
 
     transformer(key: string, value: any): any {
         const index = this.entities.indexOf(value);
-        if (index != -1){
-            return {"pointerTo": index};
+        if (index != -1) {
+            return { "pointerTo": index };
         }
-        if (isPropertiedEntity(value)){
+        if (isPropertiedEntity(value)) {
             return serialize(value, this);
         }
         return value;
@@ -39,15 +39,15 @@ class Store {
 function serialize(entity: PropertiedEntity, store: Store): any {
     const index = store.add(entity);
 
-    const result: { [a: string]: any; } = {'entityKind' : entity.entityKind};
+    const result: { [a: string]: any; } = { 'entityKind': entity.entityKind };
 
-    for (const key of ['drawableProperties', 'pluginProperties'] as (keyof PropertiedEntityLists)[]){
+    for (const key of ['drawableProperties', 'pluginProperties'] as (keyof PropertiedEntityLists)[]) {
         const list: any = {};
-        
-        for (const pair of entity[key].properties){
+
+        for (const pair of entity[key].properties) {
             const element = entity[key].get(pair[0]);
-            if (element){
-                list[pair[0]] = (JSON.parse(JSON.stringify(element, (k, v)=>store.transformer(k,v))))
+            if (element) {
+                list[pair[0]] = (JSON.parse(JSON.stringify(element, (k, v) => store.transformer(k, v))))
             }
         }
 
@@ -55,7 +55,7 @@ function serialize(entity: PropertiedEntity, store: Store): any {
     }
 
     store.set(index, result);
-    return {"pointerTo": index};
+    return { "pointerTo": index };
 }
 
 
@@ -63,12 +63,12 @@ function serialize(entity: PropertiedEntity, store: Store): any {
 export class SerializerService {
     constructor() { }
 
-    public serialize(entity: PropertiedEntity): [{"pointerTo" : number}, any[]] {
+    public serialize(entity: PropertiedEntity): [{ "pointerTo": number }, any[]] {
         const store = new Store();
-        return [serialize(entity,store), store.transformed];
+        return [serialize(entity, store), store.transformed];
     }
 
-    public deserialize(a: [{"pointerTo" : number}, any[]], plugin: Plugin): PropertiedEntity {
+    public deserialize(a: [{ "pointerTo": number }, any[]], plugin: Plugin): PropertiedEntity {
         const [initialPointer, store] = a;
         store[initialPointer.pointerTo];
 

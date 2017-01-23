@@ -10,140 +10,37 @@ import { EDGE_DEFAULTS, NODE_DEFAULTS } from "./constants";
 import * as MathEx from "./math";
 
 
-// Functions ///////////////////////////////////////////////////////////////////
+// Type aliases ////////////////////////////////////////////////////////////////
 
 
 /**
- * isDrawableEdge  
- *   Typeguard for drawable edges.
+ * Drawable  
+ *   Type alias for the the union type of `DrawableEdge` and `DrawableNode`.
  */
-export function isDrawableEdge(obj: any): obj is DrawableEdge {
-    return isItThat(obj, EDGE_DEFAULTS);
-}
+export type Drawable = DrawableEdge | DrawableNode;
 
 /**
- * isDrawableNode  
- *   Typeguard for drawable nodes.
+ * LineStyles
  */
-export function isDrawableNode(obj: any): obj is DrawableNode {
-    return isItThat(obj, NODE_DEFAULTS);
-}
+export type LineStyles = "solid" | "dotted" | "dashed";
 
 /**
- * isItThat  
- *   Checks if `it` has the same members as `that`.
+ * Shapes  
+ * 
+ * TODO:  
+ * -For now this only supports circles and squares.
  */
-function isItThat(it: any, that: any): boolean {
-    if (!it)
-        return false;
-    let result = true;
-    for (let p in that) {
-        result =
-            result &&
-            (p in it) &&
-            (typeof that[p] === typeof it[p]);
-        if (!result)
-            return false;
-    }
-    return result;
-}
-
-/**
- * isEdgeOverlapped  
- *   Checks if two edges are overlapping.  
- *   It is assumed that the edge being checked does not have the same source
- *   and destination nodes.
- */
-export function isEdgeOverlapped(e: DrawableEdge, nodeEdges: Map<DrawableNode, Set<DrawableEdge>>): boolean {
-    for (const edge of (nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>)) {
-        if (
-            e !== edge &&
-            e.source === edge.destination &&
-            e.destination === edge.source
-        )
-            return true;
-    }
-    for (const edge of (nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)) {
-        if (
-            e !== edge &&
-            e.source === edge.destination &&
-            e.destination === edge.source
-        )
-            return true;
-    }
-    return false;
-}
-
-/**
- * getOverlappedEdges  
- *   Gets the set of edges that overlap with a given edge.  
- *   It is assumed that the edge being checked does not have the same source
- *   and destination nodes.
- */
-export function getOverlappedEdges(e: DrawableEdge, nodeEdges: Map<DrawableNode, Set<DrawableEdge>>): Set<DrawableEdge> {
-    let overlapped = new Set<DrawableEdge>();
-    for (const edge of (nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>)) {
-        if (
-            e !== edge &&
-            e.source === edge.destination &&
-            e.destination === edge.source
-        )
-            overlapped.add(edge);
-    }
-    for (const edge of (nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)) {
-        if (
-            e !== edge &&
-            e.source === edge.destination &&
-            e.destination === edge.source
-        )
-            overlapped.add(edge);
-    }
-    return overlapped;
-}
-
-/**
- * cloneEdge  
- *   Creates a cloned edge.
- */
-export function cloneEdge(e: DrawableEdge): DrawableEdge {
-    let clone = new DefaultEdge();
-    clone.source = e.source;
-    clone.destination = e.destination;
-    clone.showSourceArrow = e.showSourceArrow;
-    clone.showDestinationArrow = e.showDestinationArrow;
-    clone.color = e.color;
-    clone.lineStyle = e.lineStyle;
-    clone.lineWidth = e.lineWidth;
-    clone.label = e.label;
-    return clone;
-}
-
-/**
- * cloneNode  
- *   Creates a cloned node.
- */
-export function cloneNode(n: DrawableNode): DrawableNode {
-    let clone = new DefaultNode(n.position);
-    clone.label = n.label;
-    clone.shape = n.shape;
-    clone.color = n.color;
-    clone.borderColor = n.borderColor;
-    clone.borderStyle = n.borderStyle;
-    clone.borderWidth = n.borderWidth;
-    return clone;
-}
+export type Shapes = "circle" | "square";
 
 
 // Interfaces //////////////////////////////////////////////////////////////////
 
 
 /**
-<<<<<<< HEAD
-=======
  * GraphContext  
- *   Interface that exposes a graph and any external properties that the 
- *   editor needs to have to go with it. Specifically the set of selected
- *   `DrawableNode | DrawableEdge`
+ *   Interface that exposes a graph and any external properties that the editor
+ *   needs to have to go with it. Specifically the set of selected
+ *   `DrawableNode | DrawableEdge`.
  */
 export interface GraphContext {
     readonly graph: DrawableGraph;
@@ -151,7 +48,6 @@ export interface GraphContext {
 }
 
 /**
->>>>>>> master
  * DrawableGraph  
  *   Interface that exposes drawable graph properties and methods.
  */
@@ -269,7 +165,7 @@ export interface DrawableEdge {
      * lineStyle  
      *   The line style of the edge. This can be `solid`, `dotted`, or `dashed`.
      */
-    lineStyle: string;
+    lineStyle: LineStyles;
 
     /**
      * lineWidth  
@@ -309,7 +205,7 @@ export interface DrawableNode {
      * shape  
      *   The shape of the node.
      */
-    shape: string; // TODO: for now this only supports circles and squares.
+    shape: Shapes;
 
     /**
      * color  
@@ -327,7 +223,7 @@ export interface DrawableNode {
      * borderStyle  
      *   The line style of the border. Can be `solid`, `dotted`, or `dashed`.
      */
-    borderStyle: string;
+    borderStyle: LineStyles;
 
     /**
      * borderWidth  
@@ -340,15 +236,6 @@ export interface DrawableNode {
     // more display properties
 }
 
-// Type aliases ////////////////////////////////////////////////////////////////
-
-
-/**
- * Drawable  
- *   Type alias for the the union type of `DrawableEdge` and `DrawableNode`.
- */
-export type Drawable = DrawableEdge | DrawableNode;
-
 
 // Classes /////////////////////////////////////////////////////////////////////
 
@@ -359,10 +246,10 @@ export type Drawable = DrawableEdge | DrawableNode;
  */
 export class DefaultNode implements DrawableNode {
     label: string = NODE_DEFAULTS.label;
-    shape: string = NODE_DEFAULTS.shape;
+    shape: Shapes = NODE_DEFAULTS.shape;
     color: string = NODE_DEFAULTS.color;
     borderColor: string = NODE_DEFAULTS.borderColor;
-    borderStyle: string = NODE_DEFAULTS.borderStyle;
+    borderStyle: LineStyles = NODE_DEFAULTS.borderStyle;
     borderWidth: number = NODE_DEFAULTS.borderWidth;
 
     constructor(public position: { x: number, y: number }) { }
@@ -378,7 +265,7 @@ export class DefaultEdge implements DrawableEdge {
     showSourceArrow: boolean = EDGE_DEFAULTS.showSourceArrow;
     showDestinationArrow: boolean = EDGE_DEFAULTS.showDestinationArrow;
     color: string = EDGE_DEFAULTS.color;
-    lineStyle: string = EDGE_DEFAULTS.lineStyle;
+    lineStyle: LineStyles = EDGE_DEFAULTS.lineStyle;
     lineWidth: number = EDGE_DEFAULTS.lineWidth;
     label = EDGE_DEFAULTS.label;
 
@@ -387,4 +274,126 @@ export class DefaultEdge implements DrawableEdge {
     ) {
         this.source = sourceNode;
     }
+}
+
+
+// Functions ///////////////////////////////////////////////////////////////////
+
+
+/**
+ * isDrawableEdge  
+ *   Typeguard for drawable edges.
+ */
+export function isDrawableEdge(obj: any): obj is DrawableEdge {
+    return isItThat(obj, EDGE_DEFAULTS);
+}
+
+/**
+ * isDrawableNode  
+ *   Typeguard for drawable nodes.
+ */
+export function isDrawableNode(obj: any): obj is DrawableNode {
+    return isItThat(obj, NODE_DEFAULTS);
+}
+
+/**
+ * isItThat  
+ *   Checks if `it` has the same members as `that`.
+ */
+function isItThat(it: any, that: any): boolean {
+    if (!it)
+        return false;
+    for (let p in that) {
+        if (!(
+            (p in it) &&
+            (typeof that[p] === typeof it[p])
+        ))
+            return false;
+    }
+    return true;
+}
+
+/**
+ * isEdgeOverlapped  
+ *   Checks if two edges are overlapping.  
+ *   It is assumed that the edge being checked does not have the same source
+ *   and destination nodes.
+ */
+export function isEdgeOverlapped(
+    e: DrawableEdge,
+    nodeEdges: Map<DrawableNode,
+        Set<DrawableEdge>>
+): boolean {
+    let edges = new Set<DrawableEdge>([
+        ...(nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>),
+        ...(nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)
+    ]);
+    for (const edge of edges) {
+        if (
+            e !== edge &&
+            e.source === edge.destination &&
+            e.destination === edge.source
+        )
+            return true;
+    }
+    return false;
+}
+
+/**
+ * getOverlappedEdges  
+ *   Gets the set of edges that overlap with a given edge.  
+ *   It is assumed that the edge being checked does not have the same source
+ *   and destination nodes.
+ */
+export function getOverlappedEdges(e: DrawableEdge, nodeEdges: Map<DrawableNode, Set<DrawableEdge>>): Set<DrawableEdge> {
+    let overlapped = new Set<DrawableEdge>();
+    for (const edge of (nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>)) {
+        if (
+            e !== edge &&
+            e.source === edge.destination &&
+            e.destination === edge.source
+        )
+            overlapped.add(edge);
+    }
+    for (const edge of (nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)) {
+        if (
+            e !== edge &&
+            e.source === edge.destination &&
+            e.destination === edge.source
+        )
+            overlapped.add(edge);
+    }
+    return overlapped;
+}
+
+/**
+ * cloneEdge  
+ *   Creates a cloned edge.
+ */
+export function cloneEdge(e: DrawableEdge): DrawableEdge {
+    let clone = new DefaultEdge();
+    clone.source = e.source;
+    clone.destination = e.destination;
+    clone.showSourceArrow = e.showSourceArrow;
+    clone.showDestinationArrow = e.showDestinationArrow;
+    clone.color = e.color;
+    clone.lineStyle = e.lineStyle;
+    clone.lineWidth = e.lineWidth;
+    clone.label = e.label;
+    return clone;
+}
+
+/**
+ * cloneNode  
+ *   Creates a cloned node.
+ */
+export function cloneNode(n: DrawableNode): DrawableNode {
+    let clone = new DefaultNode(n.position);
+    clone.label = n.label;
+    clone.shape = n.shape;
+    clone.color = n.color;
+    clone.borderColor = n.borderColor;
+    clone.borderStyle = n.borderStyle;
+    clone.borderWidth = n.borderWidth;
+    return clone;
 }
