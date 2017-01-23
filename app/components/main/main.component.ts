@@ -85,11 +85,11 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 this.graphEditor.redraw();
             }
             if (this.pluginService) {
-                if (this.context.graph.graph.plugin.kind == "machine-learning.sinap.graph-kind") {
+                if (this.context.graph.core.plugin.kind == "machine-learning.sinap.graph-kind") {
                     this.barMessages = []
                     this.package = "Machine Learning"
                 } else {
-                    let interp = this.pluginService.getInterpreter(this.context.graph.graph);
+                    let interp = this.pluginService.getInterpreter(this.context.graph.core);
                     this.package = "Finite Automata";
                     if (interp instanceof InterpreterError) {
                         this.barMessages = ["Compilation Error", interp.message];
@@ -174,7 +174,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
                 let graph = {
                     'sinap-file-format-version': "0.0.2",
-                    'graph': this.serializerService.serialize(this.context.graph.graph),
+                    'graph': this.serializerService.serialize(this.context.graph.core),
                 };
                 this.fileService.writeFile(filename, JSON.stringify(graph))
                     .catch((err) => {
@@ -210,7 +210,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     run(input: string): string {
         if (this.context) {
-            let interpreter = this.pluginService.getInterpreter(this.context.graph.graph);
+            let interpreter = this.pluginService.getInterpreter(this.context.graph.core);
             if (interpreter instanceof InterpreterError) {
                 return "ERROR: " + interpreter.message;
             } else {
@@ -242,7 +242,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             }
         } else {
             if (this.context) {
-                newSelectedEntity = this.context.graph.graph;
+                newSelectedEntity = this.context.graph.core;
             } else {
                 throw "How did graph selection change, there's no context? ";
 

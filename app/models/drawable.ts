@@ -12,33 +12,33 @@ export class ConcreteGraph implements DrawableGraph {
     activeEdgeType: string;
     selection = new Set<Drawable>();
 
-    constructor(public graph: Core.Graph) {
+    constructor(public core: Core.Graph) {
 
     }
 
     get nodes() {
-        return this.graph.nodes;
+        return this.core.nodes;
     }
     get edges() {
-        return this.graph.edges;
+        return this.core.edges;
     }
     get backgroundColor() {
-        return this.graph.backgroundColor;
+        return this.core.backgroundColor;
     }
     createNode() {
-        return this.graph.createNode(this.activeNodeType);
+        return this.core.createNode(this.activeNodeType);
     }
     createEdge(src: ConcreteNode, dest: ConcreteNode, like?: ConcreteEdge) {
-        return this.graph.createEdge(this.activeEdgeType, src, dest, like);
+        return this.core.createEdge(this.activeEdgeType, src, dest, like);
     }
     canCreateEdge(src: ConcreteNode, dest: ConcreteNode, like?: ConcreteEdge) {
-        return this.graph.canCreateEdge(this.activeEdgeType, src, dest, like);
+        return this.core.canCreateEdge(this.activeEdgeType, src, dest, like);
     }
     removeNode(n: ConcreteNode) {
-        this.graph.removeNode(n);
+        this.core.removeNode(n);
     }
     removeEdge(e: ConcreteEdge) {
-        this.graph.removeEdge(e);
+        this.core.removeEdge(e);
     }
 }
 
