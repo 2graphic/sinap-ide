@@ -1,4 +1,4 @@
-import { Graph as GUIGraph} from '../models/graph'
+import * as Core from '../models/core'
 
 /**
  * Indicates an error during compilation of a graph. This is a class instead of an interface so that it can be discovered through instanceof.
@@ -19,7 +19,7 @@ export type ProgramOutput = string | boolean;
 /**
  * Represents a function which converts graphs into programs or else returns an error.
  */
-export type Interpreter = (graph: InterpreterGraph) => Program | InterpreterError; 
+export type Interpreter = (graph: InterpreterGraph) => Program | InterpreterError;
 
 /**
  * This interface is to be used for debugging support and is expected to maintain mutable state.
@@ -78,14 +78,14 @@ function fillInProgram(program: any): Program | InterpreterError {
     let error = new InterpreterError("Program must have either a run method or debugging support.");
 
     if (!program.run && !program.initDebugging) {
-        return error; 
+        return error;
     }
 
     if (!program.run) {
         program.run = (input: ProgramInput) => {
             if (program.initDebugging) {
                 let debug = program.initDebugging(input);
-                while(!debug.isComplete) {
+                while (!debug.isComplete) {
                     debug.step();
                 }
                 return debug.getResult();
@@ -105,6 +105,6 @@ function fillInProgram(program: any): Program | InterpreterError {
  * This class is still in progress. Presumably, the InterpreterGraph will have different needs from the GUIGraph. TODO: Actually make this different.
  */
 export class InterpreterGraph {
-    public constructor(readonly graph: GUIGraph) {
+    public constructor(readonly graph: Core.Graph) {
     }
 }

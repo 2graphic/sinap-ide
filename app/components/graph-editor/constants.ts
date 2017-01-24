@@ -85,8 +85,7 @@ export const STICKY_DELAY: number = 500;
  *   Default property values for drawable nodes.
  */
 export const NODE_DEFAULTS: DrawableNode = {
-    x: 0,
-    y: 0,
+    position: { x: 0, y: 0 },
     label: "",
     shape: "circle",
     color: "#fff200",

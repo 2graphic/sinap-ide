@@ -54,6 +54,12 @@ export interface GraphContext {
 export interface DrawableGraph {
 
     /**
+     * selection  
+     *   The set of selected nodes and edges for the graph.
+     */
+    readonly selection: Set<Drawable>;
+
+    /**
      * nodes  
      *   The collection of drawable nodes that are part of the graph.
      */
@@ -76,7 +82,7 @@ export interface DrawableGraph {
      * createNode  
      *   Creates a drawable node with an optional position.
      */
-    createNode(x?: number, y?: number): DrawableNode;
+    createNode(): DrawableNode;
 
     /**
      * removeNode  
@@ -115,12 +121,6 @@ export interface DrawableGraph {
         dst: DrawableNode,
         like?: DrawableEdge
     ): DrawableEdge;
-
-    /**
-     * replaceEdge  
-     *   This method has been replaced by `createEdge` and is no longer needed.
-     */
-    replaceEdge(original: DrawableEdge, replacement: DrawableEdge): void;
 
     /**
      * removeEdge  
@@ -195,16 +195,10 @@ export interface DrawableEdge {
 export interface DrawableNode {
 
     /**
-     * x  
-     *   The x-coordinate of the center of the node.
+     * position  
+     *   The coordinates of the center of the node.
      */
-    x: number;
-
-    /**
-     * y  
-     *   The y-coordinate of the center of the node.
-     */
-    y: number;
+    position: { x: number, y: number };
 
     /**
      * label  
@@ -263,7 +257,7 @@ export class DefaultNode implements DrawableNode {
     borderStyle: LineStyles = NODE_DEFAULTS.borderStyle;
     borderWidth: number = NODE_DEFAULTS.borderWidth;
 
-    constructor(public x: number, public y: number) { }
+    constructor(public position: { x: number, y: number }) { }
 }
 
 /**
@@ -399,7 +393,7 @@ export function cloneEdge(e: DrawableEdge): DrawableEdge {
  *   Creates a cloned node.
  */
 export function cloneNode(n: DrawableNode): DrawableNode {
-    let clone = new DefaultNode(n.x, n.y);
+    let clone = new DefaultNode(n.position);
     clone.label = n.label;
     clone.shape = n.shape;
     clone.color = n.color;
