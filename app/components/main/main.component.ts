@@ -11,7 +11,7 @@ import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service"
 import { GraphEditorComponent, GraphContext, Drawable } from "../graph-editor/graph-editor.component"
 import { PluginService} from "../../services/plugin.service"
-import {InterpreterError, Program} from "../../models/plugin";
+import { Program } from "../../models/plugin";
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
 import { PropertiesPanelComponent, PropertiedEntity } from "../properties-panel/properties-panel.component"
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
@@ -22,12 +22,13 @@ import { Element, Graph, deserializeGraph } from "../../models/graph"
 import { SideBarComponent } from "../side-bar/side-bar.component"
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
 import { FileService } from "../../services/files.service";
+import { SandboxService } from "../../services/sandbox.service"
 
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.css"],
-    providers: [MenuService, PluginService, FileService]
+    providers: [MenuService, PluginService, FileService, SandboxService]
 })
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private fileService: FileService, private changeDetectorRef: ChangeDetectorRef) {
@@ -89,18 +90,22 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 } else {
                     let interp = this.pluginService.getInterpreter(this.context.graph);
                     this.package = "Finite Automata";
-                    if (interp instanceof InterpreterError) {
-                        this.barMessages = ["Compilation Error", interp.message];
-                    } else {
-                        this.barMessages = interp.compilationMessages;
+                    interp.then((program) => {
+                        this.barMessages = program.compilationMessages;
                         for (let triplet of this.testComponent.tests) {
-                            try {
-                                triplet[2] = interp.run(triplet[0] as string) as boolean;
-                            } catch (err) {
+                            program.run(triplet[0] as string)
+                            .then((output) => {
+                                triplet[2] = output;
+                            })
+                            .catch((err) => {
                                 console.log(err);
-                            }
+                            });
                         }
-                    }
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                        this.barMessages = ["Compilation Error", err];
+                    });
                 }
             }
         }
@@ -204,14 +209,12 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             });
     }
 
-    run(input: string): string {
+    run(input: string): Promise<string> {
         if (this.context) {
             let interpreter = this.pluginService.getInterpreter(this.context.graph);
-            if (interpreter instanceof InterpreterError) {
-                return "ERROR: " + interpreter.message;
-            } else {
-                return interpreter.run(input) as string + "";
-            }
+            return interpreter.then((program) => {
+                return program.run(input);
+            });
         } else {
             throw new Error("No Graph to Run");
         }

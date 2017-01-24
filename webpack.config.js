@@ -47,7 +47,7 @@ module.exports = [
                 {
                     test: /\.ts$/,
                     loader: 'ts',
-                    exclude: [/node_modules/]
+                    exclude: [/node_modules/, /plugins/]
                 },
                 {
                     test: /\.(png|jpg|gif|svg)$/,
@@ -138,5 +138,37 @@ module.exports = [
             'buffer': 'require("buffer")',
             'system': '{}',
             'file': '{}'
+        }
+    }, 
+
+    // plugin target.
+    {
+        debug: true,
+        target: 'web',
+        node: {
+            fs: false
+        },
+        entry: {
+            'dfa-interpreter': './plugins/dfa-interpreter'
+        },
+        output: {
+            path: './build/plugins',
+            filename: '[name].js',
+            sourceMapFilename: '[name].js.map',
+            chunkFilename: '[id].chunk.js',
+            library: 'module'
+        },
+        resolve: {
+            extensions: ['.ts']
+        },
+
+        module: {
+            loaders: [
+                {
+                    test: /dfa-interpreter.ts$/,
+                    loaders: ['ts'],
+                    exclude: [/node_modules/, /app/, /build/]
+                }
+            ]
         }
     }];
