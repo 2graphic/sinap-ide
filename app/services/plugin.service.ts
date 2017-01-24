@@ -1,125 +1,131 @@
 import { Injectable, Inject } from '@angular/core';
+import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 
-// TODO, reconsider this
-import { Graph as GUIGraph} from "../models/graph"
-import { PluginManagement } from "../components/tools-panel/tools-panel.component"
-import { SinapType, SinapBoolean, SinapStructType, SinapColor, SinapNumber, SinapString } from "../models/types"
-import { PropertiedEntity } from "../components/properties-panel/properties-panel.component"
-import { Program, InterpreterGraph, Interpreter, ProgramInput, ProgramOutput } from "../models/plugin"
-import { FileService } from "./files.service"
-import { SandboxService, Script, Context } from "./sandbox.service"
+import * as Type from "../models/types";
+import * as Core from '../models/core'
+import { Program, InterpreterError, InterpreterGraph, ProgramInput, ProgramOutput } from "../models/plugin"
+import { Context, SandboxService, Script } from "../services/sandbox.service"
+import { FileService } from "../services/files.service"
 
-export class PluginManager implements PluginManagement {
+class ConcretePropertyList implements PropertyList {
+    constructor(public properties: [string, Type.Type][], private backerObject: any) {
 
-    public activeNodeType: string = "Input";
-    public nodeTypes = ["Input", "Fully Connected", "Conv2D", "Max Pooling", "Reshape", "Output"];
-
-    // machine-learning.sinap.graph-kind
-    // dfa.sinap.graph-kind
-    constructor(public kind: string) { }
-
-    getNodeProperties(): Array<[string, SinapType]> {
-        return [];
     }
-
-    getEdgeProperties(): Array<[string, SinapType]> {
-        return [];
+    get(property: string) {
+        return this.backerObject[property];
     }
-
-    getNodeComputedProperties(): Array<[string, SinapType, (entity: PropertiedEntity) => void]> {
-        return [];
-    }
-
-    getEdgeComputedProperties(): Array<[string, SinapType, (entity: PropertiedEntity) => void]> {
-        return [];
-    }
-
-    getEntityName(entityKind: string): string {
-        return "Generic Entity";
+    set(property: string, value: any) {
+        this.backerObject[property] = value;
     }
 }
 
-class DFAPluginManager extends PluginManager {
-    getNodeProperties(): Array<[string, SinapType]> {
-        return [["Accept State", SinapBoolean],
-        ["Start State", SinapBoolean]];
-    }
 
-    getEdgeComputedProperties(): Array<[string, SinapType, (entity: PropertiedEntity) => void]> {
-        return [["Label", SinapString, (th) => (th as any)["Label"] = th.propertyValues["Symbol"]]];
+class PluginPropertyData implements Core.PluginData {
+    backer: any = {};
+    propertyList: PropertyList;
+    constructor(public type: string, types: [string, Type.Type][]) {
+        this.propertyList = new ConcretePropertyList(types, this.backer);
     }
+}
 
-    getEdgeProperties(): Array<[string, SinapType]> {
-        return [["Symbol", SinapString]];
-    }
-
-    getEntityName(entityKind: string): string {
-        switch (entityKind) {
-            case "Node":
-                return "State";
-            default:
-                return "Graph";
+class DFAPlugin implements Core.Plugin {
+    kind = "dfa.sinap.graph-kind";
+    validator = {
+        isValidEdge(t: string, src: string, dst: string) {
+            return true;
         }
     }
+
+    nodeTypes = ["DFA Node"];
+    edgeTypes = ["DFA Edge"];
+
+    graphPluginData() {
+        return new PluginPropertyData("Graph", []);
+    }
+    nodePluginData(type: string) {
+        return new PluginPropertyData(type, [
+            ["Start State", Type.Boolean],
+            ["Accept State", Type.Boolean],
+        ]);
+    }
+    edgePluginData(type: string) {
+        return new PluginPropertyData(type, []);
+    };
 }
 
-class MachineLearningPluginManager extends PluginManager {
-    getNodeProperties(): Array<[string, SinapType]> {
-        switch (this.activeNodeType) {
+
+
+
+class MLPlugin implements Core.Plugin {
+    kind = "machine-learning.sinap.graph-kind";
+    nodeTypes = ["Input", "Fully Connected", "Conv2D", "Max Pooling", "Reshape", "Output"];
+    edgeTypes = ["Connection"];
+
+    validator = {
+        isValidEdge(t: string, src: string, dst: string) {
+            return true;
+        }
+    }
+
+    graphPluginData() {
+        return new PluginPropertyData("Graph", []);
+    }
+
+    nodePluginData(type: string) {
+        return new PluginPropertyData(type, this.nodePluginDataHelper(type));
+    }
+
+    private nodePluginDataHelper(type: string): [string, Type.Type][] {
+        switch (type) {
             case "Input":
-                return [["shape", SinapString]];
+                return [["shape", Type.String]];
             case "Fully Connected":
                 return [];
             case "Conv2D":
-                return [["stride", new SinapStructType(new Map([["y", SinapNumber], ["x", SinapNumber]]))],
-                ["output depth", SinapNumber]];
+                return [["stride", new Type.StructType(new Map([["y", Type.Number], ["x", Type.Number]]))],
+                ["output depth", Type.Number]];
             case "Max Pooling":
-                return [["size", new SinapStructType(new Map([["y", SinapNumber], ["x", SinapNumber]]))]];
+                return [["size", new Type.StructType(new Map([["y", Type.Number], ["x", Type.Number]]))]];
             case "Reshape":
-                return [["shape", SinapString]];
+                return [["shape", Type.String]];
             case "Output":
                 return [];
             default:
-                return [["beta", SinapBoolean]];
+                return [["beta", Type.Boolean]];
         }
     }
 
-    getEntityName(entityKind: string): string {
-        switch (entityKind) {
-            case "Node":
-                return this.activeNodeType;
-            default:
-                return "Graph";
-        }
-    }
+    edgePluginData(type: string) {
+        return new PluginPropertyData("Edge", []);
+    };
 
-    getNodeComputedProperties(): Array<[string, SinapType, (entity: PropertiedEntity) => void]> {
-        return [["Label", SinapString,
-            (th: PropertiedEntity) => {
-                let contentString = "";
-                switch (th.entityName) {
-                    case "Input":
-                        contentString = "Shape: " + th.propertyValues["shape"];
-                        break;
-                    case "Output":
-                    case "Fully Connected":
-                        break;
-                    case "Conv2D":
-                        contentString = "Stride: (" + th.propertyValues["stride"].x + ", " + th.propertyValues["stride"].y + ")\nOutput Depth: " + th.propertyValues["output depth"];
-                        break;
-                    case "Max Pooling":
-                        contentString = "Size: (" + th.propertyValues["size"].x + ", " + th.propertyValues["size"].y + ")";
-                        break;
-                    case "Reshape":
-                        contentString = "Shape: " + th.propertyValues["shape"];
-                        break;
-                    default:
-                        break;
-                }
+    // getNodeComputedProperties(): Array<[string, Type.Type, (entity: PropertiedEntity) => void]> {
+    //     return [["Label", Type.String,
+    //         (th: PropertiedEntity) => {
+    //             let contentString = "";
+    //             switch (th.entityName) {
+    //                 case "Input":
+    //                     contentString = "Shape: " + th.pluginProperties.get("shape");
+    //                     break;
+    //                 case "Output":
+    //                 case "Fully Connected":
+    //                     break;
+    //                 case "Conv2D":
+    //                     contentString = "Stride: (" + th.pluginProperties.get("stride").x + ", " + th.pluginProperties.get("stride").y + ")\nOutput Depth: " + th.pluginProperties.get("output depth");
+    //                     break;
+    //                 case "Max Pooling":
+    //                     contentString = "Size: (" + th.pluginProperties.get("size").x + ", " + th.pluginProperties.get("size").y + ")";
+    //                     break;
+    //                 case "Reshape":
+    //                     contentString = "Shape: " + th.pluginProperties.get("shape");
+    //                     break;
+    //                 default:
+    //                     break;
+    //             }
 
-                return (th as any)["Label"] = th.entityName + "\n" + contentString;
-            }]];
-    }
+    //             return (th as any)["Label"] = th.entityName + "\n" + contentString;
+    //         }]];
+    // }
 }
 
 @Injectable()
@@ -128,8 +134,8 @@ export class PluginService {
     private interpretCode: Script;
     private runInputCode: Script;
 
-    constructor(@Inject(FileService) private fileService: FileService, 
-        @Inject(SandboxService) private sandboxService: SandboxService ) 
+    constructor(@Inject(FileService) private fileService: FileService,
+        @Inject(SandboxService) private sandboxService: SandboxService )
     {
         this.interpretCode = sandboxService.compileScript('sinap.__program = module.interpret(sinap.__graph)');
         // TODO: Make sure that there is nothing weird about the output returned from the plugin
@@ -137,8 +143,8 @@ export class PluginService {
         this.runInputCode = sandboxService.compileScript('sinap.__program(sinap.__input)');
     }
 
-    public getInterpreter(withGraph: GUIGraph): Promise<Program> {
-        let kind = withGraph.pluginManager.kind;
+    public getInterpreter(withGraph: Core.Graph): Promise<Program> {
+        let kind = withGraph.plugin.kind;
         let context = this.interpreters.get(kind);
         let graph = new InterpreterGraph(withGraph);
         var result: Promise<Program>;
@@ -170,14 +176,15 @@ export class PluginService {
         });
     }
 
-    public getManager(kind: string) {
-        if (kind == "machine-learning.sinap.graph-kind") {
-            return new MachineLearningPluginManager(kind);
-        } else if (kind == "dfa.sinap.graph-kind") {
-            return new DFAPluginManager(kind);
+    public getPlugin(kind: string) {
+        switch (kind) {
+            case "dfa.sinap.graph-kind":
+                return new DFAPlugin();
+            case "machine-learning.sinap.graph-kind":
+                return new MLPlugin();
+            default:
+                throw new Error("Unsupported Filetype");
         }
-
-        throw new Error("Plugin Manager " + kind + " is not available.")
     }
 
     private loadPlugin(kind: string, interpreterFile: string): Promise<Context> {

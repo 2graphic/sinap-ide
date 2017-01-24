@@ -1,5 +1,14 @@
-import { Graph as GUIGraph} from '../models/graph'
-import * as Type from "./types"
+import * as Core from '../models/core'
+import * as Type from '../models/types'
+
+/**
+ * Indicates an error during compilation of a graph. This is a class instead of an interface so that it can be discovered through instanceof.
+ */
+export class InterpreterError {
+    constructor(readonly message: string) {
+    }
+}
+
 /**
  * Types which can be used for program input.
  */
@@ -11,7 +20,7 @@ export type ProgramOutput = string | boolean;
 /**
  * Represents a function which converts graphs into programs or else returns an error that has toString.
  */
-export type Interpreter = (graph: InterpreterGraph) => Promise<Program>; 
+export type Interpreter = (graph: InterpreterGraph) => Promise<Program>;
 
 /**
  * This interface is to be used for debugging support and is expected to maintain mutable state.
@@ -25,7 +34,7 @@ export interface RunningProgram {
     /**
      * Gets the result of the computation after the program completes. Behavior is undefined if called when isComplete is false.
      */
-    result: [any, Type.SinapType] | null;
+    result: [any, Type.Type] | null;
     /**
      * Performs one unit of work in the forward direction. Advanced debugging support should be provided elsewhere (such as step over or continue).
      */
@@ -37,7 +46,7 @@ export interface RunningProgram {
     /**
      * Retrieves the value of a property enumerated in debugProperties.
      */
-    getDebugValue(property: string): [any, Type.SinapType];
+    getDebugValue(property: string): [any, Type.Type];
 }
 
 /**
@@ -68,7 +77,7 @@ function fillInProgram(program: any): Promise<Program> {
         let error = "Program must have either a run method or debugging support.";
 
         if (!program.run && !program.initDebugging) {
-            return error; 
+            return error;
         }
 
         if (!program.run) {
@@ -96,6 +105,6 @@ function fillInProgram(program: any): Promise<Program> {
  * This class is still in progress. Presumably, the InterpreterGraph will have different needs from the GUIGraph. TODO: Actually make this different.
  */
 export class InterpreterGraph {
-    public constructor(readonly graph: GUIGraph) {
+    public constructor(readonly graph: Core.Graph) {
     }
 }

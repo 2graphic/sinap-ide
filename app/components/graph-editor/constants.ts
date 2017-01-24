@@ -10,7 +10,7 @@
 //
 
 
-import { DrawableEdge, DrawableNode } from "./drawable-interfaces";
+import { DrawableEdge, DrawableNode, LineStyles } from "./drawable-interfaces";
 
 
 /**
@@ -81,24 +81,11 @@ export const NUDGE: number = 3;
 export const STICKY_DELAY: number = 500;
 
 /**
- * COS_150  
- *   Used in the rotation matrix for drawing edge arrows.
- */
-export const COS_150: number = Math.cos(5 * Math.PI / 6);
-
-/**
- * SIN_150  
- *   Used in the rotation matrix for drawing edge arrows.
- */
-export const SIN_150: number = Math.sin(5 * Math.PI / 6);
-
-/**
  * NODE_DEFAULTS  
  *   Default property values for drawable nodes.
  */
 export const NODE_DEFAULTS: DrawableNode = {
-    x: 0,
-    y: 0,
+    position: { x: 0, y: 0 },
     label: "",
     shape: "circle",
     color: "#fff200",
@@ -147,7 +134,7 @@ export const EDGE_HIT_MARGIN: number = 20;
  * EDGE_DRAG_LINESTYLE  
  *   Linestyle for dragging an edge.
  */
-export const EDGE_DRAG_LINESTYLE: string = "dotted";
+export const EDGE_DRAG_LINESTYLE: LineStyles = "dotted";
 
 /**
  * EDGE_DEFAULTS  

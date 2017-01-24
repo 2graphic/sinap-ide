@@ -28,8 +28,8 @@ export function interpret(igraph: any): Promise<any> {
 
         alphabet.add(sym);
 
-        let src = nodes.indexOf(edge.propertyValues["Source"]);
-        let dst = nodes.indexOf(edge.propertyValues["Destination"]);
+        let src = nodes.indexOf(edge.drawableProperties.get("Source"));
+        let dst = nodes.indexOf(edge.drawableProperties.get("Destination"));
 
         if (src == -1 || dst == -1) {
             return reject("Unknown node referenced");
@@ -46,13 +46,13 @@ export function interpret(igraph: any): Promise<any> {
     accept_states = new Set<number>();
 
     for (let n of nodes) {
-        if (coerceBoolean(n.propertyValues["Start State"])) {
+        if (coerceBoolean(n.pluginProperties.get("Start State"))) {
             if (start_state != null) {
                 reject("Too many start states.");
             }
             start_state = nodes.indexOf(n);
         }
-        if (coerceBoolean(n.propertyValues["Accept State"])) {
+        if (coerceBoolean(n.pluginProperties.get("Accept State"))) {
             accept_states.add(nodes.indexOf(n));
         }
     }

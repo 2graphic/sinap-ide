@@ -49,6 +49,11 @@ input {
     height: 100%;
 }
 
+input[type="checkbox"]{
+    width: auto;
+    height: auto;
+}
+
 .label {
     padding-left: .75em;
     vertical-align: middle;
