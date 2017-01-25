@@ -6,7 +6,7 @@
 
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 import { LineStyles, Shapes } from "../components/graph-editor/graph-editor.component";
-import * as Type from "./types";
+import * as Type from "../types/types";
 
 
 export interface PluginData {
@@ -43,10 +43,10 @@ class Element implements PropertiedEntity {
 }
 
 export class Graph extends Element {
-    @DrawableProperty("Nodes", new Type.ListType(Type.Node))
+    @DrawableProperty("Nodes", Type.parseType("List<Node>"))
     public nodes: Node[] = [];
 
-    @DrawableProperty("Edges", new Type.ListType(Type.Edge))
+    @DrawableProperty("Edges", Type.parseType("List<Edge>"))
     public edges: Edge[] = [];
 
     public pluginData: PluginData;

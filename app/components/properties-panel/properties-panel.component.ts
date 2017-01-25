@@ -4,7 +4,7 @@
 
 
 import { Component, SimpleChanges, Output, EventEmitter } from "@angular/core";
-import * as Type from "../../models/types";
+import * as Type from "../../types/types";
 
 @Component({
     selector: "sinap-properties-panel",

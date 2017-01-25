@@ -12,6 +12,7 @@
     "clean": "rm -r ./build 2> /dev/null || echo > /dev/null && rm -r ./dist 2> /dev/null || echo > /dev/null",
     "clean:node_modules": "npm run clean && rm -r ./node_modules 2> /dev/null || echo > /dev/null",
     "webpack": "webpack --progress --profile --colors --display-error-details --display-cached",
+     "peg": "pegjs --allowed-start-rules Definitions,Type --dependency \"./type-structures\" app/types/type-parser.pegjs && mv app/types/type-parser.js app/types/type-parser-inner.js && sed -i \"\" 's/^var \\.\\/type-structures/var types/' app/types/type-parser-inner.js",
     "format": "tsfmt -r",
     "prebuild": "mkdir build > /dev/null || echo > /dev/null && mkdir dist > /dev/null || echo > /dev/null && npm install",
     "build": "npm run prebuild && npm run format && npm run webpack",

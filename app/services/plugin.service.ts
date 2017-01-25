@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { dfaInterpreter } from '../interpreters/dfa-interpreter';
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 
-import * as Type from "../models/types";
+import * as Type from "../types/types";
 import * as Core from '../models/core'
 import { Program, InterpreterError, InterpreterGraph } from "../models/plugin"
 
@@ -81,10 +81,10 @@ class MLPlugin implements Core.Plugin {
             case "Fully Connected":
                 return [];
             case "Conv2D":
-                return [["stride", new Type.StructType(new Map([["y", Type.Number], ["x", Type.Number]]))],
+                return [["stride", Type.Point],
                 ["output depth", Type.Number]];
             case "Max Pooling":
-                return [["size", new Type.StructType(new Map([["y", Type.Number], ["x", Type.Number]]))]];
+                return [["size", Type.Point]];
             case "Reshape":
                 return [["shape", Type.String]];
             case "Output":
