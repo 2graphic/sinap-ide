@@ -3,7 +3,7 @@ import { PropertiedEntity, PropertyList } from "../components/properties-panel/p
 
 import * as Type from "../models/types";
 import * as Core from '../models/core'
-import { Program, InterpreterError, InterpreterGraph, ProgramInput, ProgramOutput } from "../models/plugin"
+import { Program, InterpreterError, Graph, ProgramInput, ProgramOutput } from "../models/plugin"
 import { Context, SandboxService, Script } from "../services/sandbox.service"
 import { FileService } from "../services/files.service"
 
@@ -140,13 +140,13 @@ export class PluginService {
         this.interpretCode = sandboxService.compileScript('sinap.__program = module.interpret(sinap.__graph)');
         // TODO: Make sure that there is nothing weird about the output returned from the plugin
         // (such as an infinite loop for toString). Maybe make sure that it is JSON only?
-        this.runInputCode = sandboxService.compileScript('sinap.__program(sinap.__input)');
+        this.runInputCode = sandboxService.compileScript('sinap.__program.then((program) => program.run(sinap.__input))');
     }
 
     public getInterpreter(withGraph: Core.Graph): Promise<Program> {
         let kind = withGraph.plugin.kind;
         let context = this.interpreters.get(kind);
-        let graph = new InterpreterGraph(withGraph);
+        let graph = new Graph(withGraph);
         var result: Promise<Program>;
 
         let processContext = (context: any): Promise<Program> => {

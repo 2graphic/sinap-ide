@@ -1,4 +1,5 @@
-declare var Interpreter: any, InterpreterGraph: any, Program: any, ProgramInput: any, ProgramOutput: any, RunningProgram: any, Graph: any;
+declare var Interpreter: any, InterpreterGraph: any, Program: any, ProgramInput: any, ProgramOutput: any, RunningProgram: any;
+//import { Graph, Node, Edge } from "../app/models/plugin";
 
 /* global interpret */
 
@@ -6,104 +7,84 @@ function coerceBoolean(s: any) {
     return !!s && s != "false" && s != "0" && s != "f" && s != "no";
 }
 
+function isAccepted(node: any): boolean {
+    return node['Accept State'];
+}
+
 /**
  * This function compiles a DFA.
  */
-export function interpret(igraph: any): Promise<any> {
+export function interpret(graph: any): Promise<any> {
     return new Promise((resolve, reject) => {
-    let graph = igraph.graph;
-    let nodes = [...graph._nodes];
     let alphabet = new Set<string>();
-    let transitions = new Map<number, Map<string, number>>();
-    let accept_states = new Set<number>();
+    let acceptStates = [];
+    var startState: Node | null = null;
 
-    var start_state: number | null = null;
-
-    for (let edge of graph._edges) {
-        let sym: string = edge.propertyValues['Label'];
+    for (let edge of graph.edges) {
+        let sym: string = edge.Label;
         if (sym.length != 1) {
-            reject("Symbols must be one character");
-            return;
+            return reject("Symbols must be one character");
         }
-
         alphabet.add(sym);
-
-        let src = nodes.indexOf(edge.drawableProperties.get("Source"));
-        let dst = nodes.indexOf(edge.drawableProperties.get("Destination"));
-
-        if (src == -1 || dst == -1) {
-            return reject("Unknown node referenced");
-        }
-
-        let map2 = transitions.get(src);
-        if (!map2) {
-            map2 = new Map<string, number>();
-            transitions.set(src, map2);
-        }
-        map2.set(sym, dst);
     }
 
-    accept_states = new Set<number>();
-
-    for (let n of nodes) {
-        if (coerceBoolean(n.pluginProperties.get("Start State"))) {
-            if (start_state != null) {
-                reject("Too many start states.");
+    for (let node of graph.nodes) {
+        if (node["Start State"]) {
+            if (startState != null) {
+                return reject("Too many start states.");
             }
-            start_state = nodes.indexOf(n);
+            startState = node;
         }
-        if (coerceBoolean(n.pluginProperties.get("Accept State"))) {
-            accept_states.add(nodes.indexOf(n));
+        if (isAccepted(node)) {
+            acceptStates.push(node);
+        }
+        let symbols = node.Children.map((edge: any) => edge.Label);
+        let uniqueSymbols = new Set(symbols);
+        if (symbols.length !== uniqueSymbols.size) {
+            return reject("This interpreter does not handle NFAs. Non-unique edge label detected.");
         }
     }
 
-    if (start_state == null) {
-        reject("No start state.");
-        return;
-    } else if (accept_states.size == 0) {
-        reject("No accept states.");
-        return;
+    if (startState == null) {
+        return reject("No start state.");
+    } else if (acceptStates.length == 0) {
+        return reject("No accept states.");
     }
 
     let alphabetString = [...alphabet.values()];
     alphabetString.sort();
     let compilationMessage = "Alphabet: " + alphabetString.join(" ");
     let messages: [string] = ["DFA", compilationMessage];
-    return new DFAProgram(messages, transitions, start_state, accept_states);
+    return resolve(new DFAProgram(messages, startState));
     });
 }
 
 class DFAProgram {
-    constructor(readonly compilationMessages: [string],
-        private transitions: Map<number, Map<string, number>>,
-        private start_state: number,
-        private accept_states: Set<number>) {
+    constructor(readonly compilationMessages: [string], private startState: Node) {
     }
 
     // TODO: Implement debugging.
 
-    run(input: any): Promise<any> {
+    run(input: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            resolve(this.interpret(this.transitions, this.start_state, this.accept_states, input));
-        });
-    }
+            let current: any = this.startState;
+            for(const symbol of input) {
+                // TODO: Maybe build a state table for each node for efficiency.
+                let destinations = current.Children
+                    .filter((edge: any) => edge.Label === input)
+                    .map((edge: any) => edge.Destination);
+                if (destinations.length == 1) {
+                    current = destinations[0];
+                    break;
+                } else if (destinations.length == 0) {
+                    return resolve(false);
+                } else {
+                    // TODO: Add support for NFA.
+                    return reject("This is a DFA!");
+                }
+            }
 
-    interpret<Sym, Sta>(transitions: Map<Sta, Map<Sym, Sta>>,
-        start_state: Sta,
-        accept_states: Set<Sta>,
-        input: Iterable<Sym>) {
-        let state = start_state;
-        for (const symbol of input) {
-            let destinations = transitions.get(state);
-            if (!destinations) {
-                return false;
-            }
-            let state_maybe = destinations.get(symbol);
-            if (!state_maybe) {
-                return false;
-            }
-            state = state_maybe;
-        }
-        return accept_states.has(state);
+            return resolve(true);
+        });
     }
 }

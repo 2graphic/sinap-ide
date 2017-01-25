@@ -20,7 +20,7 @@ export type ProgramOutput = string | boolean;
 /**
  * Represents a function which converts graphs into programs or else returns an error that has toString.
  */
-export type Interpreter = (graph: InterpreterGraph) => Promise<Program>;
+export type Interpreter = (graph: Graph) => Promise<Program>;
 
 /**
  * This interface is to be used for debugging support and is expected to maintain mutable state.
@@ -101,10 +101,69 @@ function fillInProgram(program: any): Promise<Program> {
     });
 }
 
+export interface Node {
+    Label: string;
+    Parents: Edge[];
+    Children: Edge[];
+    [propName: string]: any;
+}
+
+// TODO: Consider capitalization here after typechecker is built.
+export interface Edge {
+    Label: string;
+    Source: Node;
+    Destination: Node;
+    [propName: string]: any;
+}
+
 /**
  * This class is still in progress. Presumably, the InterpreterGraph will have different needs from the GUIGraph. TODO: Actually make this different.
  */
-export class InterpreterGraph {
+export class Graph {
+    nodes: Node[];
+    edges: Edge[];
     public constructor(readonly graph: Core.Graph) {
+        const nodes = new Map<Core.Node, Node>();
+        for(const guiNode of graph.nodes) {
+            let result: any = {
+                Label: guiNode.label,
+                Parents: [],
+                Children: []
+            };
+            for(const [key, _] of guiNode.pluginProperties.properties) {
+                const value = guiNode.pluginProperties.get(key);
+                result[key] = value;
+            }
+            nodes.set(guiNode, result);
+        }
+        const getNode = (edge: Core.Edge, isSource: boolean): Node => {
+            const guiNode = isSource? edge.source : edge.destination;
+            return nodes.get(guiNode) as Node;
+        }
+
+        const edges: Edge[] = graph.edges.map((guiEdge) => {
+            let source = getNode(guiEdge, true);
+            let dest = getNode(guiEdge, false);
+
+            const result: any = {
+                Label: guiEdge.label,
+                Source: source,
+                Destination: dest
+            };
+
+            for(const [key, _] of guiEdge.pluginProperties.properties) {
+                const value = guiEdge.pluginProperties.get(key);
+                result[key] = value;
+            }
+
+            source.Children.push(result);
+            dest.Parents.push(result);
+            return result;
+        });
+
+        this.nodes = [...nodes.values()];
+        this.edges = edges;
+        if (this.nodes.length > 0)
+            console.log(this.nodes[0]['Start State']);
     }
 }
