@@ -32,8 +32,8 @@ List = "List<" _ t:Type _ ">" {
 }
 
 // literal: (t1, t2, ...)
-Tuple = "(" types:TypeList ")" {
-	return new types.TupleType(types);
+Tuple = "(" ts:TypeList ")" {
+	return new types.TupleType(ts);
 }
 
 // literal: enum {S1, S2, S3...}

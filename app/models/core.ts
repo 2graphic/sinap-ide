@@ -75,6 +75,9 @@ export class Graph extends Element {
     @DrawableProperty("Background", Type.Color)
     backgroundColor = "#ffffff";
 
+    @DrawableProperty("Example Tuple", Type.parseType("(String, Number)"))
+    exampleTuple = ["hello", 10];
+
     constructor(public plugin: Plugin) {
         super(plugin.graphPluginData());
     }

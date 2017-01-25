@@ -36,8 +36,16 @@
                         <div *ngSwitchCase="'String'">
                             <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="text" class="text-input"/>
                         </div>
-                        <div *ngSwitchDefault> 
-                            <!-- default -->
+
+                        <div *ngSwitchCase="'List'">
+                            List<{{pair[1].type}}>
+                        </div>
+
+                        <div *ngSwitchCase="'Tuple'">
+                            (<span *ngFor="let t of pair[1].types">{{t}}, </span>)
+                        </div>
+
+                        <div *ngSwitchCase="'Class'">
                             <template [ngIf]="pair[1].subtype(Type.Point)">
                                 <input [ngModel]="selectedEntity[group[1]].get(pair[0]).x" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event, ['x'])" type="number" placeholder="x" step="0.1"
                                     class="text-input tuple-input"/>
@@ -50,8 +58,11 @@
                                     {{selectedEntity[group[1]].get(pair[0]).drawableProperties.get('Label')}}
                                 </label>
                             </template>
-
                             <!-- add neither case-->
+                        </div>
+                        <div *ngSwitchDefault> 
+                            <!-- default -->
+                            N/A
                         </div>
                     </td>
                 </tr>
