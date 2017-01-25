@@ -15,6 +15,8 @@ export class PropertiesPanelComponent {
     public selectedEntity: PropertiedEntity | null = null;
     public console = console;
 
+    Type = Type
+
     @Output() propertyChanged = new EventEmitter();
 
     // TODO: 

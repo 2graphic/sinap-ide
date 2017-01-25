@@ -18,13 +18,6 @@
                         <div *ngSwitchCase="'Boolean'">
                             <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="checkbox" />
                         </div>
-                        <!-- TODO: Node is no longer a ".kind" need different way to figure
-                        this out-->
-                        <div *ngSwitchCase="'Node'">
-                            <label class="node-label">
-                                {{selectedEntity[group[1]].get(pair[0]).drawableProperties.get('Label')}}
-                            </label>
-                        </div>
                         <div *ngSwitchCase="'Enum'">
                             <select [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)">
                                 <option *ngFor="let lit of pair[1].literals" [ngValue]="lit">{{lit}}</option>
@@ -33,12 +26,6 @@
                         <div *ngSwitchCase="'File'">
                             <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="file" />
                         </div>
-                        <div *ngSwitchCase="'Class'">
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0]).x" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event, ['x'])" type="number" placeholder="x" step="0.1"
-                                class="text-input tuple-input"/>
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0]).y" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event, ['y'])" type="number" placeholder="y" step="0.1"
-                            class="text-input tuple-input"/>
-                        </div>
                         <div *ngSwitchCase="'Color'">
                             <label class="color-label" for="property{{pair[0]}}">
                                 <span class="color-preview" [style.background-color]="selectedEntity[group[1]].get(pair[0])"></span>
@@ -46,10 +33,25 @@
                                 <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" id="property{{pair[0]}}" type="color" class="color-input"/>
                             </label>
                         </div>
+                        <div *ngSwitchCase="'String'">
+                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="text" class="text-input"/>
+                        </div>
                         <div *ngSwitchDefault> 
-                            <!-- default or 'string' -->
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="text" 
-                                class="text-input"/>
+                            <!-- default -->
+                            <template [ngIf]="pair[1].subtype(Type.Point)">
+                                <input [ngModel]="selectedEntity[group[1]].get(pair[0]).x" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event, ['x'])" type="number" placeholder="x" step="0.1"
+                                    class="text-input tuple-input"/>
+                                <input [ngModel]="selectedEntity[group[1]].get(pair[0]).y" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event, ['y'])" type="number" placeholder="y" step="0.1"
+                                class="text-input tuple-input"/>
+                            </template>
+
+                            <template [ngIf]="pair[1].subtype(Type.Node)">
+                                <label  class="node-label">
+                                    {{selectedEntity[group[1]].get(pair[0]).drawableProperties.get('Label')}}
+                                </label>
+                            </template>
+
+                            <!-- add neither case-->
                         </div>
                     </td>
                 </tr>
