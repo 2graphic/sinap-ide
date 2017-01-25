@@ -56,9 +56,9 @@ types.ts defines `parseScope` and `parseType`. You should import types.ts most o
 ```TypeScript
 Type.parseType("List<Number>")
 
-# Anonomous class that inherits from A, before using
-# this, we'd need to feed it a scope containing A or it would
-# crash when we validate a type
+// Anonomous class that inherits from A, before using
+// this, we'd need to feed it a scope containing A or it would
+// crash when we validate a type
 Type.parseType("class A { a : String }")
 ```
 
