@@ -1,6 +1,12 @@
 import * as Structure from "./type-structures";
 
+///////
+/// Wrap up ./type-parser-inner.js
+///////
+
 const tpi = require("./type-parser-inner.js");
+
+// type defintion for the kind of exception thrown by the parser
 type SyntaxError = {
     message: string;
     expected: { ignoreCase: boolean, test: string, type: string }[];
@@ -8,13 +14,28 @@ type SyntaxError = {
     location: { start: location, end: location };
     name: "SyntaxError";
 }
+type location = { column: number, line: number, offset: number };
+
+/**
+ * Check whther an exception is a syntax error
+ **/
+export function isSyntaxError(e: any): e is SyntaxError {
+    return e.name && e.name === "SyntaxError";
+}
+
 
 export { Type, TypeScope } from "./type-structures";
 
+/*
+ * Parse a scope literal on its own
+ */
 export function parseScopeRaw(str: string): Structure.TypeScope {
     return tpi.parse("{" + str + "}", { startRule: "Definitions" });
 }
 
+/*
+ * Parse a scope literal either in the default scope or in `inject`
+ */
 export function parseScope(str: string, inject?: Structure.TypeScope): Structure.TypeScope {
     if (inject === undefined) {
         inject = builtins;
@@ -22,9 +43,16 @@ export function parseScope(str: string, inject?: Structure.TypeScope): Structure
     return parseScopeRaw(str).feed(inject);
 }
 
+/*
+ * Parse a type literal on its own
+ */
 export function parseTypeRaw(str: string): Structure.Type {
     return tpi.parse(str, { startRule: "Type" });
 }
+
+/*
+ * Parse a type literal either in the default scope or in `inject`
+ */
 export function parseType(str: string, inject?: Structure.TypeScope): Structure.Type {
     if (inject === undefined) {
         inject = builtins;
@@ -32,12 +60,9 @@ export function parseType(str: string, inject?: Structure.TypeScope): Structure.
     return parseTypeRaw(str).feed(inject.definitions);
 }
 
-export function isSyntaxError(e: any): e is SyntaxError {
-    return e.name && e.name === "SyntaxError";
-}
-
-type location = { column: number, line: number, offset: number };
-
+/**
+ * List of all primitive types
+ **/
 export const String = new Structure.PrimitiveType("String");
 export const File = new Structure.PrimitiveType("File");
 export const Number = new Structure.PrimitiveType("Number");
@@ -51,8 +76,12 @@ const primitives = new Structure.TypeScope(new Map<string, Structure.Type>([
     ["Color", Color],
     ["Integer", Integer],
     ["Boolean", Boolean],
+    ["File", File],
 ]));
 
+/**
+ * Exported scope containing all "Builtin" types
+ **/
 export const builtins = parseScopeRaw(`
 Point = class {
 	x: Number
@@ -83,6 +112,9 @@ for (const [name, type] of primitives.definitions) {
     builtins.definitions.set(name, type);
 }
 
+/**
+ * Allow for easy imports of builtins.
+ **/
 export const Point = builtins.definitions.get("Point") as Structure.ClassType;
 export const Graph = builtins.definitions.get("Graph") as Structure.ClassType;
 export const Node = builtins.definitions.get("Node") as Structure.ClassType;

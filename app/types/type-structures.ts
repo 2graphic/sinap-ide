@@ -1,8 +1,46 @@
+/**
+ * Main interface for all types
+ */
 export interface Type {
+    /**
+     * Return whether `this` is a subtype of `that`, in the case of variables this
+     * function can add some constraints on `this` to make it allowed to return 
+     * true.
+     *
+     * If `that.rsubtype` is defined, you should probably call it first to be nice to
+     * variables. 
+     * TODO: find a better way to enforce this.
+     **/
     subtype(that: Type): boolean;
+
+    /*
+     * Is `that` a subtype of `this`
+     */
     rsubtype?(that: Type): boolean;
+
+    /*
+     * Return a new version of this type in the context 
+     * of types
+     * this probably means just passing it to all inner types
+     * and replacing them with the values they return
+     * unless this is a variable.
+     *
+     * TODO: consider making everything return a copy
+     * most mutate right now
+     */
     feed(types: Map<string, Type>): Type;
+
+    /*
+     * Determine whether `this` is "valid"
+     * things like invalid overrides should throw a descriptive error message here
+     * mostly only used by ClassType. Needs to happen after all feeds
+     * also always throws `PREFIX+": free variable"` it it encounters a variable
+     */
     validate(): void;
+
+    /*
+     * A textual name for the type
+     */
     kind: string;
 }
 
