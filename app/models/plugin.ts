@@ -117,7 +117,10 @@ export interface Edge {
 }
 
 /**
- * This class is still in progress. Presumably, the InterpreterGraph will have different needs from the GUIGraph. TODO: Actually make this different.
+ * This class is the graph presented to the user. For convenience of reading this data structure, there are duplicate
+ * and cyclical references. The constructor guarantees that these are consistent, but any changes after construction
+ * should be done in a consistent fashion. TODO: Make mutator methods for plugins to utilize once mutation of the graph
+ * during interpretation is added.
  */
 export class Graph {
     nodes: Node[];
