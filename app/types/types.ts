@@ -9,7 +9,7 @@ type SyntaxError = {
     name: "SyntaxError";
 }
 
-export { Type } from "./type-structures";
+export { Type, TypeScope } from "./type-structures";
 
 export function parseScopeRaw(str: string): Structure.TypeScope {
     return tpi.parse("{" + str + "}", { startRule: "Definitions" });

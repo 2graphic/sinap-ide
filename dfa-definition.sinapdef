@@ -1,0 +1,9 @@
+DFANode = class Node {
+	StartState : Boolean
+	AcceptState : Boolean
+}
+
+DFAGraph = class Graph {
+	ExampleTuple : (Number, Color)
+	StartState : Node
+}

@@ -131,6 +131,45 @@ class MLPlugin implements Core.Plugin {
 export class PluginService {
     constructor() { }
 
+    // TODO: eventually this will be private
+    public loadPluginTypeDefinitions(src: string)
+        : { all: Map<string, Type.Type>, nodes: Type.Type[], edges: Type.Type[], graphs: Type.Type[] } {
+
+        const scope = Type.parseScope(src);
+        scope.validate();
+
+        const nodes: Type.Type[] = [];
+        const edges: Type.Type[] = [];
+        const graphs: Type.Type[] = [];
+
+        for (const value of scope.definitions.values()) {
+            if (value.subtype(Type.Node)) {
+                nodes.push(value);
+            }
+            if (value.subtype(Type.Edge)) {
+                edges.push(value);
+            }
+            if (value.subtype(Type.Graph)) {
+                graphs.push(value);
+            }
+        }
+
+        if (nodes.length < 1) {
+            nodes.push(Type.Node);
+        }
+
+        if (edges.length < 1) {
+            edges.push(Type.Edge);
+        }
+
+        if (graphs.length < 1) {
+            graphs.push(Type.Graph);
+        }
+
+        return { all: scope.definitions, nodes: nodes, edges: edges, graphs: graphs };
+    }
+
+
     public getInterpreter(withGraph: Core.Graph): Program | InterpreterError {
         switch (withGraph.plugin.kind) {
             case "dfa.sinap.graph-kind":
