@@ -3,10 +3,6 @@ declare var Interpreter: any, InterpreterGraph: any, Program: any, ProgramInput:
 
 /* global interpret */
 
-function coerceBoolean(s: any) {
-    return !!s && s != "false" && s != "0" && s != "f" && s != "no";
-}
-
 function isAccepted(node: any): boolean {
     return node['Accept State'];
 }
