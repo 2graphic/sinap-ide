@@ -25,6 +25,9 @@ import { FileService } from "../../services/files.service";
 import { SerializerService } from "../../services/serializer.service";
 import { SandboxService } from "../../services/sandbox.service";
 
+// TODO: remove
+import { isSyntaxError } from "../../types/types"
+
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
@@ -34,6 +37,18 @@ import { SandboxService } from "../../services/sandbox.service";
 
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private fileService: FileService, private serializerService: SerializerService, private changeDetectorRef: ChangeDetectorRef) {
+        this.fileService
+            .readFile("dfa-definition.sinapdef")
+            .then((data: string) => {
+                console.log(pluginService.loadPluginTypeDefinitions(data));
+            })
+            .catch((err) => {
+                if (isSyntaxError(err)) {
+                    alert(`error at: ${err.location.start.line}, ${err.location.start.column}`)
+                } else {
+                    alert(`${err}`);
+                }
+            });
     }
 
     ngOnInit(): void {

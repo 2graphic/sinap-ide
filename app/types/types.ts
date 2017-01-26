@@ -24,7 +24,7 @@ export function isSyntaxError(e: any): e is SyntaxError {
 }
 
 
-export { Type } from "./type-structures";
+export { Type, TypeScope } from "./type-structures";
 
 /*
  * Parse a scope literal on its own

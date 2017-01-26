@@ -38,6 +38,25 @@ In addition to class types, enums, tuples, lists, and primitives are supported.
 
 The full list of primitives is: `String`, `File`, `Number`, `Color`, `Integer`, and `Boolean`.
 
+### Creating types of Nodes and Edges
+
+When loading a sinapdef file, all types are checked to see if they are a subtype of `Node`, `Edge`, or `Graph`. If they are, they are added to the list of valid `Node`, `Edge`, or `Graph` types. The tool's menu allows sinap users to create instances of any of these types when editing the graph. 
+
+TODO: Implement isValidEdge to respect possible subtype arrangements
+TODO: Figure out what it means to have multiple graph types
+
+#### Example dfa.sinapdef file:
+
+    DFANode = class Node {
+        StartState : Boolean
+        AcceptState : Boolean
+    }
+    
+    DFAGraph = class Graph {
+        ExampleTuple : (Number, Color)
+        StartState : Node
+    }
+
 ## Implementation
 
 ### type-parser.pegjs and type-parser-inner.js

@@ -58,6 +58,12 @@ export class TypeScope {
         }
         return this;
     }
+
+    validate() {
+        for (const type of this.definitions.values()) {
+            type.validate();
+        }
+    }
 }
 
 export class TypeVariable implements Type {

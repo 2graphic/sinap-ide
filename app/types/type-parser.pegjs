@@ -16,7 +16,7 @@ Type = Class / Tuple / List / Enum / Reference
 //     f2: ft2
 //     ....	
 // }
-Class = "class" _ conformsTo:ClassTypeList ? _ "{" fields:FieldList * "}" {
+Class = "class" _ conformsTo:ClassTypeList ? _ "{" _ fields:FieldList * "}" {
 	return new types.ClassType(conformsTo!==null?conformsTo:[], new Map(fields));
 }
 FieldList = _ f:Field _ {
