@@ -257,6 +257,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 }
 
 class TabContext {
-    selectedDrawables = new Set<DrawableInterface>();
+    selectedItems = new Set<DrawableInterface>();
+    scale = 1;
+    origin = { x: 0, y: 0 };
     constructor(public graph: Drawable.ConcreteGraph, public filename?: String) { };
 }

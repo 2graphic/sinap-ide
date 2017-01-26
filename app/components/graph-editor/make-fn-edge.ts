@@ -9,11 +9,8 @@
 
 
 import * as CONST from "./constants";
-import * as canvas from "./canvas";
+import { GraphEditorCanvas, point } from "./canvas";
 import { DrawableEdge } from "./drawable-interfaces";
-
-
-type point = canvas.point;
 
 
 /**
@@ -21,6 +18,7 @@ type point = canvas.point;
  *   Makes a draw function for a given edge.
  */
 export function makeFnEdge(
+    canvas: GraphEditorCanvas,
     g: CanvasRenderingContext2D,
     e: DrawableEdge,
     pts: point[],
@@ -29,13 +27,13 @@ export function makeFnEdge(
     isSelected: boolean
 ): () => void {
     // Endpoints for the given edge.
-    let src: point = pts[0];
-    let dst: point = pts[1];
+    let src = pts[0];
+    let dst = pts[1];
     if (e.label.trim() !== "") {
         // Split the label into lines.
         let lines = e.label.split("\n");
         // Get the bounding box of the label.
-        let size = canvas.getTextSize(g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+        let size = canvas.getTextSize(lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
         let rect = canvas.makeRect(src, dst);
         // Get the center point of the label.
         let labelPt = pts[2];
@@ -58,11 +56,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                                canvas.drawCubicEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Quadratic
@@ -72,11 +70,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                                canvas.drawQuadraticEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Straight
@@ -85,11 +83,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                                canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                     }
@@ -107,11 +105,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
+                                canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Quadratic
@@ -121,11 +119,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
+                                canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Straight
@@ -134,11 +132,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
+                                canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                     }
@@ -156,11 +154,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
+                                canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Quadratic
@@ -170,11 +168,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                                canvas.drawQuadraticEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Straight
@@ -183,11 +181,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
+                                canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                     }
@@ -205,11 +203,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                                canvas.drawCubicEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Quadratic
@@ -219,11 +217,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                                canvas.drawQuadraticEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Straight
@@ -232,11 +230,11 @@ export function makeFnEdge(
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                                canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                     }
@@ -255,14 +253,14 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                                canvas.drawCubicEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
@@ -270,28 +268,28 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                                canvas.drawQuadraticEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                                canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -307,14 +305,14 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
+                                canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
@@ -322,28 +320,28 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
+                                canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
+                                canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -359,14 +357,14 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
+                                canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
@@ -374,28 +372,28 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, dst);
+                                canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
+                                canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -411,14 +409,14 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                                canvas.drawCubicEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
@@ -426,28 +424,28 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                                canvas.drawQuadraticEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                                canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -465,11 +463,11 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                                canvas.drawCubicEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
@@ -477,22 +475,22 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                                canvas.drawQuadraticEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                                canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -508,11 +506,11 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
+                                canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
@@ -520,22 +518,22 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
+                                canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
+                                canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -551,11 +549,11 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
+                                canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
@@ -563,22 +561,22 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, dst);
+                                canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
+                                canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -594,11 +592,11 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                                canvas.drawCubicEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
@@ -606,22 +604,22 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                                canvas.drawQuadraticEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
                                 g.fillStyle = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                                canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
                                 g.fillRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
                                 g.strokeRect(rect.x - 2, rect.y - 2, rect.w + 4, rect.h + 4);
-                                canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -641,8 +639,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Quadratic
@@ -651,8 +649,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Straight
@@ -660,8 +658,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                     }
@@ -678,8 +676,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Quadratic
@@ -688,8 +686,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Straight
@@ -697,8 +695,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                     }
@@ -715,8 +713,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Quadratic
@@ -725,8 +723,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Straight
@@ -734,8 +732,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                     }
@@ -752,8 +750,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Quadratic
@@ -762,8 +760,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                         // Straight
@@ -771,8 +769,8 @@ export function makeFnEdge(
                             return () => {
                                 g.lineJoin = "round";
                                 g.globalAlpha = 0.5;
-                                canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                                 g.globalAlpha = 1;
                             };
                     }
@@ -790,15 +788,14 @@ export function makeFnEdge(
                             let ctl2 = pts[4];
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -811,15 +808,14 @@ export function makeFnEdge(
                             let ctl = pts[3];
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -831,15 +827,14 @@ export function makeFnEdge(
                         default:
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -860,15 +855,14 @@ export function makeFnEdge(
                             let ctl2 = pts[4];
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -881,15 +875,14 @@ export function makeFnEdge(
                             let ctl = pts[3];
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                                canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -901,15 +894,14 @@ export function makeFnEdge(
                         default:
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -930,15 +922,14 @@ export function makeFnEdge(
                             let ctl2 = pts[4];
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -951,15 +942,14 @@ export function makeFnEdge(
                             let ctl = pts[3];
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
+                                canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -971,15 +961,14 @@ export function makeFnEdge(
                         default:
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -1000,15 +989,14 @@ export function makeFnEdge(
                             let ctl2 = pts[4];
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -1021,15 +1009,14 @@ export function makeFnEdge(
                             let ctl = pts[3];
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -1041,15 +1028,14 @@ export function makeFnEdge(
                         default:
                             return () => {
                                 g.lineJoin = "round";
-                                g.shadowBlur = 20 * CONST.AA_SCALE;
+                                g.shadowBlur = 20 * canvas.scale;
                                 g.shadowColor = CONST.SELECTION_COLOR;
-                                canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                                 g.fillStyle = "#fff";
                                 g.fillRect(rect.x, rect.y, rect.w, rect.h);
                                 g.shadowBlur = 0;
                                 g.strokeRect(rect.x, rect.y, rect.w, rect.h);
                                 canvas.drawText(
-                                    g,
                                     labelPt[0], labelPt[1] - size.h + 1.5 * CONST.EDGE_FONT_SIZE / 2,
                                     lines,
                                     CONST.EDGE_FONT_SIZE,
@@ -1072,23 +1058,23 @@ export function makeFnEdge(
                             let ctl2 = pts[4];
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
                             let ctl = pts[3];
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -1103,23 +1089,23 @@ export function makeFnEdge(
                             let ctl2 = pts[4];
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
                             let ctl = pts[3];
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -1134,23 +1120,23 @@ export function makeFnEdge(
                             let ctl2 = pts[4];
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
                             let ctl = pts[3];
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -1165,23 +1151,23 @@ export function makeFnEdge(
                             let ctl2 = pts[4];
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Quadratic
                         case 4:
                             let ctl = pts[3];
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                         // Straight
                         default:
                             return () => {
                                 g.lineJoin = "round";
-                                canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
-                                canvas.drawEdgeLabel(g, rect, labelPt, size.h, lines);
+                                canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
+                                canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
                             };
                     }
                 }
@@ -1201,8 +1187,8 @@ export function makeFnEdge(
                         let ctl2 = pts[4];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawCubicEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
-                            canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
@@ -1210,16 +1196,16 @@ export function makeFnEdge(
                         let ctl = pts[3];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawQuadraticEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
-                            canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                            canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawStraightEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
-                            canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                            canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                             g.globalAlpha = 1;
                         };
                 }
@@ -1235,8 +1221,8 @@ export function makeFnEdge(
                         let ctl2 = pts[4];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                            canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
@@ -1244,16 +1230,16 @@ export function makeFnEdge(
                         let ctl = pts[3];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawQuadraticEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                            canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                            canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
                             g.globalAlpha = 1;
                         };
                 }
@@ -1269,8 +1255,8 @@ export function makeFnEdge(
                         let ctl2 = pts[4];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                            canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
@@ -1278,16 +1264,16 @@ export function makeFnEdge(
                         let ctl = pts[3];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawQuadraticEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, dst);
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
+                            canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, dst);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                            canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
                             g.globalAlpha = 1;
                         };
                 }
@@ -1303,8 +1289,8 @@ export function makeFnEdge(
                         let ctl2 = pts[4];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawCubicEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
-                            canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
@@ -1312,16 +1298,16 @@ export function makeFnEdge(
                         let ctl = pts[3];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawQuadraticEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
-                            canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                            canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawStraightEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
-                            canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                            canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                             g.globalAlpha = 1;
                         };
                 }
@@ -1338,30 +1324,30 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawCubicEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
                             g.shadowBlur = 0;
-                            canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawQuadraticEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                            canvas.drawQuadraticEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
                             g.shadowBlur = 0;
-                            canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawStraightEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                            canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
                             g.shadowBlur = 0;
-                            canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                         };
                 }
             }
@@ -1375,30 +1361,30 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
+                            canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
                             g.shadowBlur = 0;
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawQuadraticEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
+                            canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
                             g.shadowBlur = 0;
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
+                            canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
                             g.shadowBlur = 0;
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
                         };
                 }
             }
@@ -1412,30 +1398,30 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
+                            canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
                             g.shadowBlur = 0;
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawQuadraticEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, dst);
+                            canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, dst);
                             g.shadowBlur = 0;
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
+                            canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
                             g.shadowBlur = 0;
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
                         };
                 }
             }
@@ -1449,30 +1435,30 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawCubicEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
                             g.shadowBlur = 0;
-                            canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawQuadraticEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                            canvas.drawQuadraticEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
                             g.shadowBlur = 0;
-                            canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawStraightEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                            canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
                             g.shadowBlur = 0;
-                            canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                         };
                 }
             }
@@ -1488,21 +1474,21 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            canvas.drawCubicEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
-                            canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            canvas.drawQuadraticEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
-                            canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                            canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                         };
                     // Straight
                     default:
                         return () => {
-                            canvas.drawStraightEdgeBothArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
-                            canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                            canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                         };
                 }
             }
@@ -1516,21 +1502,21 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                            canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl1, src);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            canvas.drawQuadraticEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                            canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, src);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
                         };
                     // Straight
                     default:
                         return () => {
-                            canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                            canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, dst, src);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
                         };
                 }
             }
@@ -1544,21 +1530,21 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            canvas.drawCubicEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                            canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2, ctl2, dst);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            canvas.drawQuadraticEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, dst);
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
+                            canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl, dst);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
                         };
                     // Straight
                     default:
                         return () => {
-                            canvas.drawStraightEdgeOneArrow(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                            canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, src, dst);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
                         };
                 }
             }
@@ -1572,21 +1558,21 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            canvas.drawCubicEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
-                            canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            canvas.drawQuadraticEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
-                            canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst, ctl);
+                            canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                         };
                     // Straight
                     default:
                         return () => {
-                            canvas.drawStraightEdgeNoArrows(g, CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
-                            canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 2, "solid", src, dst);
+                            canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                         };
                 }
             }
@@ -1605,7 +1591,7 @@ export function makeFnEdge(
                         let ctl2 = pts[4];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
@@ -1613,14 +1599,14 @@ export function makeFnEdge(
                         let ctl = pts[3];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                             g.globalAlpha = 1;
                         };
                 }
@@ -1636,7 +1622,7 @@ export function makeFnEdge(
                         let ctl2 = pts[4];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
@@ -1644,14 +1630,14 @@ export function makeFnEdge(
                         let ctl = pts[3];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
                             g.globalAlpha = 1;
                         };
                 }
@@ -1667,7 +1653,7 @@ export function makeFnEdge(
                         let ctl2 = pts[4];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
@@ -1675,14 +1661,14 @@ export function makeFnEdge(
                         let ctl = pts[3];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
                             g.globalAlpha = 1;
                         };
                 }
@@ -1698,7 +1684,7 @@ export function makeFnEdge(
                         let ctl2 = pts[4];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
@@ -1706,14 +1692,14 @@ export function makeFnEdge(
                         let ctl = pts[3];
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
                             g.globalAlpha = 0.5;
-                            canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                             g.globalAlpha = 1;
                         };
                 }
@@ -1730,26 +1716,26 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             g.shadowBlur = 0;
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                             g.shadowBlur = 0;
                         };
                     // Straight
                     default:
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                             g.shadowBlur = 0;
                         };
                 }
@@ -1764,26 +1750,26 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
                             g.shadowBlur = 0;
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
                             g.shadowBlur = 0;
                         };
                     // Straight
                     default:
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
                             g.shadowBlur = 0;
                         };
                 }
@@ -1798,26 +1784,26 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
                             g.shadowBlur = 0;
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
                             g.shadowBlur = 0;
                         };
                     // Straight
                     default:
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
                             g.shadowBlur = 0;
                         };
                 }
@@ -1832,26 +1818,26 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             g.shadowBlur = 0;
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                             g.shadowBlur = 0;
                         };
                     // Straight
                     default:
                         return () => {
-                            g.shadowBlur = 20 * CONST.AA_SCALE;
+                            g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
-                            canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                             g.shadowBlur = 0;
                         };
                 }
@@ -1868,18 +1854,18 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            canvas.drawCubicEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            canvas.drawQuadraticEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                         };
                     // Straight
                     default:
                         return () => {
-                            canvas.drawStraightEdgeBothArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                         };
                 }
             }
@@ -1893,18 +1879,18 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
                         };
                     // Straight
                     default:
                         return () => {
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
                         };
                 }
             }
@@ -1918,18 +1904,18 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            canvas.drawCubicEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
+                            canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            canvas.drawQuadraticEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
+                            canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
                         };
                     // Straight
                     default:
                         return () => {
-                            canvas.drawStraightEdgeOneArrow(g, e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
+                            canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
                         };
                 }
             }
@@ -1943,18 +1929,18 @@ export function makeFnEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            canvas.drawCubicEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
+                            canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            canvas.drawQuadraticEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
+                            canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                         };
                     // Straight
                     default:
                         return () => {
-                            canvas.drawStraightEdgeNoArrows(g, e.color, e.lineWidth, e.lineStyle, src, dst);
+                            canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                         };
                 }
             }

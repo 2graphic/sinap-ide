@@ -6,6 +6,7 @@
     (mouseup)="onMouseUp($event)"
     (mousemove)="onMouseMove($event)"
     (keydown)="onKeyDown($event)"
-    (window:resize)="resize()">
+    (window:resize)="resize()"
+    (window:wheel)="onWheel($event)">
   </canvas>
 </div>

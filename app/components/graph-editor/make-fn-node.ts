@@ -7,7 +7,7 @@
 
 
 import * as CONST from "./constants";
-import * as canvas from "./canvas";
+import { GraphEditorCanvas, point } from "./canvas";
 import { DrawableNode } from "./drawable-interfaces";
 
 
@@ -16,6 +16,7 @@ import { DrawableNode } from "./drawable-interfaces";
  *   Makes a draw function for a given node.
  */
 export function makeFnNode(
+    canvas: GraphEditorCanvas,
     g: CanvasRenderingContext2D,
     n: DrawableNode,
     dim: any,
@@ -24,21 +25,16 @@ export function makeFnNode(
     isSelected: boolean
 ): () => void {
     let shadowColor = (isDragging ? CONST.NODE_DRAG_SHADOW_COLOR : (isHovered ? CONST.SELECTION_COLOR : undefined));
-
-
     if (n.label && n.label.trim() !== "") {
         let lines = n.label.split("\n");
         if (isSelected) {
-
             ////////////////////////
             // Labelled, Selected //
             ////////////////////////
             switch (n.shape) {
-
                 case "circle":
                     return () => {
                         canvas.drawCircle(
-                            g,
                             n.position.x, n.position.y,
                             dim.r + n.borderWidth / 2 + 2,
                             "solid",
@@ -48,7 +44,6 @@ export function makeFnNode(
                             shadowColor
                         );
                         canvas.drawCircle(
-                            g,
                             n.position.x, n.position.y,
                             dim.r,
                             n.borderStyle,
@@ -57,7 +52,6 @@ export function makeFnNode(
                             n.color
                         );
                         canvas.drawText(
-                            g,
                             n.position.x, n.position.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
                             lines,
                             CONST.NODE_FONT_SIZE,
@@ -67,12 +61,10 @@ export function makeFnNode(
                             "#000"
                         );
                     };
-
                 case "square":
                 let ss = dim.s + n.borderWidth + 4;
                     return () => {
                         canvas.drawSquare(
-                            g,
                             n.position.x - ss / 2, n.position.y - ss / 2,
                             ss,
                             "solid",
@@ -82,7 +74,6 @@ export function makeFnNode(
                             shadowColor
                         );
                         canvas.drawSquare(
-                            g,
                             n.position.x - dim.s / 2, n.position.y - dim.s / 2,
                             dim.s,
                             n.borderStyle,
@@ -91,7 +82,6 @@ export function makeFnNode(
                             n.color
                         );
                         canvas.drawText(
-                            g,
                             n.position.x, n.position.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
                             lines,
                             CONST.NODE_FONT_SIZE,
@@ -103,7 +93,6 @@ export function makeFnNode(
                     };
             }
         }
-
         //////////////////////////
         // Labelled, Unselected //
         //////////////////////////
@@ -111,7 +100,6 @@ export function makeFnNode(
             case "circle":
                 return () => {
                     canvas.drawCircle(
-                        g,
                         n.position.x, n.position.y,
                         dim.r,
                         n.borderStyle,
@@ -121,7 +109,6 @@ export function makeFnNode(
                         shadowColor
                     );
                     canvas.drawText(
-                        g,
                         n.position.x, n.position.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
                         lines,
                         CONST.NODE_FONT_SIZE,
@@ -131,11 +118,9 @@ export function makeFnNode(
                         "#000"
                     );
                 };
-
             case "square":
                 return () => {
                     canvas.drawSquare(
-                        g,
                         n.position.x - dim.s / 2, n.position.y - dim.s / 2,
                         dim.s,
                         n.borderStyle,
@@ -145,7 +130,6 @@ export function makeFnNode(
                         shadowColor
                     );
                     canvas.drawText(
-                        g,
                         n.position.x, n.position.y - dim.th / 2 + 1.5 * CONST.NODE_FONT_SIZE / 2,
                         lines,
                         CONST.NODE_FONT_SIZE,
@@ -157,17 +141,14 @@ export function makeFnNode(
                 };
         }
     }
-
     //////////////////////////
     // Unlabelled, Selected //
     //////////////////////////
     if (isSelected) {
         switch (n.shape) {
-
             case "circle":
                 return () => {
                     canvas.drawCircle(
-                        g,
                         n.position.x, n.position.y,
                         dim.r + n.borderWidth / 2 + 2,
                         "solid",
@@ -177,7 +158,6 @@ export function makeFnNode(
                         shadowColor
                     );
                     canvas.drawCircle(
-                        g,
                         n.position.x, n.position.y,
                         dim.r,
                         n.borderStyle,
@@ -186,12 +166,10 @@ export function makeFnNode(
                         n.color
                     );
                 };
-
             case "square":
                 let ss = dim.s + n.borderWidth + 4;
                 return () => {
                     canvas.drawSquare(
-                        g,
                         n.position.x - ss / 2, n.position.y - ss / 2,
                         ss,
                         "solid",
@@ -201,7 +179,6 @@ export function makeFnNode(
                         shadowColor
                     );
                     canvas.drawSquare(
-                        g,
                         n.position.x - dim.s / 2, n.position.y - dim.s / 2,
                         dim.s,
                         n.borderStyle,
@@ -212,7 +189,6 @@ export function makeFnNode(
                 };
         }
     }
-
     ////////////////////////////
     // Unlabelled, Unselected //
     ////////////////////////////
@@ -220,7 +196,6 @@ export function makeFnNode(
         case "circle":
             return () => {
                 canvas.drawCircle(
-                    g,
                     n.position.x, n.position.y,
                     dim.r,
                     n.borderStyle,
@@ -230,11 +205,9 @@ export function makeFnNode(
                     shadowColor
                 );
             };
-
         case "square":
             return () => {
                 canvas.drawSquare(
-                    g,
                     n.position.x - dim.s / 2, n.position.y - dim.s / 2,
                     dim.s,
                     n.borderStyle,
@@ -245,7 +218,6 @@ export function makeFnNode(
                 );
             };
     }
-
     /////////////
     // Default //
     /////////////

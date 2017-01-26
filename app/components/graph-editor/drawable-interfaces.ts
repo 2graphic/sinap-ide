@@ -39,12 +39,34 @@ export type Shapes = "circle" | "square";
 /**
  * GraphContext  
  *   Interface that exposes a graph and any external properties that the editor
- *   needs to have to go with it. Specifically the set of selected
- *   `DrawableNode | DrawableEdge`.
+ *   needs to have to go with it.
  */
 export interface GraphContext {
+
+    /**
+     * graph  
+     *   The `DrawableGraph` associated with the context.
+     */
     readonly graph: DrawableGraph;
-    readonly selectedDrawables: Set<Drawable>;
+
+    /**
+     * selectedItems  
+     *   The set of selected graph elements.
+     */
+    readonly selectedItems: Set<Drawable>;
+
+    /**
+     * origin  
+     *   The displacement of the origin point of the graph editor canvas.
+     */
+    origin: { x: number, y: number };
+
+    /**
+     * scale  
+     *   The zoom scale of the graph editor canvas.
+     */
+    scale: number;
+    
 }
 
 /**
@@ -52,12 +74,6 @@ export interface GraphContext {
  *   Interface that exposes drawable graph properties and methods.
  */
 export interface DrawableGraph {
-
-    /**
-     * selection  
-     *   The set of selected nodes and edges for the graph.
-     */
-    readonly selection: Set<Drawable>;
 
     /**
      * nodes  
