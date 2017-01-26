@@ -134,9 +134,8 @@ export class PluginService {
     private interpretCode: Script;
     private runInputCode: Script;
 
-    constructor(@Inject(FileService) private fileService: FileService,
-        @Inject(SandboxService) private sandboxService: SandboxService )
-    {
+    constructor( @Inject(FileService) private fileService: FileService,
+        @Inject(SandboxService) private sandboxService: SandboxService) {
         this.interpretCode = sandboxService.compileScript('sinap.__program = module.interpret(sinap.__graph)');
         // TODO: Make sure that there is nothing weird about the output returned from the plugin
         // (such as an infinite loop for toString). Maybe make sure that it is JSON only?
@@ -159,11 +158,11 @@ export class PluginService {
             result = processContext(context);
         } else {
             result = this.loadPlugin(kind, "./build/plugins/dfa-interpreter.js") // TODO: Put real file in here.
-            .then((cont) => {
-                context = cont;
-                this.interpreters.set(kind, context);
-                return processContext(context);
-            });
+                .then((cont) => {
+                    context = cont;
+                    this.interpreters.set(kind, context);
+                    return processContext(context);
+                });
         }
 
         return result.then((program) => {
@@ -189,24 +188,24 @@ export class PluginService {
 
     private loadPlugin(kind: string, interpreterFile: string): Promise<Context> {
         return this.fileService.readFile(interpreterFile)
-        .then((text) => {
-            let context = this.sandboxService.createContext({
-                sinap: {
-                    __program: null,
-                    __graph: null,
-                    __input: null
-                },
+            .then((text) => {
+                let context = this.sandboxService.createContext({
+                    sinap: {
+                        __program: null,
+                        __graph: null,
+                        __input: null
+                    },
 
-                interpret: null
+                    interpret: null
+                });
+                let script = this.sandboxService.compileScript(text);
+                return script.runInContext(context)
+                    .then((_) => {
+                        return context;
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
             });
-            let script = this.sandboxService.compileScript(text);
-            return script.runInContext(context)
-            .then((_) => {
-                return context;
-            })
-            .catch((err) => {
-                console.log(err);
-            });
-        });
     }
 }

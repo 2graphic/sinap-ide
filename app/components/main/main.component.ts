@@ -96,18 +96,18 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                         this.barMessages = program.compilationMessages;
                         for (let triplet of this.testComponent.tests) {
                             program.run(triplet[0] as string)
-                            .then((output) => {
-                                triplet[2] = output;
-                            })
-                            .catch((err) => {
-                                console.log(err);
-                            });
+                                .then((output) => {
+                                    triplet[2] = output;
+                                })
+                                .catch((err) => {
+                                    console.log(err);
+                                });
                         }
                     })
-                    .catch((err) => {
-                        console.log(err);
-                        this.barMessages = ["Compilation Error", err];
-                    });
+                        .catch((err) => {
+                            console.log(err);
+                            this.barMessages = ["Compilation Error", err];
+                        });
                 }
             }
         }

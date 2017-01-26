@@ -38,7 +38,7 @@ export interface RunningProgram {
     /**
      * Performs one unit of work in the forward direction. Advanced debugging support should be provided elsewhere (such as step over or continue).
      */
-    step(): Promise<{active: Element[], }>;
+    step(): Promise<{ active: Element[], }>;
     /**
      * Performs one unit of work backwards. This method is optional since backwards debugging may be non-trivial for some plugins.
      */
@@ -84,7 +84,7 @@ function fillInProgram(program: any): Promise<Program> {
             program.run = (input: ProgramInput) => {
                 if (program.initDebugging) {
                     let debug = program.initDebugging(input);
-                    while(!debug.isComplete) {
+                    while (!debug.isComplete) {
                         debug.step();
                     }
                     return debug.getResult();
@@ -127,20 +127,20 @@ export class Graph {
     edges: Edge[];
     public constructor(readonly graph: Core.Graph) {
         const nodes = new Map<Core.Node, Node>();
-        for(const guiNode of graph.nodes) {
+        for (const guiNode of graph.nodes) {
             let result: any = {
                 Label: guiNode.label,
                 Parents: [],
                 Children: []
             };
-            for(const [key, _] of guiNode.pluginProperties.properties) {
+            for (const [key, _] of guiNode.pluginProperties.properties) {
                 const value = guiNode.pluginProperties.get(key);
                 result[key] = value;
             }
             nodes.set(guiNode, result);
         }
         const getNode = (edge: Core.Edge, isSource: boolean): Node => {
-            const guiNode = isSource? edge.source : edge.destination;
+            const guiNode = isSource ? edge.source : edge.destination;
             return nodes.get(guiNode) as Node;
         }
 
@@ -154,7 +154,7 @@ export class Graph {
                 Destination: dest
             };
 
-            for(const [key, _] of guiEdge.pluginProperties.properties) {
+            for (const [key, _] of guiEdge.pluginProperties.properties) {
                 const value = guiEdge.pluginProperties.get(key);
                 result[key] = value;
             }
