@@ -62,7 +62,7 @@ export function makeFnNode(
                         );
                     };
                 case "square":
-                let ss = dim.s + n.borderWidth + 4;
+                    let ss = dim.s + n.borderWidth + 4;
                     return () => {
                         canvas.drawSquare(
                             n.position.x - ss / 2, n.position.y - ss / 2,
