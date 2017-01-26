@@ -16,22 +16,19 @@ export class REPLComponent {
             throw new Error("REPLDelegate not set.");
         }
 
-        let result: String;
-        try {
-            result = this.delegate.run(input);
-        } catch (e) {
-            result = e;
-        }
+        let handleResult = (result: any) => {
+            this.results.unshift({
+                input: input,
+                result: result
+            });
+        };
 
-        this.results.unshift({
-            input: input,
-            result: result
-        });
+        this.delegate.run(input).then(handleResult).catch(handleResult);
     }
 }
 
 export interface REPLDelegate {
-    run(input: String): String;
+    run(input: String): Promise<String>;
 }
 
 interface Command {

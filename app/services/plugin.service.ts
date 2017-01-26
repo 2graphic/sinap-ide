@@ -1,10 +1,11 @@
-import { Injectable } from '@angular/core';
-import { dfaInterpreter } from '../interpreters/dfa-interpreter';
+import { Injectable, Inject } from '@angular/core';
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 
 import * as Type from "../types/types";
 import * as Core from '../models/core'
-import { Program, InterpreterError, InterpreterGraph } from "../models/plugin"
+import { Program, InterpreterError, Graph, ProgramInput, ProgramOutput } from "../models/plugin"
+import { Context, SandboxService, Script } from "../services/sandbox.service"
+import { FileService } from "../services/files.service"
 
 class ConcretePropertyList implements PropertyList {
     constructor(public properties: [string, Type.Type][], private backerObject: any) {
@@ -129,15 +130,49 @@ class MLPlugin implements Core.Plugin {
 
 @Injectable()
 export class PluginService {
-    constructor() { }
+    private interpreters: Map<string, Context> = new Map<string, Context>();
+    private interpretCode: Script;
+    private runInputCode: Script;
 
-    public getInterpreter(withGraph: Core.Graph): Program | InterpreterError {
-        switch (withGraph.plugin.kind) {
-            case "dfa.sinap.graph-kind":
-                return dfaInterpreter(new InterpreterGraph(withGraph));
-            default:
-                throw new Error("Unsupported Filetype");
+    constructor( @Inject(FileService) private fileService: FileService,
+        @Inject(SandboxService) private sandboxService: SandboxService) {
+        this.interpretCode = sandboxService.compileScript('sinap.__program = module.interpret(sinap.__graph)');
+        // TODO: Make sure that there is nothing weird about the output returned from the plugin
+        // (such as an infinite loop for toString). Maybe make sure that it is JSON only?
+        this.runInputCode = sandboxService.compileScript('sinap.__program.then((program) => program.run(sinap.__input))');
+    }
+
+    public getInterpreter(withGraph: Core.Graph): Promise<Program> {
+        let kind = withGraph.plugin.kind;
+        let context = this.interpreters.get(kind);
+        let graph = new Graph(withGraph);
+        var result: Promise<Program>;
+
+        let processContext = (context: any): Promise<Program> => {
+            context.sinap.__graph = graph;
+            console.log(context);
+            return this.interpretCode.runInContext(context);
+        };
+
+        if (context) {
+            result = processContext(context);
+        } else {
+            result = this.loadPlugin(kind, "./build/plugins/dfa-interpreter.js") // TODO: Put real file in here.
+                .then((cont) => {
+                    context = cont;
+                    this.interpreters.set(kind, context);
+                    return processContext(context);
+                });
         }
+
+        return result.then((program) => {
+            return {
+                run: (input: ProgramInput): Promise<ProgramOutput> => {
+                    (context as any).sinap.__input = input;
+                    return this.runInputCode.runInContext(context as Context);
+                }
+            };
+        });
     }
 
     public getPlugin(kind: string) {
@@ -149,5 +184,28 @@ export class PluginService {
             default:
                 throw new Error("Unsupported Filetype");
         }
+    }
+
+    private loadPlugin(kind: string, interpreterFile: string): Promise<Context> {
+        return this.fileService.readFile(interpreterFile)
+            .then((text) => {
+                let context = this.sandboxService.createContext({
+                    sinap: {
+                        __program: null,
+                        __graph: null,
+                        __input: null
+                    },
+
+                    interpret: null
+                });
+                let script = this.sandboxService.compileScript(text);
+                return script.runInContext(context)
+                    .then((_) => {
+                        return context;
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
+            });
     }
 }
