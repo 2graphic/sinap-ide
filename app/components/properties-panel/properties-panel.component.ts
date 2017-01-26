@@ -4,7 +4,7 @@
 
 
 import { Component, SimpleChanges, Output, EventEmitter } from "@angular/core";
-import * as Type from "../../models/types";
+import * as Type from "../../types/types";
 
 @Component({
     selector: "sinap-properties-panel",
@@ -14,6 +14,8 @@ import * as Type from "../../models/types";
 export class PropertiesPanelComponent {
     public selectedEntity: PropertiedEntity | null = null;
     public console = console;
+
+    Type = Type
 
     @Output() propertyChanged = new EventEmitter();
 
