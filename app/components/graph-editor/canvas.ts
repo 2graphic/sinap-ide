@@ -14,6 +14,27 @@ import {
 } from "./drawable-interfaces";
 
 
+// Type Aliases ////////////////////////////////////////////////////////////////
+
+
+/**
+ * rect  
+ *   Represents a rectangle with the top-left coordinate and height and width.
+ */
+export type rect = {
+    x: number,
+    y: number,
+    h: number,
+    w: number
+};
+
+/**
+ * point  
+ *   Represents a coordinate.
+ */
+export type point = [number, number];
+
+
 // Draw functions //////////////////////////////////////////////////////////////
 
 
@@ -48,8 +69,8 @@ export function drawSelectionBox(g: CanvasRenderingContext2D, rect: any): void {
  */
 export function drawLine(
     g: CanvasRenderingContext2D,
-    src: number[],
-    dst: number[]
+    src: point,
+    dst: point
 ): void {
     g.beginPath();
     g.moveTo(src[0], src[1]);
@@ -63,9 +84,9 @@ export function drawLine(
  */
 export function drawQuadraticLine(
     g: CanvasRenderingContext2D,
-    src: number[],
-    dst: number[],
-    ctl: number[]
+    src: point,
+    dst: point,
+    ctl: point
 ): void {
     g.beginPath();
     g.moveTo(src[0], src[1]);
@@ -82,10 +103,10 @@ export function drawQuadraticLine(
  */
 export function drawCubicLine(
     g: CanvasRenderingContext2D,
-    src: number[],
-    dst: number[],
-    ctl1: number[],
-    ctl2: number[]
+    src: point,
+    dst: point,
+    ctl1: point,
+    ctl2: point
 ): void {
     g.beginPath();
     g.moveTo(src[0], src[1]);
@@ -107,8 +128,8 @@ export function drawCubicLine(
  */
 export function drawArrow(
     g: CanvasRenderingContext2D,
-    src: number[],
-    dst: number[]
+    src: point,
+    dst: point
 ): void {
     // Get the unit vector from the source point to the destination point.
     let v = [
@@ -204,7 +225,7 @@ export function drawSquare(
  * drawGrid  
  *   Draws the editor grid.
  */
-export function drawGrid(g: CanvasRenderingContext2D, originPt: number[]) {
+export function drawGrid(g: CanvasRenderingContext2D, originPt: point) {
 
     let w = g.canvas.width;
     let h = g.canvas.height;
@@ -289,7 +310,7 @@ export function drawText(
 export function drawEdgeLabel(
     g: CanvasRenderingContext2D,
     rect: { x: number, y: number, w: number, h: number },
-    labelPt: number[],
+    labelPt: point,
     height: number,
     lines: string[]
 ): void {
@@ -311,10 +332,10 @@ export function drawCubicEdgeBothArrows(
     strokeStyle: string,
     lineWidth: number,
     lineStyle: string,
-    src: number[],
-    dst: number[],
-    ctl1: number[],
-    ctl2: number[]
+    src: point,
+    dst: point,
+    ctl1: point,
+    ctl2: point
 ): void {
     g.strokeStyle = strokeStyle;
     g.lineWidth = lineWidth;
@@ -329,12 +350,12 @@ export function drawCubicEdgeOneArrow(
     strokeStyle: string,
     lineWidth: number,
     lineStyle: string,
-    src: number[],
-    dst: number[],
-    ctl1: number[],
-    ctl2: number[],
-    asrc: number[],
-    adst: number[]
+    src: point,
+    dst: point,
+    ctl1: point,
+    ctl2: point,
+    asrc: point,
+    adst: point
 ): void {
     g.strokeStyle = strokeStyle;
     g.lineWidth = lineWidth;
@@ -348,10 +369,10 @@ export function drawCubicEdgeNoArrows(
     strokeStyle: string,
     lineWidth: number,
     lineStyle: string,
-    src: number[],
-    dst: number[],
-    ctl1: number[],
-    ctl2: number[]
+    src: point,
+    dst: point,
+    ctl1: point,
+    ctl2: point
 ): void {
     g.strokeStyle = strokeStyle;
     g.lineWidth = lineWidth;
@@ -364,9 +385,9 @@ export function drawQuadraticEdgeBothArrows(
     strokeStyle: string,
     lineWidth: number,
     lineStyle: string,
-    src: number[],
-    dst: number[],
-    ctl: number[]
+    src: point,
+    dst: point,
+    ctl: point
 ): void {
     g.strokeStyle = strokeStyle;
     g.lineWidth = lineWidth;
@@ -381,10 +402,10 @@ export function drawQuadraticEdgeOneArrow(
     strokeStyle: string,
     lineWidth: number,
     lineStyle: string,
-    src: number[],
-    dst: number[],
-    ctl: number[],
-    adst: number[]
+    src: point,
+    dst: point,
+    ctl: point,
+    adst: point
 ): void {
     g.strokeStyle = strokeStyle;
     g.lineWidth = lineWidth;
@@ -398,9 +419,9 @@ export function drawQuadraticEdgeNoArrows(
     strokeStyle: string,
     lineWidth: number,
     lineStyle: string,
-    src: number[],
-    dst: number[],
-    ctl: number[]
+    src: point,
+    dst: point,
+    ctl: point
 ): void {
     g.strokeStyle = strokeStyle;
     g.lineWidth = lineWidth;
@@ -413,8 +434,8 @@ export function drawStraightEdgeBothArrows(
     strokeStyle: string,
     lineWidth: number,
     lineStyle: string,
-    src: number[],
-    dst: number[]
+    src: point,
+    dst: point
 ): void {
     g.strokeStyle = strokeStyle;
     g.lineWidth = lineWidth;
@@ -429,10 +450,10 @@ export function drawStraightEdgeOneArrow(
     strokeStyle: string,
     lineWidth: number,
     lineStyle: string,
-    src: number[],
-    dst: number[],
-    asrc: number[],
-    adst: number[]
+    src: point,
+    dst: point,
+    asrc: point,
+    adst: point
 ): void {
     g.strokeStyle = strokeStyle;
     g.lineWidth = lineWidth;
@@ -446,13 +467,47 @@ export function drawStraightEdgeNoArrows(
     strokeStyle: string,
     lineWidth: number,
     lineStyle: string,
-    src: number[],
-    dst: number[]
+    src: point,
+    dst: point
 ): void {
     g.strokeStyle = strokeStyle;
     g.lineWidth = lineWidth;
     setLineStyle(g, lineStyle);
     drawLine(g, src, dst);
+}
+
+
+// Hit Test functions //////////////////////////////////////////////////////////
+
+
+export function hitTestCircle(
+    originPt: point,
+    hitPt: point,
+    r: number
+): boolean {
+    let dPt = [
+        originPt[0] - hitPt[0],
+        originPt[1] - hitPt[1]
+    ];
+    return MathEx.dot(dPt, dPt) <= r * r;
+}
+
+export function hitTestSquare(
+    originPt: point,
+    hitPt: point,
+    s: number
+): boolean {
+    let dPt = [
+        originPt[0] - hitPt[0],
+        originPt[1] - hitPt[1]
+    ];
+    let hs = s / 2;
+    let sq = makeRect(
+        [originPt[0] - hs, originPt[1] - hs],
+        [originPt[0] + hs, originPt[1] + hs]
+    );
+    return (hitPt[0] >= sq.x && hitPt[0] <= sq.x + sq.w) &&
+        (hitPt[1] >= sq.y && hitPt[1] <= sq.y + sq.w);
 }
 
 
@@ -508,7 +563,7 @@ export function getTextSize(
  * getMousePt  
  *   Gets the canvas coordinates from a mouse event.
  */
-export function getMousePt(g: CanvasRenderingContext2D, e: MouseEvent): number[] {
+export function getMousePt(g: CanvasRenderingContext2D, e: MouseEvent): point {
     let canvas = g.canvas;
     let r = canvas.getBoundingClientRect();
     return [
@@ -523,11 +578,11 @@ export function getMousePt(g: CanvasRenderingContext2D, e: MouseEvent): number[]
  *   node based on its geometry.
  */
 export function getEdgePtShift(
-    u: number[],
+    u: point,
     n: DrawableNode,
     dim: any
-): number[] {
-    let v = [0, 0];
+): point {
+    let v: point = [0, 0];
 
     switch (n.shape) {
         // The boundary of a circle is just its radius plus half its border width.
@@ -570,9 +625,9 @@ export function getStraightEdgePoints(
     e: DrawableEdge,
     srcDim?: any,
     dstDim?: any,
-    pt?: number[]
-): number[][] {
-    let pts: number[][] = [];
+    pt?: point
+): point[] {
+    let pts: point[] = [];
     if (e.source && e.destination) {
         console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
         console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
@@ -581,7 +636,7 @@ export function getStraightEdgePoints(
             e.destination.position.y - e.source.position.y
         ];
         let d = MathEx.mag(v);
-        let u = [v[0] / d, v[1] / d];
+        let u: point = [v[0] / d, v[1] / d];
         let shiftPt = getEdgePtShift(u, e.source, srcDim);
         pts.push([
             e.source.position.x + shiftPt[0],
@@ -598,13 +653,13 @@ export function getStraightEdgePoints(
     else if (e.source && !e.destination) {
         console.assert(pt, "error getStraightEdgePoints: pt undefined");
         console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
-        let p = pt as number[];
+        let p = pt as point;
         let v = [
             p[0] - e.source.position.x,
             p[1] - e.source.position.y
         ];
         let d = MathEx.mag(v);
-        let u = [v[0] / d, v[1] / d];
+        let u: point = [v[0] / d, v[1] / d];
         let shiftPt = getEdgePtShift(u, e.source, srcDim);
         pts.push([
             e.source.position.x + shiftPt[0],
@@ -615,13 +670,13 @@ export function getStraightEdgePoints(
     else if (!e.source && e.destination) {
         console.assert(pt, "error getStraightEdgePoints: pt undefined");
         console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
-        let p = pt as number[];
+        let p = pt as point;
         let v = [
             e.destination.position.x - p[0],
             e.destination.position.y - p[1]
         ];
         let d = MathEx.mag(v);
-        let u = [-v[0] / d, -v[1] / d];
+        let u: point = [-v[0] / d, -v[1] / d];
         pts.push(p);
         let shiftPt = getEdgePtShift(u, e.destination, dstDim);
         pts.push([
@@ -644,20 +699,20 @@ export function getLoopEdgePoints(
     e: DrawableEdge,
     src: DrawableNode,
     srcDim: any
-): number[][] {
-    let u = [MathEx.SIN_22_5, -MathEx.COS_22_5];
-    let v = [-MathEx.SIN_22_5, -MathEx.COS_22_5];
-    let pt0 = getEdgePtShift(u, src, srcDim);
-    let pt1 = getEdgePtShift(v, src, srcDim);
-    let pt2 = [
+): point[] {
+    let u: point = [MathEx.SIN_22_5, -MathEx.COS_22_5];
+    let v: point = [-MathEx.SIN_22_5, -MathEx.COS_22_5];
+    let pt0: point = getEdgePtShift(u, src, srcDim);
+    let pt1: point = getEdgePtShift(v, src, srcDim);
+    let pt2: point = [
         src.position.x + 2 * CONST.GRID_SPACING * u[0],
         src.position.y + 2 * CONST.GRID_SPACING * u[1]
     ];
-    let pt3 = [
+    let pt3: point = [
         src.position.x + 2 * CONST.GRID_SPACING * v[0],
         src.position.y + 2 * CONST.GRID_SPACING * v[1]
     ];
-    let pts = [];
+    let pts: point[] = [];
     pts.push([src.position.x + pt0[0], src.position.y + pt0[1]]);
     pts.push([src.position.x + pt1[0], src.position.y + pt1[1]]);
     pts.push([
@@ -679,42 +734,42 @@ export function getQuadraticEdgePoints(
     dst: DrawableNode,
     srcDim: any,
     dstDim: any
-): number[][] {
+): point[] {
     // Get a vector from the source node to the destination node.
-    let v = [
+    let v: point = [
         dst.position.x - src.position.x,
         dst.position.y - src.position.y
     ];
     // Get the normal to the vector.
     let d = MathEx.mag(v);
-    let n = [
+    let n: point = [
         v[1] / d,
         -v[0] / d
     ];
 
     // Set the control point to the midpoint of the vector plus the scaled
     // normal.
-    let pt1 = [
+    let pt1: point = [
         v[0] / 2 + v[1] / d * CONST.GRID_SPACING,
         v[1] / 2 - v[0] / d * CONST.GRID_SPACING
     ];
     // Shift the source endpoint.
     d = MathEx.mag(pt1);
-    let shiftPt = getEdgePtShift([pt1[0] / d, pt1[1] / d], src, srcDim);
-    let pt0 = [
+    let shiftPt: point = getEdgePtShift([pt1[0] / d, pt1[1] / d], src, srcDim);
+    let pt0: point = [
         src.position.x + shiftPt[0],
         src.position.y + shiftPt[1]
     ];
     // Shift the destination endpoint.
     shiftPt = getEdgePtShift([(pt1[0] - v[0]) / d, (pt1[1] - v[1]) / d], dst, dstDim);
-    let pt2 = [
+    let pt2: point = [
         src.position.x + v[0] + shiftPt[0],
         src.position.y + v[1] + shiftPt[1]
     ];
     // Translate the controlpoint by the position of the source node.
     pt1[0] += src.position.x;
     pt1[1] += src.position.y;
-    let pts = [];
+    let pts: point[] = [];
     pts.push(pt0);
     pts.push(pt2);
     // Midpoint.
@@ -761,12 +816,12 @@ export function getNodeDimensions(
  *   Makes a rectangle object with the bottom-left corner and height and width
  *   using the given opposing corner points.
  */
-export function makeRect(x1: number, y1: number, x2: number, y2: number) {
-    let w = x2 - x1;
-    let h = y2 - y1;
+export function makeRect(pt1: point, pt2: point): rect {
+    let w = pt2[0] - pt1[0];
+    let h = pt2[1] - pt1[1];
     return {
-        x: (w < 0 ? x2 : x1),
-        y: (h < 0 ? y2 : y1),
+        x: (w < 0 ? pt2[0] : pt1[0]),
+        y: (h < 0 ? pt2[1] : pt1[1]),
         w: (w < 0 ? -1 * w : w),
         h: (h < 0 ? -1 * h : h)
     };

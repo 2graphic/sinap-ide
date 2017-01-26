@@ -13,6 +13,9 @@ import * as canvas from "./canvas";
 import { DrawableEdge } from "./drawable-interfaces";
 
 
+type point = canvas.point;
+
+
 /**
  * makeFnEdge  
  *   Makes a draw function for a given edge.
@@ -20,26 +23,26 @@ import { DrawableEdge } from "./drawable-interfaces";
 export function makeFnEdge(
     g: CanvasRenderingContext2D,
     e: DrawableEdge,
-    pts: number[][],
+    pts: point[],
     isDragging: boolean,
     isHovered: boolean,
     isSelected: boolean
 ): () => void {
     // Endpoints for the given edge.
-    let src = pts[0];
-    let dst = pts[1];
+    let src: point = pts[0];
+    let dst: point = pts[1];
     if (e.label.trim() !== "") {
         // Split the label into lines.
         let lines = e.label.split("\n");
         // Get the bounding box of the label.
         let size = canvas.getTextSize(g, lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
-        let rect = canvas.makeRect(src[0], src[1], dst[0], dst[1]);
+        let rect = canvas.makeRect(src, dst);
         // Get the center point of the label.
         let labelPt = pts[2];
         // Get the label background rectangle.
         size.w /= 2;
         size.h /= 2;
-        rect = canvas.makeRect(labelPt[0] - size.w - 6, labelPt[1] - size.h, labelPt[0] + size.w + 6, labelPt[1] + size.h);
+        rect = canvas.makeRect([labelPt[0] - size.w - 6, labelPt[1] - size.h], [labelPt[0] + size.w + 6, labelPt[1] + size.h]);
         if (isSelected) {
             if (isDragging) {
                 if (e.showSourceArrow && e.showDestinationArrow) {
