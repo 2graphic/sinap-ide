@@ -1,5 +1,5 @@
 import * as Core from '../models/core'
-import * as Type from '../models/types'
+import * as Type from '../types/types'
 
 /**
  * Indicates an error during compilation of a graph. This is a class instead of an interface so that it can be discovered through instanceof.
