@@ -16,6 +16,9 @@ type SyntaxError = {
 }
 type location = { column: number, line: number, offset: number };
 
+export type Typed = [any, Structure.Type];
+export type TypedVariable = [string, Structure.Type];
+
 /**
  * Check whther an exception is a syntax error
  **/
@@ -24,7 +27,7 @@ export function isSyntaxError(e: any): e is SyntaxError {
 }
 
 
-export { Type, TypeScope } from "./type-structures";
+export { Type, TypeScope, ClassType, ListType, TupleType } from "./type-structures";
 
 /*
  * Parse a scope literal on its own

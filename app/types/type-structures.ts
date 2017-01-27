@@ -233,6 +233,18 @@ export class ClassType implements Type {
         return "ClassType";
     }
 
+    allFields(): [string, Type][] {
+        const result: [string, Type][] = [];
+        for (const t of this.conformsTo) {
+            if (t instanceof TypeVariable) {
+                throw "ClassType.promisedTypes: free type variable";
+            }
+            result.push(...t.allFields());
+        }
+        result.push(...this.fields.entries());
+        return result;
+    }
+
     promisedTypes(key: string): Type[] {
         const result: Type[] = [];
         for (const t of this.conformsTo) {

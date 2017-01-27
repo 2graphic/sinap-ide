@@ -97,6 +97,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     onContextChanged = () => { // arrow syntax to bind correct "this"
         if (this.context) {
+            this.context.graph.activeEdgeType = "Default";
+            this.context.graph.activeNodeType = "DFANode";
             if (this.graphEditor) {
                 this.graphEditor.redraw();
             }
@@ -132,12 +134,14 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         const kind = this.toolsPanel.activeGraphType == "Machine Learning" ?
             "machine-learning.sinap.graph-kind" : "dfa.sinap.graph-kind";
 
-        g = g ? g : new Core.Graph(this.pluginService.getPlugin(kind));
-        let filename = f ? f : "Untitled";
-        let tabNumber = this.tabBar.newTab(filename);
+        this.pluginService.getPlugin(kind).then((plugin) => {
+            g = g ? g : new Core.Graph(plugin);
+            let filename = f ? f : "Untitled";
+            let tabNumber = this.tabBar.newTab(filename);
 
-        this.tabs.set(tabNumber, new TabContext(new Drawable.ConcreteGraph(g), filename));
-        this.selectedTab(tabNumber);
+            this.tabs.set(tabNumber, new TabContext(new Drawable.ConcreteGraph(g), filename));
+            this.selectedTab(tabNumber);
+        });
     }
 
 
@@ -215,9 +219,11 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                                 throw "invalid file format version";
                             }
 
-                            this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
-                                filename.lastIndexOf("\\")) + 1),
-                                new Core.Graph(this.pluginService.getPlugin("dfa.sinap.graph-kind")));
+                            this.pluginService.getPlugin("dfa.sinap.graph-kind").then((plugin) => {
+                                this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
+                                    filename.lastIndexOf("\\")) + 1),
+                                    new Core.Graph(plugin));
+                            })
                         } catch (e) {
                             alert(`Could not de-serialize graph: ${e}.`);
                         }

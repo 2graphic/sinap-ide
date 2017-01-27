@@ -128,7 +128,6 @@ export {
     DrawableNode,
     isDrawableEdge,
     isDrawableNode,
-    GraphContext,
     Drawable,
     LineStyles,
     Shapes

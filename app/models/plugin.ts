@@ -1,5 +1,5 @@
 import * as Core from '../models/core'
-import * as Type from '../models/types'
+import * as Type from '../types/types'
 
 /**
  * Indicates an error during compilation of a graph. This is a class instead of an interface so that it can be discovered through instanceof.
@@ -57,7 +57,7 @@ export interface Program {
     /**
      * Any messages associated with graph compilation.
      */
-    compilationMessages: [string];
+    compilationMessages: string[];
     /**
      * Runs the input according to the graph this program was derived from.
      */

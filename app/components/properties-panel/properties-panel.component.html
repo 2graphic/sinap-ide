@@ -55,7 +55,13 @@
 
                             <template [ngIf]="pair[1].subtype(Type.Node)">
                                 <label  class="node-label">
-                                    {{selectedEntity[group[1]].get(pair[0]).drawableProperties.get('Label')}}
+                                    <!-- TODO: Figure out a better way to allow nodes to sometimes be null
+                                        
+                                        Specifically, this doesn't have a value yet, and this breaks a lot of 
+                                        promises that say that there is always a start state, that is, we can't 
+                                        just make this optional.
+                                     -->
+                                    {{selectedEntity[group[1]].get(pair[0]) ? selectedEntity[group[1]].get(pair[0]).drawableProperties.get('Label') : "Not defined"}}
                                 </label>
                             </template>
                             <!-- add neither case-->

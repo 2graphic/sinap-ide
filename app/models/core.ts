@@ -19,10 +19,10 @@ export interface Plugin {
         isValidEdge(t: string, src: string, dst: string): boolean;
     }
 
-    nodeTypes: string[];
-    edgeTypes: string[];
+    nodeTypes: Iterable<string>;
+    edgeTypes: Iterable<string>;
 
-    graphPluginData(): PluginData;
+    graphPluginData(type: string): PluginData;
     nodePluginData(type: string): PluginData;
     edgePluginData(type: string): PluginData;
 }
@@ -79,7 +79,8 @@ export class Graph extends Element {
     exampleTuple = ["hello", 10];
 
     constructor(public plugin: Plugin) {
-        super(plugin.graphPluginData());
+        // TODO: fix that this is obviously special cased
+        super(plugin.graphPluginData("DFAGraph"));
     }
 }
 
