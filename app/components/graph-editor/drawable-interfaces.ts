@@ -37,17 +37,22 @@ export type Shapes = "circle" | "square";
 
 
 /**
- * GraphContext  
- *   Interface that exposes a graph and any external properties that the editor
- *   needs to have to go with it.
+ * DrawableGraph  
+ *   Interface that exposes drawable graph properties and methods.
  */
-export interface GraphContext {
+export interface DrawableGraph {
 
     /**
-     * graph  
-     *   The `DrawableGraph` associated with the context.
+     * nodes  
+     *   The collection of drawable nodes that are part of the graph.
      */
-    readonly graph: DrawableGraph;
+    readonly nodes: Iterable<DrawableNode>;
+
+    /**
+     * edges  
+     *   The collection of drawable edges that are part of the graph.
+     */
+    readonly edges: Iterable<DrawableEdge>;
 
     /**
      * selectedItems  
@@ -66,26 +71,6 @@ export interface GraphContext {
      *   The zoom scale of the graph editor canvas.
      */
     scale: number;
-    
-}
-
-/**
- * DrawableGraph  
- *   Interface that exposes drawable graph properties and methods.
- */
-export interface DrawableGraph {
-
-    /**
-     * nodes  
-     *   The collection of drawable nodes that are part of the graph.
-     */
-    readonly nodes: Iterable<DrawableNode>;
-
-    /**
-     * edges  
-     *   The collection of drawable edges that are part of the graph.
-     */
-    readonly edges: Iterable<DrawableEdge>;
 
     /**
      * backgroundColor  

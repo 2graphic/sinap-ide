@@ -137,7 +137,6 @@ export {
     DrawableNode,
     isDrawableEdge,
     isDrawableNode,
-    GraphContext,
     Drawable,
     LineStyles,
     Shapes
@@ -188,12 +187,6 @@ export class GraphEditorComponent implements AfterViewInit {
      *   The graph editor canvas.
      */
     private canvas: GraphEditorCanvas;
-
-    /**
-     * context  
-     *   The graph context.
-     */
-    private context: GraphContext | null = null;
 
     /**
      * graph  
@@ -292,10 +285,10 @@ export class GraphEditorComponent implements AfterViewInit {
      * setGraphContext  
      *   Input property for the graph context.
      */
-    @Input("context")
-    set graphContext(value: GraphContext | null) {
+    @Input("graph")
+    set setGraph(value: DrawableGraph | null) {
         if (value) {
-            this.graph = value.graph;
+            this.graph = value;
             this.selectedItems = value.selectedItems;
             this.canvas.scale = value.scale;
             this.canvas.originPt = [value.origin.x, value.origin.y];
