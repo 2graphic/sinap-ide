@@ -22,8 +22,11 @@ export function makeFnNode(
     dim: any,
     isDragging: boolean,
     isHovered: boolean,
-    isSelected: boolean
+    isSelected: boolean,
+    pt?: point
 ): () => void {
+    // TODO:
+    // Deal with pt.
     let shadowColor = (isDragging ? CONST.NODE_DRAG_SHADOW_COLOR : (isHovered ? CONST.SELECTION_COLOR : undefined));
     if (n.label && n.label.trim() !== "") {
         let lines = n.label.split("\n");

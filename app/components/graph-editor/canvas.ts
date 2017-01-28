@@ -592,10 +592,10 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * getMousePt  
-     *   Gets the canvas coordinates from a mouse event.
+     * getPt  
+     *   Gets the canvas coordinates from a pointer event.
      */
-    getMousePt(e: MouseEvent): point {
+    getPt(e: PointerEvent): point {
         let canvas = this.g.canvas;
         let r = canvas.getBoundingClientRect();
         return [
@@ -862,7 +862,8 @@ export class GraphEditorCanvas {
         pts: point[],
         isDragging: boolean,
         isHovered: boolean,
-        isSelected: boolean
+        isSelected: boolean,
+        pt?: point
     ): () => void {
         return makeFnEdge(
             this,
@@ -871,7 +872,8 @@ export class GraphEditorCanvas {
             pts,
             isDragging,
             isHovered,
-            isSelected
+            isSelected,
+            pt
         );
     }
 
@@ -880,7 +882,8 @@ export class GraphEditorCanvas {
         dim: any,
         isDragging: boolean,
         isHovered: boolean,
-        isSelected: boolean
+        isSelected: boolean,
+        pt?: point
     ): () => void {
         return makeFnNode(
             this,
@@ -889,7 +892,8 @@ export class GraphEditorCanvas {
             dim,
             isDragging,
             isHovered,
-            isSelected
+            isSelected,
+            pt
         );
     }
 }
