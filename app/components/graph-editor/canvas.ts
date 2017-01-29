@@ -14,8 +14,8 @@ import {
     LineStyles
 } from "./drawable-interfaces";
 
-import { makeFnEdge } from "./make-fn-edge";
-import { makeFnNode } from "./make-fn-node";
+import { makeDrawEdge, makeDrawSelectedEdge } from "./make-draw-edge";
+import { makeDrawNode, makeDrawSelectedNode } from "./make-draw-node";
 
 
 // Type Aliases ////////////////////////////////////////////////////////////////
@@ -36,7 +36,7 @@ export type rect = {
  * point  
  *   Represents a coordinate.
  */
-export type point = [number, number];
+export type point = { x: number, y: number };
 
 
 export class GraphEditorCanvas {
@@ -48,10 +48,10 @@ export class GraphEditorCanvas {
     private _scale: number = CONST.AA_SCALE;
 
     /**
-     * originPt  
+     * origin  
      *   The coordinates of the canvas origin.
      */
-    originPt: point = [0, 0];
+    origin: point = { x: 0, y: 0 };
 
 
     // Constructor /////////////////////////////////////////////////////////////
@@ -78,12 +78,7 @@ export class GraphEditorCanvas {
             this.g.fillRect(0, 0, canvas.width, canvas.height);
         }
         else {
-            this.g.clearRect(
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
+            this.g.clearRect(0, 0, canvas.width, canvas.height);
         }
     }
 
@@ -91,7 +86,9 @@ export class GraphEditorCanvas {
      * drawSelectionBox  
      *   Draws the selection box.
      */
-    drawSelectionBox(rect: any): void {
+    drawSelectionBox(rect: rect): void {
+        rect.x += this.origin.x;
+        rect.y += this.origin.y;
         this.g.strokeStyle = CONST.SELECTION_COLOR;
         this.g.fillStyle = CONST.SELECTION_COLOR;
         this.g.globalAlpha = 0.1;
@@ -111,8 +108,8 @@ export class GraphEditorCanvas {
         dst: point
     ): void {
         this.g.beginPath();
-        this.g.moveTo(src[0], src[1]);
-        this.g.lineTo(dst[0], dst[1]);
+        this.g.moveTo(src.x + this.origin.x, src.y + this.origin.y);
+        this.g.lineTo(dst.x + this.origin.x, dst.y + this.origin.y);
         this.g.stroke();
     }
 
@@ -126,10 +123,10 @@ export class GraphEditorCanvas {
         ctl: point
     ): void {
         this.g.beginPath();
-        this.g.moveTo(src[0], src[1]);
+        this.g.moveTo(src.x + this.origin.x, src.y + this.origin.y);
         this.g.quadraticCurveTo(
-            ctl[0], ctl[1],
-            dst[0], dst[1]
+            ctl.x + this.origin.x, ctl.y + this.origin.y,
+            dst.x + this.origin.x, dst.y + this.origin.y
         );
         this.g.stroke();
     }
@@ -145,11 +142,11 @@ export class GraphEditorCanvas {
         ctl2: point
     ): void {
         this.g.beginPath();
-        this.g.moveTo(src[0], src[1]);
+        this.g.moveTo(src.x + this.origin.x, src.y + this.origin.y);
         this.g.bezierCurveTo(
-            ctl1[0], ctl1[1],
-            ctl2[0], ctl2[1],
-            dst[0], dst[1]
+            ctl1.x + this.origin.x, ctl1.y + this.origin.y,
+            ctl2.x + this.origin.x, ctl2.y + this.origin.y,
+            dst.x + this.origin.x, dst.y + this.origin.x
         );
         this.g.stroke();
     }
@@ -167,27 +164,27 @@ export class GraphEditorCanvas {
         dst: point
     ): void {
         // Get the unit vector from the source point to the destination point.
-        let v = [
-            dst[0] - src[0],
-            dst[1] - src[1]
-        ];
+        let v: point = {
+            x: dst.x - src.x,
+            y: dst.y - src.y
+        };
         let d = MathEx.mag(v);
-        let u = [v[0] / d, v[1] / d];
+        let u = { x: v.x / d, y: v.y / d };
 
         // Draw arrow.
         this.drawLine(
             dst,
-            [
-                dst[0] + CONST.GRID_SPACING * (u[0] * MathEx.COS_150 - u[1] * MathEx.SIN_150) / 2,
-                dst[1] + CONST.GRID_SPACING * (u[0] * MathEx.SIN_150 + u[1] * MathEx.COS_150) / 2
-            ]
+            {
+                x: dst.x + CONST.GRID_SPACING * (u.x * MathEx.COS_150 - u.y * MathEx.SIN_150) / 2,
+                y: dst.y + CONST.GRID_SPACING * (u.x * MathEx.SIN_150 + u.y * MathEx.COS_150) / 2
+            }
         );
         this.drawLine(
             dst,
-            [
-                dst[0] + CONST.GRID_SPACING * (u[0] * MathEx.COS_150 + u[1] * MathEx.SIN_150) / 2,
-                dst[1] + CONST.GRID_SPACING * (-u[0] * MathEx.SIN_150 + u[1] * MathEx.COS_150) / 2
-            ]
+            {
+                x: dst.x + CONST.GRID_SPACING * (u.x * MathEx.COS_150 + u.y * MathEx.SIN_150) / 2,
+                y: dst.y + CONST.GRID_SPACING * (-u.x * MathEx.SIN_150 + u.y * MathEx.COS_150) / 2
+            }
         );
 
     }
@@ -197,8 +194,7 @@ export class GraphEditorCanvas {
      *   Draws a circle.
      */
     drawCircle(
-        x: number,
-        y: number,
+        o: point,
         r: number,
         borderStyle: string,
         borderWidth: number,
@@ -207,7 +203,7 @@ export class GraphEditorCanvas {
         shadowColor?: string
     ) {
         this.g.beginPath();
-        this.g.arc(x, y, r, 0, 2 * Math.PI);
+        this.g.arc(o.x + this.origin.x, o.y + this.origin.y, r, 0, 2 * Math.PI);
         this.g.fillStyle = fillColor;
         if (shadowColor) {
             this.g.shadowBlur = 20 * this._scale;
@@ -228,8 +224,7 @@ export class GraphEditorCanvas {
      *   Draws a square.
      */
     drawSquare(
-        x: number,
-        y: number,
+        p: point,
         s: number,
         borderStyle: string,
         borderWidth: number,
@@ -237,6 +232,8 @@ export class GraphEditorCanvas {
         fillColor: string,
         shadowColor?: string
     ) {
+        let x = p.x + this.origin.x - s / 2;
+        let y = p.y + this.origin.y - s / 2;
         this.g.fillStyle = fillColor;
         if (shadowColor) {
             this.g.shadowBlur = 20 * this._scale;
@@ -262,40 +259,40 @@ export class GraphEditorCanvas {
         let w = this.g.canvas.width;
         let h = this.g.canvas.height;
 
+        let o = {
+            x: this.origin.x % CONST.GRID_SPACING - CONST.GRID_SPACING,
+            y: this.origin.y % CONST.GRID_SPACING - CONST.GRID_SPACING
+        };
+
         // Major grid.
         this.g.strokeStyle = CONST.GRID_MAJOR_COLOR;
         this.g.lineWidth = CONST.GRID_MAJOR_WIDTH;
         this.lineStyle = { style: CONST.GRID_MAJOR_STYLE };
-        for (
-            let x = this.originPt[0] % CONST.GRID_SPACING - CONST.GRID_SPACING;
-            x < w + CONST.GRID_SPACING;
-            x += CONST.GRID_SPACING
-        )
-            this.drawLine([x, 0], [x, h]);
-        for (
-            let y = this.originPt[1] % CONST.GRID_SPACING - CONST.GRID_SPACING;
-            y < h + CONST.GRID_SPACING;
-            y += CONST.GRID_SPACING
-        )
-            this.drawLine([0, y], [w, y]);
+        this.drawGridLines(o, h, w);
 
         // Minor grid.
         this.g.strokeStyle = CONST.GRID_MINOR_COLOR;
         this.g.lineWidth = CONST.GRID_MINOR_WIDTH;
         this.lineStyle = { style: CONST.GRID_MINOR_STYLE };
-        for (
-            let x = this.originPt[0] % CONST.GRID_SPACING - CONST.GRID_SPACING + CONST.GRID_MINOR_OFFSET;
-            x < w + CONST.GRID_SPACING;
-            x += CONST.GRID_SPACING
-        )
-            this.drawLine([x, 0], [x, h]);
-        for (
-            let y = this.originPt[1] % CONST.GRID_SPACING - CONST.GRID_SPACING + CONST.GRID_MINOR_OFFSET;
-            y < h + CONST.GRID_SPACING;
-            y += CONST.GRID_SPACING
-        )
-            this.drawLine([0, y], [w, y]);
+        o.x += CONST.GRID_MINOR_OFFSET;
+        o.y += CONST.GRID_MINOR_OFFSET;
+        this.drawGridLines(o, h, w);
 
+    }
+
+    private drawGridLines(o: point, h: number, w: number) {
+        for (let x = o.x; x < w + CONST.GRID_SPACING; x += CONST.GRID_SPACING) {
+            this.g.beginPath();
+            this.g.moveTo(x, 0);
+            this.g.lineTo(x, h);
+            this.g.stroke();
+        }
+        for (let y = o.y; y < h + CONST.GRID_SPACING; y += CONST.GRID_SPACING) {
+            this.g.beginPath();
+            this.g.moveTo(0, y);
+            this.g.lineTo(w, y);
+            this.g.stroke();
+        }
     }
 
     /**
@@ -303,8 +300,8 @@ export class GraphEditorCanvas {
      *   Draws text.
      */
     drawText(
-        x: number,
-        y: number,
+        p: point,
+        height: number,
         lines: Array<string>,
         fontSize: number,
         fontFamily: string,
@@ -312,6 +309,8 @@ export class GraphEditorCanvas {
         borderWidth?: number,
         borderColor?: string
     ) {
+        let x = p.x + this.origin.x;
+        let y = p.y + this.origin.y - height / 2 + 1.5 * CONST.EDGE_FONT_SIZE / 2;
         this.g.font = fontSize + "pt " + fontFamily;
         this.g.textAlign = "center";
         this.g.textBaseline = "middle";
@@ -339,16 +338,20 @@ export class GraphEditorCanvas {
      *   Draws the edge label.
      */
     drawEdgeLabel(
-        rect: { x: number, y: number, w: number, h: number },
+        rect: rect,
         labelPt: point,
         height: number,
         lines: string[]
     ): void {
+        rect.x += this.origin.x;
+        rect.y += this.origin.y;
         this.g.fillStyle = "#fff";
         this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
+        this.g.shadowBlur = 0;
         this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
         this.drawText(
-            labelPt[0], labelPt[1] - height + 1.5 * CONST.EDGE_FONT_SIZE / 2,
+            labelPt,
+            height,
             lines,
             CONST.EDGE_FONT_SIZE,
             CONST.EDGE_FONT_FAMILY,
@@ -497,40 +500,6 @@ export class GraphEditorCanvas {
     }
 
 
-    // Hit Test methods ////////////////////////////////////////////////////////
-
-
-    hitTestCircle(
-        originPt: point,
-        hitPt: point,
-        r: number
-    ): boolean {
-        let dPt = [
-            originPt[0] - hitPt[0],
-            originPt[1] - hitPt[1]
-        ];
-        return MathEx.dot(dPt, dPt) <= r * r;
-    }
-
-    hitTestSquare(
-        originPt: point,
-        hitPt: point,
-        s: number
-    ): boolean {
-        let dPt = [
-            originPt[0] - hitPt[0],
-            originPt[1] - hitPt[1]
-        ];
-        let hs = s / 2;
-        let sq = this.makeRect(
-            [originPt[0] - hs, originPt[1] - hs],
-            [originPt[0] + hs, originPt[1] + hs]
-        );
-        return (hitPt[0] >= sq.x && hitPt[0] <= sq.x + sq.w) &&
-            (hitPt[1] >= sq.y && hitPt[1] <= sq.y + sq.w);
-    }
-
-
     // Get and Set methods /////////////////////////////////////////////////////
 
 
@@ -538,13 +507,12 @@ export class GraphEditorCanvas {
         let el = this.g.canvas;
         el.height = value.h * CONST.AA_SCALE;
         el.width = value.w * CONST.AA_SCALE;
-        this.g.scale(this._scale, this._scale);
+        this.scale = this.scale;
     }
 
     set scale(value: number) {
         this._scale = CONST.AA_SCALE * value;
-        this.g.setTransform(1, 0, 0, 1, 0, 0);
-        this.g.scale(this._scale, this._scale);
+        this.g.setTransform(this._scale, 0, 0, this._scale, 0, 0);
     }
 
     get scale(): number {
@@ -593,15 +561,15 @@ export class GraphEditorCanvas {
 
     /**
      * getPt  
-     *   Gets the canvas coordinates from a pointer event.
+     *   Gets the canvas coordinates from a mouse event.
      */
-    getPt(e: PointerEvent): point {
+    getPt(e: MouseEvent): point {
         let canvas = this.g.canvas;
         let r = canvas.getBoundingClientRect();
-        return [
-            (e.clientX - r.left) / (r.right - r.left) * canvas.width / this._scale,
-            (e.clientY - r.top) / (r.bottom - r.top) * canvas.height / this._scale
-        ];
+        return {
+            x: (e.clientX - r.left) / (r.right - r.left) * canvas.width / this._scale - this.origin.x,
+            y: (e.clientY - r.top) / (r.bottom - r.top) * canvas.height / this._scale - this.origin.y
+        };
     }
 
     /**
@@ -614,36 +582,36 @@ export class GraphEditorCanvas {
         n: DrawableNode,
         dim: any
     ): point {
-        let v: point = [0, 0];
+        let v: point = { x: 0, y: 0 };
 
         switch (n.shape) {
             // The boundary of a circle is just its radius plus half its border width.
             case "circle":
-                v[0] = u[0] * dim.r + n.borderWidth / 2;
-                v[1] = u[1] * dim.r + n.borderWidth / 2;
+                v.x = u.x * dim.r + n.borderWidth / 2;
+                v.y = u.y * dim.r + n.borderWidth / 2;
                 break;
 
             // The boundary of a square depends on the direction of u.
             case "square":
-                let up = [
-                    (u[0] < 0 ? -u[0] : u[0]),
-                    (u[1] < 0 ? -u[1] : u[1])
-                ];
+                let up = {
+                    x: (u.x < 0 ? -u.x : u.x),
+                    y: (u.y < 0 ? -u.y : u.y)
+                };
                 let s = dim.s / 2;
-                if (up[0] < up[1]) {
-                    let ratio = up[0] / up[1];
-                    let b = s / up[1];
-                    let a = ratio * up[0];
-                    s = MathEx.mag([a, b]);
+                if (up.x < up.y) {
+                    let ratio = up.x / up.y;
+                    let b = s / up.y;
+                    let a = ratio * up.x;
+                    s = MathEx.mag({ x: a, y: b });
                 }
                 else {
-                    let ratio = up[1] / up[0];
-                    let a = s / up[0];
-                    let b = ratio * up[1];
-                    s = MathEx.mag([a, b]);
+                    let ratio = up.y / up.x;
+                    let a = s / up.x;
+                    let b = ratio * up.y;
+                    s = MathEx.mag({ x: a, y: b });
                 }
-                v[0] = u[0] * s + n.borderWidth / 2;
-                v[1] = u[1] * s + n.borderWidth / 2;
+                v.x = u.x * s + n.borderWidth / 2;
+                v.y = u.y * s + n.borderWidth / 2;
                 break;
         }
         return v;
@@ -663,63 +631,63 @@ export class GraphEditorCanvas {
         if (e.source && e.destination) {
             console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
             console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
-            let v = [
-                e.destination.position.x - e.source.position.x,
-                e.destination.position.y - e.source.position.y
-            ];
+            let v = {
+                x: e.destination.position.x - e.source.position.x,
+                y: e.destination.position.y - e.source.position.y
+            };
             let d = MathEx.mag(v);
-            let u: point = [v[0] / d, v[1] / d];
+            let u: point = { x: v.x / d, y: v.y / d };
             let shiftPt = this.getEdgePtShift(u, e.source, srcDim);
-            pts.push([
-                e.source.position.x + shiftPt[0],
-                e.source.position.y + shiftPt[1]
-            ]);
-            u[0] *= -1;
-            u[1] *= -1;
+            pts.push({
+                x: e.source.position.x + shiftPt.x,
+                y: e.source.position.y + shiftPt.y
+            });
+            u.x *= -1;
+            u.y *= -1;
             shiftPt = this.getEdgePtShift(u, e.destination, dstDim);
-            pts.push([
-                e.source.position.x + v[0] + shiftPt[0],
-                e.source.position.y + v[1] + shiftPt[1]
-            ]);
+            pts.push({
+                x: e.source.position.x + v.x + shiftPt.x,
+                y: e.source.position.y + v.y + shiftPt.y
+            });
         }
         else if (e.source && !e.destination) {
             console.assert(pt, "error getStraightEdgePoints: pt undefined");
             console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
             let p = pt as point;
-            let v = [
-                p[0] - e.source.position.x,
-                p[1] - e.source.position.y
-            ];
+            let v = {
+                x: p.x - e.source.position.x,
+                y: p.y - e.source.position.y
+            };
             let d = MathEx.mag(v);
-            let u: point = [v[0] / d, v[1] / d];
+            let u: point = { x: v.x / d, y: v.y / d };
             let shiftPt = this.getEdgePtShift(u, e.source, srcDim);
-            pts.push([
-                e.source.position.x + shiftPt[0],
-                e.source.position.y + shiftPt[1]
-            ]);
+            pts.push({
+                x: e.source.position.x + shiftPt.x,
+                y: e.source.position.y + shiftPt.y
+            });
             pts.push(p);
         }
         else if (!e.source && e.destination) {
             console.assert(pt, "error getStraightEdgePoints: pt undefined");
             console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
             let p = pt as point;
-            let v = [
-                e.destination.position.x - p[0],
-                e.destination.position.y - p[1]
-            ];
+            let v = {
+                x: e.destination.position.x - p.x,
+                y: e.destination.position.y - p.y
+            };
             let d = MathEx.mag(v);
-            let u: point = [-v[0] / d, -v[1] / d];
+            let u: point = { x: -v.x / d, y: -v.y / d };
             pts.push(p);
             let shiftPt = this.getEdgePtShift(u, e.destination, dstDim);
-            pts.push([
-                p[0] + v[0] + shiftPt[0],
-                p[1] + v[1] + shiftPt[1]
-            ]);
+            pts.push({
+                x: p.x + v.x + shiftPt.x,
+                y: p.y + v.y + shiftPt.y
+            });
         }
-        pts.push([
-            (pts[0][0] + pts[1][0]) / 2,
-            (pts[0][1] + pts[1][1]) / 2
-        ]);
+        pts.push({
+            x: (pts[0].x + pts[1].x) / 2,
+            y: (pts[0].y + pts[1].y) / 2
+        });
         return pts;
     }
 
@@ -732,25 +700,25 @@ export class GraphEditorCanvas {
         src: DrawableNode,
         srcDim: any
     ): point[] {
-        let u: point = [MathEx.SIN_22_5, -MathEx.COS_22_5];
-        let v: point = [-MathEx.SIN_22_5, -MathEx.COS_22_5];
+        let u: point = { x: MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
+        let v: point = { x: -MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
         let pt0: point = this.getEdgePtShift(u, src, srcDim);
         let pt1: point = this.getEdgePtShift(v, src, srcDim);
-        let pt2: point = [
-            src.position.x + 2 * CONST.GRID_SPACING * u[0],
-            src.position.y + 2 * CONST.GRID_SPACING * u[1]
-        ];
-        let pt3: point = [
-            src.position.x + 2 * CONST.GRID_SPACING * v[0],
-            src.position.y + 2 * CONST.GRID_SPACING * v[1]
-        ];
+        let pt2: point = {
+            x: src.position.x + 2 * CONST.GRID_SPACING * u.x,
+            y: src.position.y + 2 * CONST.GRID_SPACING * u.y
+        };
+        let pt3: point = {
+            x: src.position.x + 2 * CONST.GRID_SPACING * v.x,
+            y: src.position.y + 2 * CONST.GRID_SPACING * v.y
+        };
         let pts: point[] = [];
-        pts.push([src.position.x + pt0[0], src.position.y + pt0[1]]);
-        pts.push([src.position.x + pt1[0], src.position.y + pt1[1]]);
-        pts.push([
-            MathEx._5_3 * (pts[0][0] + 3 * (pt2[0] + pt3[0]) + pts[1][0]),
-            MathEx._5_3 * (pts[0][1] + 3 * (pt2[1] + pt3[1]) + pts[1][1])
-        ]);
+        pts.push({ x: src.position.x + pt0.x, y: src.position.y + pt0.y });
+        pts.push({ x: src.position.x + pt1.x, y: src.position.y + pt1.y });
+        pts.push({
+            x: MathEx._5_3 * (pts[0].x + 3 * (pt2.x + pt3.x) + pts[1].x),
+            y: MathEx._5_3 * (pts[0].y + 3 * (pt2.y + pt3.y) + pts[1].y)
+        });
         pts.push(pt2);
         pts.push(pt3);
         return pts;
@@ -768,47 +736,47 @@ export class GraphEditorCanvas {
         dstDim: any
     ): point[] {
         // Get a vector from the source node to the destination node.
-        let v: point = [
-            dst.position.x - src.position.x,
-            dst.position.y - src.position.y
-        ];
+        let v: point = {
+            x: dst.position.x - src.position.x,
+            y: dst.position.y - src.position.y
+        };
         // Get the normal to the vector.
         let d = MathEx.mag(v);
-        let n: point = [
-            v[1] / d,
-            -v[0] / d
-        ];
+        let n: point = {
+            x: v.y / d,
+            y: -v.x / d
+        };
 
         // Set the control point to the midpoint of the vector plus the scaled
         // normal.
-        let pt1: point = [
-            v[0] / 2 + v[1] / d * CONST.GRID_SPACING,
-            v[1] / 2 - v[0] / d * CONST.GRID_SPACING
-        ];
+        let pt1: point = {
+            x: v.x / 2 + v.y / d * CONST.GRID_SPACING,
+            y: v.y / 2 - v.x / d * CONST.GRID_SPACING
+        };
         // Shift the source endpoint.
         d = MathEx.mag(pt1);
-        let shiftPt: point = this.getEdgePtShift([pt1[0] / d, pt1[1] / d], src, srcDim);
-        let pt0: point = [
-            src.position.x + shiftPt[0],
-            src.position.y + shiftPt[1]
-        ];
+        let shiftPt: point = this.getEdgePtShift({ x: pt1.x / d, y: pt1.y / d }, src, srcDim);
+        let pt0: point = {
+            x: src.position.x + shiftPt.x,
+            y: src.position.y + shiftPt.y
+        };
         // Shift the destination endpoint.
-        shiftPt = this.getEdgePtShift([(pt1[0] - v[0]) / d, (pt1[1] - v[1]) / d], dst, dstDim);
-        let pt2: point = [
-            src.position.x + v[0] + shiftPt[0],
-            src.position.y + v[1] + shiftPt[1]
-        ];
+        shiftPt = this.getEdgePtShift({ x: (pt1.x - v.x) / d, y: (pt1.y - v.y) / d }, dst, dstDim);
+        let pt2: point = {
+            x: src.position.x + v.x + shiftPt.x,
+            y: src.position.y + v.y + shiftPt.y
+        };
         // Translate the controlpoint by the position of the source node.
-        pt1[0] += src.position.x;
-        pt1[1] += src.position.y;
+        pt1.x += src.position.x;
+        pt1.y += src.position.y;
         let pts: point[] = [];
         pts.push(pt0);
         pts.push(pt2);
         // Midpoint.
-        pts.push([
-            MathEx._5_2 * (pt0[0] + 2 * pt1[0] + pt2[0]),
-            MathEx._5_2 * (pt0[1] + 2 * pt1[1] + pt2[1])
-        ]);
+        pts.push({
+            x: MathEx._5_2 * (pt0.x + 2 * pt1.x + pt2.x),
+            y: MathEx._5_2 * (pt0.y + 2 * pt1.y + pt2.y)
+        });
         pts.push(pt1);
         return pts;
     }
@@ -847,13 +815,11 @@ export class GraphEditorCanvas {
      *   using the given opposing corner points.
      */
     makeRect(pt1: point, pt2: point): rect {
-        let w = pt2[0] - pt1[0];
-        let h = pt2[1] - pt1[1];
         return {
-            x: (w < 0 ? pt2[0] : pt1[0]),
-            y: (h < 0 ? pt2[1] : pt1[1]),
-            w: (w < 0 ? -1 * w : w),
-            h: (h < 0 ? -1 * h : h)
+            x: Math.min(pt2.x, pt1.x),
+            y: Math.min(pt2.y, pt1.y),
+            w: Math.abs(pt2.x - pt1.x),
+            h: Math.abs(pt2.y - pt1.y)
         };
     }
 
@@ -861,19 +827,29 @@ export class GraphEditorCanvas {
         e: DrawableEdge,
         pts: point[],
         isDragging: boolean,
-        isHovered: boolean,
-        isSelected: boolean,
-        pt?: point
+        isHovered: boolean
     ): () => void {
-        return makeFnEdge(
+        return makeDrawEdge(
             this,
             this.g,
             e,
             pts,
             isDragging,
-            isHovered,
-            isSelected,
-            pt
+            isHovered
+        );
+    }
+
+    makeDrawSelectedEdge(
+        e: DrawableEdge,
+        pts: point[],
+        isHovered: boolean
+    ) {
+        return makeDrawSelectedEdge(
+            this,
+            this.g,
+            e,
+            pts,
+            isHovered
         );
     }
 
@@ -882,18 +858,32 @@ export class GraphEditorCanvas {
         dim: any,
         isDragging: boolean,
         isHovered: boolean,
-        isSelected: boolean,
         pt?: point
     ): () => void {
-        return makeFnNode(
+        return makeDrawNode(
             this,
             this.g,
             n,
             dim,
             isDragging,
             isHovered,
-            isSelected,
             pt
+        );
+    }
+
+    makeDrawSelectedNode(
+        n: DrawableNode,
+        dim: any,
+        isDragging: boolean,
+        isHovered: boolean
+    ) {
+        return makeDrawSelectedNode(
+            this,
+            this.g,
+            n,
+            dim,
+            isDragging,
+            isHovered
         );
     }
 }
