@@ -15,15 +15,15 @@ A list of drawables is used to keep track of the order in which the graph
 elements should be drawn.
 
 The geometrical properties of nodes and edges are not recomputed for each call
-to redraw. These properties should only be recomputed whenever the properties of
-a node are changed that affects its geometry or position. Only the affected
+to `redraw`. These properties should only be recomputed whenever the properties
+of a node are changed that affects its geometry or position. Only the affected
 graph elements should be updated in this manner.
 
 ## Input Behavior
 Input to the graph editor is handled through mouse events. The `mousedown` event
-starts a timer to determine whether or not a node or edge should be created.
-[This behavior is set to be changed so that creating an edge does not require a
-timer.] The `mousemove` event either activates hovering on graphelements,
+starts a timer to determine whether or not a node or edge should be created
+[^This behavior is set to be changed so that creating an edge does not require a
+timer.]. The `mousemove` event either activates hovering on graph elements,
 creates a selection box, moves a node, or moves an edge. The `mouseup` event
 either finishes selecting graph elements, drops a node being dragged, drops an
 edge being dragged, or creates an edge if possible.
@@ -49,8 +49,8 @@ editor component.
 
 # TODO
 - Update hit detection.
-- Drawable elements need to update geometry based on properties. [This is
-  related to property binding.]
+- Drawable elements need to update geometry based on properties [^This is
+  related to property binding.].
   - Node Position
   - Node Shape
   - Edge Arrows
@@ -58,12 +58,12 @@ editor component.
   - LineWidth
   - LineStyle
 - Zoom and Pan
-  - pinch to zoom/two-touch drag to pan [For now, scroll to zoom/right click
+  - pinch to zoom/two-touch drag to pan [^For now, scroll to zoom/right click
     drag to pan.]
 - Snap to grid.
 - More shapes/custom images for nodes.
 - Anchor points on nodes for edges.
-- Orthogonal Lines. [Should users be able to have full control over bezier
+- Orthogonal Lines. [^Should users be able to have full control over bezier
   curves?]
 - Make sure to handle hit testing of custom shapes.
 - Make it so that if any part of a component is caught within the selection box,
