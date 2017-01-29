@@ -22,21 +22,22 @@ import { makeDrawNode, makeDrawSelectedNode } from "./make-draw-node";
 
 
 /**
- * rect  
- *   Represents a rectangle with the top-left coordinate and height and width.
- */
-export type rect = {
-    x: number,
-    y: number,
-    h: number,
-    w: number
-};
-
-/**
  * point  
  *   Represents a coordinate.
  */
 export type point = { x: number, y: number };
+
+/**
+ * size  
+ *   Represents rectangle dimensions.
+ */
+export type size = { h: number, w: number };
+
+/**
+ * rect  
+ *   Represents a rectangle with the top-left coordinate and height and width.
+ */
+export type rect = point & size;
 
 
 export class GraphEditorCanvas {
@@ -75,10 +76,10 @@ export class GraphEditorCanvas {
         let canvas = this.g.canvas;
         if (bgColor) {
             this.g.fillStyle = bgColor;
-            this.g.fillRect(0, 0, canvas.width, canvas.height);
+            this.g.fillRect(0, 0, canvas.width / this._scale, canvas.height / this._scale);
         }
         else {
-            this.g.clearRect(0, 0, canvas.width, canvas.height);
+            this.g.clearRect(0, 0, canvas.width / this._scale, canvas.height / this._scale);
         }
     }
 
@@ -146,7 +147,7 @@ export class GraphEditorCanvas {
         this.g.bezierCurveTo(
             ctl1.x + this.origin.x, ctl1.y + this.origin.y,
             ctl2.x + this.origin.x, ctl2.y + this.origin.y,
-            dst.x + this.origin.x, dst.y + this.origin.x
+            dst.x + this.origin.x, dst.y + this.origin.y
         );
         this.g.stroke();
     }
@@ -245,7 +246,7 @@ export class GraphEditorCanvas {
             this.lineStyle = { style: borderStyle, dotSize: borderWidth };
             this.g.lineWidth = borderWidth;
             this.g.strokeStyle = borderColor;
-            this.g.lineJoin = "miter";
+            // this.g.lineJoin = "miter";
             this.g.strokeRect(x, y, s, s);
         }
     }
@@ -256,8 +257,8 @@ export class GraphEditorCanvas {
      */
     drawGrid() {
 
-        let w = this.g.canvas.width;
-        let h = this.g.canvas.height;
+        let w = this.g.canvas.width / this._scale;
+        let h = this.g.canvas.height / this._scale;
 
         let o = {
             x: this.origin.x % CONST.GRID_SPACING - CONST.GRID_SPACING,
@@ -310,7 +311,7 @@ export class GraphEditorCanvas {
         borderColor?: string
     ) {
         let x = p.x + this.origin.x;
-        let y = p.y + this.origin.y - height / 2 + 1.5 * CONST.EDGE_FONT_SIZE / 2;
+        let y = p.y + this.origin.y - (height - 1.5 * CONST.EDGE_FONT_SIZE) / 2;
         this.g.font = fontSize + "pt " + fontFamily;
         this.g.textAlign = "center";
         this.g.textBaseline = "middle";
@@ -338,25 +339,35 @@ export class GraphEditorCanvas {
      *   Draws the edge label.
      */
     drawEdgeLabel(
-        rect: rect,
         labelPt: point,
-        height: number,
+        size: size,
         lines: string[]
     ): void {
-        rect.x += this.origin.x;
-        rect.y += this.origin.y;
         this.g.fillStyle = "#fff";
-        this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
-        this.g.shadowBlur = 0;
-        this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+        this.drawEdgeLabelRect(labelPt, size);
         this.drawText(
             labelPt,
-            height,
+            size.h,
             lines,
             CONST.EDGE_FONT_SIZE,
             CONST.EDGE_FONT_FAMILY,
             "#000"
         );
+    }
+
+    drawEdgeLabelRect(
+        labelPt: point,
+        size: size
+    ) {
+        let rect = this.makeRect(
+            { x: labelPt.x - size.w / 2 - 6, y: labelPt.y - size.h / 2 },
+            { x: labelPt.x + size.w / 2 + 6, y: labelPt.y + size.h / 2 }
+        );
+        rect.x += this.origin.x;
+        rect.y += this.origin.y;
+        this.g.fillRect(rect.x, rect.y, rect.w, rect.h);
+        this.g.shadowBlur = 0;
+        this.g.strokeRect(rect.x, rect.y, rect.w, rect.h);
     }
 
     drawCubicEdgeBothArrows(

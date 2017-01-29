@@ -33,13 +33,8 @@ export function makeDrawEdge(
         let lines = e.label.split("\n");
         // Get the bounding box of the label.
         let size = canvas.getTextSize(lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
-        let rect = canvas.makeRect(src, dst);
         // Get the center point of the label.
         let labelPt = pts[2];
-        // Get the label background rectangle.
-        size.w /= 2;
-        size.h /= 2;
-        rect = canvas.makeRect({ x: labelPt.x - size.w - 6, y: labelPt.y - size.h }, { x: labelPt.x + size.w + 6, y: labelPt.y + size.h });
         if (isDragging) {
             if (e.showSourceArrow && e.showDestinationArrow) {
                 /////////////////////////////////////
@@ -51,29 +46,26 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                 }
@@ -88,29 +80,26 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                 }
@@ -125,29 +114,26 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                 }
@@ -162,29 +148,26 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             g.globalAlpha = 0.5;
                             canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                             g.globalAlpha = 1;
                         };
                 }
@@ -201,30 +184,27 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                 }
             }
@@ -238,30 +218,27 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                 }
             }
@@ -275,30 +252,27 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                 }
             }
@@ -312,30 +286,27 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             g.shadowBlur = 20 * canvas.scale;
                             g.shadowColor = CONST.SELECTION_COLOR;
                             canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                 }
             }
@@ -351,24 +322,21 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                 }
             }
@@ -382,24 +350,21 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                 }
             }
@@ -413,24 +378,21 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                 }
             }
@@ -444,24 +406,21 @@ export function makeDrawEdge(
                         let ctl1 = pts[3];
                         let ctl2 = pts[4];
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Quadratic
                     case 4:
                         let ctl = pts[3];
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                     // Straight
                     default:
                         return () => {
-                            g.lineJoin = "miter";
                             canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
-                            canvas.drawEdgeLabel(rect, labelPt, size.h, lines);
+                            canvas.drawEdgeLabel(labelPt, size, lines);
                         };
                 }
             }
@@ -851,24 +810,17 @@ export function makeDrawSelectedEdge(
         let lines = e.label.split("\n");
         // Get the bounding box of the label.
         let size = canvas.getTextSize(lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
-        let rect = canvas.makeRect(src, dst);
         // Get the center point of the label.
         let labelPt = pts[2];
         // Get the label background rectangle.
-        size.w /= 2;
-        size.h /= 2;
-        rect = canvas.makeRect({ x: labelPt.x - size.w - 6, y: labelPt.y - size.h }, { x: labelPt.x + size.w + 6, y: labelPt.y + size.h });
-        rect.x = rect.x + canvas.origin.x - 2;
-        rect.y = rect.y + canvas.origin.y - 2;
-        rect.h += 4;
-        rect.w += 4;
+        size.w += 4;
+        size.h += 4;
         //////////////////////
         // Labeled, Hovered //
         //////////////////////
         if (isHovered) {
             if (e.showSourceArrow && e.showDestinationArrow) {
                 return () => {
-                    g.lineJoin = "miter";
                     g.fillStyle = CONST.SELECTION_COLOR;
                     g.shadowBlur = 20 * canvas.scale;
                     g.shadowColor = CONST.SELECTION_COLOR;
@@ -886,14 +838,12 @@ export function makeDrawSelectedEdge(
                             canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                             break;
                     }
-                    g.fillRect(rect.x, rect.y, rect.w, rect.h);
-                    g.shadowBlur = 0;
-                    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                    g.lineWidth = e.lineWidth;
+                    canvas.drawEdgeLabelRect(labelPt, size);
                 };
             }
             else if (e.showSourceArrow && !e.showDestinationArrow) {
                 return () => {
-                    g.lineJoin = "miter";
                     g.fillStyle = CONST.SELECTION_COLOR;
                     g.shadowBlur = 20 * canvas.scale;
                     g.shadowColor = CONST.SELECTION_COLOR;
@@ -911,14 +861,12 @@ export function makeDrawSelectedEdge(
                             canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, dst, src);
                             break;
                     }
-                    g.fillRect(rect.x, rect.y, rect.w, rect.h);
-                    g.shadowBlur = 0;
-                    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                    g.lineWidth = e.lineWidth;
+                    canvas.drawEdgeLabelRect(labelPt, size);
                 };
             }
             else if (!e.showSourceArrow && e.showDestinationArrow) {
                 return () => {
-                    g.lineJoin = "miter";
                     g.fillStyle = CONST.SELECTION_COLOR;
                     g.shadowBlur = 20 * canvas.scale;
                     g.shadowColor = CONST.SELECTION_COLOR;
@@ -936,14 +884,12 @@ export function makeDrawSelectedEdge(
                             canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, src, dst);
                             break;
                     }
-                    g.fillRect(rect.x, rect.y, rect.w, rect.h);
-                    g.shadowBlur = 0;
-                    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                    g.lineWidth = e.lineWidth;
+                    canvas.drawEdgeLabelRect(labelPt, size);
                 };
             }
             else {
                 return () => {
-                    g.lineJoin = "miter";
                     g.fillStyle = CONST.SELECTION_COLOR;
                     g.shadowBlur = 20 * canvas.scale;
                     g.shadowColor = CONST.SELECTION_COLOR;
@@ -961,9 +907,8 @@ export function makeDrawSelectedEdge(
                             canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                             break;
                     }
-                    g.fillRect(rect.x, rect.y, rect.w, rect.h);
-                    g.shadowBlur = 0;
-                    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                    g.lineWidth = e.lineWidth;
+                    canvas.drawEdgeLabelRect(labelPt, size);
                 };
             }
         }
@@ -973,7 +918,6 @@ export function makeDrawSelectedEdge(
         else {
             if (e.showSourceArrow && e.showDestinationArrow) {
                 return () => {
-                    g.lineJoin = "miter";
                     g.fillStyle = CONST.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
@@ -989,13 +933,12 @@ export function makeDrawSelectedEdge(
                             canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                             break;
                     }
-                    g.fillRect(rect.x, rect.y, rect.w, rect.h);
-                    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                    g.lineWidth = e.lineWidth;
+                    canvas.drawEdgeLabelRect(labelPt, size);
                 };
             }
             else if (e.showSourceArrow && !e.showDestinationArrow) {
                 return () => {
-                    g.lineJoin = "miter";
                     g.fillStyle = CONST.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
@@ -1011,13 +954,12 @@ export function makeDrawSelectedEdge(
                             canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, dst, src);
                             break;
                     }
-                    g.fillRect(rect.x, rect.y, rect.w, rect.h);
-                    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                    g.lineWidth = e.lineWidth;
+                    canvas.drawEdgeLabelRect(labelPt, size);
                 };
             }
             else if (!e.showSourceArrow && e.showDestinationArrow) {
                 return () => {
-                    g.lineJoin = "miter";
                     g.fillStyle = CONST.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
@@ -1033,13 +975,12 @@ export function makeDrawSelectedEdge(
                             canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, src, dst);
                             break;
                     }
-                    g.fillRect(rect.x, rect.y, rect.w, rect.h);
-                    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                    g.lineWidth = e.lineWidth;
+                    canvas.drawEdgeLabelRect(labelPt, size);
                 };
             }
             else {
                 return () => {
-                    g.lineJoin = "miter";
                     g.fillStyle = CONST.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
@@ -1055,8 +996,8 @@ export function makeDrawSelectedEdge(
                             canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                             break;
                     }
-                    g.fillRect(rect.x, rect.y, rect.w, rect.h);
-                    g.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                    g.lineWidth = e.lineWidth;
+                    canvas.drawEdgeLabelRect(labelPt, size);
                 };
             }
         }

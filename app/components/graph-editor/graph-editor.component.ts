@@ -108,16 +108,23 @@ export class GraphEditorComponent implements AfterViewInit {
     private graph: DrawableGraph;
 
     /**
-     * downEvt  
-     *   The previous down event payload.
-     */
-    private downEvt: MouseEvent | null = null;
-
-    /**
      * panPt  
      *   The previous point from panning the canvas.
      */
     private panPt: point | null = null;
+
+    /**
+     * zoom  
+     *   Zoom levels from input events.
+     */
+    private zoom: { level: number, min: number, max: number } =
+    { level: 0, min: -5, max: 5 };
+
+    /**
+     * downEvt  
+     *   The previous down event payload.
+     */
+    private downEvt: MouseEvent | null = null;
 
     /**
      * stickyTimeout  
@@ -470,15 +477,8 @@ export class GraphEditorComponent implements AfterViewInit {
 
         // Panning.
         else if (e.buttons == 2) {
-            let prev = this.panPt;
-            let curr: point = e;
-            if (prev) {
-                let dp = { x: curr.x - prev.x, y: curr.y - prev.y };
-                this.canvas.origin.x += dp.x;
-                this.canvas.origin.y += dp.y;
-            }
-            this.panPt = curr;
-            this.redraw();
+            this.pan(e);
+            this.panPt = e;
         }
 
         // Hover.
@@ -537,16 +537,21 @@ export class GraphEditorComponent implements AfterViewInit {
 
         // Panning.
         else if (e.buttons == 2) {
-            let prev = this.panPt;
-            let curr: point = e;
-            if (prev) {
-                let dp = { x: curr.x - prev.x, y: curr.y - prev.y };
-                this.canvas.origin.x += dp.x;
-                this.canvas.origin.y += dp.y;
-            }
+            this.pan(e);
             this.panPt = null;
-            this.redraw();
         }
+    }
+
+    private onWheel = (e: WheelEvent) => {
+        if (e.deltaY > 0 && this.zoom.level > this.zoom.min)
+            this.zoom.level = Math.max(this.zoom.level - 1, this.zoom.min);
+        else if (e.deltaY < 0 && this.zoom.level < this.zoom.max)
+            this.zoom.level = Math.min(this.zoom.level + 1, this.zoom.max);
+
+        this.scale = Math.pow(1.25, this.zoom.level);
+        // TODO:
+        // Center on zoom point.
+        this.redraw();
     }
 
     /**
@@ -646,6 +651,7 @@ export class GraphEditorComponent implements AfterViewInit {
     private addEventListeners(el: any) {
         el.addEventListener("mousedown", this.onMouseDown);
         el.addEventListener("mousemove", this.onMouseMove);
+        el.addEventListener("wheel", this.onWheel);
         // TODO:
         // Use pointer events to handle gesture pan and zoom.
         el.addEventListener("pointerdown", (e: PointerEvent) => console.log(e));
@@ -661,6 +667,7 @@ export class GraphEditorComponent implements AfterViewInit {
         el.removeEventListener("mousedown", this.onMouseDown);
         el.removeEventListener("mouseup", this.onMouseUp);
         el.removeEventListener("mousemove", this.onMouseMove);
+        el.removeEventListener("wheel", this.onWheel);
         el.removeEventListener("keydown", this.onKeyDown);
     }
 
@@ -1243,6 +1250,17 @@ export class GraphEditorComponent implements AfterViewInit {
 
     // Other Methods ///////////////////////////////////////////////////////////
 
+
+    private pan(p: point) {
+        let prev = this.panPt;
+        let curr: point = p;
+        if (prev) {
+            let dp = { x: curr.x - prev.x, y: curr.y - prev.y };
+            this.canvas.origin.x += dp.x / this.canvas.scale;
+            this.canvas.origin.y += dp.y / this.canvas.scale;
+        }
+        this.redraw();
+    }
 
     /**
      * resetState  
