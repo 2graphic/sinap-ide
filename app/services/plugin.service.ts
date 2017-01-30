@@ -132,7 +132,6 @@ class MLPlugin implements Core.Plugin {
 
 @Injectable()
 export class PluginService {
-    private plugins = new Map<string, ConcretePlugin>();
     private interpretCode: Script;
     private runInputCode: Script;
 
@@ -167,12 +166,8 @@ export class PluginService {
     }
 
     public getPlugin(kind: string): ConcretePlugin {
-        const loadedPlugin = this.plugins.get(kind);
-        if (loadedPlugin) {
-            return loadedPlugin;
-        }
+        // TODO: Figure out how to cache this without bad performance.
         const plugin = this.makePlugin(kind);
-        this.plugins.set(kind, plugin);
         return plugin;
     }
 
