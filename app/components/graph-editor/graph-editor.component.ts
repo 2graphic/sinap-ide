@@ -385,7 +385,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 );
 
                 // Clear the hover object.
-                this.updateHoverObject(null);
+                this.updateHover(null);
 
                 // Save the event payload.
                 this.downEvt = e;
@@ -483,7 +483,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
         // Hover.
         else if (e.buttons === 0) {
-            this.updateHoverObject(this.hitTest(ePt));
+            this.updateHover(this.hitTest(ePt));
         }
     }
 
@@ -755,7 +755,7 @@ export class GraphEditorComponent implements AfterViewInit {
         n: DrawableNode
     ): void {
         if (this.hoverObject && n === this.hoverObject)
-            this.updateHoverObject(null);
+            this.updateHover(null);
         let edges = [...(this.nodeEdges.get(n) as EdgeSet)];
         for (const e of edges)
             this.removeEdge(graph, e);
@@ -800,7 +800,7 @@ export class GraphEditorComponent implements AfterViewInit {
         e: DrawableEdge
     ): void {
         if (this.hoverObject && e === this.hoverObject)
-            this.updateHoverObject(null);
+            this.updateHover(null);
         if (e.source)
             (this.nodeEdges.get(e.source) as EdgeSet).delete(e);
         if (e.destination)
@@ -895,53 +895,47 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Updates the draw function for a given drawable.
      */
     private updateDrawable(d: Drawable | null): void {
+        let isSelected = (d ? this.selectedItems.has(d) : false);
         let isDragging = this.dragObject === d;
         let isHovered = this.hoverObject === d;
         if (isDrawableEdge(d)) {
             let pts = this.edgePoints.get(d) as point[];
-            if (this.selectedItems.has(d)) {
-                this.selectedDrawMap.set(
+            this.selectedDrawMap.set(
+                d,
+                (isSelected ?
+                    this.canvas.makeDrawSelectedEdge(d, pts, isHovered) :
+                    () => { })
+            );
+            this.drawMap.set(
+                d,
+                this.canvas.makeDrawEdge(
                     d,
-                    this.canvas
-                        .makeDrawSelectedEdge(d, pts, isHovered)
-                );
-                this.drawMap.set(
-                    d,
-                    this.canvas
-                        .makeDrawEdge(d, pts, isDragging, false)
-                );
-            }
-            else {
-                this.selectedDrawMap.set(d, () => { });
-                this.drawMap.set(
-                    d,
-                    this.canvas
-                        .makeDrawEdge(d, pts, isDragging, isHovered)
-                );
-            }
+                    pts,
+                    isDragging,
+                    isHovered && !isSelected
+                )
+            );
         }
         else if (isDrawableNode(d)) {
             let dim = this.nodeDimensions.get(d);
-            if (this.selectedItems.has(d)) {
-                this.selectedDrawMap.set(
+            this.selectedDrawMap.set(
+                d,
+                (isSelected ?
+                    this.canvas.makeDrawSelectedNode(d, dim, isDragging, isHovered) :
+                    () => { })
+            );
+            this.drawMap.set(
+                d,
+                this.canvas.makeDrawNode(
                     d,
-                    this.canvas
-                        .makeDrawSelectedNode(d, dim, isDragging, isHovered)
-                );
-                this.drawMap.set(
-                    d,
-                    this.canvas
-                        .makeDrawNode(d, dim, false, false)
-                );
-            }
-            else {
-                this.selectedDrawMap.set(d, () => { });
-                this.drawMap.set(
-                    d,
-                    this.canvas
-                        .makeDrawNode(d, dim, isDragging, isHovered)
-                );
-            }
+                    dim,
+                    isDragging && !isSelected,
+                    isHovered && !isSelected,
+                    (d === this.hoverAnchor.d ?
+                        this.hoverAnchor.pt :
+                        undefined)
+                )
+            );
         }
     }
 
@@ -1035,20 +1029,38 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * setHoverObject  
-     *   Sets the object being hovered over.
+     * hoverObject  
+     *   Updates the hovered object and hover anchor.
      */
-    private updateHoverObject(value: { d: Drawable, pt: point } | null): void {
-        if (value && value.d !== this.hoverObject ||
-            (!value && this.hoverObject)) {
-            // TODO:
-            // Handle pt.
-            let prev = this.hoverObject;
-            this.hoverObject = (value ? value.d : null);
+    private updateHover(value: { d: Drawable, pt: point } | null): void {
+
+        let prev = this.hoverObject;
+        this.hoverObject = (value ? value.d : null);
+        if (prev !== this.hoverObject) {
             this.updateDrawable(prev);
             this.updateDrawable(this.hoverObject);
-            this.redraw();
         }
+
+        prev = this.hoverAnchor.d;
+        if (value) {
+            if (isDrawableEdge(value.d)) {
+                let pts = this.edgePoints.get(value.d) as point[];
+                this.hoverAnchor.d = (value.pt === pts[0] ?
+                    value.d.source :
+                    value.d.destination);
+            }
+            else if (isDrawableNode(value.d))
+                this.hoverAnchor.d = (value.pt === value.d.position ?
+                    null :
+                    value.d);
+            this.hoverAnchor.pt = value.pt;
+        }
+        else
+            this.hoverAnchor.d = null;
+        this.updateDrawable(prev);
+        this.updateDrawable(this.hoverAnchor.d);
+        this.redraw();
+
     }
 
     /**
@@ -1120,7 +1132,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 if (d <= r) {
                     r -= CONST.GRID_SPACING / 2;
                     let anchor: point = n.position;
-                    if (d < r) {
+                    if (d >= r) {
                         let shift = this.canvas.getEdgePtShift(
                             { x: v.x / d, y: v.y / d },
                             n,
@@ -1152,8 +1164,8 @@ export class GraphEditorComponent implements AfterViewInit {
                     rect.h -= CONST.GRID_SPACING / 2;
                     rect.w -= CONST.GRID_SPACING / 2;
                     let anchor: point = n.position;
-                    if ((pt.x >= rect.x && pt.x <= rect.x + rect.w) &&
-                        (pt.y >= rect.y && pt.y <= rect.y + rect.w)) {
+                    if ((pt.x <= rect.x || pt.x >= rect.x + rect.w) &&
+                        (pt.y <= rect.y || pt.y >= rect.y + rect.w)) {
                         let shift = this.canvas.getEdgePtShift(
                             { x: v.x / d, y: v.y / d },
                             n,

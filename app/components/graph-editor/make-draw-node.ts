@@ -15,15 +15,7 @@ import { DrawableNode } from "./drawable-interfaces";
  * makeDrawNode  
  *   Makes a draw function for a given node.
  */
-export function makeDrawNode(
-    canvas: GraphEditorCanvas,
-    g: CanvasRenderingContext2D,
-    n: DrawableNode,
-    dim: any,
-    isDragging: boolean,
-    isHovered: boolean,
-    pt?: point
-): () => void {
+export function makeDrawNode(canvas: GraphEditorCanvas, g: CanvasRenderingContext2D, n: DrawableNode, dim: any, isDragging: boolean, isHovered: boolean, pt?: point): () => void {
     // TODO:
     // Deal with pt.
     let shadowColor = (isDragging ? CONST.NODE_DRAG_SHADOW_COLOR : (isHovered ? CONST.SELECTION_COLOR : undefined));
@@ -33,175 +25,63 @@ export function makeDrawNode(
         // Labelled, With Anchor //
         ///////////////////////////
         if (pt && pt !== n.position) {
-            switch (n.shape) {
-                case "circle":
-                    return () => {
-                        canvas.drawCircle(
-                            n.position,
-                            dim.r,
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            shadowColor
-                        );
-                        canvas.drawText(
-                            n.position,
-                            dim.th,
-                            lines,
-                            CONST.NODE_FONT_SIZE,
-                            CONST.NODE_FONT_FAMILY,
-                            "#fff",
-                            2,
-                            "#000"
-                        );
-                        canvas.drawCircle(pt, 5, "solid", 1, "#000", "#fff");
-                    };
-                case "square":
-                    return () => {
-                        canvas.drawSquare(
-                            n.position,
-                            dim.s,
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            shadowColor
-                        );
-                        canvas.drawText(
-                            n.position,
-                            dim.th,
-                            lines,
-                            CONST.NODE_FONT_SIZE,
-                            CONST.NODE_FONT_FAMILY,
-                            "#fff",
-                            2,
-                            "#000"
-                        );
-                        canvas.drawCircle(pt, 5, "solid", 1, "#000", "#fff");
-                    };
-            }
+            return () => {
+                switch (n.shape) {
+                    case "circle":
+                        canvas.drawCircle(n.position, dim.r, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
+                        break;
+                    case "square":
+                        canvas.drawSquare(n.position, dim.s, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
+                        break;
+                }
+                canvas.drawText(n.position, dim.th, lines, "#fff", 2, "#000");
+                canvas.drawCircle(pt, 5, "solid", 1, "#000", "#fff");
+            };
         }
         /////////////////////////////
         // Labeled, Without Anchor //
         /////////////////////////////
-        else {
+        return () => {
             switch (n.shape) {
                 case "circle":
-                    return () => {
-                        canvas.drawCircle(
-                            n.position,
-                            dim.r,
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            shadowColor
-                        );
-                        canvas.drawText(
-                            n.position,
-                            dim.th,
-                            lines,
-                            CONST.NODE_FONT_SIZE,
-                            CONST.NODE_FONT_FAMILY,
-                            "#fff",
-                            2,
-                            "#000"
-                        );
-                    };
+                    canvas.drawCircle(n.position, dim.r, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
+                    break;
                 case "square":
-                    return () => {
-                        canvas.drawSquare(
-                            n.position,
-                            dim.s,
-                            n.borderStyle,
-                            n.borderWidth,
-                            n.borderColor,
-                            n.color,
-                            shadowColor
-                        );
-                        canvas.drawText(
-                            n.position,
-                            dim.th,
-                            lines,
-                            CONST.NODE_FONT_SIZE,
-                            CONST.NODE_FONT_FAMILY,
-                            "#fff",
-                            2,
-                            "#000"
-                        );
-                    };
+                    canvas.drawSquare(n.position, dim.s, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
+                    break;
             }
-        }
+            canvas.drawText(n.position, dim.th, lines, "#fff", 2, "#000");
+        };
     }
     /////////////////////////////
     // Unlabelled, With Anchor //
     /////////////////////////////
     if (pt && pt !== n.position) {
-        switch (n.shape) {
-            case "circle":
-                return () => {
-                    canvas.drawCircle(
-                        n.position,
-                        dim.r,
-                        n.borderStyle,
-                        n.borderWidth,
-                        n.borderColor,
-                        n.color,
-                        shadowColor
-                    );
-                    canvas.drawCircle(n.position, 5, "solid", 1, "#000", "#fff");
-                };
-            case "square":
-                return () => {
-                    canvas.drawSquare(
-                        n.position,
-                        dim.s,
-                        n.borderStyle,
-                        n.borderWidth,
-                        n.borderColor,
-                        n.color,
-                        shadowColor
-                    );
-                    canvas.drawCircle(n.position, 5, "solid", 1, "#000", "#fff");
-                };
-        }
+        return () => {
+            switch (n.shape) {
+                case "circle":
+                    canvas.drawCircle(n.position, dim.r, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
+                    break;
+                case "square":
+                    canvas.drawSquare(n.position, dim.s, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
+                    break;
+            }
+            canvas.drawCircle(n.position, 5, "solid", 1, "#000", "#fff");
+        };
     }
     ////////////////////////////////
     // Unlabelled, Without Anchor //
     ////////////////////////////////
-    else {
+    return () => {
         switch (n.shape) {
             case "circle":
-                return () => {
-                    canvas.drawCircle(
-                        n.position,
-                        dim.r,
-                        n.borderStyle,
-                        n.borderWidth,
-                        n.borderColor,
-                        n.color,
-                        shadowColor
-                    );
-                };
+                canvas.drawCircle(n.position, dim.r, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
+                break;
             case "square":
-                return () => {
-                    canvas.drawSquare(
-                        n.position,
-                        dim.s,
-                        n.borderStyle,
-                        n.borderWidth,
-                        n.borderColor,
-                        n.color,
-                        shadowColor
-                    );
-                };
+                canvas.drawSquare(n.position, dim.s, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
+                break;
         }
-    }
-    /////////////
-    // Default //
-    /////////////
-    return () => { };
+    };
 }
 
 /**
@@ -220,28 +100,11 @@ export function makeDrawSelectedNode(
     switch (n.shape) {
         case "circle":
             return () => {
-                canvas.drawCircle(
-                    n.position,
-                    dim.r + n.borderWidth / 2 + 2,
-                    "solid",
-                    n.borderWidth,
-                    CONST.SELECTION_COLOR,
-                    CONST.SELECTION_COLOR,
-                    shadowColor
-                );
+                canvas.drawCircle(n.position, dim.r + n.borderWidth / 2 + 2, "solid", n.borderWidth, CONST.SELECTION_COLOR, CONST.SELECTION_COLOR, shadowColor);
             };
         case "square":
-            let ss = dim.s + n.borderWidth + 4;
             return () => {
-                canvas.drawSquare(
-                    n.position,
-                    ss,
-                    "solid",
-                    n.borderWidth,
-                    CONST.SELECTION_COLOR,
-                    CONST.SELECTION_COLOR,
-                    shadowColor
-                );
+                canvas.drawSquare(n.position, dim.s + n.borderWidth + 4, "solid", n.borderWidth, CONST.SELECTION_COLOR, CONST.SELECTION_COLOR, shadowColor);
             };
     }
     return () => { };

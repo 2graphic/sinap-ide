@@ -304,15 +304,13 @@ export class GraphEditorCanvas {
         p: point,
         height: number,
         lines: Array<string>,
-        fontSize: number,
-        fontFamily: string,
         color: string,
         borderWidth?: number,
         borderColor?: string
     ) {
         let x = p.x + this.origin.x;
-        let y = p.y + this.origin.y - (height - 1.5 * CONST.EDGE_FONT_SIZE) / 2;
-        this.g.font = fontSize + "pt " + fontFamily;
+        let y = p.y + this.origin.y - (height - 1.5 * CONST.FONT_SIZE) / 2;
+        this.g.font = CONST.FONT_SIZE + "pt " + CONST.FONT_FAMILY;
         this.g.textAlign = "center";
         this.g.textBaseline = "middle";
         this.g.fillStyle = color;
@@ -323,13 +321,13 @@ export class GraphEditorCanvas {
             for (let l = 0; l < lines.length; l++) {
                 this.g.strokeText(lines[l], x, y);
                 this.g.fillText(lines[l], x, y);
-                y += 1.5 * fontSize;
+                y += 1.5 * CONST.FONT_SIZE;
             }
         }
         else {
             for (let l = 0; l < lines.length; l++) {
                 this.g.fillText(lines[l], x, y);
-                y += 1.5 * fontSize;
+                y += 1.5 * CONST.FONT_SIZE;
             }
         }
     }
@@ -349,8 +347,6 @@ export class GraphEditorCanvas {
             labelPt,
             size.h,
             lines,
-            CONST.EDGE_FONT_SIZE,
-            CONST.EDGE_FONT_FAMILY,
             "#000"
         );
     }
@@ -554,13 +550,9 @@ export class GraphEditorCanvas {
      * getTextSize  
      *   Gets the bounding box of text.
      */
-    getTextSize(
-        lines: Array<string>,
-        fontFamily: string,
-        fontSize: number
-    ) {
-        this.g.font = fontSize + "pt " + fontFamily;
-        let textHeight = lines.length * 1.5 * fontSize;
+    getTextSize(lines: Array<string>) {
+        this.g.font = CONST.FONT_SIZE + "pt " + CONST.FONT_FAMILY;
+        let textHeight = lines.length * 1.5 * CONST.FONT_SIZE;
         let textWidth = 0;
         for (let l = 0; l < lines.length; l++) {
             let tw = this.g.measureText(lines[l]).width;
@@ -800,19 +792,15 @@ export class GraphEditorCanvas {
         n: DrawableNode
     ): any {
         let lines = n.label.split("\n");
-        let size = this.getTextSize(
-            lines,
-            CONST.NODE_FONT_FAMILY,
-            CONST.NODE_FONT_SIZE
-        );
-        let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
-            CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
+        let size = this.getTextSize(lines);
+        let s = (CONST.GRID_SPACING > size.h + 1.5 * CONST.FONT_SIZE ?
+            CONST.GRID_SPACING : size.h + 1.5 * CONST.FONT_SIZE);
         switch (n.shape) {
             case "circle":
-                return { r: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s) / 2, th: size.h };
+                return { r: (s < size.w + CONST.FONT_SIZE ? size.w + CONST.FONT_SIZE : s) / 2, th: size.h };
 
             case "square":
-                return { s: (s < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : s), th: size.h };
+                return { s: (s < size.w + CONST.FONT_SIZE ? size.w + CONST.FONT_SIZE : s), th: size.h };
         }
     }
 

@@ -32,7 +32,7 @@ export function makeDrawEdge(
         // Split the label into lines.
         let lines = e.label.split("\n");
         // Get the bounding box of the label.
-        let size = canvas.getTextSize(lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+        let size = canvas.getTextSize(lines);
         // Get the center point of the label.
         let labelPt = pts[2];
         if (isDragging) {
@@ -809,7 +809,7 @@ export function makeDrawSelectedEdge(
         // Split the label into lines.
         let lines = e.label.split("\n");
         // Get the bounding box of the label.
-        let size = canvas.getTextSize(lines, CONST.EDGE_FONT_FAMILY, CONST.EDGE_FONT_SIZE);
+        let size = canvas.getTextSize(lines);
         // Get the center point of the label.
         let labelPt = pts[2];
         // Get the label background rectangle.
