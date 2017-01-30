@@ -384,16 +384,49 @@ export class GraphEditorComponent implements AfterViewInit {
                     this.onMouseUp
                 );
 
-                // Clear the hover object.
-                this.updateHover(null);
-
                 // Save the event payload.
                 this.downEvt = e;
 
-                // Set a timeout.
-                this.stickyTimeout = (this.stickyTimeout ?
-                    this.stickyTimeout :
-                    setTimeout(this.onStickey, CONST.STICKY_DELAY));
+                // Set a timer for creating a node if nothing is being hovered.
+                if (!this.hoverObject) {
+                    this.dragObject = null;
+                    this.stickyTimeout = (this.stickyTimeout ?
+                        this.stickyTimeout :
+                        setTimeout(this.onStickey, CONST.STICKY_DELAY));
+                }
+
+                else if (isDrawableNode(this.hoverObject)) {
+                    if (this.hoverAnchor.d) {
+                        let edge = new DefaultEdge(this.hoverAnchor.d);
+                        this.dragObject = edge;
+                        edge.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
+                        edge.destination = null;
+                        this.drawList.push(edge);
+                        this.updateEdgePoints(edge, this.canvas.getPt(e));
+                        this.updateDrawable(edge);
+                    }
+                    else
+                        this.dragObject = this.hoverObject;
+                }
+
+                else if (isDrawableEdge(this.hoverObject)) {
+                    let pts = this.edgePoints.get(this.hoverObject) as point[];
+                    let edge = cloneEdge(this.hoverObject);
+                    this.moveEdge = this.hoverObject;
+                    this.dragObject = edge;
+                    edge.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
+                    if (this.hoverAnchor.pt === pts[0])
+                        edge.source = null;
+                    else
+                        edge.destination = null;
+                    this.drawList.push(edge);
+                    this.updateEdgePoints(edge, this.canvas.getPt(e));
+                    this.updateDrawable(edge);
+                }
+
+                // Clear the hover object.
+                this.updateHover(null);
+
                 break;
 
             // Handle the right mouse button event.
@@ -452,26 +485,7 @@ export class GraphEditorComponent implements AfterViewInit {
             else if (MathEx.dot(dPt, dPt) > CONST.NUDGE * CONST.NUDGE) {
                 clearTimeout(this.stickyTimeout as NodeJS.Timer);
                 this.stickyTimeout = null;
-
-                // Check the drag object.
-                let hit = this.hitTest(ePt);
-
-                // Clear the selection if nothing was hit.
-                if (!hit)
-                    this.clearSelected();
-
-                // Update the drag object if it is a node.
-                else if (isDrawableNode(hit.d)) {
-                    this.dragObject = hit.d;
-                    this.updateDrawable(this.dragObject);
-                }
-
-                // Clear the drag object if it is an edge.
-                //
-                // TODO:
-                // Maybe don't clear the drag object if it is an edge.
-                else
-                    this.dragObject = null;
+                this.clearSelected();
             }
         }
 
@@ -559,52 +573,18 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Delayed mousedown event for creating nodes or edges.
      */
     private onStickey = (): void => {
-        // Set the drag object and reset sticky.
+        // Create a new node and reset sticky.
         if (this.downEvt) {
             let downPt = this.canvas.getPt(this.downEvt);
             clearTimeout(this.stickyTimeout as NodeJS.Timer);
             this.stickyTimeout = null;
-            let hit = this.hitTest(downPt);
 
-            // Create a new node and set it as the drag object if no drag
-            // object was set.
-            if (!hit) {
-                this.dragObject = this.addNode(this.graph, downPt);
-                this.clearSelected();
-                this.addSelectedItem(this.dragObject);
-                this.updateDrawable(this.dragObject);
-                this.redraw();
-            }
-
-            // Create a new dummy edge with the source node as the drag object.
-            else if (isDrawableNode(hit.d)) {
-                let e = new DefaultEdge(hit.d);
-                this.dragObject = e;
-                e.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
-                e.destination = null;
-                this.drawList.push(e);
-                this.updateEdgePoints(e, downPt);
-                this.updateDrawable(e);
-                this.redraw();
-            }
-
-            // Set the drag object to some dummy edge and the replace edge to
-            // the original drag object if the drag object was an edge.
-            else if (isDrawableEdge(hit.d)) {
-                let pts = this.edgePoints.get(hit.d) as point[];
-                let e = cloneEdge(hit.d);
-                this.moveEdge = hit.d;
-                this.dragObject = e;
-                e.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
-                if (hit.pt === pts[0])
-                    e.source = null;
-                else
-                    e.destination = null;
-                this.drawList.push(e);
-                this.updateEdgePoints(e, downPt);
-                this.updateDrawable(e);
-                this.redraw();
-            }
+            // Create a new node and set it as the drag object.
+            this.dragObject = this.addNode(this.graph, downPt);
+            this.clearSelected();
+            this.addSelectedItem(this.dragObject);
+            this.updateDrawable(this.dragObject);
+            this.redraw();
         }
     }
 
