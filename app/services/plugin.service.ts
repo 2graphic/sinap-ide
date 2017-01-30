@@ -28,8 +28,10 @@ class PluginPropertyData implements Core.PluginData {
     }
 }
 
-class DFAPlugin implements Core.Plugin {
+class ConcretePlugin implements Core.Plugin {
     kind = "dfa.sinap.graph-kind";
+    context: Promise<Context>;
+
     validator = {
         isValidEdge(t: string, src: string, dst: string) {
             return true;
@@ -130,7 +132,6 @@ class MLPlugin implements Core.Plugin {
 
 @Injectable()
 export class PluginService {
-    private interpreters: Map<string, Context> = new Map<string, Context>();
     private interpretCode: Script;
     private runInputCode: Script;
 
@@ -142,54 +143,52 @@ export class PluginService {
         this.runInputCode = sandboxService.compileScript('sinap.__program.then((program) => program.run(sinap.__input))');
     }
 
-    public getInterpreter(withGraph: Core.Graph): Promise<Program> {
-        let kind = withGraph.plugin.kind;
-        let context = this.interpreters.get(kind);
-        let graph = new Graph(withGraph);
-        var result: Promise<Program>;
+    public getInterpreter(graph: Core.Graph): Promise<Program> {
+        // TODO: consider: this could really just be a cast and 
+        // graph.plugin.context
+        return this.getPlugin(graph.plugin.kind).context.then((context) => {
+            context.sinap.__graph = new Graph(graph);
 
-        let processContext = (context: any): Promise<Program> => {
-            context.sinap.__graph = graph;
-            console.log(context);
-            return this.interpretCode.runInContext(context);
-        };
-
-        if (context) {
-            result = processContext(context);
-        } else {
-            result = this.loadPlugin(kind, "./build/plugins/dfa-interpreter.js") // TODO: Put real file in here.
-                .then((cont) => {
-                    context = cont;
-                    this.interpreters.set(kind, context);
-                    return processContext(context);
+            return this.interpretCode
+                .runInContext(context)
+                .then<Program>((program) => {
+                    return {
+                        run: (input: ProgramInput): Promise<ProgramOutput> => {
+                            context.sinap.__input = input;
+                            // Cast is necessary. 
+                            // I prefer forcing it to be explicit (and thus not any)
+                            return this.runInputCode.runInContext(context) as Promise<ProgramOutput>;
+                        },
+                        compilationMessages: [""]
+                    };
                 });
-        }
-
-        return result.then((program) => {
-            return {
-                run: (input: ProgramInput): Promise<ProgramOutput> => {
-                    (context as any).sinap.__input = input;
-                    return this.runInputCode.runInContext(context as Context);
-                }
-            };
-        });
+        })
     }
 
-    public getPlugin(kind: string) {
+    public getPlugin(kind: string): ConcretePlugin {
+        // TODO: Figure out how to cache this without bad performance.
+        const plugin = this.makePlugin(kind);
+        return plugin;
+    }
+
+    public makePlugin(kind: string): ConcretePlugin {
         switch (kind) {
             case "dfa.sinap.graph-kind":
-                return new DFAPlugin();
+                const plugin = new ConcretePlugin();
+                plugin.context = this.loadPlugin(kind, "./build/plugins/dfa-interpreter.js") // TODO: Put real file in here.
+                return plugin;
             case "machine-learning.sinap.graph-kind":
-                return new MLPlugin();
+                throw "ML NOT IMPLEMENTED YET";
+            // break;
             default:
-                throw new Error("Unsupported Filetype");
+                throw "Unsupported Filetype";
         }
     }
 
     private loadPlugin(kind: string, interpreterFile: string): Promise<Context> {
         return this.fileService.readFile(interpreterFile)
             .then((text) => {
-                let context = this.sandboxService.createContext({
+                let context: Context = this.sandboxService.createContext({
                     sinap: {
                         __program: null,
                         __graph: null,
@@ -198,13 +197,11 @@ export class PluginService {
 
                     interpret: null
                 });
-                let script = this.sandboxService.compileScript(text);
-                return script.runInContext(context)
-                    .then((_) => {
+                return this.sandboxService
+                    .compileScript(text)
+                    .runInContext(context)
+                    .then<Context>((_) => {
                         return context;
-                    })
-                    .catch((err) => {
-                        console.log(err);
                     });
             });
     }

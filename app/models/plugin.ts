@@ -57,7 +57,7 @@ export interface Program {
     /**
      * Any messages associated with graph compilation.
      */
-    compilationMessages: [string];
+    compilationMessages: string[];
     /**
      * Runs the input according to the graph this program was derived from.
      */
