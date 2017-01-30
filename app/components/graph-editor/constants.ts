@@ -14,6 +14,18 @@ import { DrawableEdge, DrawableNode, LineStyles } from "./drawable-interfaces";
 
 
 /**
+ * FONT_FAMILY  
+ *   Default font family.
+ */
+export const FONT_FAMILY: string = "monospace";
+
+/**
+ * FONT_SIZE  
+ *   Default font size.
+ */
+export const FONT_SIZE: number = 10;
+
+/**
  * AA_SCALE  
  *   Anti-aliasing scale.
  */
@@ -95,34 +107,10 @@ export const NODE_DEFAULTS: DrawableNode = {
 };
 
 /**
- * NODE_FONT_FAMILY  
- *   Font family of nodes.
- */
-export const NODE_FONT_FAMILY: string = "serif";
-
-/**
- * NODE_FONT_SIZE  
- *   Font size of nodes.
- */
-export const NODE_FONT_SIZE: number = 10;
-
-/**
  * NODE_DRAG_SHADOW_COLOR  
  *   Shadow color of dragging nodes.
  */
 export const NODE_DRAG_SHADOW_COLOR: string = "#000";
-
-/**
- * EDGE_FONT_FAMILY  
- *   Font family of edges.
- */
-export const EDGE_FONT_FAMILY: string = "serif";
-
-/**
- * EDGE_FONT_SIZE  
- *   Font size of edges.
- */
-export const EDGE_FONT_SIZE: number = 10;
 
 /**
  * EDGE_HIT_MARGIN  
