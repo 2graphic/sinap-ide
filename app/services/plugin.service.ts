@@ -79,7 +79,7 @@ class ConcretePlugin implements Core.Plugin {
     validator: Validator;
 
     constructor(private definitions: { all: Map<string, Type.Type>, nodes: VariableMap, edges: VariableMap, graphs: VariableMap },
-                public context: Context) {
+        public context: Context) {
         this.validator = new Validator(definitions);
     }
 
@@ -121,13 +121,13 @@ export class PluginService {
     }
 
     public getInterpreter(graph: Core.Graph): Promise<Program> {
-        if (!(graph.plugin instanceof ConcretePlugin)){
+        if (!(graph.plugin instanceof ConcretePlugin)) {
             throw "Error: only get interpreters for graphs created with PluginService";
         }
         let context = graph.plugin.context;
-        
+
         const g = new Graph(graph);
-        
+
         console.log("expensive about to run");
         context.sinap.__graph = g;
         console.log("expensive ran");
@@ -138,13 +138,15 @@ export class PluginService {
                 return {
                     run: (input: ProgramInput): Promise<ProgramOutput> => {
                         context.sinap.__input = input;
-                        // Cast is necessary. 
-                        // I prefer forcing it to be explicit (and thus not any)
-                        return this.runInputCode.runInContext(context) as Promise<ProgramOutput>;
+                        return this.runInputCode.runInContext(context).then((res) => {
+                            // TODO: insert check for correctness of output here. 
+                            // cast for now
+                            return res as ProgramOutput;
+                        });
                     },
                     compilationMessages: [""]
                 };
-                });
+            });
     }
 
     public getPlugin(kind: string): Promise<ConcretePlugin> {
@@ -166,7 +168,7 @@ export class PluginService {
                     });
                 let context = this.loadPlugin(kind, "./build/plugins/dfa-interpreter.js"); // TODO: Put real file in here.
                 return Promise.all([defintions, context])
-                .then(([def, ctx])=>new ConcretePlugin(def, ctx));
+                    .then(([def, ctx]) => new ConcretePlugin(def, ctx));
 
             case "machine-learning.sinap.graph-kind":
                 throw "ML NOT IMPLEMENTED YET";
