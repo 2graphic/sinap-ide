@@ -34,7 +34,8 @@ function createWindow() {
         icon: require("./images/icons/icon.png"),
         width: 1150,
         height: 720,
-        center: true
+        center: true,
+        show: false
     });
 
     win.loadURL(`file://${__dirname}/index.html`);
@@ -44,6 +45,10 @@ function createWindow() {
     });
 
     win.maximize();
+
+    win.once("ready-to-show", () => {
+        (win as Electron.BrowserWindow).show();
+    })
 }
 
 

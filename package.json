@@ -12,9 +12,10 @@
     "clean": "rm -r ./build 2> /dev/null || echo > /dev/null && rm -r ./dist 2> /dev/null || echo > /dev/null",
     "clean:node_modules": "npm run clean && rm -r ./node_modules 2> /dev/null || echo > /dev/null",
     "webpack": "webpack --progress --profile --colors --display-error-details --display-cached",
+    "peg": "pegjs --allowed-start-rules Definitions,Type --dependency \"types:./type-structures\" --output app/types/type-parser-inner.js app/types/type-parser.pegjs",
     "format": "tsfmt -r",
     "prebuild": "mkdir build > /dev/null || echo > /dev/null && mkdir dist > /dev/null || echo > /dev/null && npm install",
-    "build": "npm run prebuild && npm run format && npm run webpack",
+    "build": "npm run prebuild && npm run format && npm run peg && npm run webpack",
     "build:watch": "npm run prebuild && npm run webpack -- --watch",
     "start": "electron build",
     "start:build": "npm run build && npm run start",
@@ -26,8 +27,8 @@
     "clean:win": "if exist build rmdir /s /q build & if exist dist rmdir /s /q dist",
     "clean:win:node": "if exist node_modules rmdir /s /q node_modules",
     "prebuild:win": "if not exist build mkdir build & if not exist dist mkdir dist & npm install",
-    "build:win": "npm run prebuild:win && npm run webpack",
-    "build:win:watch": "npm run prebuild:win && npm run webpack -- --watch",
+    "build:win": "npm run prebuild:win && npm run format && npm run peg && npm run webpack",
+    "build:win:watch": "npm run prebuild:win && npm run format && npm run webpack -- --watch",
     "start:build:win": "npm run build:win && npm run start",
     "start:build:win:watch": "concurrently \"npm run build:win:watch\" \"npm run start\"",
     "prepackage:win": "npm run clean:win && npm run build:win && copy /v /y package.json build",
@@ -44,7 +45,7 @@
     "core-js": "2.4.x",
     "reflect-metadata": "^0.1.x",
     "rxjs": "5.0.x",
-    "zone.js": "0.7.x",
+    "zone.js": "0.7.4",
     "reset-css": "2.2.x"
   },
   "devDependencies": {
@@ -63,6 +64,7 @@
     "ts-loader": "1.3.x",
     "typescript": "2.1.x",
     "typescript-formatter": "4.0.x",
-    "webpack": "1.14.x"
+    "webpack": "1.14.x",
+    "pegjs": "0.10.0"
   }
 }

@@ -1,58 +1,6 @@
 // File: graph-editor.component.ts
 // Created by: CJ Dimaano
 // Date created: October 10, 2016
-//
-//
-// Notes:
-//
-// For deleting graph components, it would be better to have a global keybinding
-// with the keybind activation event calling some method to delete the selected
-// components. It may be better to have such functionality outside of the
-// graph editor component.
-//
-// The canvas element needs to have its height and width properties updated in
-// order for its rendering context to be resized properly. Using css to handle
-// resizing for the canvas will stretch the image on the cavas as well as its
-// "pixels" rather than having the canvas map 1:1 with the screen.
-//
-//
-// Resources:
-// - System colors:
-//   https://www.w3.org/TR/REC-CSS2/ui.html#system-colors
-//
-//
-// Discussion:
-// - Special drawing start/final nodes should be the concern of the plugin;
-//   the graph editor should not have to be aware of _any_ type information or
-//   behavior properties of any of the drawable elements.
-// - Should drawable interfaces have optional properties/methods?
-// - backgroundColor should not be a property of a DrawableGraph; it should be
-//   a property of the graph editor component.
-//
-//
-// TODO:
-// - Need a way to listen for label change events.
-// - Edge label positions for curved lines.
-// - Zoom and Pan
-//   pinch to zoom/two-touch drag to pan
-// - Snap to grid.
-// - Custom shapes/images for nodes.
-// - Custom lines for edges (default/quadratic/bezier/orthogonal).
-// - Make sure to handle hit testing of custom shapes.
-// - Make it so that if any part of a component is caught within the selection
-//   box, it is selected
-// - @Input height/width
-// - Something about deep binding for the graph components? [For now, use
-//   redraw]
-// - Have a visual indication for determining if an edge can be moved from one
-//   node to another.
-// - Update documentation.
-// - Text location options. [Maybe]
-//   - Top, Left, Bottom, Right, Center
-//   - Inside, Outside, Center
-// - Consolidate code duplication.
-//
-//
 
 
 // Imports /////////////////////////////////////////////////////////////////////
@@ -69,12 +17,20 @@ import {
 } from "@angular/core";
 
 import * as CONST from "./constants";
-import * as Drawables from "./drawable-interfaces";
 import * as MathEx from "./math";
-import * as canvas from "./canvas";
 
-import { makeFnEdge } from "./make-fn-edge";
-import { makeFnNode } from "./make-fn-node";
+import { GraphEditorCanvas, point, rect } from "./canvas";
+import {
+    cloneEdge,
+    DefaultEdge,
+    Drawable,
+    DrawableEdge,
+    DrawableNode,
+    DrawableGraph,
+    getOverlappedEdges,
+    isDrawableEdge,
+    isDrawableNode
+} from "./drawable-interfaces";
 
 
 // Re-exports //////////////////////////////////////////////////////////////////
@@ -86,27 +42,19 @@ export {
     DrawableNode,
     isDrawableEdge,
     isDrawableNode,
-    GraphContext,
-    Drawable
+    Drawable,
+    LineStyles,
+    Shapes
 } from "./drawable-interfaces";
 
 
 // Type aliases ////////////////////////////////////////////////////////////////
 
 
-type Drawable = Drawables.Drawable;
-type DrawableGraph = Drawables.DrawableGraph;
-type DrawableEdge = Drawables.DrawableEdge;
-type DrawableNode = Drawables.DrawableNode;
-type GraphContext = Drawables.GraphContext;
-
-type point = number[];
-type DrawableSet = Set<Drawable>;
-type timer = NodeJS.Timer | number;
 type callback = () => void;
 type DrawMap = Map<Drawable, callback>;
 type DrawList = Array<Drawable>;
-type EdgePointMap = Map<DrawableEdge, number[]>;
+type EdgePointMap = Map<DrawableEdge, point[]>;
 type NodeDimensionMap = Map<DrawableNode, any>;
 type EdgeSet = Set<DrawableEdge>;
 type NodeEdgeMap = Map<DrawableNode, EdgeSet>;
@@ -128,34 +76,53 @@ type NodeEdgeMap = Map<DrawableNode, EdgeSet>;
  */
 export class GraphEditorComponent implements AfterViewInit {
 
+
+    // Constructor /////////////////////////////////////////////////////////////
+
+
+    constructor(private el: ElementRef) {
+        this.removePublicMethods();
+    }
+
+
+    // Private Fields //////////////////////////////////////////////////////////
+
+
     /**
-     * graphEditorCanvas  
+     * canvasElementRef  
      *   Reference to the canvas child element.
      */
     @ViewChild("sinapGraphEditorCanvas")
-    private graphEditorCanvas: ElementRef;
+    private canvasElementRef: ElementRef;
 
     /**
-     * g  
-     *   The 2D graphics rendering context from the canvas element.
+     * canvas  
+     *   The graph editor canvas.
      */
-    private g: CanvasRenderingContext2D;
+    private canvas: GraphEditorCanvas;
 
     /**
      * graph  
      *   The graph object.
      */
-    private graph: DrawableGraph | null = null;
+    private graph: DrawableGraph;
 
     /**
-     * gridOriginPt  
-     *   The coordinates of the grid origin.
+     * panPt  
+     *   The previous point from panning the canvas.
      */
-    private gridOriginPt: point = [0, 0];
+    private panPt: point | null = null;
+
+    /**
+     * zoom  
+     *   Zoom levels from input events.
+     */
+    private zoom: { level: number, min: number, max: number } =
+    { level: 0, min: -5, max: 5 };
 
     /**
      * downEvt  
-     *   The previous mousedown event payload.
+     *   The previous down event payload.
      */
     private downEvt: MouseEvent | null = null;
 
@@ -163,7 +130,7 @@ export class GraphEditorComponent implements AfterViewInit {
      * stickyTimeout  
      *   Timer reference for the sticky delay.
      */
-    private stickyTimeout: timer | null = null;
+    private stickyTimeout: NodeJS.Timer | number | null = null;
 
     /**
      * dragObect  
@@ -178,6 +145,16 @@ export class GraphEditorComponent implements AfterViewInit {
     private hoverObject: Drawable | null = null;
 
     /**
+     * hoverAnchor  
+     *   The node with its associated anchor point being hovered over.
+     * 
+     *  TODO:
+     *  Make use of this
+     */
+    private hoverAnchor: { d: DrawableNode | null, pt: point } =
+    { d: null, pt: { x: 0, y: 0 } };
+
+    /**
      * moveEdge  
      *   The edge to be replaced once the new edge has been created.
      */
@@ -187,13 +164,19 @@ export class GraphEditorComponent implements AfterViewInit {
      * unselectedItems  
      *   The set of unselected graph components.
      */
-    private unselectedItems: DrawableSet = new Set<Drawable>();
+    private unselectedItems: Set<Drawable> = new Set<Drawable>();
 
     /**
      * senectedItems  
      *   The set of selected graph components.
      */
-    private selectedItems: DrawableSet;
+    private selectedItems: Set<Drawable>;
+
+    /**
+     * selectedDrawMap  
+     *   Maps drawable elements to draw functions for the selection outline.
+     */
+    private selectedDrawMap: DrawMap = new Map<Drawable, callback>();
 
     /**
      * drawMap  
@@ -211,10 +194,10 @@ export class GraphEditorComponent implements AfterViewInit {
      * edgePoints  
      *   Maps edges to points.  
      * 
-     *   The first two points are the end points. All other points are control
-     *   points for bezier curves.
+     *   The first two points are the end points; the third point is the
+     *   midpoint. All other points are control points for bezier curves.
      */
-    private edgePoints: EdgePointMap = new Map<DrawableEdge, number[]>();
+    private edgePoints: EdgePointMap = new Map<DrawableEdge, point[]>();
 
     /**
      * nodeDimensions  
@@ -228,6 +211,10 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private nodeEdges: NodeEdgeMap = new Map<DrawableNode, EdgeSet>();
 
+
+    // Public Fields ///////////////////////////////////////////////////////////
+
+
     /**
      * selectionChanged  
      *   An event emitter that is emitted when the selected items is changed.
@@ -236,30 +223,25 @@ export class GraphEditorComponent implements AfterViewInit {
     selectionChanged = new EventEmitter();
 
     /**
-     * setGraphContext    
+     * setGraph  
      *   Input property for the graph context.
      */
-    @Input("context")
-    set setGraphContext(value: GraphContext | null) {
+    @Input("graph")
+    set setGraph(value: DrawableGraph | null) {
         if (value) {
-            this.graph = value.graph;
-            this.selectedItems = value.selectedDrawables;
-            this.initSelectedItems();
-            if (this.g)
-                this.redraw();
-        } else {
-            // TODO:
-            // Discuss what it means when the graph context is set to null.
-            // this.context = null;
-            this.graph = null;
-            if (this.g)
-                this.g.clearRect(
-                    0,
-                    0,
-                    this.g.canvas.width,
-                    this.g.canvas.height
-                );
+            this.graph = value;
+            this.selectedItems = value.selectedItems;
+            this.scale = value.scale;
+            this.origin = value.origin;
+            this.initDrawables();
+            this.addEventListeners(this.el.nativeElement);
+            this.addPublicMethods();
         }
+        else {
+            this.removeEventListeners(this.el.nativeElement);
+            this.removePublicMethods();
+        }
+        this.redraw();
     }
 
     /**
@@ -272,14 +254,37 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
+     * scale  
+     *   Sets the scaling factor of the canvas.
+     */
+    @Input()
+    set scale(value: number) {
+        this.setScaleDelegate(value);
+    }
+
+    // TODO:
+    // scaleChanged @Output
+
+    /**
+     * origin  
+     *   Sets the origin point of the canvas.
+     */
+    set origin(value: point) {
+        this.setOriginDelegate(value);
+    }
+
+
+    // Public Methods //////////////////////////////////////////////////////////
+
+
+    /**
      * ngAfterViewInit  
      *   Gets the canvas rendering context and resizes the canvas element.
      */
     ngAfterViewInit() {
-        this.g = this.graphEditorCanvas.nativeElement.getContext("2d");
-        this.g.mozImageSmoothingEnabled = true;
-        this.g.msImageSmoothingEnabled = true;
-        this.g.oImageSmoothingEnabled = true;
+        this.canvas = new GraphEditorCanvas(
+            this.canvasElementRef.nativeElement.getContext("2d")
+        );
         this.resize();
     }
 
@@ -288,536 +293,29 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Clears the selected items.
      */
     clearSelected(): void {
-        if (this.graph) {
-            for (const d of this.selectedItems)
-                this.removeSelectedItem(d);
-        }
-    }
-
-    private initSelectedItems(): void {
-        this.unselectedItems.clear();
-        this.drawMap.clear();
-        this.drawList = new Array<Drawable>();
-        this.edgePoints.clear();
-        this.nodeDimensions.clear();
-        this.nodeEdges.clear();
-        if (this.graph) {
-            for (const n of this.graph.nodes) {
-                if (!this.selectedItems.has(n))
-                    this.unselectedItems.add(n);
-                this.drawList.push(n);
-                this.nodeEdges.set(n, new Set<DrawableEdge>());
-                this.setNodeDimensions(n);
-                this.updateDrawable(n);
-            }
-            for (const e of this.graph.edges) {
-                if (!this.selectedItems.has(e))
-                    this.unselectedItems.add(e);
-                this.drawList.push(e);
-                this.addNodeEdge(e);
-                this.setEdgePoints(e);
-                this.updateDrawable(e);
-            }
-            this.drawList = this.drawList.reverse();
-            this.selectionChanged.emit(
-                new Set<Drawable>(this.selectedItems)
-            );
-        }
-        else
-            this.selectionChanged.emit(new Set<Drawable>());
-    }
-
-    private addNodeEdge(e: DrawableEdge): void {
-        if (e.source)
-            (this.nodeEdges.get(e.source) as EdgeSet).add(e);
-        if (e.destination)
-            (this.nodeEdges.get(e.destination) as EdgeSet).add(e);
-    }
-
-    private updateDrawable(d: Drawable): void {
-        if (this.graph && d) {
-            if (Drawables.isDrawableEdge(d)) {
-                this.drawMap.set(
-                    d,
-                    makeFnEdge(
-                        this.g,
-                        d,
-                        this.edgePoints.get(d) as number[],
-                        d === this.dragObject,
-                        d === this.hoverObject,
-                        this.selectedItems.has(d)
-                    )
-                );
-            }
-            else if (Drawables.isDrawableNode(d)) {
-                this.drawMap.set(
-                    d,
-                    makeFnNode(
-                        this.g,
-                        d,
-                        this.nodeDimensions.get(d),
-                        d === this.dragObject,
-                        d === this.hoverObject,
-                        this.selectedItems.has(d)
-                    )
-                );
-            }
-        }
+        this.clearSelectedDelegate();
     }
 
     /**
-     * setEdgePoints  
-     *   Sets the end points and any control points associated with an edge.
-     */
-    private setEdgePoints(
-        e: DrawableEdge,
-        pt?: number[]
-    ): void {
-        console.assert(e.source || e.destination,
-            "error GraphEditorComponent.setEdgePoints: drawable edge must have either a source or a destination");
-        // TODO:
-        // Something about anchor points for custom node images.
-        if (e.source && e.destination) {
-            if (e.source === e.destination)
-                this.edgePoints.set(e, canvas.getLoopEdgePoints(e))
-            else if (Drawables.isEdgeOverlapped(e, this.nodeEdges))
-                this.edgePoints.set(e, canvas.getQuadraticEdgePoints(e, e.source, e.destination, this.nodeDimensions.get(e.source), this.nodeDimensions.get(e.destination)));
-            else
-                this.edgePoints.set(
-                    e,
-                    canvas.getStraightEdgePoints(
-                        e,
-                        this.nodeDimensions.get(e.source),
-                        this.nodeDimensions.get(e.destination),
-                        pt
-                    )
-                )
-        }
-        else
-            this.edgePoints.set(
-                e,
-                canvas.getStraightEdgePoints(
-                    e,
-                    (e.source ? this.nodeDimensions.get(e.source) : undefined),
-                    (e.destination ? this.nodeDimensions.get(e.destination) : undefined),
-                    pt
-                )
-            )
-    }
-
-    private setNodeDimensions(n: DrawableNode): void {
-        this.nodeDimensions.set(
-            n,
-            canvas.getNodeDimensions(this.g, n)
-        );
-    }
-
-    /**
-     * onKeyDown  
-     *   Handles the delete key.
+     * update  
+     *   Temporary to force update drawable element geometries.
      * 
-     * Note:
-     *   I don't like where this is.
+     *   TODO:
+     *   Replace this with property binding on drawable elements.
      */
-    private onKeyDown(e: KeyboardEvent): void {
-        // Delete keyCode is 46; backspace is 8.
-        if (this.graph && (e.keyCode == 46 || e.keyCode == 8)) {
-            let remove = [...this.selectedItems];
-            for (const item of remove) {
-                if (Drawables.isDrawableEdge(item))
-                    this.removeEdge(item);
-                else if (Drawables.isDrawableNode(item))
-                    this.removeNode(item);
+    update(d: Drawable | DrawableGraph, key: string) {
+        setTimeout(() => {
+            if (isDrawableNode(d)) {
+                this.updateNodeDimensions(d);
+                for (const e of (this.nodeEdges.get(d) as EdgeSet)) {
+                    this.updateEdgePoints(e);
+                    this.updateDrawable(e);
+                }
             }
-            this.clearSelected();
+            else if (isDrawableEdge(d))
+                this.updateDrawable(d);
             this.redraw();
-        }
-    }
-
-    private addNode(pt?: number[]): DrawableNode | null {
-        if (this.graph) {
-            let n = this.graph.createNode();
-            if (pt) {
-                n.x = pt[0];
-                n.y = pt[1];
-            }
-            this.nodeEdges.set(n, new Set<Drawables.DrawableEdge>());
-            this.setNodeDimensions(n);
-            this.updateDrawable(n);
-            this.drawList.push(n);
-            return n;
-        }
-        return null;
-    }
-
-    private removeNode(n: DrawableNode): void {
-        if (this.graph) {
-            if (n === this.hoverObject)
-                this.setHoverObject(null);
-            let edges = [...(this.nodeEdges.get(n) as EdgeSet)];
-            for (const e of edges)
-                this.removeEdge(e);
-            this.graph.removeNode(n);
-            this.removeSelectedItem(n);
-            this.unselectedItems.delete(n);
-            this.nodeEdges.delete(n);
-            this.nodeDimensions.delete(n);
-            this.drawMap.delete(n);
-            this.drawList = this.drawList.filter((v) => {
-                return (v !== n);
-            });
-        }
-    }
-
-    private addEdge(src: DrawableNode, dst: DrawableNode, like?: DrawableEdge): DrawableEdge | null {
-        if (this.graph) {
-            let e = this.graph.createEdge(src, dst, like);
-            (this.nodeEdges.get(src) as EdgeSet).add(e);
-            (this.nodeEdges.get(dst) as EdgeSet).add(e);
-            this.setEdgePoints(e);
-            this.updateDrawable(e);
-            this.drawList = this.drawList.filter((v) => {
-                return v !== src && v !== dst;
-            });
-            this.drawList.push(e);
-            this.drawList.push(src);
-            this.drawList.push(dst);
-            if (src !== dst) {
-                for (let edge of Drawables.getOverlappedEdges(e, this.nodeEdges)) {
-                    this.setEdgePoints(edge);
-                    this.updateDrawable(edge);
-                }
-            }
-            return e;
-        }
-        return null;
-    }
-
-    private removeEdge(e: DrawableEdge): void {
-        if (this.graph) {
-            if (e === this.hoverObject)
-                this.setHoverObject(null);
-            if (e.source)
-                (this.nodeEdges.get(e.source) as EdgeSet).delete(e);
-            if (e.destination)
-                (this.nodeEdges.get(e.destination) as EdgeSet).delete(e);
-            this.graph.removeEdge(e);
-            this.removeSelectedItem(e);
-            this.unselectedItems.delete(e);
-            this.edgePoints.delete(e);
-            this.drawList = this.drawList.filter((v) => {
-                return (v !== e);
-            });
-            if (e.source !== e.destination) {
-                for (let edge of Drawables.getOverlappedEdges(e, this.nodeEdges))
-                    this.updateDrawable(edge);
-            }
-        }
-    }
-
-    /**
-     * onMouseDown  
-     *   Handles the mousedown event.
-     */
-    private onMouseDown(e: MouseEvent): void {
-
-        // Make sure only the left mouse button is down.
-        if (this.graph && e.buttons == 1) {
-
-            // Clear the hover object.
-            this.setHoverObject(null);
-
-            // Save mouse click canvas coordinates and set waiting to true.
-            this.downEvt = e;
-
-            // Set a timeout.
-            this.stickyTimeout = setTimeout(
-                () => {
-                    // Set the drag object and reset sticky.
-                    if (this.downEvt) {
-                        let downPt = canvas.getMousePt(this.g, this.downEvt);
-                        clearTimeout(this.stickyTimeout as NodeJS.Timer);
-                        this.stickyTimeout = null;
-                        this.dragObject = this.hitTest(downPt);
-
-                        // if (this.graph) {
-                        // Create a new node and set it as the drag object if no drag object
-                        // was set.
-                        if (!this.dragObject) {
-                            if ((this.dragObject = this.addNode(downPt))) {
-                                this.clearSelected();
-                                this.addSelectedItem(this.dragObject);
-                                this.updateDrawable(this.dragObject);
-                                this.redraw();
-                            }
-                        }
-
-                        // Set the drag object to some dummy edge and the replace edge to the
-                        // original drag object if the drag object was an edge.
-                        else if (Drawables.isDrawableEdge(this.dragObject)) {
-                            //
-                            // TODO:
-                            // Determine which side of the edge the hit test landed on.
-                            //
-                            this.moveEdge = this.dragObject;
-                            this.dragObject = Drawables.cloneEdge(this.moveEdge);
-                            this.dragObject.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
-                            this.dragObject.destination = null;
-                            this.drawList.push(this.dragObject);
-                            this.setEdgePoints(this.dragObject, downPt);
-                            this.updateDrawable(this.dragObject);
-                            this.redraw();
-                        }
-
-                        // Create a new dummy edge with the source node as the drag object.
-                        else if (Drawables.isDrawableNode(this.dragObject)) {
-                            this.dragObject = new Drawables.DefaultEdge(this.dragObject);
-                            this.dragObject.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
-                            this.dragObject.destination = null;
-                            this.drawList.push(this.dragObject);
-                            this.setEdgePoints(this.dragObject, downPt);
-                            this.updateDrawable(this.dragObject);
-                            this.redraw();
-                        }
-                        // }
-                    }
-                },
-                CONST.STICKY_DELAY
-            );
-        }
-    }
-
-    /**
-     * onMouseMove  
-     *   Handles the mousemove event.
-     */
-    private onMouseMove(e: MouseEvent): void {
-        if (this.graph) {
-            let ePt = canvas.getMousePt(this.g, e);
-
-            // Capture the down event if the drag object has been set.
-            if (this.dragObject && !this.downEvt)
-                this.downEvt = e;
-
-            // Make sure the mousedown event was previously captured.
-            if (this.downEvt) {
-
-                // Get the change in x and y locations of the cursor.
-                let downPt = canvas.getMousePt(this.g, this.downEvt);
-                let dPt = [
-                    downPt[0] - ePt[0],
-                    downPt[1] - ePt[1]
-                ];
-
-                // Reset waiting if waiting is still active and the mouse has moved too
-                // far.
-                if (
-                    this.stickyTimeout &&
-                    (MathEx.dot(dPt, dPt) > CONST.NUDGE * CONST.NUDGE)
-                ) {
-                    clearTimeout(this.stickyTimeout as NodeJS.Timer);
-                    this.stickyTimeout = null;
-
-                    // Check the drag object.
-                    this.dragObject = this.hitTest(ePt);
-
-                    // Clear the selection if nothing was hit.
-                    if (!this.dragObject)
-                        this.clearSelected();
-
-                    // Clear the drag object if it is an edge.
-                    else if (Drawables.isDrawableEdge(this.dragObject))
-                        this.dragObject = null;
-
-                    // Update the drag object if it is a node.
-                    else if (Drawables.isDrawableNode(this.dragObject))
-                        this.updateDrawable(this.dragObject);
-                }
-
-                // Update the canvas if waiting is not set.
-                else if (!this.stickyTimeout) {
-
-                    // Update the selection box if selecting.
-                    if (!this.dragObject) {
-                        let rect = canvas.makeRect(downPt[0], downPt[1], ePt[0], ePt[1]);
-
-                        // Update the selected components.
-                        for (let i of this.selectedItems) {
-                            if (!this.rectHitTest(i, rect)) {
-                                moveItem(this.selectedItems, this.unselectedItems, i);
-                                this.updateDrawable(i);
-                            }
-                        }
-                        for (let i of this.unselectedItems) {
-                            if (this.rectHitTest(i, rect)) {
-                                moveItem(this.unselectedItems, this.selectedItems, i);
-                                this.updateDrawable(i);
-                            }
-                        }
-                        this.selectionChanged.emit(new Set<Drawable>(
-                            this.selectedItems
-                        ));
-
-                        // Update the canvas.
-                        this.redraw();
-                        canvas.drawSelectionBox(this.g, rect);
-                    }
-
-                    // Update edge endpoint if dragging edge.
-                    else if (Drawables.isDrawableEdge(this.dragObject)) {
-                        this.setEdgePoints(this.dragObject, ePt);
-                        this.updateDrawable(this.dragObject);
-                        this.redraw();
-                    }
-
-                    // Update node position if dragging node.
-                    else if (Drawables.isDrawableNode(this.dragObject)) {
-                        this.updateDragNodes(
-                            this.dragObject,
-                            [ePt[0] - this.dragObject.x, ePt[1] - this.dragObject.y]
-                        );
-                    }
-                }
-            }
-
-            // Mouse hover.
-            else {
-                this.setHoverObject(this.hitTest(ePt));
-            }
-        }
-    }
-
-    private setHoverObject(value: Drawable | null): void {
-        if (value !== this.hoverObject) {
-            let prev = this.hoverObject;
-            this.hoverObject = value;
-            if (prev)
-                this.updateDrawable(prev);
-            if (this.hoverObject)
-                this.updateDrawable(this.hoverObject);
-            this.redraw();
-        }
-    }
-
-    private updateDragNodes(dragNode: DrawableNode, dPt: point) {
-        if (
-            this.selectedItems.has(dragNode) &&
-            this.selectedItems.size > 0
-        ) {
-            for (let o of this.selectedItems)
-                if (Drawables.isDrawableNode(o))
-                    this.updateDragNode(o, dPt);
-        }
-        else
-            this.updateDragNode(dragNode, dPt);
-        this.redraw();
-    }
-
-    private updateDragNode(n: DrawableNode, dPt: point): void {
-        n.x += dPt[0];
-        n.y += dPt[1];
-        for (let e of (this.nodeEdges.get(n) as Set<Drawables.DrawableEdge>)) {
-            this.setEdgePoints(e);
-            this.updateDrawable(e);
-        }
-    }
-
-    /**
-     * onMouseUp  
-     *   Handles the mouseup event.
-     */
-    private onMouseUp(e: MouseEvent): void {
-
-        // Make sure a mousedown event was previously captured.
-        if (this.graph && this.downEvt) {
-            let ePt = canvas.getMousePt(this.g, e);
-
-            // Set the selected graph component if waiting.
-            if (this.stickyTimeout) {
-                this.clearSelected();
-                this.dragObject = this.hitTest(ePt);
-            }
-
-            // Create the edge if one is being dragged.
-            else if (Drawables.isDrawableEdge(this.dragObject)) {
-
-                let dummyEdge = this.drawList.pop() as DrawableEdge;
-                this.drawMap.delete(dummyEdge);
-                this.edgePoints.delete(dummyEdge);
-
-                // Check that the mouse was released at a node.
-                let hit = this.hitTest(ePt);
-                if (Drawables.isDrawableNode(hit)) {
-
-                    // Move the edge if one is being dragged and it can be moved.
-                    if (
-                        this.moveEdge &&
-                        this.dragObject.source &&
-                        this.graph.canCreateEdge(this.dragObject.source, hit, this.moveEdge)
-                    ) {
-                        this.removeEdge(this.moveEdge);
-                        this.dragObject =
-                            this.addEdge(this.dragObject.source, hit, this.moveEdge);
-                    }
-
-                    // Create a new edge if none is being moved and it can be created.
-                    else if (
-                        !this.moveEdge &&
-                        this.dragObject.source &&
-                        this.graph.canCreateEdge(this.dragObject.source, hit)
-                    ) {
-                        this.clearSelected();
-                        this.dragObject =
-                            this.addEdge(this.dragObject.source, hit);
-                    }
-                }
-
-                // Clear the drag object if the edge was dropped on nothing.
-                else
-                    this.dragObject = null;
-            }
-
-            // Drop the node if one is being dragged.
-            else if (Drawables.isDrawableNode(this.dragObject)) {
-                if (
-                    this.selectedItems.has(this.dragObject) &&
-                    this.selectedItems.size > 0
-                ) {
-                    let dx = ePt[0] - this.dragObject.x;
-                    let dy = ePt[1] - this.dragObject.y;
-                    for (let o of this.selectedItems) {
-                        if (Drawables.isDrawableNode(o)) {
-                            o.x += dx;
-                            o.y += dy;
-                        }
-                    }
-                }
-                else {
-                    //
-                    // TODO:
-                    // Pevent nodes from being dropped on top of eachother.
-                    //
-                    this.dragObject.x = ePt[0];
-                    this.dragObject.y = ePt[1];
-                }
-            }
-
-            // Reset the selected item.
-            if (this.dragObject && this.selectedItems.size < 2) {
-                this.clearSelected();
-                this.addSelectedItem(this.dragObject);
-            }
-
-            // Reset input states.
-            clearTimeout(this.stickyTimeout as NodeJS.Timer);
-            this.stickyTimeout = null;
-            this.downEvt = null;
-            this.dragObject = null;
-            this.moveEdge = null;
-
-            // Redraw the canvas.
-            this.redraw();
-        }
+        }, 0);
     }
 
     /**
@@ -825,13 +323,11 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Resizes the canvas.
      */
     resize(): void {
-        let el = this.graphEditorCanvas.nativeElement;
+        let el = this.canvasElementRef.nativeElement;
         let pel = (el.parentNode as HTMLElement);
         let h = pel.offsetHeight;
         let w = pel.offsetWidth;
-        el.height = h * CONST.AA_SCALE;
-        el.width = w * CONST.AA_SCALE;
-        this.g.scale(CONST.AA_SCALE, CONST.AA_SCALE);
+        this.canvas.size = { h: h, w: w };
         this.redraw();
     }
 
@@ -840,11 +336,466 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Redraws the graph.
      */
     redraw(): void {
-        canvas.clear(this.g, this.graph ? this.graph.backgroundColor : "AppWorkspace");
-        if (this.graph) {
-            canvas.drawGrid(this.g, this.gridOriginPt);
+        this.redrawDelegate();
+    }
+
+
+    // Delegates ///////////////////////////////////////////////////////////////
+
+
+    /**
+     * onKeyDown  
+     *   Handles the delete key.
+     * 
+     * Note:
+     *   I don't like where this is.
+     */
+    private onKeyDown = (e: KeyboardEvent): void => {
+        // Delete keyCode is 46; backspace is 8.
+        if (e.keyCode == 46 || e.keyCode == 8) {
+            let remove = [...this.selectedItems];
+            for (const item of remove) {
+                if (isDrawableEdge(item))
+                    this.removeEdge(this.graph, item);
+                else if (isDrawableNode(item))
+                    this.removeNode(this.graph, item);
+            }
+            this.clearSelected();
+            this.redraw();
+        }
+    }
+
+    /**
+     * onMouseDown  
+     *   Handles the mousedown event.
+     */
+    private onMouseDown = (e: MouseEvent): void => {
+
+        switch (e.buttons) {
+            // Handle the left mouse button event.
+            case 1:
+                // Swap up and down events.
+                this.el.nativeElement.removeEventListener(
+                    "mousedown",
+                    this.onMouseDown
+                );
+                this.el.nativeElement.addEventListener(
+                    "mouseup",
+                    this.onMouseUp
+                );
+
+                // Save the event payload.
+                this.downEvt = e;
+
+                // Set a timer for creating a node if nothing is being hovered.
+                if (!this.hoverObject) {
+                    this.dragObject = null;
+                    this.stickyTimeout = (this.stickyTimeout ?
+                        this.stickyTimeout :
+                        setTimeout(this.onStickey, CONST.STICKY_DELAY));
+                }
+
+                else if (isDrawableNode(this.hoverObject)) {
+                    if (this.hoverAnchor.d) {
+                        let edge = new DefaultEdge(this.hoverAnchor.d);
+                        this.dragObject = edge;
+                        edge.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
+                        edge.destination = null;
+                        this.drawList.push(edge);
+                        this.updateEdgePoints(edge, this.canvas.getPt(e));
+                        this.updateDrawable(edge);
+                    }
+                    else
+                        this.dragObject = this.hoverObject;
+                }
+
+                else if (isDrawableEdge(this.hoverObject)) {
+                    let pts = this.edgePoints.get(this.hoverObject) as point[];
+                    let edge = cloneEdge(this.hoverObject);
+                    this.moveEdge = this.hoverObject;
+                    this.dragObject = edge;
+                    edge.lineStyle = CONST.EDGE_DRAG_LINESTYLE;
+                    if (this.hoverAnchor.pt === pts[0])
+                        edge.source = null;
+                    else
+                        edge.destination = null;
+                    this.drawList.push(edge);
+                    this.updateEdgePoints(edge, this.canvas.getPt(e));
+                    this.updateDrawable(edge);
+                }
+
+                // Clear the hover object.
+                this.updateHover(null);
+
+                break;
+
+            // Handle the right mouse button event.
+            case 2:
+                // Capture the down point.
+                this.panPt = e;
+                break;
+        }
+    }
+
+    /**
+     * onMouseMove  
+     *   Handles the mousemove event.
+     */
+    private onMouseMove = (e: MouseEvent): void => {
+        let ePt = this.canvas.getPt(e);
+
+        // Capture the down event if the drag object has been set.
+        if (this.dragObject && e.buttons == 1 && !this.downEvt)
+            this.downEvt = e;
+
+        // Make sure the down event was previously captured.
+        if (this.downEvt) {
+
+            // Get the change in x and y locations of the cursor.
+            let downPt = this.canvas.getPt(this.downEvt);
+            let dPt = { x: downPt.x - ePt.x, y: downPt.y - ePt.y };
+
+            // Update the canvas if waiting is not set.
+            if (!this.stickyTimeout) {
+
+                // Update the selection box if selecting.
+                if (!this.dragObject)
+                    this.updateSelectionBox(downPt, ePt);
+
+                // Update node position if dragging node.
+                else if (isDrawableNode(this.dragObject))
+                    this.updateDragNodes(
+                        this.dragObject,
+                        {
+                            x: ePt.x - this.dragObject.position.x,
+                            y: ePt.y - this.dragObject.position.y
+                        }
+                    );
+
+                // Update edge endpoint if dragging edge.
+                else if (isDrawableEdge(this.dragObject)) {
+                    this.updateEdgePoints(this.dragObject, ePt);
+                    this.updateDrawable(this.dragObject);
+                    this.redraw();
+                }
+            }
+
+            // Reset waiting if waiting is still active and the mouse has moved
+            // too far.
+            else if (MathEx.dot(dPt, dPt) > CONST.NUDGE * CONST.NUDGE) {
+                clearTimeout(this.stickyTimeout as NodeJS.Timer);
+                this.stickyTimeout = null;
+                this.clearSelected();
+            }
+        }
+
+        // Panning.
+        else if (e.buttons == 2) {
+            this.pan(e);
+            this.panPt = e;
+        }
+
+        // Hover.
+        else if (e.buttons === 0) {
+            this.updateHover(this.hitTest(ePt));
+        }
+    }
+
+    /**
+     * onMouseUp  
+     *   Handles the mouseup event.
+     */
+    private onMouseUp = (e: MouseEvent): void => {
+
+        // Make sure a down event was previously captured.
+        if (this.downEvt) {
+
+            // Swap up and down events.
+            this.el.nativeElement.removeEventListener(
+                "mouseup",
+                this.onMouseUp
+            )
+            this.el.nativeElement.addEventListener(
+                "mousedown",
+                this.onMouseDown
+            );
+
+            // Get the canvas coordinates of the event.
+            let ePt = this.canvas.getPt(e);
+
+            // Set the selected graph component if waiting.
+            if (this.stickyTimeout) {
+                this.clearSelected();
+                let hit = this.hitTest(ePt);
+                if (hit &&
+                    (isDrawableNode(hit.d) || isDrawableEdge(hit.d)))
+                    this.addSelectedItem(hit.d);
+            }
+
+            // Drop the node if one is being dragged.
+            else if (isDrawableNode(this.dragObject)) {
+                this.dropNodes(this.dragObject, ePt);
+            }
+
+            // Drop the edge if one is being dragged.
+            else if (isDrawableEdge(this.dragObject)) {
+                this.dropEdge(this.graph, this.dragObject, ePt);
+            }
+
+            // Reset input states.
+            this.resetState();
+
+            // Redraw the canvas.
+            this.redraw();
+        }
+
+        // Panning.
+        else if (e.buttons == 2) {
+            this.pan(e);
+            this.panPt = null;
+        }
+    }
+
+    private onWheel = (e: WheelEvent) => {
+        if (e.deltaY > 0 && this.zoom.level > this.zoom.min)
+            this.zoom.level = Math.max(this.zoom.level - 1, this.zoom.min);
+        else if (e.deltaY < 0 && this.zoom.level < this.zoom.max)
+            this.zoom.level = Math.min(this.zoom.level + 1, this.zoom.max);
+
+        this.scale = Math.pow(1.25, this.zoom.level);
+        // TODO:
+        // Center on zoom point.
+        this.redraw();
+    }
+
+    /**
+     * onStickey  
+     *   Delayed mousedown event for creating nodes or edges.
+     */
+    private onStickey = (): void => {
+        // Create a new node and reset sticky.
+        if (this.downEvt) {
+            let downPt = this.canvas.getPt(this.downEvt);
+            clearTimeout(this.stickyTimeout as NodeJS.Timer);
+            this.stickyTimeout = null;
+
+            // Create a new node and set it as the drag object.
+            this.dragObject = this.addNode(this.graph, downPt);
+            this.clearSelected();
+            this.addSelectedItem(this.dragObject);
+            this.updateDrawable(this.dragObject);
+            this.redraw();
+        }
+    }
+
+    /**
+     * setScaleDelegate  
+     *   Delegate for setting the canvas scaling factor.
+     * 
+     *   This is set by `addPublicMethods` and `removePublicMethods`.
+     */
+    private setScaleDelegate: (value: number) => void;
+
+    /**
+     * setOriginDelegate  
+     *   Delegate for setting the canvas origin.
+     * 
+     *   This is set by `addPublicMethods` and `removePublicMethods`.
+     */
+    private setOriginDelegate: (value: point) => void;
+
+    /**
+     * clearSelectedDelegate  
+     *   Delegate for clearing the selected graph elements
+     * 
+     *   This is set by `addPublicMethods` and `removePublicMethods`.
+     */
+    private clearSelectedDelegate: () => void;
+
+    /**
+     * redrawDelegate  
+     *   Delegate for redrawing the canvas.
+     * 
+     *   This is set by `addPublicMethods` and `removePublicMethods`.
+     */
+    private redrawDelegate: () => void;
+
+
+    // Add and Remove Methods //////////////////////////////////////////////////
+
+
+    /**
+     * addEventListeners  
+     *   Adds input event listeners.
+     */
+    private addEventListeners(el: any) {
+        el.addEventListener("mousedown", this.onMouseDown);
+        el.addEventListener("mousemove", this.onMouseMove);
+        el.addEventListener("wheel", this.onWheel);
+        // TODO:
+        // Use pointer events to handle gesture pan and zoom.
+        el.addEventListener("pointerdown", (e: PointerEvent) => console.log(e));
+        el.addEventListener("pointermove", (e: PointerEvent) => console.log(e));
+        el.addEventListener("keydown", this.onKeyDown);
+    }
+
+    /**
+     * removeEventListeners  
+     *   Removes event listeners.
+     */
+    private removeEventListeners(el: any) {
+        el.removeEventListener("mousedown", this.onMouseDown);
+        el.removeEventListener("mouseup", this.onMouseUp);
+        el.removeEventListener("mousemove", this.onMouseMove);
+        el.removeEventListener("wheel", this.onWheel);
+        el.removeEventListener("keydown", this.onKeyDown);
+    }
+
+    /**
+     * addPublicMethods  
+     *   Sets public method delegates.
+     */
+    private addPublicMethods(): void {
+        this.setScaleDelegate = (v: number) => {
+            this.canvas.scale = v;
+            this.graph.scale = v;
+        };
+        this.setOriginDelegate = (v: point) => {
+            this.canvas.origin.x = v.x;
+            this.canvas.origin.y = v.y;
+            this.graph.origin.x = v.x;
+            this.graph.origin.y = v.y;
+        };
+        this.clearSelectedDelegate = () => {
+            for (const d of this.selectedItems) {
+                if (moveItem(this.selectedItems, this.unselectedItems, d))
+                    this.updateDrawable(d);
+            }
+            this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
+        };
+        this.redrawDelegate = () => {
+            this.canvas.clear(this.graph ? this.graph.backgroundColor : "#fff");
+            this.canvas.drawGrid();
+            for (const d of this.selectedItems)
+                (this.selectedDrawMap.get(d) as callback)();
             for (const d of this.drawList)
-                (this.drawMap.get(d) as () => void)();
+                (this.drawMap.get(d) as callback)();
+        }
+    }
+
+    /**
+     * removePublicMethods  
+     *   Unsets public method delegates.
+     */
+    private removePublicMethods(): void {
+        this.setScaleDelegate = (v: number) => { };
+        this.setOriginDelegate = (v: point) => { };
+        this.clearSelectedDelegate = () => { };
+        if (this.canvas)
+            this.redrawDelegate = () => this.canvas.clear();
+        else
+            this.redrawDelegate = () => { };
+    }
+
+    /**
+     * addNodeEdge  
+     *   Adds a given edge to the set of edges connected to a node.
+     */
+    private addNodeEdge(e: DrawableEdge): void {
+        if (e.source)
+            (this.nodeEdges.get(e.source) as EdgeSet).add(e);
+        if (e.destination)
+            (this.nodeEdges.get(e.destination) as EdgeSet).add(e);
+    }
+
+    /**
+     * addNode  
+     *   Adds a node to the graph editor.
+     */
+    private addNode(
+        graph: DrawableGraph,
+        pt?: point
+    ): DrawableNode {
+        let n = graph.createNode();
+        if (pt)
+            n.position = pt;
+        this.nodeEdges.set(n, new Set<DrawableEdge>());
+        this.updateNodeDimensions(n);
+        this.updateDrawable(n);
+        this.drawList.push(n);
+        return n;
+    }
+
+    /**
+     * removeNode  
+     *   Removes a node from the graph editor.
+     */
+    private removeNode(
+        graph: DrawableGraph,
+        n: DrawableNode
+    ): void {
+        if (this.hoverObject && n === this.hoverObject)
+            this.updateHover(null);
+        let edges = [...(this.nodeEdges.get(n) as EdgeSet)];
+        for (const e of edges)
+            this.removeEdge(graph, e);
+        graph.removeNode(n);
+        this.removeSelectedItem(n);
+        this.unselectedItems.delete(n);
+        this.nodeEdges.delete(n);
+        this.nodeDimensions.delete(n);
+        this.drawMap.delete(n);
+        this.selectedDrawMap.delete(n);
+        this.drawList = this.drawList.filter((v) => v !== n);
+    }
+
+    /**
+     * addEdge  
+     *   Adds an edge to the graph editor.
+     */
+    private addEdge(
+        graph: DrawableGraph,
+        src: DrawableNode,
+        dst: DrawableNode,
+        like?: DrawableEdge
+    ): DrawableEdge {
+        let e = graph.createEdge(src, dst, like);
+        (this.nodeEdges.get(src) as EdgeSet).add(e);
+        (this.nodeEdges.get(dst) as EdgeSet).add(e);
+        this.updateEdgePoints(e);
+        this.updateDrawable(e);
+        this.drawList = this.drawList.filter((v) => v !== src && v !== dst);
+        this.drawList.push(e);
+        this.drawList.push(src);
+        this.drawList.push(dst);
+        return e;
+    }
+
+    /**
+     * removeEdge  
+     *   Removes an edge from the graph editor.
+     */
+    private removeEdge(
+        graph: DrawableGraph,
+        e: DrawableEdge
+    ): void {
+        if (this.hoverObject && e === this.hoverObject)
+            this.updateHover(null);
+        if (e.source)
+            (this.nodeEdges.get(e.source) as EdgeSet).delete(e);
+        if (e.destination)
+            (this.nodeEdges.get(e.destination) as EdgeSet).delete(e);
+        graph.removeEdge(e);
+        this.removeSelectedItem(e);
+        this.unselectedItems.delete(e);
+        this.edgePoints.delete(e);
+        this.drawMap.delete(e);
+        this.selectedDrawMap.delete(e);
+        this.drawList = this.drawList.filter((v) => v !== e);
+        if (e.source !== e.destination) {
+            let overlapped = getOverlappedEdges(e, this.nodeEdges);
+            for (let edge of overlapped)
+                this.updateDrawable(edge);
         }
     }
 
@@ -853,7 +804,10 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Adds an item to the selected items set.
      */
     private addSelectedItem(item: Drawable) {
-        if (this.graph && moveItem(this.unselectedItems, this.selectedItems, item)) {
+        if (moveItem(
+            this.unselectedItems,
+            this.selectedItems,
+            item)) {
             this.updateDrawable(item);
             this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
         }
@@ -864,84 +818,402 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Removes an item from the selected items set.
      */
     private removeSelectedItem(item: Drawable) {
-        if (this.graph && moveItem(this.selectedItems, this.unselectedItems, item)) {
+        if (moveItem(
+            this.selectedItems,
+            this.unselectedItems,
+            item)) {
             this.updateDrawable(item);
             this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
         }
     }
 
+
+    // Update Methods //////////////////////////////////////////////////////////
+
+
+    /**
+     * updateSelectionBox  
+     *   Updates the selection box.
+     */
+    private updateSelectionBox(downPt: point, ePt: point): void {
+        let rect = this.canvas.makeRect(downPt, ePt);
+
+        // Update the selected components.
+        for (let i of this.selectedItems) {
+            if (!this.rectHitTest(i, rect)) {
+                moveItem(this.selectedItems, this.unselectedItems, i);
+                this.updateDrawable(i);
+            }
+        }
+        for (let i of this.unselectedItems) {
+            if (this.rectHitTest(i, rect)) {
+                moveItem(this.unselectedItems, this.selectedItems, i);
+                this.updateDrawable(i);
+            }
+        }
+        this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
+
+        // Update the canvas.
+        this.redraw();
+        this.canvas.drawSelectionBox(rect);
+    }
+
+    /**
+     * updateSelected  
+     *   Updates the selected graph element.
+     */
+    private updateSelected(dragObject: Drawable) {
+        // Reset the selected item.
+        if (this.selectedItems.size < 2) {
+            this.clearSelected();
+            this.addSelectedItem(dragObject);
+        }
+    }
+
+    /**
+     * updateDrawable  
+     *   Updates the draw function for a given drawable.
+     */
+    private updateDrawable(d: Drawable | null): void {
+        let isSelected = (d ? this.selectedItems.has(d) : false);
+        let isDragging = this.dragObject === d;
+        let isHovered = this.hoverObject === d;
+        if (isDrawableEdge(d)) {
+            let pts = this.edgePoints.get(d) as point[];
+            this.selectedDrawMap.set(
+                d,
+                (isSelected ?
+                    this.canvas.makeDrawSelectedEdge(d, pts, isHovered) :
+                    () => { })
+            );
+            this.drawMap.set(
+                d,
+                this.canvas.makeDrawEdge(
+                    d,
+                    pts,
+                    isDragging,
+                    isHovered && !isSelected
+                )
+            );
+        }
+        else if (isDrawableNode(d)) {
+            let dim = this.nodeDimensions.get(d);
+            this.selectedDrawMap.set(
+                d,
+                (isSelected ?
+                    this.canvas.makeDrawSelectedNode(d, dim, isDragging, isHovered) :
+                    () => { })
+            );
+            this.drawMap.set(
+                d,
+                this.canvas.makeDrawNode(
+                    d,
+                    dim,
+                    isDragging && !isSelected,
+                    isHovered && !isSelected,
+                    (d === this.hoverAnchor.d ?
+                        this.hoverAnchor.pt :
+                        undefined)
+                )
+            );
+        }
+    }
+
+    /**
+     * updateEdgePoints  
+     *   Updates the end points, midpoint, and any control points associated
+     *   with an edge.
+     */
+    private updateEdgePoints(
+        e: DrawableEdge,
+        pt?: point
+    ): void {
+        console.assert(
+            e.source || e.destination,
+            "error GraphEditorComponent.updateEdgePoints: drawable edge must " +
+            "have either a source or a destination"
+        );
+        // TODO:
+        // Something about anchor points for custom node images.
+        if (e.source && e.destination) {
+            if (e.source === e.destination)
+                this.edgePoints.set(
+                    e,
+                    this.canvas.getLoopEdgePoints(
+                        e,
+                        e.source,
+                        this.nodeDimensions.get(e.source)
+                    )
+                );
+            else {
+                let overlapped = getOverlappedEdges(e, this.nodeEdges);
+                if (overlapped.size > 0) {
+                    this.edgePoints.set(
+                        e,
+                        this.canvas.getQuadraticEdgePoints(
+                            e,
+                            e.source,
+                            e.destination,
+                            this.nodeDimensions.get(e.source),
+                            this.nodeDimensions.get(e.destination)
+                        )
+                    );
+                    for (let edge of overlapped) {
+                        this.edgePoints.set(
+                            edge,
+                            this.canvas.getQuadraticEdgePoints(
+                                edge,
+                                e.destination,
+                                e.source,
+                                this.nodeDimensions.get(e.destination),
+                                this.nodeDimensions.get(e.source)
+                            )
+                        );
+                        this.updateDrawable(edge);
+                    }
+                }
+                else
+                    this.edgePoints.set(
+                        e,
+                        this.canvas.getStraightEdgePoints(
+                            e,
+                            this.nodeDimensions.get(e.source),
+                            this.nodeDimensions.get(e.destination),
+                            pt
+                        )
+                    );
+            }
+        }
+        else
+            this.edgePoints.set(
+                e,
+                this.canvas.getStraightEdgePoints(
+                    e,
+                    (e.source ?
+                        this.nodeDimensions.get(e.source) :
+                        undefined),
+                    (e.destination ?
+                        this.nodeDimensions.get(e.destination) :
+                        undefined),
+                    pt
+                )
+            );
+    }
+
+    /**
+     * updateNodeDimensions  
+     *   Updates the dimensions of a node based on its geometry.
+     */
+    private updateNodeDimensions(n: DrawableNode): void {
+        this.nodeDimensions.set(n, this.canvas.getNodeDimensions(n));
+    }
+
+    /**
+     * hoverObject  
+     *   Updates the hovered object and hover anchor.
+     */
+    private updateHover(value: { d: Drawable, pt: point } | null): void {
+
+        let prev = this.hoverObject;
+        this.hoverObject = (value ? value.d : null);
+        if (prev !== this.hoverObject) {
+            this.updateDrawable(prev);
+            this.updateDrawable(this.hoverObject);
+        }
+
+        prev = this.hoverAnchor.d;
+        if (value) {
+            if (isDrawableEdge(value.d)) {
+                let pts = this.edgePoints.get(value.d) as point[];
+                this.hoverAnchor.d = (value.pt === pts[0] ?
+                    value.d.source :
+                    value.d.destination);
+            }
+            else if (isDrawableNode(value.d))
+                this.hoverAnchor.d = (value.pt === value.d.position ?
+                    null :
+                    value.d);
+            this.hoverAnchor.pt = value.pt;
+        }
+        else
+            this.hoverAnchor.d = null;
+        this.updateDrawable(prev);
+        this.updateDrawable(this.hoverAnchor.d);
+        this.redraw();
+
+    }
+
+    /**
+     * updateDragNodes  
+     *   Updates the collection of nodes being dragged.
+     */
+    private updateDragNodes(dragNode: DrawableNode, dPt: point) {
+        if (this.selectedItems.has(dragNode) &&
+            this.selectedItems.size > 0) {
+            for (let o of this.selectedItems)
+                if (isDrawableNode(o))
+                    this.updateDragNode(o, dPt);
+        }
+        else
+            this.updateDragNode(dragNode, dPt);
+        this.redraw();
+    }
+
+    /**
+     * updateDragNode  
+     *   Updates a single node being dragged.
+     */
+    private updateDragNode(n: DrawableNode, dPt: point): void {
+        n.position.x += dPt.x;
+        n.position.y += dPt.y;
+        for (let e of (this.nodeEdges.get(n) as Set<DrawableEdge>)) {
+            this.updateEdgePoints(e);
+            this.updateDrawable(e);
+        }
+        this.updateDrawable(n);
+    }
+
+
+    // Hit Methods /////////////////////////////////////////////////////////////
+
+
     /**
      * hitTest  
-     *   Gets the first graph component that is hit by a point.  
-     * 
-     *   Nodes take priority over edges.
+     *   Gets the first graph component that is hit by a point.
      */
-    private hitTest(pt: number[]): Drawable | null {
+    private hitTest(pt: point): { d: Drawable, pt: point } | null {
+        for (const n of this.graph.nodes) {
+            let hitObject = this.hitTestNode(n, pt);
+            if (hitObject)
+                return hitObject;
+        }
+        for (const e of this.graph.edges) {
+            let hitObject = this.hitTestEdge(e, pt);
+            if (hitObject)
+                return hitObject;
+        }
+        return null;
+    }
 
-        // TODO:
-        // This needs to be reworked to handle curved edges.
+    /**
+     * hitTestNode  
+     *   Checks if a point is within the boundary of a node.
+     */
+    private hitTestNode(
+        n: DrawableNode,
+        pt: point
+    ): { d: Drawable, pt: point } | null {
+        let dim = this.nodeDimensions.get(n);
+        switch (n.shape) {
+            case "circle":
+                let r = dim.r + CONST.GRID_SPACING / 4;
+                let v = { x: pt.x - n.position.x, y: pt.y - n.position.y };
+                let d = MathEx.mag(v);
+                if (d <= r) {
+                    r -= CONST.GRID_SPACING / 2;
+                    let anchor: point = n.position;
+                    if (d >= r) {
+                        let shift = this.canvas.getEdgePtShift(
+                            { x: v.x / d, y: v.y / d },
+                            n,
+                            dim
+                        );
+                        anchor = {
+                            x: anchor.x + shift.x,
+                            y: anchor.y + shift.y
+                        }
+                    }
+                    return {
+                        d: n,
+                        pt: anchor
+                    };
+                }
 
-        if (this.graph) {
-            // Hit test nodes first.
-            for (let n of this.graph.nodes) {
-                let dx = n.x - pt[0];
-                let dy = n.y - pt[1];
-                let size = canvas.getTextSize(
-                    this.g,
-                    n.label.split("\n"),
-                    CONST.NODE_FONT_FAMILY,
-                    CONST.NODE_FONT_SIZE
+            case "square":
+                let hs = dim.s / 2 + CONST.GRID_SPACING / 4;
+                let rect = this.canvas.makeRect(
+                    { x: n.position.x - hs, y: n.position.y - hs },
+                    { x: n.position.x + hs, y: n.position.y + hs }
                 );
-                let hs = (CONST.GRID_SPACING > size.h + 1.5 * CONST.NODE_FONT_SIZE ?
-                    CONST.GRID_SPACING : size.h + 1.5 * CONST.NODE_FONT_SIZE);
-                hs = (hs < size.w + CONST.NODE_FONT_SIZE ? size.w + CONST.NODE_FONT_SIZE : hs) / 2;
-                if ((n.shape === "circle" && dx * dx + dy * dy <= hs * hs) ||
-                    (n.shape === "square" &&
-                        pt[0] <= n.x + hs && pt[0] >= n.x - hs &&
-                        pt[1] <= n.y + hs && pt[1] >= n.y - hs))
-                    return n;
-            }
+                if ((pt.x >= rect.x && pt.x <= rect.x + rect.w) &&
+                    (pt.y >= rect.y && pt.y <= rect.y + rect.w)) {
+                    let v = { x: pt.x - n.position.x, y: pt.y - n.position.y };
+                    let d = MathEx.mag(v);
+                    rect.x += CONST.GRID_SPACING / 2;
+                    rect.y += CONST.GRID_SPACING / 2;
+                    rect.h -= CONST.GRID_SPACING / 2;
+                    rect.w -= CONST.GRID_SPACING / 2;
+                    let anchor: point = n.position;
+                    if ((pt.x <= rect.x || pt.x >= rect.x + rect.w) &&
+                        (pt.y <= rect.y || pt.y >= rect.y + rect.w)) {
+                        let shift = this.canvas.getEdgePtShift(
+                            { x: v.x / d, y: v.y / d },
+                            n,
+                            dim
+                        );
+                        anchor = {
+                            x: anchor.x + shift.x,
+                            y: anchor.y + shift.y
+                        }
+                    }
+                    return { d: n, pt: anchor };
+                }
+        }
+        return null;
+    }
 
-            // Hit test edges.
-            for (let e of this.graph.edges) {
-                if (e.source && e.destination) {
+    /**
+     * hitTestEdge  
+     *   Checks if a point is within the hit boundary of an edge.
+     */
+    private hitTestEdge(
+        e: DrawableEdge,
+        pt: point
+    ): { d: Drawable, pt: point } | null {
+        if (e.source && e.destination) {
+            let pts = this.edgePoints.get(e) as point[];
+            let src = pts[0];
+            let dst = pts[1];
+
+            switch (pts.length) {
+                // case 5:
+                //     break;
+
+                // case 4:
+                //     break;
+
+                default:
                     // Edge vector src -> dst
-                    let ve = [
-                        e.destination.x - e.source.x,
-                        e.destination.y - e.source.y,
-                    ];
-                    // Cursor vector e.src -> mouse
-                    let vm = [
-                        pt[0] - e.source.x,
-                        pt[1] - e.source.y
-                    ];
+                    let ve = {
+                        x: e.destination.position.x - e.source.position.x,
+                        y: e.destination.position.y - e.source.position.y,
+                    };
+                    // Cursor vector e.src -> cursor
+                    let vm = {
+                        x: pt.x - e.source.position.x,
+                        y: pt.y - e.source.position.y
+                    };
                     let dotee = MathEx.dot(ve, ve); // edge dot edge
-                    let dotem = MathEx.dot(ve, vm); // edge dot mouse
-                    // Projection vector mouse -> edge
-                    let p = [
-                        ve[0] * dotem / dotee,
-                        ve[1] * dotem / dotee
-                    ];
-                    // Rejection vector mouse -^ edge
-                    let r = [
-                        vm[0] - p[0],
-                        vm[1] - p[1]
-                    ];
+                    let dotem = MathEx.dot(ve, vm); // edge dot cursor
+                    // Projection vector cursor -> edge
+                    let p = { x: ve.x * dotem / dotee, y: ve.y * dotem / dotee };
+                    // Rejection vector cursor -^ edge
+                    let r = { x: vm.x - p.x, y: vm.y - p.y };
 
                     let dotpp = MathEx.dot(p, p); // proj dot proj
                     let dotrr = MathEx.dot(r, r); // rej dot rej
 
-                    let dep = [
-                        ve[0] - p[0],
-                        ve[1] - p[1]
-                    ];
+                    let dep = { x: ve.x - p.x, y: ve.y - p.y };
                     let dotdep = MathEx.dot(dep, dep);
 
                     if (dotpp <= dotee &&
                         dotdep <= dotee &&
-                        dotrr < e.lineWidth * e.lineWidth + CONST.EDGE_HIT_MARGIN * CONST.EDGE_HIT_MARGIN)
-                        return e;
-                }
+                        dotrr <
+                        e.lineWidth *
+                        e.lineWidth +
+                        CONST.EDGE_HIT_MARGIN *
+                        CONST.EDGE_HIT_MARGIN)
+                        return { d: e, pt: (dotpp < dotee / 4 ? src : dst) };
             }
         }
         return null;
@@ -951,20 +1223,129 @@ export class GraphEditorComponent implements AfterViewInit {
      * rectHitTest  
      *   Checks if a graph component was hit by a rectangle.
      */
-    private rectHitTest(c: Drawable, rect: any): boolean {
+    private rectHitTest(c: Drawable, rect: rect): boolean {
 
         // TODO:
         // A possible solution is to check if the boundary of the selection box
         // intersects with the boundary of a node or edge.
 
-        return (Drawables.isDrawableNode(c) &&
-            c.x >= rect.x && c.x <= rect.x + rect.w &&
-            c.y >= rect.y && c.y <= rect.y + rect.h) ||
-            (Drawables.isDrawableEdge(c) &&
+        return (isDrawableNode(c) &&
+            c.position.x >= rect.x && c.position.x <= rect.x + rect.w &&
+            c.position.y >= rect.y && c.position.y <= rect.y + rect.h) ||
+            (isDrawableEdge(c) &&
                 (c.source && c.destination) &&
                 (this.rectHitTest(c.source, rect) ||
                     this.rectHitTest(c.destination, rect))) ||
             false;
+    }
+
+
+    // Other Methods ///////////////////////////////////////////////////////////
+
+
+    private pan(p: point) {
+        let prev = this.panPt;
+        let curr: point = p;
+        if (prev) {
+            let dp = { x: curr.x - prev.x, y: curr.y - prev.y };
+            this.canvas.origin.x += dp.x / this.canvas.scale;
+            this.canvas.origin.y += dp.y / this.canvas.scale;
+        }
+        this.redraw();
+    }
+
+    /**
+     * resetState  
+     *   Resets input states.
+     */
+    private resetState() {
+        if (this.stickyTimeout) {
+            clearTimeout(this.stickyTimeout as NodeJS.Timer);
+            this.stickyTimeout = null;
+        }
+        this.downEvt = null;
+        this.dragObject = null;
+        this.moveEdge = null;
+    }
+
+    /**
+     * dropEdge  
+     *   Drops the dragged edge when the mouse is released.
+     */
+    private dropEdge(
+        graph: DrawableGraph,
+        e: DrawableEdge,
+        pt: point
+    ): void {
+        let dummyEdge = this.drawList.pop() as DrawableEdge;
+        this.drawMap.delete(dummyEdge);
+        this.edgePoints.delete(dummyEdge);
+
+        // Move or create the edge if it was dropped on a node.
+        let hit = this.hitTest(pt);
+        if (hit && isDrawableNode(hit.d)) {
+            let srcNode = (e.source ? e.source : hit.d);
+            let dstNode = (e.destination ? e.destination : hit.d);
+            let like = (this.moveEdge ? this.moveEdge : undefined);
+            if (graph.canCreateEdge(srcNode, dstNode, like)) {
+                let edge = this.addEdge(graph, srcNode, dstNode, like);
+                if (like)
+                    this.removeEdge(graph, like);
+                this.updateSelected(edge);
+            }
+            else if (like)
+                this.updateSelected(like);
+        }
+        else if (this.moveEdge)
+            this.updateSelected(this.moveEdge);
+    }
+
+    /**
+     * dropNodes  
+     *   Drops the collection of nodes or single node that is being dragged
+     *   when the mouse is released.
+     */
+    private dropNodes(dragNode: DrawableNode, pt: point): void {
+        this.updateDragNodes(
+            dragNode,
+            { x: pt.x - dragNode.position.x, y: pt.y - dragNode.position.y }
+        );
+        //
+        // TODO:
+        // Pevent nodes from being dropped on top of eachother.
+        //
+        this.updateSelected(dragNode);
+    }
+
+    /**
+     * initDrawables  
+     *   Initializes the drawing behavior of graph elements.
+     */
+    private initDrawables(): void {
+        this.unselectedItems.clear();
+        this.drawMap.clear();
+        this.drawList = new Array<Drawable>();
+        this.edgePoints.clear();
+        this.nodeDimensions.clear();
+        this.nodeEdges.clear();
+        for (const n of this.graph.nodes) {
+            if (!this.selectedItems.has(n))
+                this.unselectedItems.add(n);
+            this.drawList.push(n);
+            this.nodeEdges.set(n, new Set<DrawableEdge>());
+            this.updateNodeDimensions(n);
+            this.updateDrawable(n);
+        }
+        for (const e of this.graph.edges) {
+            if (!this.selectedItems.has(e))
+                this.unselectedItems.add(e);
+            this.drawList.push(e);
+            this.addNodeEdge(e);
+            this.updateEdgePoints(e);
+            this.updateDrawable(e);
+        }
+        this.drawList = this.drawList.reverse();
+        this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
     }
 
 }
