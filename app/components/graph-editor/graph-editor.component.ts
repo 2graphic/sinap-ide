@@ -1288,12 +1288,16 @@ export class GraphEditorComponent implements AfterViewInit {
             let dstNode = (e.destination ? e.destination : hit.d);
             let like = (this.moveEdge ? this.moveEdge : undefined);
             if (graph.canCreateEdge(srcNode, dstNode, like)) {
-                let e = this.addEdge(graph, srcNode, dstNode, like);
+                let edge = this.addEdge(graph, srcNode, dstNode, like);
                 if (like)
                     this.removeEdge(graph, like);
-                this.updateSelected(e);
+                this.updateSelected(edge);
             }
+            else if(like)
+                this.updateSelected(like);
         }
+        else if(this.moveEdge)
+            this.updateSelected(this.moveEdge);
     }
 
     /**
