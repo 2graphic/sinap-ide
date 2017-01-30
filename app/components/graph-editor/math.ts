@@ -5,6 +5,12 @@
 // THIS FILE IS INTENDED TO BE IMPORTED ONLY INTO graph-editor.component.ts
 
 
+// Imports /////////////////////////////////////////////////////////////////////
+
+
+import { point } from "./canvas";
+
+
 // Constants ///////////////////////////////////////////////////////////////////
 
 
@@ -50,23 +56,16 @@ export const _5_2: number = 0.5 * 0.5;
 
 /**
  * dot  
- *   Calculates the dot product of two vectors.
+ *   Calculates the dot product of two points.
  */
-export function dot(a: number[], b: number[]): number {
-    console.assert(
-        a.length === b.length,
-        "error dot: a and b must be of equal length."
-    );
-    let result = 0;
-    for (let i = 0; i < a.length; i++)
-        result += a[i] * b[i];
-    return result;
+export function dot(a: point, b: point): number {
+    return a.x * b.x + a.y * b.y;
 }
 
 /**
  * mag  
- *   Calculates the magnitude of a vector.
+ *   Calculates the magnitude of a point.
  */
-export function mag(v: number[]): number {
+export function mag(v: point): number {
     return Math.sqrt(dot(v, v));
 }

@@ -10,7 +10,9 @@ import * as Core from "./core";
 export class ConcreteGraph implements DrawableGraph {
     activeNodeType: string;
     activeEdgeType: string;
-    selection = new Set<Drawable>();
+    selectedItems = new Set<Drawable>();
+    origin = { x: 0, y: 0 };
+    scale = 1;
 
     constructor(public core: Core.Graph) {
 

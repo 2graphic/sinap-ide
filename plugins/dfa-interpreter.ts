@@ -4,7 +4,7 @@ declare var Interpreter: any, InterpreterGraph: any, Program: any, ProgramInput:
 /* global interpret */
 
 function isAccepted(node: any): boolean {
-    return node['Accept State'];
+    return node['AcceptState'];
 }
 
 /**
@@ -25,7 +25,7 @@ export function interpret(graph: any): Promise<any> {
         }
 
         for (let node of graph.nodes) {
-            if (node["Start State"]) {
+            if (node["StartState"]) {
                 if (startState != null) {
                     return reject("Too many start states.");
                 }

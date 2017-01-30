@@ -65,8 +65,6 @@ class Validator {
 
 class ConcretePlugin implements Core.Plugin {
     kind = "dfa.sinap.graph-kind";
-    context: Promise<Context>;
-
 
     get nodeTypes() {
         return this.definitions.nodes.keys();
@@ -80,7 +78,8 @@ class ConcretePlugin implements Core.Plugin {
     graphTypesRaw: Map<string, [string, Type.Type]>;
     validator: Validator;
 
-    constructor(private definitions: { all: Map<string, Type.Type>, nodes: VariableMap, edges: VariableMap, graphs: VariableMap }) {
+    constructor(private definitions: { all: Map<string, Type.Type>, nodes: VariableMap, edges: VariableMap, graphs: VariableMap },
+                public context: Context) {
         this.validator = new Validator(definitions);
     }
 
@@ -122,24 +121,30 @@ export class PluginService {
     }
 
     public getInterpreter(graph: Core.Graph): Promise<Program> {
-        // TODO: rethink this cast
-        return (graph.plugin as ConcretePlugin).context.then((context) => {
-            context.sinap.__graph = new Graph(graph);
+        if (!(graph.plugin instanceof ConcretePlugin)){
+            throw "Error: only get interpreters for graphs created with PluginService";
+        }
+        let context = graph.plugin.context;
+        
+        const g = new Graph(graph);
+        
+        console.log("expensive about to run");
+        context.sinap.__graph = g;
+        console.log("expensive ran");
 
-            return this.interpretCode
-                .runInContext(context)
-                .then<Program>((program) => {
-                    return {
-                        run: (input: ProgramInput): Promise<ProgramOutput> => {
-                            context.sinap.__input = input;
-                            // Cast is necessary. 
-                            // I prefer forcing it to be explicit (and thus not any)
-                            return this.runInputCode.runInContext(context) as Promise<ProgramOutput>;
-                        },
-                        compilationMessages: [""]
-                    };
+        return this.interpretCode
+            .runInContext(context)
+            .then<Program>((program) => {
+                return {
+                    run: (input: ProgramInput): Promise<ProgramOutput> => {
+                        context.sinap.__input = input;
+                        // Cast is necessary. 
+                        // I prefer forcing it to be explicit (and thus not any)
+                        return this.runInputCode.runInContext(context) as Promise<ProgramOutput>;
+                    },
+                    compilationMessages: [""]
+                };
                 });
-        })
     }
 
     public getPlugin(kind: string): Promise<ConcretePlugin> {
@@ -155,12 +160,14 @@ export class PluginService {
     public makePlugin(kind: string): Promise<ConcretePlugin> {
         switch (kind) {
             case "dfa.sinap.graph-kind":
-                return this.fileService.readFile("./dfa-definition.sinapdef")
+                let defintions = this.fileService.readFile("./dfa-definition.sinapdef")
                     .then((s) => {
-                        const plugin = new ConcretePlugin(this.loadPluginTypeDefinitions(s));
-                        plugin.context = this.loadPlugin(kind, "./build/plugins/dfa-interpreter.js") // TODO: Put real file in here.
-                        return plugin;
+                        return this.loadPluginTypeDefinitions(s);
                     });
+                let context = this.loadPlugin(kind, "./build/plugins/dfa-interpreter.js"); // TODO: Put real file in here.
+                return Promise.all([defintions, context])
+                .then(([def, ctx])=>new ConcretePlugin(def, ctx));
+
             case "machine-learning.sinap.graph-kind":
                 throw "ML NOT IMPLEMENTED YET";
             // break;

@@ -167,6 +167,6 @@ export class Graph {
         this.nodes = [...nodes.values()];
         this.edges = edges;
         if (this.nodes.length > 0)
-            console.log(this.nodes[0]['Start State']);
+            console.log(this.nodes[0]['StartState']);
     }
 }
