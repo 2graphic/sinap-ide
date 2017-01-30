@@ -1293,10 +1293,10 @@ export class GraphEditorComponent implements AfterViewInit {
                     this.removeEdge(graph, like);
                 this.updateSelected(edge);
             }
-            else if(like)
+            else if (like)
                 this.updateSelected(like);
         }
-        else if(this.moveEdge)
+        else if (this.moveEdge)
             this.updateSelected(this.moveEdge);
     }
 
