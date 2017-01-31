@@ -21,17 +21,16 @@ graph elements should be updated in this manner.
 
 ## Input Behavior
 Input to the graph editor is handled through mouse events. The `mousedown` event
-starts a timer to determine whether or not a node or edge should be created
-[^This behavior is set to be changed so that creating an edge does not require a
-timer.]. The `mousemove` event either activates hovering on graph elements,
-creates a selection box, moves a node, or moves an edge. The `mouseup` event
-either finishes selecting graph elements, drops a node being dragged, drops an
-edge being dragged, or creates an edge if possible.
+starts a timer to determine whether or not a node should be created. The
+`mousemove` event either activates hovering on graph elements, creates a
+selection box, moves a node, or moves an edge. The `mouseup` event either
+finishes selecting graph elements, drops a node being dragged, or drops an edge
+being dragged.
 
-For deleting graph components, it would be better to have a global keybinding
-with the keybind activation event calling some method to delete the selected
-components. It may be better to have such functionality outside of the graph
-editor component.
+## Delegates
+In order to avoid having to check if the graph object has been set in the
+editor, event handler methods and public methods that depend on the graph are
+set to be delegates. Events are just registered and unregistered as needed.
 
 
 # Resources
@@ -40,15 +39,24 @@ editor component.
 
 
 # Discussion
-- Special drawing start/final nodes should be the concern of the plugin; the
-  graph editor should not have to be aware of _any_ type information or behavior
-  properties of any of the drawable elements.
-- `backgroundColor` should not be a property of a `DrawableGraph`; it should be
-  a property of the graph editor component.
+For deleting graph components, it would be better to have a global keybinding
+with the keybind activation event calling some method to delete the selected
+components. It may be better to have such functionality outside of the graph
+editor component.
+
+Special drawing start/final nodes should be the concern of the plugin; the graph
+editor should not have to be aware of _any_ type information or behavior
+properties of any of the drawable elements.
+
+`backgroundColor` should not be a property of a `DrawableGraph`; it should be a
+property of the graph editor component.
 
 
 # TODO
+- Change the drawing behavior of `moveEdge`.
 - Update hit detection.
+- Make it so that if any part of a component is caught within the selection box,
+  it is selected.
 - Drawable elements need to update geometry based on properties [^This is
   related to property binding.].
   - Node Position
@@ -57,24 +65,14 @@ editor component.
   - Label
   - LineWidth
   - LineStyle
-- Zoom and Pan
-  - pinch to zoom/two-touch drag to pan [^For now, scroll to zoom/right click
-    drag to pan.]
+- Zoom and Pan need to be mapped to two-touch gestures.
+  - pinch to zoom/two-touch drag to pan
 - Snap to grid.
 - More shapes/custom images for nodes.
-- Anchor points on nodes for edges.
 - Orthogonal Lines. [^Should users be able to have full control over bezier
   curves?]
 - Make sure to handle hit testing of custom shapes.
-- Make it so that if any part of a component is caught within the selection box,
-  it is selected.
 - @Input height/width?
-- Change edge creation behavior.
-  Highlight edge creation region around the boundary of a node [or nearby anchor
-  points if those get implemented] to indicate that an edge will be created if
-  the user clicks and drags from within the region.
-- Have a visual indication for determining if an edge can be moved from one node
-  to another.
 - Text location options. [Maybe]
   - Top, Left, Bottom, Right, Center
   - Inside, Outside, Center

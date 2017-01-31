@@ -4,9 +4,11 @@
 //
 // THIS FILE IS INTENDED TO BE IMPORTED ONLY INTO graph-editor.component.ts
 //
+// TODO:
+// Turn drawables into classes.
 
 
-import { EDGE_DEFAULTS, NODE_DEFAULTS } from "./constants";
+import { EDGE_DEFAULTS, NODE_DEFAULTS } from "./defaults";
 import * as MathEx from "./math";
 
 
@@ -352,23 +354,10 @@ export function isEdgeOverlapped(
  *   and destination nodes.
  */
 export function getOverlappedEdges(e: DrawableEdge, nodeEdges: Map<DrawableNode, Set<DrawableEdge>>): Set<DrawableEdge> {
-    let overlapped = new Set<DrawableEdge>();
-    for (const edge of (nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>)) {
-        if (
-            e !== edge &&
-            e.source === edge.destination &&
-            e.destination === edge.source
-        )
-            overlapped.add(edge);
-    }
-    for (const edge of (nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)) {
-        if (
-            e !== edge &&
-            e.source === edge.destination &&
-            e.destination === edge.source
-        )
-            overlapped.add(edge);
-    }
+    let overlapped = new Set<DrawableEdge>([
+        ...(nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>),
+        ...(nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)
+    ].filter(v => e !== v && e.source === v.destination && e.destination === v.source));
     return overlapped;
 }
 
