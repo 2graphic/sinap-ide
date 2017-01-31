@@ -38,7 +38,6 @@ export class DynamicComponent {
 
     ngAfterViewInit() {
         let windowInfo = this.windowService.windowInfo;
-        console.log(windowInfo);
         if (windowInfo) {
             let componentInfo = this.componentMap.get(windowInfo.selector);
             if (componentInfo) {

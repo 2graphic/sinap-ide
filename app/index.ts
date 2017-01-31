@@ -133,8 +133,6 @@ function createNewWindow(selector: string): Number {
         }
         windows.set(info.id, [newWindow, info]);
 
-        console.log(info);
-
         newWindow.loadURL(`file://${__dirname}/modal.html`);
 
         newWindow.on("closed", () => {
