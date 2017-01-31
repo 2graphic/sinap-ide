@@ -74,6 +74,18 @@ export const GRID_MINOR_STYLE: string = "dotted";
 export const GRID_MINOR_WIDTH: number = 0.5;
 
 /**
+ * SCALE_MIN  
+ *   The minimum scale value.
+ */
+export const SCALE_MIN: number = 0.125;
+
+/**
+ * SCALE_MAX  
+ *   The maximum scale value.
+ */
+export const SCALE_MAX: number = 8;
+
+/**
  * NUDGE  
  *   The distance the cursor must move by in order to cancel waiting for
  *   dragging a node.

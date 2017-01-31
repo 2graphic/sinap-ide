@@ -1,5 +1,14 @@
+_Last updated: January 31, 2017_
+
 # Notes
-## Drawing Behavior
+
+## graph-editor.component.ts
+The `GraphEditorComponent` class is the main Angular2 UI component class that
+should be imported into other modules. It can be found in
+`graph-editor.component.ts`; only import what is exported from this file. All
+other `ts` files are intended to be used solely within the graph editor module.
+
+### Drawing Behavior
 The graph editor component maps graph elements to draw functions. Draw functions
 are designed to minimize conditional branching as much as possible. This is the
 reasoning behind the `makeDrawEdge` and `makeDrawNode` functions. These
@@ -19,7 +28,7 @@ to `redraw`. These properties should only be recomputed whenever the properties
 of a node are changed that affects its geometry or position. Only the affected
 graph elements should be updated in this manner.
 
-## Input Behavior
+### Input Behavior
 Input to the graph editor is handled through mouse events. The `mousedown` event
 starts a timer to determine whether or not a node should be created. The
 `mousemove` event either activates hovering on graph elements, creates a
@@ -27,10 +36,34 @@ selection box, moves a node, or moves an edge. The `mouseup` event either
 finishes selecting graph elements, drops a node being dragged, or drops an edge
 being dragged.
 
-## Delegates
+### Delegates
 In order to avoid having to check if the graph object has been set in the
 editor, event handler methods and public methods that depend on the graph are
 set to be delegates. Events are just registered and unregistered as needed.
+
+## canvas.ts
+The `GraphEditorCanvas` class separates the majority of the drawing logic from
+the component class.
+
+## defaults.ts
+This file contains default constants for various graph editor properties. In the
+future, these properties should be moved to some global user workspace
+preferences module.
+
+## drawable-interfaces.ts
+This file contains interfaces and other useful functions for the public drawable
+interface types required by the graph editor.
+
+## make-draw-edge.ts
+Currently a work-in-progress, this file contains functions that return a lambda
+for drawing edges.
+
+## make-draw-node.ts
+Mostly complete, this file contains functions that return a lambda for drawing
+nodes.
+
+## math.ts
+This file contains useful constants and linear algebra functions.
 
 
 # Resources
@@ -57,6 +90,8 @@ property of the graph editor component.
 - Update hit detection.
 - Make it so that if any part of a component is caught within the selection box,
   it is selected.
+- Make sure to handle hit testing of custom shapes.
+- Reorder drawable elements on `addSelectedItem`.
 - Drawable elements need to update geometry based on properties [^This is
   related to property binding.].
   - Node Position
@@ -71,7 +106,6 @@ property of the graph editor component.
 - More shapes/custom images for nodes.
 - Orthogonal Lines. [^Should users be able to have full control over bezier
   curves?]
-- Make sure to handle hit testing of custom shapes.
 - @Input height/width?
 - Text location options. [Maybe]
   - Top, Left, Bottom, Right, Center

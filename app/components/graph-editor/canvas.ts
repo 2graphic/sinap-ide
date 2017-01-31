@@ -149,58 +149,6 @@ export class GraphEditorCanvas {
         this.g.stroke();
     }
 
-    // /**
-    //  * drawLine  
-    //  *   Draws a line.
-    //  */
-    // drawLine(
-    //     src: point,
-    //     dst: point
-    // ): void {
-    //     this.g.beginPath();
-    //     this.g.moveTo(src.x + this.origin.x, src.y + this.origin.y);
-    //     this.g.lineTo(dst.x + this.origin.x, dst.y + this.origin.y);
-    //     this.g.stroke();
-    // }
-
-    // /**
-    //  * drawQuadraticLine  
-    //  *   Draws a quadratic bezier line between two points.
-    //  */
-    // drawQuadraticLine(
-    //     src: point,
-    //     dst: point,
-    //     ctl: point
-    // ): void {
-    //     this.g.beginPath();
-    //     this.g.moveTo(src.x + this.origin.x, src.y + this.origin.y);
-    //     this.g.quadraticCurveTo(
-    //         ctl.x + this.origin.x, ctl.y + this.origin.y,
-    //         dst.x + this.origin.x, dst.y + this.origin.y
-    //     );
-    //     this.g.stroke();
-    // }
-
-    // /**
-    //  * drawCubicLine  
-    //  *   Draws a cubic bezier line between two points.
-    //  */
-    // drawCubicLine(
-    //     src: point,
-    //     dst: point,
-    //     ctl1: point,
-    //     ctl2: point
-    // ): void {
-    //     this.g.beginPath();
-    //     this.g.moveTo(src.x + this.origin.x, src.y + this.origin.y);
-    //     this.g.bezierCurveTo(
-    //         ctl1.x + this.origin.x, ctl1.y + this.origin.y,
-    //         ctl2.x + this.origin.x, ctl2.y + this.origin.y,
-    //         dst.x + this.origin.x, dst.y + this.origin.y
-    //     );
-    //     this.g.stroke();
-    // }
-
     /**
      * traceArrow  
      *   Traces an arrow towards the destination point.
@@ -577,6 +525,8 @@ export class GraphEditorCanvas {
     }
 
     set scale(value: number) {
+        value = Math.min(DEFAULT.SCALE_MAX, value);
+        value = Math.max(DEFAULT.SCALE_MIN, value);
         this._scale = AA_SCALE * value;
         this.g.setTransform(this._scale, 0, 0, this._scale, 0, 0);
     }
@@ -629,12 +579,12 @@ export class GraphEditorCanvas {
      * getPt  
      *   Gets the canvas coordinates from a mouse event.
      */
-    getPt(e: MouseEvent): point {
+    getPt(pt: point): point {
         let canvas = this.g.canvas;
         let r = canvas.getBoundingClientRect();
         return {
-            x: (e.clientX - r.left) / (r.right - r.left) * canvas.width / this._scale - this.origin.x,
-            y: (e.clientY - r.top) / (r.bottom - r.top) * canvas.height / this._scale - this.origin.y
+            x: (pt.x - r.left) / (r.right - r.left) * canvas.width / this._scale - this.origin.x,
+            y: (pt.y - r.top) / (r.bottom - r.top) * canvas.height / this._scale - this.origin.y
         };
     }
 

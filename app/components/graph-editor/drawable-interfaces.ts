@@ -186,9 +186,6 @@ export interface DrawableEdge {
      *   The text label to be displayed by the edge.
      */
     label: string;
-
-    // TODO:
-    // more display properties.
 }
 
 /**
@@ -239,9 +236,6 @@ export interface DrawableNode {
      *   non-negative.
      */
     borderWidth: number;
-
-    // TODO:
-    // more display properties
 }
 
 
@@ -319,32 +313,6 @@ function isItThat(it: any, that: any): boolean {
             return false;
     }
     return true;
-}
-
-/**
- * isEdgeOverlapped  
- *   Checks if two edges are overlapping.  
- *   It is assumed that the edge being checked does not have the same source
- *   and destination nodes.
- */
-export function isEdgeOverlapped(
-    e: DrawableEdge,
-    nodeEdges: Map<DrawableNode,
-        Set<DrawableEdge>>
-): boolean {
-    let edges = new Set<DrawableEdge>([
-        ...(nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>),
-        ...(nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)
-    ]);
-    for (const edge of edges) {
-        if (
-            e !== edge &&
-            e.source === edge.destination &&
-            e.destination === edge.source
-        )
-            return true;
-    }
-    return false;
 }
 
 /**
