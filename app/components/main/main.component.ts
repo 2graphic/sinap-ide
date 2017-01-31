@@ -127,6 +127,12 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         this.selectedTab(tabNumber);
     }
 
+    promptNewFile() {
+        this.windowService.createModal("sinap-new-file").then((result: String) => {
+            this.newFile(result);
+        });
+    }
+
 
     /* ---------- TabBarDelegate ---------- */
 
@@ -151,7 +157,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     createNewTab() {
-        this.newFile();
+        this.promptNewFile();
     }
 
     /* ------------------------------------ */
@@ -160,9 +166,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     menuEvent(e: MenuEvent) {
         switch (e) {
             case MenuEvent.NEW_FILE:
-                this.windowService.createModal("sinap-new-file").then((result: ModalInfo) => {
-                    this.newFile(result.data);
-                })
+                this.promptNewFile();
                 break;
             case MenuEvent.LOAD_FILE:
                 this.loadFile();

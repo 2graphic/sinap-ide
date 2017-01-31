@@ -115,33 +115,40 @@ ipcMain.on('getWindowInfo', (event, arg: Number) => {
 });
 
 function createNewWindow(kind: string): Number {
-    var newWindow = new BrowserWindow({
-        width: 550,
-        height: 400,
-        center: true,
-        show: false,
-    });
+    if (win) {
+        var newWindow = new BrowserWindow({
+            parent: win,
+            modal: true,
+            width: 600,
+            height: 450,
+            center: true,
+            resizable: false,
+            show: false,
+        });
 
-    var info: ModalInfo = {
-        id: newWindow.id,
-        kind: kind,
-        data: null
+        var info: ModalInfo = {
+            id: newWindow.id,
+            kind: kind,
+            data: null
+        }
+        windows.set(info.id, [newWindow, info]);
+
+        console.log(info);
+
+        newWindow.loadURL(`file://${__dirname}/modal.html`);
+
+        newWindow.on("closed", () => {
+            windows.delete(info.id);
+        });
+
+        newWindow.once("ready-to-show", () => {
+            newWindow.show();
+        })
+
+        return info.id;
     }
-    windows.set(info.id, [newWindow, info]);
 
-    console.log(info);
-
-    newWindow.loadURL(`file://${__dirname}/modal.html`);
-
-    newWindow.on("closed", () => {
-        windows.delete(info.id);
-    });
-
-    newWindow.once("ready-to-show", () => {
-        newWindow.show();
-    })
-
-    return info.id;
+    return 0;
 }
 
 /***********************************/

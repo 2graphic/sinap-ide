@@ -1,8 +1,12 @@
-import { Component, ViewContainerRef, ViewChild, ComponentFactoryResolver, ComponentRef, OnInit } from '@angular/core';
+import { Component, ViewContainerRef, ViewChild, ComponentFactoryResolver, ComponentRef, OnInit, Type } from '@angular/core';
+import { Title }     from '@angular/platform-browser';
 import { WindowService } from './../../services/window.service';
 
 import { NewFileComponent } from './../../../components/new-file/new-file.component'; //TODO, shorter way to do this...?
 
+/**
+ * This component loads one of the components specified in componentMap depending on ModalInfo.kind for this window.
+ */
 @Component({
     selector: 'sinap-dynamic-component',
     entryComponents: [NewFileComponent],
@@ -16,18 +20,26 @@ export class DynamicComponent {
     private container: ViewContainerRef;
 
     // TODO: I wish there was a better way to do this.
-    private componentMap = new Map(
-        [["sinap-new-file", NewFileComponent]]
+    /**
+     * Add the [selector, component] for each component you want to include in the modal window target.
+     */
+    private componentMap = new Map<string, [string, Type<any>]>(
+        [["sinap-new-file", ["New File", NewFileComponent]]]
+        // Preferences, etc...
     );
 
-    constructor(private resolver: ComponentFactoryResolver, private windowService: WindowService) { }
+    constructor(private resolver: ComponentFactoryResolver, private titleService: Title, private windowService: WindowService) { }
 
     ngAfterViewInit() {
         let windowInfo = this.windowService.windowInfo;
         if (windowInfo) {
-            let component = this.componentMap.get(windowInfo.kind);
-            if (component) {
-                let factory = this.resolver.resolveComponentFactory(NewFileComponent);
+            let componentInfo = this.componentMap.get(windowInfo.kind);
+            if (componentInfo) {
+                let [name, component] = componentInfo;
+
+                this.titleService.setTitle(name);
+                
+                let factory = this.resolver.resolveComponentFactory(component);
                 this.container.createComponent(factory);
             }
         }

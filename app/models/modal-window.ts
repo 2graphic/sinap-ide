@@ -1,5 +1,5 @@
 export interface ModalInfo {
-    readonly id: Number;
+    readonly id: number;
     readonly kind: string;
     data: any;
 }
@@ -9,5 +9,6 @@ export interface ModalInfo {
  * and create a service that creates a modal popup in the browser instead of a new window.
  */
 export interface ModalService {
-    createModal(component: String): Promise<any>;
+    createModal(component: string): Promise<any>;
+    // TODO: Creating a modal interface that createModal returns instead? This could have a .close() method and other useful attributes.
 }

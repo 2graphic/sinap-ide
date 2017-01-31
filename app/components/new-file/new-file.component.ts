@@ -17,7 +17,13 @@ import { WindowService } from "./../../modal-windows/services/window.service"
 export class NewFileComponent {
     constructor(private windowService: WindowService) { };
 
-    public clicked() {
-        this.windowService.closeWindow("hi");
+    public createNewFile(filename: String) {
+        if (filename) {
+            this.windowService.closeWindow(filename);
+        }
+    }
+
+    public cancel() {
+        this.windowService.closeWindow(null);
     }
 }

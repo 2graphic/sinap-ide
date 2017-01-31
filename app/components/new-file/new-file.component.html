@@ -1,2 +1,36 @@
-<p>New File pls</p>
-<button (click)="clicked()">Click</button>
+<div id="container" class="flex-container-row">
+    <!-- TODO: use a expanded list view for all panels -->
+    <!-- TODO: use a resizable panel view for all panels -->
+    <!-- TODO: Get plugin information from plugin service and display dynamically-->
+    <div id="side-bar">
+        <ul>
+            <li class="top">FLAP</li>
+            <li class="active">Finite Machine</li>
+            <li>Mealy Machine</li>
+            <li>Moore Machine</li>
+            <li>Pushdown Automaton</li>
+            <li>Turing Machine</li>
+            <li class="top">Machine Learning</li>
+            <li>Nerual Network</li>
+        </ul>
+    </div>
+    <div id="content" class="flex-container-column">
+        <div id="description">
+            <h1>Finite Automaton</h1>
+            <hr>
+            <h4>Description</h4>
+            <p>A graph that simulates a finite state machine where each node is the state of the machine and each edge is some transition between states.</p>
+        </div>
+        <div id="filename" class="flex-container-row">
+            <div id="text-input">
+                <input type="text" [(ngModel)]="filename" placeholder="File Name" autofocus (keyup.enter)="createNewFile(filename)">
+            </div>
+            <div id="submit-input">
+                <button (click)="createNewFile(filename)" [disabled]="!filename">Ok</button>                
+            </div>
+            <div id="cancel-input">
+                <button (click)="cancel()">Cancel</button>                
+            </div>
+        </div>
+    </div>
+</div>

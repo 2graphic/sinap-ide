@@ -15,6 +15,7 @@ export class WindowService implements ModalService {
 
     public createModal(component: String): Promise<any> {
         return new Promise((resolve, reject) => {
+            // TODO: Let modals return errors
             var id = ipcRenderer.sendSync('createWindow', component) as Number;
             this.callbacks.set(id, resolve);
         });
@@ -39,7 +40,9 @@ export class WindowService implements ModalService {
 
             var c = callback; // hack
             this._ngZone.run(() => {
-                c(arg.data);
+                if (arg.data) {
+                    c(arg.data);
+                } // else cancel or error?   
             });
         }
     }
