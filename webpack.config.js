@@ -71,7 +71,7 @@ module.exports = [
             'polyfills': "./app/polyfills.ts",
             'vendor': "./app/vendor.ts",
             'main': './app/main',
-            'new-file': './app/new-file.main'
+            'modal': './app/modal-windows/main'
         },
 
         output: {
@@ -119,9 +119,9 @@ module.exports = [
                 chunks: ['polyfills', 'vendor', 'main']
             }),
             new HtmlWebpackPlugin({
-                template: './app/new-file.html',
-                filename: 'new-file.html',
-                chunks: ['polyfills', 'vendor', 'new-file']
+                template: './app/modal-windows/index.html',
+                filename: 'modal.html',
+                chunks: ['polyfills', 'vendor', 'modal']
             }),
 
             new webpack.optimize.CommonsChunkPlugin({

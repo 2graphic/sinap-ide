@@ -1,4 +1,4 @@
-// File: new-file.main.ts
+// File: main.ts
 // Created by: Daniel James
 // Date created: January 17, 2017
 //
@@ -8,10 +8,10 @@
 import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
 import { enableProdMode } from '@angular/core';
 
-import { NewFileModule } from "./new-file.module";
+import { ModalWindowModule } from "./modal-window.module";
 
 if (process.env.ENV === 'production') {
     enableProdMode();
 }
 
-platformBrowserDynamic().bootstrapModule(NewFileModule);
+platformBrowserDynamic().bootstrapModule(ModalWindowModule);

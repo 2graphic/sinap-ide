@@ -4,7 +4,7 @@
 
 
 import { Component } from "@angular/core";
-import { WindowService } from "./../../services/window.service"
+import { WindowService } from "./../../modal-windows/services/window.service"
 
 
 @Component({

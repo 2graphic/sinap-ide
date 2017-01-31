@@ -1,4 +1,4 @@
-// File: new-file.module.ts
+// File: modal-window.module.ts
 // Created by: Daniel James
 // Date created: January 17, 2017
 //
@@ -10,7 +10,8 @@ import { NgModule } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
 
 import { FormsModule } from '@angular/forms';
-import { NewFileComponent } from './components/new-file/new-file.component'
+import { NewFileComponent } from './../components/new-file/new-file.component'
+import { DynamicComponent } from './components/dynamic-component/dynamic-component.component'
 
 @NgModule({
     imports: [
@@ -19,7 +20,8 @@ import { NewFileComponent } from './components/new-file/new-file.component'
     ],
     declarations: [
         NewFileComponent,
+        DynamicComponent,
     ],
-    bootstrap: [NewFileComponent]
+    bootstrap: [DynamicComponent]
 })
-export class NewFileModule { }
+export class ModalWindowModule { }

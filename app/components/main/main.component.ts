@@ -12,7 +12,8 @@ import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.s
 import { GraphEditorComponent, Drawable as DrawableInterface } from "../graph-editor/graph-editor.component";
 import { PluginService } from "../../services/plugin.service";
 import { InterpreterError, Program } from "../../models/plugin";
-import { WindowService, WindowInfo } from "../../services/window.service"
+import { WindowService } from "../../modal-windows/services/window.service"
+import { ModalInfo } from './../../models/modal-window'
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
 import { PropertiesPanelComponent, PropertiedEntity, PropertiedEntityLists } from "../properties-panel/properties-panel.component"
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
@@ -159,7 +160,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     menuEvent(e: MenuEvent) {
         switch (e) {
             case MenuEvent.NEW_FILE:
-                this.windowService.createWindow("sinap-new-file").then((result: WindowInfo) => {
+                this.windowService.createModal("sinap-new-file").then((result: ModalInfo) => {
                     this.newFile(result.data);
                 })
                 break;

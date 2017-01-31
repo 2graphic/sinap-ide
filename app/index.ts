@@ -15,7 +15,7 @@
 // application.
 //
 import { app, BrowserWindow, ipcMain } from "electron";
-import { WindowInfo } from "./services/window.service";
+import { ModalInfo } from './models/modal-window'
 
 
 /**
@@ -92,13 +92,13 @@ app.on("window-all-closed", () => {
 /** Managing Additional Windows **/
 // TODO: probs should split this into it's own file.
 
-var windows = new Map<Number, [Electron.BrowserWindow, WindowInfo]>();
+var windows = new Map<Number, [Electron.BrowserWindow, ModalInfo]>();
 
 ipcMain.on('createWindow', (event, arg) => {
     event.returnValue = createNewWindow(arg);
 });
 
-ipcMain.on('windowResult', (event, arg: WindowInfo) => {
+ipcMain.on('windowResult', (event, arg: ModalInfo) => {
     if (win) {
         win.webContents.send('windowResult', arg);
     }
@@ -109,19 +109,20 @@ ipcMain.on('windowResult', (event, arg: WindowInfo) => {
     }
 });
 
-ipcMain.on('getWindowInfo', (event, arg:Number) => {
+ipcMain.on('getWindowInfo', (event, arg: Number) => {
     var window = windows.get(arg);
-    event.returnValue = window?window[1]:null;
+    event.returnValue = window ? window[1] : null;
 });
 
 function createNewWindow(kind: string): Number {
     var newWindow = new BrowserWindow({
         width: 550,
         height: 400,
-        center: true
+        center: true,
+        show: false,
     });
 
-    var info: WindowInfo = {
+    var info: ModalInfo = {
         id: newWindow.id,
         kind: kind,
         data: null
@@ -130,11 +131,15 @@ function createNewWindow(kind: string): Number {
 
     console.log(info);
 
-    newWindow.loadURL(`file://${__dirname}/new-file.html`);
+    newWindow.loadURL(`file://${__dirname}/modal.html`);
 
     newWindow.on("closed", () => {
         windows.delete(info.id);
     });
+
+    newWindow.once("ready-to-show", () => {
+        newWindow.show();
+    })
 
     return info.id;
 }
