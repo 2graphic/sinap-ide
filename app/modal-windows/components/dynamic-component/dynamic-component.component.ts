@@ -1,5 +1,5 @@
 import { Component, ViewContainerRef, ViewChild, ComponentFactoryResolver, ComponentRef, OnInit, Type } from '@angular/core';
-import { Title }     from '@angular/platform-browser';
+import { Title } from '@angular/platform-browser';
 import { WindowService } from './../../services/window.service';
 
 import { NewFileComponent } from './../../../components/new-file/new-file.component'; //TODO, shorter way to do this...?
@@ -38,7 +38,7 @@ export class DynamicComponent {
                 let [name, component] = componentInfo;
 
                 this.titleService.setTitle(name);
-                
+
                 let factory = this.resolver.resolveComponentFactory(component);
                 this.container.createComponent(factory);
             }

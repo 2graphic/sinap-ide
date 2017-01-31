@@ -13,7 +13,7 @@ export class WindowService implements ModalService {
         this.windowInfo = ipcRenderer.sendSync("getWindowInfo", remote.getCurrentWindow().id);
     }
 
-    public createModal(component: String): Promise<any> {
+    public createModal(component: string): Promise<any> {
         return new Promise((resolve, reject) => {
             // TODO: Let modals return errors
             var id = ipcRenderer.sendSync('createWindow', component) as Number;
@@ -22,9 +22,8 @@ export class WindowService implements ModalService {
     }
 
     /**
-     * Asks the Electron process to close this window, 
-     * so don't plan on doing much else after calling this.
-     * 
+     * Asks the Electron process to close this window.
+     * data can be null, and if so the Promise isn't resolved.
      */
     public closeWindow(data: any) {
         if (this.windowInfo) {

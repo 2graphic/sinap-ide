@@ -128,7 +128,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     promptNewFile() {
-        this.windowService.createModal("sinap-new-file").then((result: String) => {
+        this.windowService.createModal("sinap-new-file").then((result: string) => {
             this.newFile(result);
         });
     }
