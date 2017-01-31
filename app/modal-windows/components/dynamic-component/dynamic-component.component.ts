@@ -1,3 +1,9 @@
+// File: dynamic-component.component.ts
+// Created by: Daniel James
+// Date created: January 30, 2017
+//
+
+
 import { Component, ViewContainerRef, ViewChild, ComponentFactoryResolver, ComponentRef, OnInit, Type } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { WindowService } from './../../services/window.service';
@@ -21,7 +27,7 @@ export class DynamicComponent {
 
     // TODO: I wish there was a better way to do this.
     /**
-     * Add the [selector, component] for each component you want to include in the modal window target.
+     * Add the type information for each component you want this component to be able to create.
      */
     private componentMap = new Map<string, [string, Type<any>]>(
         [["sinap-new-file", ["New File", NewFileComponent]]]
@@ -32,8 +38,9 @@ export class DynamicComponent {
 
     ngAfterViewInit() {
         let windowInfo = this.windowService.windowInfo;
+        console.log(windowInfo);
         if (windowInfo) {
-            let componentInfo = this.componentMap.get(windowInfo.kind);
+            let componentInfo = this.componentMap.get(windowInfo.selector);
             if (componentInfo) {
                 let [name, component] = componentInfo;
 

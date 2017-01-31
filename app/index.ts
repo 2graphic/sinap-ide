@@ -114,7 +114,7 @@ ipcMain.on('getWindowInfo', (event, arg: Number) => {
     event.returnValue = window ? window[1] : null;
 });
 
-function createNewWindow(kind: string): Number {
+function createNewWindow(selector: string): Number {
     if (win) {
         var newWindow = new BrowserWindow({
             parent: win,
@@ -128,7 +128,7 @@ function createNewWindow(kind: string): Number {
 
         var info: ModalInfo = {
             id: newWindow.id,
-            kind: kind,
+            selector: selector,
             data: null
         }
         windows.set(info.id, [newWindow, info]);

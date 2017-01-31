@@ -15,7 +15,11 @@ import { WindowService } from "./../../modal-windows/services/window.service"
 })
 
 export class NewFileComponent {
-    constructor(private windowService: WindowService) { };
+    constructor(private windowService: WindowService) {
+        // TODO: if we want to use a different ModalService then
+        // when this component is created it needs to be passed a ModalInfo so
+        // it can close itself.
+    };
 
     public createNewFile(filename: string) {
         if (filename) {
