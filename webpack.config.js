@@ -70,7 +70,8 @@ module.exports = [
         entry: {
             'polyfills': "./app/polyfills.ts",
             'vendor': "./app/vendor.ts",
-            'main': './app/main'
+            'main': './app/main',
+            'modal': './app/modal-windows/main'
         },
 
         output: {
@@ -114,11 +115,19 @@ module.exports = [
             new webpack.optimize.DedupePlugin(),
             // TODO: Uglify plugin is incompatible with ES6, wait or use another plugin to minify...?
             new HtmlWebpackPlugin({
-                template: './app/index.html'
+                template: './app/index.html',
+                chunks: ['polyfills', 'vendor', 'main']
             }),
+            new HtmlWebpackPlugin({
+                template: './app/modal-windows/index.html',
+                filename: 'modal.html',
+                chunks: ['polyfills', 'vendor', 'modal']
+            }),
+
             new webpack.optimize.CommonsChunkPlugin({
-                name: ['main', 'vendor', 'polyfills']
+                name: ['vendor', 'polyfills']
             }),
+            
             new webpack.DefinePlugin({
                 'process.env': {
                     'ENV': JSON.stringify(ENV)

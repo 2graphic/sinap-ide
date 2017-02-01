@@ -12,6 +12,8 @@ import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.s
 import { GraphEditorComponent, Drawable as DrawableInterface } from "../graph-editor/graph-editor.component";
 import { PluginService } from "../../services/plugin.service";
 import { InterpreterError, Program } from "../../models/plugin";
+import { WindowService } from "../../modal-windows/services/window.service"
+import { ModalInfo, ModalType } from './../../models/modal-window'
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
 import { PropertiesPanelComponent, PropertiedEntity, PropertiedEntityLists } from "../properties-panel/properties-panel.component"
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
@@ -29,11 +31,11 @@ import { SandboxService } from "../../services/sandbox.service";
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.css"],
-    providers: [MenuService, PluginService, FileService, SerializerService, SandboxService]
+    providers: [MenuService, PluginService, WindowService, FileService, SerializerService, SandboxService]
 })
 
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private fileService: FileService, private serializerService: SerializerService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: FileService, private serializerService: SerializerService, private changeDetectorRef: ChangeDetectorRef) {
     }
 
     ngOnInit(): void {
@@ -43,7 +45,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     ngAfterViewInit() {
-        this.newFile();
         this.changeDetectorRef.detectChanges(); //http://stackoverflow.com/a/35243106 sowwwwwy...
     }
 
@@ -125,6 +126,22 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         this.selectedTab(tabNumber);
     }
 
+    promptNewFile() {
+        let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL);
+
+        result.then((result: string) => {
+            this.newFile(result);
+            setTimeout(() => {
+                /**
+                 * There might be a better way to do this, but during this angular cycle
+                 * the parent element has height 0 so the canvas doesn't get drawn,
+                 * we have to let everything render then resize the canvas.
+                 */
+                this.graphEditor.resize();
+            }, 0);
+        });
+    }
+
 
     /* ---------- TabBarDelegate ---------- */
 
@@ -149,7 +166,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     createNewTab() {
-        this.newFile();
+        this.promptNewFile();
     }
 
     /* ------------------------------------ */
@@ -158,7 +175,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     menuEvent(e: MenuEvent) {
         switch (e) {
             case MenuEvent.NEW_FILE:
-                this.newFile();
+                this.promptNewFile();
                 break;
             case MenuEvent.LOAD_FILE:
                 this.loadFile();
