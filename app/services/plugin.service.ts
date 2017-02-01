@@ -30,7 +30,7 @@ class PluginPropertyData implements Core.PluginData {
 
 class ConcretePlugin implements Core.Plugin {
     kind = "dfa.sinap.graph-kind";
-    context: Promise<Context>;
+    script: Promise<Script>;
 
     validator = {
         isValidEdge(t: string, src: string, dst: string) {
@@ -134,6 +134,7 @@ class MLPlugin implements Core.Plugin {
 export class PluginService {
     private interpretCode: Script;
     private runInputCode: Script;
+    private plugins: Map<string, ConcretePlugin> = new Map<string, ConcretePlugin>();
 
     constructor( @Inject(FileService) private fileService: FileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
@@ -146,12 +147,12 @@ export class PluginService {
     public getInterpreter(graph: Core.Graph): Promise<Program> {
         // TODO: consider: this could really just be a cast and 
         // graph.plugin.context
-        return this.getPlugin(graph.plugin.kind).context.then((context) => {
+        let context: Promise<Context> = this.getPlugin(graph.plugin.kind).script.then((script) => this.getContext(script));
+        return context.then((context: Context): Promise<Program> => {
             context.sinap.__graph = new Graph(graph);
-
             return this.interpretCode
                 .runInContext(context)
-                .then<Program>((program) => {
+                .then((program) => {
                     return {
                         run: (input: ProgramInput): Promise<ProgramOutput> => {
                             context.sinap.__input = input;
@@ -162,20 +163,27 @@ export class PluginService {
                         compilationMessages: [""]
                     };
                 });
-        })
+        });
     }
 
     public getPlugin(kind: string): ConcretePlugin {
         // TODO: Figure out how to cache this without bad performance.
-        const plugin = this.makePlugin(kind);
-        return plugin;
+        const result = this.plugins.get(kind);
+        if (result) {
+            return result;
+        } else {
+            const newPlugin = this.makePlugin(kind);
+            this.plugins.set(kind, newPlugin);
+            return newPlugin;
+        }
     }
 
-    public makePlugin(kind: string): ConcretePlugin {
+    private makePlugin(kind: string): ConcretePlugin {
         switch (kind) {
             case "dfa.sinap.graph-kind":
                 const plugin = new ConcretePlugin();
-                plugin.context = this.loadPlugin(kind, "./build/plugins/dfa-interpreter.js") // TODO: Put real file in here.
+                plugin.script = this.fileService.readFile("./build/plugins/dfa-interpreter.js")// TODO: Put real file in here.
+                    .then((code: string) => this.sandboxService.compileScript(code));
                 return plugin;
             case "machine-learning.sinap.graph-kind":
                 throw "ML NOT IMPLEMENTED YET";
@@ -185,24 +193,19 @@ export class PluginService {
         }
     }
 
-    private loadPlugin(kind: string, interpreterFile: string): Promise<Context> {
-        return this.fileService.readFile(interpreterFile)
-            .then((text) => {
-                let context: Context = this.sandboxService.createContext({
-                    sinap: {
-                        __program: null,
-                        __graph: null,
-                        __input: null
-                    },
+    private getContext(script: Script): Promise<Context> {
+        let context: Context = this.sandboxService.createContext({
+            sinap: {
+                __program: null,
+                __graph: null,
+                __input: null
+            },
 
-                    interpret: null
-                });
-                return this.sandboxService
-                    .compileScript(text)
-                    .runInContext(context)
-                    .then<Context>((_) => {
-                        return context;
-                    });
-            });
+            interpret: null
+        });
+
+        return new Promise<Context>((resolve, reject) => {
+            return script.runInContext(context).then((_) => resolve(context));
+        });
     }
 }
