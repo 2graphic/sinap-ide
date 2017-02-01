@@ -131,7 +131,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
         result.then((result: string) => {
             this.newFile(result);
-            setTimeout(()=>{
+            setTimeout(() => {
                 /**
                  * There might be a better way to do this, but during this angular cycle
                  * the parent element has height 0 so the canvas doesn't get drawn,

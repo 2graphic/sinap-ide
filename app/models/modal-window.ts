@@ -16,8 +16,8 @@ export interface ModalInfo {
 
 export enum ModalType {
     MODAL, // Will display as a drop down on macOS
-    CHILD, 
-} 
+    CHILD,
+}
 
 export interface ModalService {
     createModal(selector: string, type: ModalType): [ModalInfo, Promise<any>];
