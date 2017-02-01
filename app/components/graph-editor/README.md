@@ -28,6 +28,19 @@ to `redraw`. These properties should only be recomputed whenever the properties
 of a node are changed that affects its geometry or position. Only the affected
 graph elements should be updated in this manner.
 
+### Hit Detection
+Point-hit detection on nodes, for the time being, is quite simple. Since there
+are currently only two kinds of supported shapes, a hit takes place if the point
+is within the node geometry. Point-hit detection on edges is a bit more
+complicated, especially with distance thresholds in place. Detecting if a point
+is near a straight line is fairly simple; it can be done with some projections
+and dot products. Doing the same with Bezier curves is a bit more involved and
+requires computing roots. To get around this, hit detection for curved lines is
+approximated by splitting the curve up into segments and hit testing along the
+straight line segments between precomputed points along the curve. This
+approximation is good enough, since the threshold for hit detections is large
+enough.
+
 ### Input Behavior
 Input to the graph editor is handled through mouse events. The `mousedown` event
 starts a timer to determine whether or not a node should be created. The

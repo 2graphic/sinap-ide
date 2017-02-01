@@ -643,63 +643,29 @@ export class GraphEditorCanvas {
         dstDim?: any,
         pt?: point
     ): point[] {
+        console.assert((e.source && srcDim) || !e.source, "error getStraightEdgePoints: srcDim undefined");
+        console.assert((e.destination && dstDim) || !e.destination, "error getStraightEdgePoints: dstDim undefined");
+        console.assert(((e.source || e.destination) && pt) || (e.source && e.destination), "error getStraightEdgePoints: pt undefined");
         let pts: point[] = [];
-        if (e.source && e.destination) {
-            console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
-            console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
-            let v = {
-                x: e.destination.position.x - e.source.position.x,
-                y: e.destination.position.y - e.source.position.y
-            };
-            let d = MathEx.mag(v);
-            let u: point = { x: v.x / d, y: v.y / d };
-            let shiftPt = this.getEdgePtShift(u, e.source, srcDim);
-            pts.push({
-                x: e.source.position.x + shiftPt.x,
-                y: e.source.position.y + shiftPt.y
-            });
+        let src = (e.source ? e.source.position : pt) as point;
+        let dst = (e.destination ? e.destination.position : pt) as point;
+        let v = { x: dst.x - src.x, y: dst.y - src.y };
+        let d = MathEx.mag(v);
+        let u = { x: v.x / d, y: v.y / d };
+        if (e.source) {
+            let shift = this.getEdgePtShift(u, e.source, srcDim);
+            pts.push({ x: src.x + shift.x, y: src.y + shift.y });
+        }
+        else
+            pts.push(pt as point);
+        if (e.destination) {
             u.x *= -1;
             u.y *= -1;
-            shiftPt = this.getEdgePtShift(u, e.destination, dstDim);
-            pts.push({
-                x: e.source.position.x + v.x + shiftPt.x,
-                y: e.source.position.y + v.y + shiftPt.y
-            });
+            let shift = this.getEdgePtShift(u, e.destination, dstDim);
+            pts.push({ x: dst.x + shift.x, y: dst.y + shift.y });
         }
-        else if (e.source && !e.destination) {
-            console.assert(pt, "error getStraightEdgePoints: pt undefined");
-            console.assert(srcDim, "error getStraightEdgePoints: srcDim undefined");
-            let p = pt as point;
-            let v = {
-                x: p.x - e.source.position.x,
-                y: p.y - e.source.position.y
-            };
-            let d = MathEx.mag(v);
-            let u: point = { x: v.x / d, y: v.y / d };
-            let shiftPt = this.getEdgePtShift(u, e.source, srcDim);
-            pts.push({
-                x: e.source.position.x + shiftPt.x,
-                y: e.source.position.y + shiftPt.y
-            });
-            pts.push(p);
-        }
-        else if (!e.source && e.destination) {
-            console.assert(pt, "error getStraightEdgePoints: pt undefined");
-            console.assert(dstDim, "error getStraightEdgePoints: dstDim undefined");
-            let p = pt as point;
-            let v = {
-                x: e.destination.position.x - p.x,
-                y: e.destination.position.y - p.y
-            };
-            let d = MathEx.mag(v);
-            let u: point = { x: -v.x / d, y: -v.y / d };
-            pts.push(p);
-            let shiftPt = this.getEdgePtShift(u, e.destination, dstDim);
-            pts.push({
-                x: p.x + v.x + shiftPt.x,
-                y: p.y + v.y + shiftPt.y
-            });
-        }
+        else
+            pts.push(pt as point);
         pts.push({
             x: (pts[0].x + pts[1].x) / 2,
             y: (pts[0].y + pts[1].y) / 2
@@ -729,11 +695,24 @@ export class GraphEditorCanvas {
             y: src.position.y + 2 * DEFAULT.GRID_SPACING * v.y
         };
         let pts: point[] = [];
+        // src
         pts.push({ x: src.position.x + pt0.x, y: src.position.y + pt0.y });
+        // dst
         pts.push({ x: src.position.x + pt1.x, y: src.position.y + pt1.y });
+        // mid
         pts.push({
-            x: MathEx._5_3 * (pts[0].x + 3 * (pt2.x + pt3.x) + pts[1].x),
-            y: MathEx._5_3 * (pts[0].y + 3 * (pt2.y + pt3.y) + pts[1].y)
+            x: (pts[0].x + 3 * (pt2.x + pt3.x) + pts[1].x) / 8,
+            y: (pts[0].y + 3 * (pt2.y + pt3.y) + pts[1].y) / 8
+        });
+        // 1/3
+        pts.push({
+            x: (8 * pts[0].x + 12 * (pt2.x + pt3.x) + pts[1].x) / 27,
+            y: (8 * pts[0].y + 12 * (pt2.y + pt3.y) + pts[1].y) / 27
+        });
+        // 2/3
+        pts.push({
+            x: (pts[0].x + 6 * (pt2.x + pt3.x) + 8 * pts[1].x) / 27,
+            y: (pts[0].y + 6 * (pt2.y + pt3.y) + 8 * pts[1].y) / 27
         });
         pts.push(pt2);
         pts.push(pt3);
@@ -790,8 +769,8 @@ export class GraphEditorCanvas {
         pts.push(pt2);
         // Midpoint.
         pts.push({
-            x: MathEx._5_2 * (pt0.x + 2 * pt1.x + pt2.x),
-            y: MathEx._5_2 * (pt0.y + 2 * pt1.y + pt2.y)
+            x: (pt0.x + 2 * pt1.x + pt2.x) / 4,
+            y: (pt0.y + 2 * pt1.y + pt2.y) / 4
         });
         pts.push(pt1);
         return pts;

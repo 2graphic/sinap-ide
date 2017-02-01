@@ -27,7 +27,8 @@ import {
     DrawableEdge,
     DrawableNode,
     DrawableGraph,
-    getOverlappedEdges,
+    getOpposingEdges,
+    getAdjacentEdges,
     isDrawableEdge,
     isDrawableNode
 } from "./drawable-interfaces";
@@ -185,7 +186,8 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Maps edges to points.  
      * 
      *   The first two points are the end points; the third point is the
-     *   midpoint. All other points are control points for bezier curves.
+     *   midpoint. The next two points for cubic bezier curves are 1/3rd points
+     *   along the curve. All other points are control points.
      */
     private edgePoints: EdgePointMap = new Map<DrawableEdge, point[]>();
 
@@ -347,7 +349,12 @@ export class GraphEditorComponent implements AfterViewInit {
             for (const item of remove) {
                 if (isDrawableEdge(item))
                     this.removeEdge(this.graph, item);
-                else if (isDrawableNode(item))
+            }
+            // Note:
+            // It is necessary to keep the loops separate and remove edges
+            // before nodes to avoid null reference exceptions.
+            for (const item of remove) {
+                if (isDrawableNode(item))
                     this.removeNode(this.graph, item);
             }
             this.clearSelected();
@@ -379,7 +386,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
                 // Set a timer for creating a node if nothing is being hovered.
                 if (!this.hoverObject) {
-                    this.updateHover(null);
+                    this.updateHoverObject(null);
                     this.dragObject = null;
                     this.stickyTimeout = (this.stickyTimeout ?
                         this.stickyTimeout :
@@ -397,6 +404,7 @@ export class GraphEditorComponent implements AfterViewInit {
                         edge.destination = null;
                         this.drawList.push(edge);
                         this.updateEdgePoints(edge, this.canvas.getPt(e));
+                        this.clearSelected();
                         this.updateDrawable(edge);
                     }
 
@@ -404,7 +412,7 @@ export class GraphEditorComponent implements AfterViewInit {
                     // being displayed.
                     else {
                         this.dragObject = this.hoverObject;
-                        this.updateHover(null);
+                        this.updateHoverObject(null);
                     }
                 }
 
@@ -415,7 +423,6 @@ export class GraphEditorComponent implements AfterViewInit {
                     let edge = cloneEdge(this.hoverObject);
                     this.moveEdge = this.hoverObject;
                     this.dragObject = edge;
-                    edge.lineStyle = DEFAULT.EDGE_DRAG_LINESTYLE;
                     if (this.hoverAnchor.pt === pts[0])
                         edge.source = null;
                     else
@@ -471,52 +478,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
                 // Update edge endpoint if dragging edge.
                 else if (isDrawableEdge(this.dragObject)) {
-                    let edge = this.dragObject;
-                    let pt = ePt;
-                    // Update the hover object if the edge can be created at the
-                    // node being hovered.
-                    let hit = this.hitTest(ePt);
-                    if (hit && isDrawableNode(hit.d) && hit.pt !== hit.d.position) {
-                        let src = (edge.source ? edge.source : hit.d);
-                        let dst = (edge.destination ? edge.destination : hit.d);
-                        let like = (this.moveEdge ? this.moveEdge : undefined);
-                        if (this.graph.canCreateEdge(src, dst, like)) {
-                            pt = hit.d.position;
-                            if (src !== dst) {
-                                let u = { x: 0, y: 0 };
-                                if (edge.destination) {
-                                    u = {
-                                        x: dst.position.x - src.position.x,
-                                        y: dst.position.y - src.position.y
-                                    };
-                                }
-                                else {
-                                    u = {
-                                        x: src.position.x - dst.position.x,
-                                        y: src.position.y - dst.position.y
-                                    };
-                                }
-                                let d = MathEx.mag(u);
-                                u.x /= d;
-                                u.y /= d;
-                                pt = this.canvas.getEdgePtShift(
-                                    u,
-                                    hit.d,
-                                    this.nodeDimensions.get(hit.d)
-                                );
-                                pt.x += hit.d.position.x;
-                                pt.y += hit.d.position.y;
-                                hit.pt = pt;
-                            }
-                        }
-                        else
-                            hit = null;
-                    }
-                    else
-                        hit = null;
-                    this.updateHover(hit);
-                    this.updateEdgePoints(edge, pt);
-                    this.updateDrawable(edge);
+                    this.updateDragEdge(this.dragObject, ePt);
                 }
             }
 
@@ -537,7 +499,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
         // Hover.
         else if (e.buttons == 0) {
-            this.updateHover(this.hitTest(ePt));
+            this.updateHoverObject(this.hitTest(ePt));
         }
     }
 
@@ -601,24 +563,11 @@ export class GraphEditorComponent implements AfterViewInit {
      *   events for zooming.
      */
     private onWheel = (e: WheelEvent) => {
-        // Get the canvas coordinates before zoom.
-        let pt1 = this.canvas.getPt(e);
         // Apply zoom.
         if (e.deltaY > 0)
-            this.scale = this.canvas.scale / 1.1;
+            this.zoom(e, 1 / 1.1);
         else if (e.deltaY < 0)
-            this.scale = this.canvas.scale * 1.1;
-        // Get the canvas coordinates after zoom.
-        let pt2 = this.canvas.getPt(e);
-        // Get the delta between pre- and post-zoom canvas points.
-        let dpt = {
-            x: pt2.x - pt1.x,
-            y: pt2.y - pt1.y
-        };
-        // Move the canvas origin by the delta.
-        this.canvas.origin.x += dpt.x;
-        this.canvas.origin.y += dpt.y;
-        this.redraw();
+            this.zoom(e, 1.1);
     }
 
     /**
@@ -635,7 +584,6 @@ export class GraphEditorComponent implements AfterViewInit {
             // Create a new node and set it as the drag object.
             this.dragObject = this.addNode(this.graph, downPt);
             this.clearSelected();
-            this.addSelectedItem(this.dragObject);
             this.updateDrawable(this.dragObject);
             this.redraw();
         }
@@ -686,9 +634,10 @@ export class GraphEditorComponent implements AfterViewInit {
         el.addEventListener("mousemove", this.onMouseMove);
         el.addEventListener("wheel", this.onWheel);
         // TODO:
-        // Use pointer events to handle gesture pan and zoom.
-        el.addEventListener("pointerdown", (e: PointerEvent) => console.log(e));
-        el.addEventListener("pointermove", (e: PointerEvent) => console.log(e));
+        // Use touch events to handle gesture pan and zoom.
+        // https://developer.mozilla.org/en-US/docs/Web/API/Touch_events
+        el.addEventListener("touchstart", (e: TouchEvent) => console.log(e));
+        el.addEventListener("touchend", (e: TouchEvent) => console.log(e));
         el.addEventListener("keydown", this.onKeyDown);
     }
 
@@ -774,7 +723,6 @@ export class GraphEditorComponent implements AfterViewInit {
             n.position = pt;
         this.nodeEdges.set(n, new Set<DrawableEdge>());
         this.updateNodeDimensions(n);
-        this.updateDrawable(n);
         this.drawList.push(n);
         return n;
     }
@@ -787,19 +735,19 @@ export class GraphEditorComponent implements AfterViewInit {
         graph: DrawableGraph,
         n: DrawableNode
     ): void {
-        if (this.hoverObject && n === this.hoverObject)
-            this.updateHover(null);
         let edges = [...(this.nodeEdges.get(n) as EdgeSet)];
         for (const e of edges)
             this.removeEdge(graph, e);
-        graph.removeNode(n);
-        this.removeSelectedItem(n);
+        if (n === this.hoverObject)
+            this.hoverObject = null;
         this.unselectedItems.delete(n);
+        this.selectedItems.delete(n);
         this.nodeEdges.delete(n);
         this.nodeDimensions.delete(n);
         this.drawMap.delete(n);
         this.selectedDrawMap.delete(n);
         this.drawList = this.drawList.filter((v) => v !== n);
+        graph.removeNode(n);
     }
 
     /**
@@ -816,7 +764,6 @@ export class GraphEditorComponent implements AfterViewInit {
         (this.nodeEdges.get(src) as EdgeSet).add(e);
         (this.nodeEdges.get(dst) as EdgeSet).add(e);
         this.updateEdgePoints(e);
-        this.updateDrawable(e);
         this.drawList = this.drawList.filter((v) => v !== src && v !== dst);
         this.drawList.push(e);
         this.drawList.push(src);
@@ -832,24 +779,25 @@ export class GraphEditorComponent implements AfterViewInit {
         graph: DrawableGraph,
         e: DrawableEdge
     ): void {
-        if (this.hoverObject && e === this.hoverObject)
-            this.updateHover(null);
-        if (e.source)
-            (this.nodeEdges.get(e.source) as EdgeSet).delete(e);
-        if (e.destination)
-            (this.nodeEdges.get(e.destination) as EdgeSet).delete(e);
-        graph.removeEdge(e);
-        this.removeSelectedItem(e);
         this.unselectedItems.delete(e);
+        this.selectedItems.delete(e);
         this.edgePoints.delete(e);
         this.drawMap.delete(e);
         this.selectedDrawMap.delete(e);
         this.drawList = this.drawList.filter(v => v !== e);
-        if (e.source !== e.destination) {
-            let overlapped = getOverlappedEdges(e, this.nodeEdges);
-            for (let edge of overlapped)
-                this.updateEdgePoints(edge);
+        graph.removeEdge(e);
+        if (e === this.hoverObject) {
+            this.hoverObject = null;
+            let n = this.hoverAnchor.d;
+            this.hoverAnchor.d = null;
+            this.updateDrawable(n);
         }
+        if (e.source)
+            (this.nodeEdges.get(e.source) as EdgeSet).delete(e);
+        if (e.destination)
+            (this.nodeEdges.get(e.destination) as EdgeSet).delete(e);
+        if (e.source !== e.destination)
+            this.updateOverlappedEdges(e);
     }
 
     /**
@@ -860,10 +808,9 @@ export class GraphEditorComponent implements AfterViewInit {
         if (moveItem(
             this.unselectedItems,
             this.selectedItems,
-            item)) {
+            item))
             this.updateDrawable(item);
-            this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
-        }
+        this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
     }
 
     /**
@@ -874,10 +821,9 @@ export class GraphEditorComponent implements AfterViewInit {
         if (moveItem(
             this.selectedItems,
             this.unselectedItems,
-            item)) {
+            item))
             this.updateDrawable(item);
-            this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
-        }
+        this.selectionChanged.emit(new Set<Drawable>(this.selectedItems));
     }
 
 
@@ -936,7 +882,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
     private updateDrawableEdge(e: DrawableEdge) {
         let isSelected = (e ? this.selectedItems.has(e) : false);
-        let isDragging = this.dragObject === e;
+        let isDragging = this.moveEdge === e;
         let isHovered = this.hoverObject === e;
         let pts = this.edgePoints.get(e) as point[];
         this.selectedDrawMap.set(
@@ -998,69 +944,80 @@ export class GraphEditorComponent implements AfterViewInit {
         );
         // TODO:
         // Something about anchor points for custom node images.
-        if (e.source && e.destination) {
-            if (e.source === e.destination)
-                this.edgePoints.set(
-                    e,
-                    this.canvas.getLoopEdgePoints(
-                        e,
-                        e.source,
-                        this.nodeDimensions.get(e.source)
-                    )
-                );
-            else {
-                let overlapped = getOverlappedEdges(e, this.nodeEdges);
-                if (overlapped.size > 0) {
-                    this.edgePoints.set(
-                        e,
-                        this.canvas.getQuadraticEdgePoints(
-                            e,
-                            e.source,
-                            e.destination,
-                            this.nodeDimensions.get(e.source),
-                            this.nodeDimensions.get(e.destination)
-                        )
-                    );
-                    for (let edge of overlapped) {
-                        this.edgePoints.set(
-                            edge,
-                            this.canvas.getQuadraticEdgePoints(
-                                edge,
-                                e.destination,
-                                e.source,
-                                this.nodeDimensions.get(e.destination),
-                                this.nodeDimensions.get(e.source)
-                            )
-                        );
-                        this.updateDrawable(edge);
-                    }
+        if (e.source === e.destination) {
+            let n = e.source as DrawableNode;
+            let dim = this.nodeDimensions.get(n);
+            this.edgePoints.set(e, this.canvas.getLoopEdgePoints(e, n, dim));
+        }
+        else
+            this.updateOverlappedEdges(e, pt);
+    }
+
+    private updateOverlappedEdges(e: DrawableEdge, pt?: point) {
+        let edges = this.nodeEdges;
+        let ePts = this.edgePoints;
+        let dims = this.nodeDimensions;
+        // let qep = this.canvas.getQuadraticEdgePoints;
+        // let sep = this.canvas.getStraightEdgePoints;
+        let src = e.source;
+        let dst = e.destination;
+        let srcDim = (src ? dims.get(src) : undefined);
+        let dstDim = (dst ? dims.get(dst) : undefined);
+        if (src && dst) {
+            let opposing = getOpposingEdges(src, dst, edges);
+            let adjacent = getAdjacentEdges(src, dst, edges);
+            if (opposing.size > 0) {
+                for (const edge of adjacent) {
+                    ePts.set(edge, this.canvas.getQuadraticEdgePoints(
+                        edge,
+                        src,
+                        dst,
+                        srcDim,
+                        dstDim
+                    ));
+                    this.updateDrawable(edge);
                 }
-                else
-                    this.edgePoints.set(
-                        e,
-                        this.canvas.getStraightEdgePoints(
-                            e,
-                            this.nodeDimensions.get(e.source),
-                            this.nodeDimensions.get(e.destination),
-                            pt
-                        )
-                    );
+            }
+            else {
+                for (const edge of adjacent) {
+                    ePts.set(edge, this.canvas.getStraightEdgePoints(
+                        edge,
+                        srcDim,
+                        dstDim
+                    ));
+                    this.updateDrawable(edge);
+                }
+            }
+            if (adjacent.size > 0) {
+                for (const edge of opposing) {
+                    ePts.set(edge, this.canvas.getQuadraticEdgePoints(
+                        edge,
+                        dst,
+                        src,
+                        dstDim,
+                        srcDim
+                    ));
+                    this.updateDrawable(edge);
+                }
+            }
+            else {
+                for (const edge of opposing) {
+                    ePts.set(edge, this.canvas.getStraightEdgePoints(
+                        edge,
+                        dstDim,
+                        srcDim
+                    ));
+                    this.updateDrawable(edge);
+                }
             }
         }
         else
-            this.edgePoints.set(
+            ePts.set(e, this.canvas.getStraightEdgePoints(
                 e,
-                this.canvas.getStraightEdgePoints(
-                    e,
-                    (e.source ?
-                        this.nodeDimensions.get(e.source) :
-                        undefined),
-                    (e.destination ?
-                        this.nodeDimensions.get(e.destination) :
-                        undefined),
-                    pt
-                )
-            );
+                srcDim,
+                dstDim,
+                pt
+            ));
     }
 
     /**
@@ -1072,10 +1029,10 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * hoverObject  
+     * updateHoverObject  
      *   Updates the hovered object and hover anchor.
      */
-    private updateHover(value: { d: Drawable, pt: point } | null): void {
+    private updateHoverObject(value: { d: Drawable, pt: point } | null): void {
 
         let prev = this.hoverObject;
         this.hoverObject = (value ? value.d : null);
@@ -1136,6 +1093,54 @@ export class GraphEditorComponent implements AfterViewInit {
         this.updateDrawable(n);
     }
 
+    private updateDragEdge(e: DrawableEdge, ePt: point) {
+        let pt = ePt;
+        // Update the hover object if the edge can be created at the
+        // node being hovered.
+        let hit = this.hitTestNodes(ePt);
+        if (hit && hit.pt !== hit.d.position) {
+            let src = (e.source ? e.source : hit.d);
+            let dst = (e.destination ? e.destination : hit.d);
+            let like = (this.moveEdge ? this.moveEdge : undefined);
+            if (this.graph.canCreateEdge(src, dst, like)) {
+                pt = hit.d.position;
+                if (src !== dst) {
+                    let u = { x: 0, y: 0 };
+                    if (e.destination) {
+                        u = {
+                            x: dst.position.x - src.position.x,
+                            y: dst.position.y - src.position.y
+                        };
+                    }
+                    else {
+                        u = {
+                            x: src.position.x - dst.position.x,
+                            y: src.position.y - dst.position.y
+                        };
+                    }
+                    let d = MathEx.mag(u);
+                    u.x /= d;
+                    u.y /= d;
+                    pt = this.canvas.getEdgePtShift(
+                        u,
+                        hit.d,
+                        this.nodeDimensions.get(hit.d)
+                    );
+                    pt.x += hit.d.position.x;
+                    pt.y += hit.d.position.y;
+                    hit.pt = pt;
+                }
+            }
+            else
+                hit = null;
+        }
+        else
+            hit = null;
+        this.updateHoverObject(hit);
+        this.updateEdgePoints(e, pt);
+        this.updateDrawable(e);
+    }
+
 
     // Hit Methods /////////////////////////////////////////////////////////////
 
@@ -1145,11 +1150,19 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Gets the first graph component that is hit by a point.
      */
     private hitTest(pt: point): { d: Drawable, pt: point } | null {
+        return this.hitTestNodes(pt) || this.hitTestEdges(pt);
+    }
+
+    private hitTestNodes(pt: point): { d: DrawableNode, pt: point } | null {
         for (const n of this.graph.nodes) {
             let hitObject = this.hitTestNode(n, pt);
             if (hitObject)
                 return hitObject;
         }
+        return null;
+    }
+
+    private hitTestEdges(pt: point): { d: DrawableEdge, pt: point } | null {
         for (const e of this.graph.edges) {
             let hitObject = this.hitTestEdge(e, pt);
             if (hitObject)
@@ -1165,7 +1178,7 @@ export class GraphEditorComponent implements AfterViewInit {
     private hitTestNode(
         n: DrawableNode,
         pt: point
-    ): { d: Drawable, pt: point } | null {
+    ): { d: DrawableNode, pt: point } | null {
         let dim = this.nodeDimensions.get(n);
         switch (n.shape) {
             case "circle":
@@ -1232,53 +1245,109 @@ export class GraphEditorComponent implements AfterViewInit {
     private hitTestEdge(
         e: DrawableEdge,
         pt: point
-    ): { d: Drawable, pt: point } | null {
+    ): { d: DrawableEdge, pt: point } | null {
         if (e.source && e.destination) {
             let pts = this.edgePoints.get(e) as point[];
             let src = pts[0];
             let dst = pts[1];
+            let mid = pts[2];
+            let margin = e.lineWidth * e.lineWidth +
+                DEFAULT.EDGE_HIT_MARGIN * DEFAULT.EDGE_HIT_MARGIN;
 
-            switch (pts.length) {
-                // case 5:
-                //     break;
+            let tl = {
+                x: Math.min(src.x, dst.x, mid.x) - DEFAULT.GRID_SPACING / 2,
+                y: Math.min(src.y, dst.y, mid.y) - DEFAULT.GRID_SPACING / 2
+            };
+            let br = {
+                x: Math.max(src.x, dst.x, mid.x) + DEFAULT.GRID_SPACING / 2,
+                y: Math.max(src.y, dst.y, mid.y) + DEFAULT.GRID_SPACING / 2
+            };
+            if (pt.x >= tl.x && pt.y >= tl.y && pt.x <= br.x && pt.y <= br.y) {
+                switch (pts.length) {
+                    // Cubic Bezier.
+                    case 7: {
+                        let pt1 = pts[3];
+                        let pt2 = pts[4];
+                        let hitPt1 = this.hitTestLine(src, pt1, pt, margin);
+                        let hitPt2 = this.hitTestLine(pt1, pt2, pt, margin);
+                        let hitPt3 = this.hitTestLine(pt2, dst, pt, margin);
+                        if (hitPt2 === pt1 || hitPt1 === pt1)
+                            hitPt1 = src;
+                        else if (hitPt2 === pt2 || hitPt3 === pt2)
+                            hitPt3 = dst;
+                        if (hitPt1 && hitPt3) {
+                            let v = { x: pt.x - src.x, y: pt.y - src.y };
+                            let d1 = MathEx.dot(v, v);
+                            v.x = pt.x - dst.x;
+                            v.y = pt.y - dst.y;
+                            let d2 = MathEx.dot(v, v);
+                            return { d: e, pt: (d2 < d1 ? dst : src) };
+                        }
+                        else if (hitPt1)
+                            return { d: e, pt: src };
+                        else if (hitPt3)
+                            return { d: e, pt: dst };
 
-                // case 4:
-                //     break;
+                    } break;
 
-                default:
-                    // Edge vector src -> dst
-                    let ve = {
-                        x: e.destination.position.x - e.source.position.x,
-                        y: e.destination.position.y - e.source.position.y,
-                    };
-                    // Cursor vector e.src -> cursor
-                    let vm = {
-                        x: pt.x - e.source.position.x,
-                        y: pt.y - e.source.position.y
-                    };
-                    let dotee = MathEx.dot(ve, ve); // edge dot edge
-                    let dotem = MathEx.dot(ve, vm); // edge dot cursor
-                    // Projection vector cursor -> edge
-                    let p = { x: ve.x * dotem / dotee, y: ve.y * dotem / dotee };
-                    // Rejection vector cursor -^ edge
-                    let r = { x: vm.x - p.x, y: vm.y - p.y };
+                    // Quadratic Bezier.
+                    case 4: {
+                        let hitPt = this.hitTestLine(src, mid, pt, margin);
+                        if (hitPt)
+                            return { d: e, pt: src };
+                        hitPt = this.hitTestLine(mid, dst, pt, margin);
+                        if (hitPt)
+                            return { d: e, pt: dst };
+                    } break;
 
-                    let dotpp = MathEx.dot(p, p); // proj dot proj
-                    let dotrr = MathEx.dot(r, r); // rej dot rej
-
-                    let dep = { x: ve.x - p.x, y: ve.y - p.y };
-                    let dotdep = MathEx.dot(dep, dep);
-
-                    if (dotpp <= dotee &&
-                        dotdep <= dotee &&
-                        dotrr <
-                        e.lineWidth *
-                        e.lineWidth +
-                        DEFAULT.EDGE_HIT_MARGIN *
-                        DEFAULT.EDGE_HIT_MARGIN)
-                        return { d: e, pt: (dotpp < dotee / 4 ? src : dst) };
+                    // Straight Line.
+                    default: {
+                        let hitPt = this.hitTestLine(src, dst, pt, margin);
+                        if (hitPt)
+                            return { d: e, pt: hitPt };
+                    } break;
+                }
             }
         }
+        return null;
+    }
+
+    private hitTestLine(
+        src: point,
+        dst: point,
+        pt: point,
+        margin: number
+    ): point | null {
+        // Edge vector src -> dst
+        let ve = {
+            x: dst.x - src.x,
+            y: dst.y - src.y,
+        };
+        // Cursor vector e.src -> cursor
+        let vm = {
+            x: pt.x - src.x,
+            y: pt.y - src.y
+        };
+        let dotee = MathEx.dot(ve, ve); // edge dot edge
+        let dotem = MathEx.dot(ve, vm); // edge dot cursor
+        // Projection vector cursor -> edge
+        let p = {
+            x: ve.x * dotem / dotee,
+            y: ve.y * dotem / dotee
+        };
+        // Rejection vector cursor -^ edge
+        let r = { x: vm.x - p.x, y: vm.y - p.y };
+
+        let dotpp = MathEx.dot(p, p); // proj dot proj
+        let dotrr = MathEx.dot(r, r); // rej dot rej
+
+        let dep = { x: ve.x - p.x, y: ve.y - p.y };
+        let dotdep = MathEx.dot(dep, dep);
+
+        if (dotpp <= dotee &&
+            dotdep <= dotee &&
+            dotrr < margin)
+            return (dotpp < dotee / 4 ? src : dst);
         return null;
     }
 
@@ -1317,6 +1386,24 @@ export class GraphEditorComponent implements AfterViewInit {
         this.redraw();
     }
 
+    private zoom(p: point, s: number) {
+        // Get the canvas coordinates before zoom.
+        let pt1 = this.canvas.getPt(p);
+        // Apply zoom.
+        this.scale = this.canvas.scale * s;
+        // Get the canvas coordinates after zoom.
+        let pt2 = this.canvas.getPt(p);
+        // Get the delta between pre- and post-zoom canvas points.
+        let dpt = {
+            x: pt2.x - pt1.x,
+            y: pt2.y - pt1.y
+        };
+        // Move the canvas origin by the delta.
+        this.canvas.origin.x += dpt.x;
+        this.canvas.origin.y += dpt.y;
+        this.redraw();
+    }
+
     /**
      * resetState  
      *   Resets input states.
@@ -1346,6 +1433,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
         // Move or create the edge if it was dropped on a node.
         let like = (this.moveEdge ? this.moveEdge : undefined);
+        this.moveEdge = null;
         if (isDrawableNode(this.hoverObject)) {
             let srcNode = (e.source ? e.source : this.hoverObject);
             let dstNode = (e.destination ? e.destination : this.hoverObject);
@@ -1353,9 +1441,12 @@ export class GraphEditorComponent implements AfterViewInit {
             if (like)
                 this.removeEdge(graph, like);
             this.updateSelected(edge);
+            this.updateDrawable(edge);
         }
-        else if (like)
+        else if (like) {
+            this.updateSelected(like);
             this.updateDrawable(like);
+        }
     }
 
     /**
