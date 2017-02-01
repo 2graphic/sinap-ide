@@ -10,10 +10,16 @@
 export interface ModalInfo {
     readonly id: number;
     readonly selector: string;
+    readonly type: ModalType
     data: any;
 }
 
+export enum ModalType {
+    MODAL, // Will display as a drop down on macOS
+    CHILD, 
+} 
+
 export interface ModalService {
-    createModal(selector: string): [ModalInfo, Promise<any>];
+    createModal(selector: string, type: ModalType): [ModalInfo, Promise<any>];
     closeModal(modal: ModalInfo, data: any | null): void;
 }

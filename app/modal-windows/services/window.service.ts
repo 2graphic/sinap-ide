@@ -6,7 +6,7 @@
 import { Injectable, NgZone } from '@angular/core';
 
 import { remote, ipcRenderer } from 'electron';
-import { ModalInfo, ModalService } from './../../models/modal-window'
+import { ModalInfo, ModalService, ModalType } from './../../models/modal-window'
 
 @Injectable()
 export class WindowService implements ModalService {
@@ -20,12 +20,8 @@ export class WindowService implements ModalService {
         this.windowInfo = ipcRenderer.sendSync("getWindowInfo", remote.getCurrentWindow().id);
     }
 
-    public createModal(selector: string): [ModalInfo, Promise<any>] {
-        var modal = {
-            id: ipcRenderer.sendSync('createWindow', selector) as number,
-            selector: selector,
-            data: null,
-        }
+    public createModal(selector: string, type: ModalType): [ModalInfo, Promise<any>] {
+        var modal: ModalInfo = ipcRenderer.sendSync('createWindow', selector, type);
 
         return [modal, new Promise((resolve, reject) => {
             this.callbacks.set(modal.id, resolve);

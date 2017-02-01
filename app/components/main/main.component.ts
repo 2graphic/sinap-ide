@@ -13,7 +13,7 @@ import { GraphEditorComponent, Drawable as DrawableInterface } from "../graph-ed
 import { PluginService } from "../../services/plugin.service";
 import { InterpreterError, Program } from "../../models/plugin";
 import { WindowService } from "../../modal-windows/services/window.service"
-import { ModalInfo } from './../../models/modal-window'
+import { ModalInfo, ModalType } from './../../models/modal-window'
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
 import { PropertiesPanelComponent, PropertiedEntity, PropertiedEntityLists } from "../properties-panel/properties-panel.component"
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
@@ -45,7 +45,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     ngAfterViewInit() {
-        this.newFile();
         this.changeDetectorRef.detectChanges(); //http://stackoverflow.com/a/35243106 sowwwwwy...
     }
 
@@ -128,10 +127,18 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     promptNewFile() {
-        let [_, result] = this.windowService.createModal("sinap-new-file");
+        let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL);
 
         result.then((result: string) => {
             this.newFile(result);
+            setTimeout(()=>{
+                /**
+                 * There might be a better way to do this, but during this angular cycle
+                 * the parent element has height 0 so the canvas doesn't get drawn,
+                 * we have to let everything render then resize the canvas.
+                 */
+                this.graphEditor.resize();
+            }, 0);
         });
     }
 
