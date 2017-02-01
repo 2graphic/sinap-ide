@@ -24,9 +24,16 @@
         </sinap-files-panel>
       </div>
       <div id="editor-panel" class="flex-container-column">
-        <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
-        <sinap-graph-editor [graph]="context ? context.graph : null" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor"></sinap-graph-editor>
-        <sinap-status-bar id="status-bar" [title]="package" [items]="barMessages"></sinap-status-bar>
+        <div [hidden]="(this.tabs.size == 0)" class="full-size flex-container-column">
+          <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
+          <sinap-graph-editor [graph]="context ? context.graph : null" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor"></sinap-graph-editor>
+          <sinap-status-bar id="status-bar" [title]="package" [items]="barMessages"></sinap-status-bar>
+        </div>
+        <div [hidden]="(this.tabs.size > 0)" class="full-size">
+          <div (click)="promptNewFile()" id="empty-background">
+            <a>Click to create a new graph</a>
+          </div>
+        </div>
       </div> 
     </div>
     <div id="bottom-panels" class="flex-container-row">
