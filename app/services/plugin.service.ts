@@ -79,7 +79,7 @@ class ConcretePlugin implements Core.Plugin {
     validator: Validator;
 
     constructor(private definitions: { all: Map<string, Type.Type>, nodes: VariableMap, edges: VariableMap, graphs: VariableMap },
-        public context: Context) {
+        public script: Script) {
         this.validator = new Validator(definitions);
     }
 
@@ -124,29 +124,26 @@ export class PluginService {
         if (!(graph.plugin instanceof ConcretePlugin)) {
             throw "Error: only get interpreters for graphs created with PluginService";
         }
-        let context = graph.plugin.context;
+        return this.getContext(graph.plugin.script).then((context) => {
+            const g = new Graph(graph);
+            context.sinap.__graph = g;
 
-        const g = new Graph(graph);
-
-        console.log("expensive about to run");
-        context.sinap.__graph = g;
-        console.log("expensive ran");
-
-        return this.interpretCode
-            .runInContext(context)
-            .then<Program>((program) => {
-                return {
-                    run: (input: ProgramInput): Promise<ProgramOutput> => {
-                        context.sinap.__input = input;
-                        return this.runInputCode.runInContext(context).then((res) => {
-                            // TODO: insert check for correctness of output here. 
-                            // cast for now
-                            return res as ProgramOutput;
-                        });
-                    },
-                    compilationMessages: [""]
-                };
-            });
+            return this.interpretCode
+                .runInContext(context)
+                .then<Program>((program) => {
+                    return {
+                        run: (input: ProgramInput): Promise<ProgramOutput> => {
+                            context.sinap.__input = input;
+                            return this.runInputCode.runInContext(context).then((res) => {
+                                // TODO: insert check for correctness of output here. 
+                                // cast for now
+                                return res as ProgramOutput;
+                            });
+                        },
+                        compilationMessages: [""]
+                    };
+                });
+        });
     }
 
     public getPlugin(kind: string): Promise<ConcretePlugin> {
@@ -166,9 +163,10 @@ export class PluginService {
                     .then((s) => {
                         return this.loadPluginTypeDefinitions(s);
                     });
-                let context = this.loadPlugin(kind, "./build/plugins/dfa-interpreter.js"); // TODO: Put real file in here.
-                return Promise.all([defintions, context])
-                    .then(([def, ctx]) => new ConcretePlugin(def, ctx));
+                let script = this.fileService.readFile("./build/plugins/dfa-interpreter.js") // TODO: Put real file in here.
+                    .then((code) => this.sandboxService.compileScript(code));
+                return Promise.all([defintions, script])
+                    .then(([def, scr]) => new ConcretePlugin(def, scr));
 
             case "machine-learning.sinap.graph-kind":
                 throw "ML NOT IMPLEMENTED YET";
@@ -218,24 +216,17 @@ export class PluginService {
         return { all: scope.definitions, nodes: d(nodes), edges: d(edges), graphs: d(graphs) };
     }
 
-    private loadPlugin(kind: string, interpreterFile: string): Promise<Context> {
-        return this.fileService.readFile(interpreterFile)
-            .then((text) => {
-                let context: Context = this.sandboxService.createContext({
-                    sinap: {
-                        __program: null,
-                        __graph: null,
-                        __input: null
-                    },
+    private getContext(script: Script): Promise<Context> {
+        let context: Context = this.sandboxService.createContext({
+            sinap: {
+                __program: null,
+                __graph: null,
+                __input: null
+            },
 
-                    interpret: null
-                });
-                return this.sandboxService
-                    .compileScript(text)
-                    .runInContext(context)
-                    .then<Context>((_) => {
-                        return context;
-                    });
-            });
+            interpret: null
+        });
+
+        return script.runInContext(context).then((_) => context);
     }
 }

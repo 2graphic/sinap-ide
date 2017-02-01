@@ -14,7 +14,8 @@
 // References to app and BrowserWindow are needed in order to start an Electron
 // application.
 //
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
+import { ModalInfo, ModalType } from './models/modal-window'
 
 
 /**
@@ -23,7 +24,6 @@ import { app, BrowserWindow } from "electron";
  *   collected while it is still being used.
  */
 let win: Electron.BrowserWindow | null;
-
 
 /**
  * createWindow
@@ -48,32 +48,95 @@ function createWindow() {
 
     win.once("ready-to-show", () => {
         (win as Electron.BrowserWindow).show();
-    })
+    });
 }
 
 
 //
 // Create the window when the application is ready.
 //
-app.on("ready", createWindow);
+app.on("ready", () => {
+    createWindow();
+});
 
 
 //
 // Terminates the application when all windows have been closed.
 //
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-        app.quit();
-    }
+    app.quit();
 });
 
 
-//
-// Recreates the window if it has been lost while the application was inactive.
-// This will likely occur on mobile devices with limited resources.
-//
-app.on("activate", () => {
-    if (win === null) {
-        createWindow();
+
+
+/** Managing Additional Windows **/
+// TODO: probs should split this into it's own file.
+
+var childWindows = new Map<Number, [Electron.BrowserWindow, ModalInfo]>();
+
+ipcMain.on('createWindow', (event, selector, type) => {
+    if (win) {
+        event.returnValue = createNewWindow(selector, type);
     }
 });
+
+ipcMain.on('windowResult', (event, arg: ModalInfo) => {
+    if (win) {
+        win.webContents.send('windowResult', arg);
+    }
+
+    var window = childWindows.get(arg.id);
+    if (window) {
+        window[0].close();
+    }
+});
+
+ipcMain.on('getWindowInfo', (event, arg: Number) => {
+    var window = childWindows.get(arg);
+    event.returnValue = window ? window[1] : null;
+});
+
+function createNewWindow(selector: string, type: ModalType): ModalInfo {
+    if (win) {
+        var newWindow = new BrowserWindow({
+            parent: win,
+            modal: (type == ModalType.MODAL),
+            width: 600,
+            height: 450,
+            center: true,
+            resizable: false
+        });
+
+        var info: ModalInfo = {
+            id: newWindow.id,
+            selector: selector,
+            type: type,
+            data: null
+        }
+        childWindows.set(info.id, [newWindow, info]);
+
+        newWindow.loadURL(`file://${__dirname}/modal.html`);
+
+        newWindow.on("closed", () => {
+            childWindows.delete(info.id);
+        });
+
+        newWindow.once("ready-to-show", () => {
+            newWindow.show();
+        })
+
+        return info;
+    }
+
+    // This shouldn't ever fail, it can only fail if the main window hasn't been created yet.
+    // However if stuff changes and this does fail, I'd rather avoid a null exception.
+    return {
+        id: -1,
+        selector: selector,
+        type: type,
+        data: null
+    };
+}
+
+/***********************************/
