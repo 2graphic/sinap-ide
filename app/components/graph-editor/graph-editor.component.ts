@@ -1099,7 +1099,7 @@ export class GraphEditorComponent implements AfterViewInit {
         // Update the hover object if the edge can be created at the
         // node being hovered.
         let hit = this.hitPtTestNodes(ePt);
-        if (hit && hit.pt !== hit.d.position) {
+        if (hit/* && hit.pt !== hit.d.position*/) {
             let src = (e.source ? e.source : hit.d);
             let dst = (e.destination ? e.destination : hit.d);
             let like = (this.moveEdge ? this.moveEdge : undefined);
@@ -1183,11 +1183,11 @@ export class GraphEditorComponent implements AfterViewInit {
         let dim = this.nodeDimensions.get(n);
         switch (n.shape) {
             case "circle":
-                let r = dim.r + DEFAULT.GRID_SPACING / 4;
+                let r = dim.r + DEFAULT.GRID_SPACING / 2;
                 let v = { x: pt.x - n.position.x, y: pt.y - n.position.y };
                 let d = MathEx.mag(v);
                 if (d <= r) {
-                    r -= DEFAULT.GRID_SPACING / 4;
+                    r -= 3 * DEFAULT.GRID_SPACING / 4;
                     let anchor: pt = n.position;
                     if (d >= r) {
                         let shift = this.canvas.getEdgePtShift(
@@ -1207,7 +1207,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 }
 
             case "square":
-                let hs = dim.s / 2 + DEFAULT.GRID_SPACING / 4;
+                let hs = dim.s / 2 + DEFAULT.GRID_SPACING / 2;
                 let rect = this.canvas.makeRect(
                     { x: n.position.x - hs, y: n.position.y - hs },
                     { x: n.position.x + hs, y: n.position.y + hs }
@@ -1216,10 +1216,10 @@ export class GraphEditorComponent implements AfterViewInit {
                     (pt.y >= rect.y && pt.y <= rect.y + rect.w)) {
                     let v = { x: pt.x - n.position.x, y: pt.y - n.position.y };
                     let d = MathEx.mag(v);
-                    rect.x += DEFAULT.GRID_SPACING / 4;
-                    rect.y += DEFAULT.GRID_SPACING / 4;
-                    rect.h -= DEFAULT.GRID_SPACING / 4;
-                    rect.w -= DEFAULT.GRID_SPACING / 4;
+                    rect.x += 3 * DEFAULT.GRID_SPACING / 4;
+                    rect.y += 3 * DEFAULT.GRID_SPACING / 4;
+                    rect.h -= 3 * DEFAULT.GRID_SPACING / 4;
+                    rect.w -= 3 * DEFAULT.GRID_SPACING / 4;
                     let anchor: pt = n.position;
                     if ((pt.x <= rect.x || pt.x >= rect.x + rect.w) &&
                         (pt.y <= rect.y || pt.y >= rect.y + rect.w)) {
