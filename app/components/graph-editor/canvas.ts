@@ -787,12 +787,14 @@ export class GraphEditorCanvas {
         let size = this.getTextSize(lines);
         let s = (DEFAULT.GRID_SPACING > size.h + 1.5 * DEFAULT.FONT_SIZE ?
             DEFAULT.GRID_SPACING : size.h + 1.5 * DEFAULT.FONT_SIZE);
+        s = (s < size.w + DEFAULT.FONT_SIZE ? size.w + DEFAULT.FONT_SIZE : s);
         switch (n.shape) {
             case "circle":
-                return { r: (s < size.w + DEFAULT.FONT_SIZE ? size.w + DEFAULT.FONT_SIZE : s) / 2, th: size.h };
+                s = s / 2;
+                return { r: s, th: size.h, in: s - DEFAULT.NODE_THRESHOLD_IN, out: s + DEFAULT.NODE_THRESHOLD_OUT };
 
             case "square":
-                return { s: (s < size.w + DEFAULT.FONT_SIZE ? size.w + DEFAULT.FONT_SIZE : s), th: size.h };
+                return { s: s, th: size.h, in: s - 2 * DEFAULT.NODE_THRESHOLD_IN, out: s + 2 * DEFAULT.NODE_THRESHOLD_OUT };
         }
     }
 
