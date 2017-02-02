@@ -1187,7 +1187,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 let v = { x: pt.x - n.position.x, y: pt.y - n.position.y };
                 let d = MathEx.mag(v);
                 if (d <= r) {
-                    r -= 3 * DEFAULT.GRID_SPACING / 4;
+                    r -= 2.5 * DEFAULT.GRID_SPACING / 4;
                     let anchor: pt = n.position;
                     if (d >= r) {
                         let shift = this.canvas.getEdgePtShift(
