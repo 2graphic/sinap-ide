@@ -17,14 +17,12 @@ export class Script {
     // and type engine in general. This forces an explicit case when you
     // use run in context, but allows type inference to mostly keep 
     // flowing
-    runInContext(context: Context): Promise<NativeResult> {
-        return new Promise((resolve, reject) => {
-            try {
-                resolve(this.nodeScript.runInContext(context));
-            } catch (err) {
-                reject(err);
-            }
-        });
+    runInContext(context: Context | Promise<Context>): Promise<NativeResult> {
+        if (!(context instanceof Promise)) {
+            context = Promise.resolve(context);
+        }
+
+        return context.then((ctx) => this.nodeScript.runInContext(ctx));
     }
 }
 

@@ -17,13 +17,13 @@ Type = Class / Tuple / List / Enum / Reference
 //     ....	
 // }
 Class = "class" _ conformsTo:ClassTypeList ? _ "{" _ fields:FieldList * "}" {
-	return new types.ClassType(conformsTo!==null?conformsTo:[], new Map(fields));
+	return new types.ClassType(conformsTo!==null?conformsTo:[], fields);
 }
 FieldList = _ f:Field _ {
 	return f;
 }
-Field = name:Variable _ ":" _ type:Type {
-   	return [name, type];
+Field = name:Variable _ prettyName:("=" p:(a:[^:]+ {return a.join("")}) {return p})? ":" _ type:Type {
+   	return [name, [prettyName, type]];
 }
 
 // literal: List<t1>

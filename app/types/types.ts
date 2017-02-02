@@ -27,7 +27,7 @@ export function isSyntaxError(e: any): e is SyntaxError {
 }
 
 
-export { Type, TypeScope, ClassType, ListType, TupleType } from "./type-structures";
+export { Type, TypeScope, ClassType, ListType, TupleType, TypeVariable } from "./type-structures";
 
 /*
  * Parse a scope literal on its own
@@ -92,19 +92,19 @@ Point = class {
 }
 
 Graph = class {
-	Nodes: List<Node>
-	Edges: List<Edge>
+	nodes: List<Node>
+	edges: List<Edge>
 }
 
 Node = class {
-    Label: String
-    Edges: List<Edge>
+    label: String
+    edges: List<Edge>
 }
 
 Edge = class {
-    Label: String
-    Source: Node
-    Destination: Node
+    label: String
+    source: Node
+    destination: Node
 }
 
 Shape = enum {circle, square}

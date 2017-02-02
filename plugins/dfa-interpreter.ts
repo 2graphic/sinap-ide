@@ -1,12 +1,6 @@
 declare var Interpreter: any, InterpreterGraph: any, Program: any, ProgramInput: any, ProgramOutput: any, RunningProgram: any;
 //import { Graph, Node, Edge } from "../app/models/plugin";
 
-/* global interpret */
-
-function isAccepted(node: any): boolean {
-    return node['AcceptState'];
-}
-
 /**
  * This function compiles a DFA.
  */
@@ -17,7 +11,7 @@ export function interpret(graph: any): Promise<any> {
         var startState: Node | null = null;
 
         for (let edge of graph.edges) {
-            let sym: string = edge.Label;
+            let sym: string = edge.label;
             if (sym.length != 1) {
                 return reject("Symbols must be one character");
             }
@@ -25,16 +19,16 @@ export function interpret(graph: any): Promise<any> {
         }
 
         for (let node of graph.nodes) {
-            if (node["StartState"]) {
+            if (node.isStartState) {
                 if (startState != null) {
                     return reject("Too many start states.");
                 }
                 startState = node;
             }
-            if (isAccepted(node)) {
+            if (node.isAcceptState) {
                 acceptStates.push(node);
             }
-            let symbols = node.Children.map((edge: any) => edge.Label);
+            let symbols = node.children.map((edge: any) => edge.label);
             let uniqueSymbols = new Set(symbols);
             if (symbols.length !== uniqueSymbols.size) {
                 return reject("This interpreter does not handle NFAs. Non-unique edge label detected.");
@@ -66,9 +60,9 @@ class DFAProgram {
             let current: any = this.startState;
             for (const symbol of input) {
                 // TODO: Maybe build a state table for each node for efficiency.
-                let destinations = current.Children
-                    .filter((edge: any) => edge.Label === input)
-                    .map((edge: any) => edge.Destination);
+                let destinations = current.children
+                    .filter((edge: any) => edge.label === input)
+                    .map((edge: any) => edge.destination);
                 if (destinations.length == 1) {
                     current = destinations[0];
                     break;

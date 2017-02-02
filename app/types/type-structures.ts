@@ -67,7 +67,7 @@ export class TypeScope {
 }
 
 export class TypeVariable implements Type {
-    kind = "Variable";
+    readonly kind = "Variable";
 
     constructor(public type?: Type, public lookupName?: string, public matchName?: string) {
 
@@ -120,7 +120,7 @@ export class TypeVariable implements Type {
 
 // literal: keyword
 export class PrimitiveType implements Type {
-    kind: string;
+    readonly kind: string;
     constructor(readonly name: string) {
         this.kind = name;
     }
@@ -147,7 +147,7 @@ export class PrimitiveType implements Type {
 
 // literal (t1, t2, ...)
 export class TupleType implements Type {
-    kind = "Tuple"
+    readonly kind = "Tuple"
     constructor(readonly types: Type[]) {
     }
 
@@ -184,7 +184,7 @@ export class TupleType implements Type {
 
 // literal List<t1>
 export class ListType implements Type {
-    kind = "List"
+    readonly kind = "List"
     constructor(public type: Type) {
     }
 
@@ -209,10 +209,25 @@ export class ListType implements Type {
     }
 }
 
+// TODO: make this a utility function somewhere else
+function capitalize(str: string) {
+    str = str.replace(/([a-z])([A-Z])/, "$1 $2");
+    return str[0].toUpperCase() + str.slice(1);
+}
+
 // literal "class t1, t2, tn... { field:t ... }"
 export class ClassType implements Type {
-    kind = "Class"
-    constructor(readonly conformsTo: (ClassType | TypeVariable)[], readonly fields: Map<string, Type>) {
+    readonly kind = "Class"
+    readonly fields = new Map<string, Type>();
+    readonly names = new Map<string, string>();
+
+    constructor(readonly conformsTo: (ClassType | TypeVariable)[], readonly mappings: [string, [string | null, Type]][]) {
+        for (const [name, [prettyName, type]] of mappings) {
+            this.fields.set(name, type);
+            if (prettyName) {
+                this.names.set(name, prettyName);
+            }
+        }
     }
 
     validate(): void {
@@ -233,19 +248,7 @@ export class ClassType implements Type {
         return "ClassType";
     }
 
-    allFields(): [string, Type][] {
-        const result: [string, Type][] = [];
-        for (const t of this.conformsTo) {
-            if (t instanceof TypeVariable) {
-                throw "ClassType.promisedTypes: free type variable";
-            }
-            result.push(...t.allFields());
-        }
-        result.push(...this.fields.entries());
-        return result;
-    }
-
-    promisedTypes(key: string): Type[] {
+    private promisedTypes(key: string): Type[] {
         const result: Type[] = [];
         for (const t of this.conformsTo) {
             if (t instanceof TypeVariable) {
@@ -258,6 +261,38 @@ export class ClassType implements Type {
             result.push(myPromise);
         }
         return result;
+    }
+
+    typeOf(key: string): Type {
+        const va = new TypeVariable();
+        for (const t of this.promisedTypes(key)) {
+            if (!va.subtype(t)) {
+                throw "ClassType.typeOf: internal inconsistancy, please validate";
+            }
+        }
+
+        if (!va.type) {
+            throw "ClassType.typeOf: field doesn't exist";
+        }
+
+        return va.type;
+    }
+
+    prettyName(key: string): string {
+        const name = this.names.get(key);
+        if (name) {
+            return name;
+        }
+        for (const sup of this.conformsTo) {
+            if (sup instanceof TypeVariable) {
+                throw "ClassType.promisedTypes: free type variable";
+            }
+            const name = sup.prettyName(key);
+            if (name) {
+                return name;
+            }
+        }
+        return capitalize(key);
     }
 
     subtype(that: Type): boolean {
@@ -293,7 +328,7 @@ export class ClassType implements Type {
 
 
 export class FunctionType implements Type {
-    kind = "Function"
+    readonly kind = "Function"
     constructor(public from: Type, public to: Type) {
 
     }
@@ -318,7 +353,7 @@ export class FunctionType implements Type {
 }
 
 export class ThunkType implements Type {
-    kind = "Thunk"
+    readonly kind = "Thunk"
     constructor(public to: Type) {
 
     }
@@ -345,7 +380,7 @@ export class ThunkType implements Type {
 
 
 export class EnumType implements Type {
-    kind = "Enum"
+    readonly kind = "Enum"
     constructor(public literals: string[]) {
 
     }

@@ -86,7 +86,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     onContextChanged = () => { // arrow syntax to bind correct "this"
         if (this.context) {
-            this.context.graph.activeEdgeType = "Default";
+            this.context.graph.activeEdgeType = "DFAEdge";
             this.context.graph.activeNodeType = "DFANode";
             if (this.graphEditor) {
                 this.graphEditor.redraw();

@@ -1,9 +1,13 @@
 DFANode = class Node {
-	StartState : Boolean
-	AcceptState : Boolean
+	isStartState =Start State: Boolean
+	isAcceptState =Accept State: Boolean
+}
+
+DFAEdge = class Edge {
+	label =Symbol: String
 }
 
 DFAGraph = class Graph {
-	ExampleTuple : (Number, Color)
-	StartState : Node
+	exampleTuple: (Number, Color)
+	startState =Start State: Node
 }

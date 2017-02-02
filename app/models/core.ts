@@ -6,12 +6,13 @@
 
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 import { LineStyles, Shapes } from "../components/graph-editor/graph-editor.component";
+import { Object as SinapObject } from "./object";
 import * as Type from "../types/types";
 
 
 export interface PluginData {
-    propertyList: PropertyList;
-    type: string;
+    object: SinapObject;
+    kind: string;
 }
 export interface Plugin {
     kind: string;
@@ -22,23 +23,23 @@ export interface Plugin {
     nodeTypes: Iterable<string>;
     edgeTypes: Iterable<string>;
 
-    graphPluginData(type: string): PluginData;
-    nodePluginData(type: string): PluginData;
-    edgePluginData(type: string): PluginData;
+    graphPluginData(kind: string): PluginData;
+    nodePluginData(kind: string): PluginData;
+    edgePluginData(kind: string): PluginData;
 }
 
 class Element implements PropertiedEntity {
     drawablePropertyTypes: [string, string, Type.Type][];
-    public pluginProperties: PropertyList;
-    public drawableProperties: PropertyList;
+    public pluginProperties: MaskingPropertyList;
+    public drawableProperties: MappedPropertyList;
 
     public get entityKind() {
-        return this.pluginData.type;
+        return this.pluginData.kind;
     }
 
     constructor(public pluginData: PluginData) {
         this.drawableProperties = new MappedPropertyList(this.drawablePropertyTypes, this);
-        this.pluginProperties = pluginData.propertyList;
+        this.pluginProperties = new MaskingPropertyList(pluginData.object, this.drawableProperties);
     }
 }
 
@@ -51,13 +52,13 @@ export class Graph extends Element {
 
     public pluginData: PluginData;
 
-    createNode(type: string) {
-        const node = new Node(this.plugin.nodePluginData(type));
+    createNode(kind: string) {
+        const node = new Node(this.plugin.nodePluginData(kind));
         this.nodes.push(node);
         return node;
     }
-    createEdge(type: string, src: Node, dest: Node, like?: Edge) {
-        const edge = new Edge(this.plugin.edgePluginData(type), src, dest);
+    createEdge(kind: string, src: Node, dest: Node, like?: Edge) {
+        const edge = new Edge(this.plugin.edgePluginData(kind), src, dest);
         // TODO: copy attributes from `like`
         this.edges.push(edge);
         return edge;
@@ -68,8 +69,8 @@ export class Graph extends Element {
     removeEdge(edge: Edge) {
         this.edges.splice(this.edges.indexOf(edge as Edge), 1);
     }
-    canCreateEdge(type: string, src: Node, dest: Node, like?: Edge) {
-        return this.plugin.validator.isValidEdge(type, src.pluginData.type, dest.pluginData.type);
+    canCreateEdge(kind: string, src: Node, dest: Node, like?: Edge) {
+        return this.plugin.validator.isValidEdge(kind, src.pluginData.kind, dest.pluginData.kind);
     }
 
     @DrawableProperty("Background", Type.Color)
@@ -162,12 +163,17 @@ function DrawableProperty(name: string, type: Type.Type) {
 export class MappedPropertyList implements PropertyList {
     properties: [string, Type.Type][] = [];
     propertyMap = new Map<string, string>();
-    constructor(properties: [string, string, Type.Type][], private backerObject: any) {
-        for (let ent of properties) {
-            this.properties.push([ent[0], ent[2]]);
-            this.propertyMap.set(ent[0], ent[1]);
+    constructor(properties: [string, string, Type.Type][], public backerObject: any) {
+        for (let [prettyName, backName, t] of properties) {
+            this.properties.push([prettyName, t]);
+            this.propertyMap.set(prettyName, backName);
         }
     }
+
+    has(property: string) {
+        return this.propertyMap.has(property);
+    }
+
     key(property: string) {
         const key = this.propertyMap.get(property);
         if (!key) {
@@ -179,7 +185,51 @@ export class MappedPropertyList implements PropertyList {
     get(property: string) {
         return this.backerObject[this.key(property)];
     }
+
     set(property: string, value: any) {
         this.backerObject[this.key(property)] = value;
+    }
+
+    hide(mask: Set<string>) {
+        const masked = new Set<string>();
+        for (let i = this.properties.length - 1; i >= 0; i--) {
+            const prop = this.propertyMap.get(this.properties[i][0]);
+            if (prop && mask.has(prop)) {
+                masked.add(prop);
+                this.properties.splice(i, 1);
+            }
+        }
+        return masked;
+    }
+}
+
+class MaskingPropertyList implements PropertyList {
+    maskedElements: Set<string>;
+    constructor(public wrapped: MappedPropertyList, private maskedList: MappedPropertyList) {
+        this.maskedElements = maskedList.hide(new Set(wrapped.propertyMap.values()));
+    }
+
+    get properties() {
+        return this.wrapped.properties;
+    }
+
+    keyAndBacker(property: string): [string, any] {
+        const backName = this.wrapped.key(property);
+        if (!backName) {
+            throw "this property list doesn't have a key for '" + property + "'";
+        }
+        if (this.maskedElements.has(backName)) {
+            return [backName, this.maskedList.backerObject];
+        }
+        return [backName, this.wrapped.backerObject];
+    }
+
+    get(property: string) {
+        const [key, backer] = this.keyAndBacker(property);
+        return backer[key];
+    }
+    set(property: string, value: any) {
+        const [key, backer] = this.keyAndBacker(property);
+        backer[key] = value;
     }
 }

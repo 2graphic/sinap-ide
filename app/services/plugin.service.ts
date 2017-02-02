@@ -2,52 +2,42 @@ import { Injectable, Inject } from '@angular/core';
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 
 import * as Type from "../types/types";
-import * as Core from '../models/core'
-import { Program, InterpreterError, Graph, ProgramInput, ProgramOutput } from "../models/plugin"
-import { Context, SandboxService, Script } from "../services/sandbox.service"
-import { FileService } from "../services/files.service"
+import * as Core from '../models/core';
+import { Object as SinapObject } from "../models/object";
+import { Program, InterpreterError, Graph, ProgramInput, ProgramOutput } from "../models/plugin";
+import { Context, SandboxService, Script } from "../services/sandbox.service";
+import { FileService } from "../services/files.service";
+
+// TODO:
+// this file has a bunch of calls to 
+// `instanceof` that could probably be encoded in the 
+// type system
 
 
-class ConcretePropertyList implements PropertyList {
-    constructor(public properties: [string, Type.Type][], private backerObject: any) {
-
-    }
-    get(property: string) {
-        return this.backerObject[property];
-    }
-    set(property: string, value: any) {
-        this.backerObject[property] = value;
-    }
-}
-
-
-class PluginPropertyData implements Core.PluginData {
+export class PluginPropertyData implements Core.PluginData {
     backer: any = {};
-    propertyList: PropertyList;
-    constructor(public type: string, types: [string, Type.Type][]) {
-        this.propertyList = new ConcretePropertyList(types, this.backer);
+    object: SinapObject;
+    constructor(public kind: string, t: Type.ClassType) {
+        this.object = new SinapObject(t, this.backer);
     }
 }
 
-type VariableMap = Map<string, Type.TypedVariable[]>;
+type Definitions = { all: Map<string, Type.Type>, nodes: Map<string, Type.ClassType>, edges: Map<string, Type.ClassType>, graphs: Map<string, Type.ClassType> };
 
 class Validator {
     plugin: ConcretePlugin;
     nodes = new Map<string, Type.ClassType>();
     edges = new Map<string, [Type.ClassType, Type.ClassType]>();
 
-    constructor(definitions: { all: Map<string, Type.Type>, nodes: VariableMap, edges: VariableMap, graphs: VariableMap }) {
-        for (const node of definitions.nodes.keys()) {
-            const val = definitions.all.get(node);
-            if (!val || !(val instanceof Type.ClassType)) {
-                // if this happened then something is super corrupt
-                throw "this is basically impossible";
-            }
-            this.nodes.set(node, val);
-        }
+    constructor(definitions: Definitions) {
+        this.nodes = definitions.nodes;
+
         for (const [edgeType, values] of definitions.edges.entries()) {
-            const vm = new Map(values);
-            this.edges.set(edgeType, [vm.get("Source"), vm.get("Destination")] as [Type.ClassType, Type.ClassType]);
+            const [st, dt] = [values.typeOf("source"), values.typeOf("destination")];
+            if (!((st instanceof Type.ClassType) && (dt instanceof Type.ClassType))) {
+                throw "Validator.constructor: inconsistancy error";
+            }
+            this.edges.set(edgeType, [st, dt]);
         }
     }
 
@@ -73,36 +63,32 @@ class ConcretePlugin implements Core.Plugin {
         return this.definitions.nodes.keys();
     }
 
-    nodeTypesRaw: Map<string, [string, Type.Type]>;
-    edgeTypesRaw: Map<string, [string, Type.Type]>;
-    graphTypesRaw: Map<string, [string, Type.Type]>;
     validator: Validator;
 
-    constructor(private definitions: { all: Map<string, Type.Type>, nodes: VariableMap, edges: VariableMap, graphs: VariableMap },
-        public script: Script) {
+    constructor(private definitions: Definitions, public script: Script) {
         this.validator = new Validator(definitions);
     }
 
-    graphPluginData(type: string) {
-        const types = this.definitions.graphs.get(type);
-        if (!types) {
+    graphPluginData(kind: string) {
+        const type = this.definitions.graphs.get(kind);
+        if (!type) {
             throw "type not found";
         }
-        return new PluginPropertyData(type, types);
+        return new PluginPropertyData(kind, type);
     }
-    nodePluginData(type: string) {
-        const types = this.definitions.nodes.get(type);
-        if (!types) {
+    nodePluginData(kind: string) {
+        const type = this.definitions.nodes.get(kind);
+        if (!type) {
             throw "type not found";
         }
-        return new PluginPropertyData(type, types);
+        return new PluginPropertyData(kind, type);
     }
-    edgePluginData(type: string) {
-        const types = this.definitions.edges.get(type);
-        if (!types) {
+    edgePluginData(kind: string) {
+        const type = this.definitions.edges.get(kind);
+        if (!type) {
             throw "type not found";
         }
-        return new PluginPropertyData(type, types);
+        return new PluginPropertyData(kind, type);
     };
 }
 
@@ -124,26 +110,19 @@ export class PluginService {
         if (!(graph.plugin instanceof ConcretePlugin)) {
             throw "Error: only get interpreters for graphs created with PluginService";
         }
-        return this.getContext(graph.plugin.script).then((context) => {
-            const g = new Graph(graph);
-            context.sinap.__graph = g;
 
-            return this.interpretCode
-                .runInContext(context)
-                .then<Program>((program) => {
-                    return {
-                        run: (input: ProgramInput): Promise<ProgramOutput> => {
-                            context.sinap.__input = input;
-                            return this.runInputCode.runInContext(context).then((res) => {
-                                // TODO: insert check for correctness of output here. 
-                                // cast for now
-                                return res as ProgramOutput;
-                            });
-                        },
-                        compilationMessages: [""]
-                    };
-                });
-        });
+        let context = this.addToContext(this.getContext(graph.plugin.script), "__graph", new Graph(graph));
+
+        return this.interpretCode
+            .runInContext(context)
+            .then<Program>((program) => {
+                return {
+                    run: (input: ProgramInput): Promise<ProgramOutput> =>
+                        this.runInputCode
+                            .runInContext(this.addToContext(context, "__input", input)),
+                    compilationMessages: [""]
+                };
+            });
     }
 
     public getPlugin(kind: string): Promise<ConcretePlugin> {
@@ -176,8 +155,7 @@ export class PluginService {
         }
     }
 
-    public loadPluginTypeDefinitions(src: string)
-        : { all: Map<string, Type.Type>, nodes: VariableMap, edges: VariableMap, graphs: VariableMap } {
+    public loadPluginTypeDefinitions(src: string): Definitions {
 
         const scope = Type.parseScope(src);
         scope.validate();
@@ -210,10 +188,7 @@ export class PluginService {
             graphs.push(["Default", Type.Graph]);
         }
 
-        const d = (n: [string, Type.ClassType][]) =>
-            new Map(n.map(([n, t]) => [n, t.allFields()] as [string, [string, Type.Type][]]));
-
-        return { all: scope.definitions, nodes: d(nodes), edges: d(edges), graphs: d(graphs) };
+        return { all: scope.definitions, nodes: new Map(nodes), edges: new Map(edges), graphs: new Map(graphs) };
     }
 
     private getContext(script: Script): Promise<Context> {
@@ -228,5 +203,12 @@ export class PluginService {
         });
 
         return script.runInContext(context).then((_) => context);
+    }
+
+    private addToContext(ctx: Promise<Context>, key: string, value: any) {
+        return ctx.then((context) => {
+            context.sinap[key] = value;
+            return context;
+        })
     }
 }

@@ -102,17 +102,17 @@ function fillInProgram(program: any): Promise<Program> {
 }
 
 export interface Node {
-    Label: string;
-    Parents: Edge[];
-    Children: Edge[];
+    label: string;
+    parents: Edge[];
+    children: Edge[];
     [propName: string]: any;
 }
 
 // TODO: Consider capitalization here after typechecker is built.
 export interface Edge {
-    Label: string;
-    Source: Node;
-    Destination: Node;
+    label: string;
+    source: Node;
+    destination: Node;
     [propName: string]: any;
 }
 
@@ -129,13 +129,13 @@ export class Graph {
         const nodes = new Map<Core.Node, Node>();
         for (const guiNode of graph.nodes) {
             let result: any = {
-                Label: guiNode.label,
-                Parents: [],
-                Children: []
+                label: guiNode.label,
+                parents: [],
+                children: []
             };
-            for (const [key, _] of guiNode.pluginProperties.properties) {
+            for (const [key, keyReal] of guiNode.pluginProperties.wrapped.propertyMap.entries()) {
                 const value = guiNode.pluginProperties.get(key);
-                result[key] = value;
+                result[keyReal] = value;
             }
             nodes.set(guiNode, result);
         }
@@ -149,18 +149,18 @@ export class Graph {
             let dest = getNode(guiEdge, false);
 
             const result: any = {
-                Label: guiEdge.label,
-                Source: source,
-                Destination: dest
+                label: guiEdge.label,
+                source: source,
+                destination: dest
             };
 
-            for (const [key, _] of guiEdge.pluginProperties.properties) {
+            for (const [key, keyReal] of guiEdge.pluginProperties.wrapped.propertyMap.entries()) {
                 const value = guiEdge.pluginProperties.get(key);
-                result[key] = value;
+                result[keyReal] = value;
             }
 
-            source.Children.push(result);
-            dest.Parents.push(result);
+            source.children.push(result);
+            dest.parents.push(result);
             return result;
         });
 
