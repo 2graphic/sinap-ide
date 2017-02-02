@@ -63,10 +63,24 @@ export function parseType(str: string, inject?: Structure.TypeScope): Structure.
     return parseTypeRaw(str).feed(inject.definitions);
 }
 
+class CharacterType extends Structure.PrimitiveType {
+    constructor() {
+        super("Character");
+    }
+
+    subtype(t: Structure.Type) {
+        if (super.subtype(t)) {
+            return true;
+        }
+        return (t instanceof Structure.PrimitiveType) && t.name === "String";
+    }
+}
+
 /**
  * List of all primitive types
  **/
 export const String = new Structure.PrimitiveType("String");
+export const Character = new CharacterType();
 export const File = new Structure.PrimitiveType("File");
 export const Number = new Structure.PrimitiveType("Number");
 export const Color = new Structure.PrimitiveType("Color");
@@ -75,6 +89,7 @@ export const Boolean = new Structure.PrimitiveType("Boolean");
 
 const primitives = new Structure.TypeScope(new Map<string, Structure.Type>([
     ["String", String],
+    ["Character", Character],
     ["Number", Number],
     ["Color", Color],
     ["Integer", Integer],
@@ -98,7 +113,7 @@ Graph = class {
 
 Node = class {
     label: String
-    edges: List<Edge>
+    children: List<Edge>
 }
 
 Edge = class {

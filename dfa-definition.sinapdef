@@ -4,7 +4,7 @@ DFANode = class Node {
 }
 
 DFAEdge = class Edge {
-	label =Symbol: String
+	label =Symbol: Character
 }
 
 DFAGraph = class Graph {

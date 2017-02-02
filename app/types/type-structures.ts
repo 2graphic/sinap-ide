@@ -42,6 +42,8 @@ export interface Type {
      * A textual name for the type
      */
     kind: string;
+
+    isInstance(inp: any): boolean;
 }
 
 export class TypeScope {
@@ -113,6 +115,13 @@ export class TypeVariable implements Type {
     }
     validate() { }
 
+    isInstance(a: any) {
+        if (this.type) {
+            return this.type.isInstance(a);
+        }
+        return true;
+    }
+
     toString() {
         return "(" + this.matchName + "?" + this.lookupName + ":" + this.type + ")";
     }
@@ -143,6 +152,30 @@ export class PrimitiveType implements Type {
         return this;
     }
     validate() { }
+
+    isInstance(a: any) {
+        switch (this.kind) {
+            case "String":
+                return typeof (a) === "string";
+            case "Character":
+                return (typeof (a) === "string") && a.length === 1;
+            case "Number":
+                return !Number.isNaN(a);
+            case "Color":
+                // TODO: make better
+                return a instanceof String && a[0] === "#"
+            case "Integer":
+                return Number.isInteger(a);
+            case "Boolean":
+                return a === true || a === false;
+
+            //TODO: implement
+            case "File":
+            default:
+                return false;
+        }
+    }
+
 }
 
 // literal (t1, t2, ...)
@@ -175,6 +208,16 @@ export class TupleType implements Type {
         }
         return this;
     }
+
+    isInstance(a: any) {
+        for (let i = 0; i < this.types.length; i++) {
+            if (!this.types[i].isInstance(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     validate() { }
 
     toString() {
@@ -203,6 +246,19 @@ export class ListType implements Type {
         return this;
     }
     validate() { }
+
+    isInstance(a: any) {
+        if (!Array.isArray(a)) {
+            return false;
+        }
+        for (const el of a) {
+            if (!this.type.isInstance(el)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     toString() {
         return "List<" + this.type + ">";
@@ -324,59 +380,69 @@ export class ClassType implements Type {
         }
         return this;
     }
-}
 
-
-export class FunctionType implements Type {
-    readonly kind = "Function"
-    constructor(public from: Type, public to: Type) {
-
-    }
-
-    subtype(that: Type): boolean {
-        if (that.rsubtype) {
-            return that.rsubtype(this);
-        }
-
-        if (!(that instanceof FunctionType)) {
-            return false;
-        }
-        return that.from.subtype(this.from) && this.to.subtype(that.to);
-    }
-
-    feed(types: Map<string, Type>) {
-        this.from = this.from.feed(types);
-        this.to = this.to.feed(types);
-        return this;
-    }
-    validate() { }
-}
-
-export class ThunkType implements Type {
-    readonly kind = "Thunk"
-    constructor(public to: Type) {
-
-    }
-
-    subtype(that: Type): boolean {
-        if (that.rsubtype) {
-            return that.rsubtype(this);
-        }
-
-        if (that instanceof ThunkType) {
-            if (this.to.subtype(that.to)) {
-                return true;
+    isInstance(a: any) {
+        for (const [n, t] of this.fields.entries()) {
+            if (!t.isInstance(a[n])) {
+                return false;
             }
         }
-        return this.to.subtype(that);
+        return true;
     }
 
-    feed(types: Map<string, Type>) {
-        this.to = this.to.feed(types);
-        return this;
-    }
-    validate() { }
 }
+
+
+// export class FunctionType implements Type {
+//     readonly kind = "Function"
+//     constructor(public from: Type, public to: Type) {
+
+//     }
+
+//     subtype(that: Type): boolean {
+//         if (that.rsubtype) {
+//             return that.rsubtype(this);
+//         }
+
+//         if (!(that instanceof FunctionType)) {
+//             return false;
+//         }
+//         return that.from.subtype(this.from) && this.to.subtype(that.to);
+//     }
+
+//     feed(types: Map<string, Type>) {
+//         this.from = this.from.feed(types);
+//         this.to = this.to.feed(types);
+//         return this;
+//     }
+//     validate() { }
+// }
+
+// export class ThunkType implements Type {
+//     readonly kind = "Thunk"
+//     constructor(public to: Type) {
+
+//     }
+
+//     subtype(that: Type): boolean {
+//         if (that.rsubtype) {
+//             return that.rsubtype(this);
+//         }
+
+//         if (that instanceof ThunkType) {
+//             if (this.to.subtype(that.to)) {
+//                 return true;
+//             }
+//         }
+//         return this.to.subtype(that);
+//     }
+
+//     feed(types: Map<string, Type>) {
+//         this.to = this.to.feed(types);
+//         return this;
+//     }
+//     validate() { }
+// }
 
 
 export class EnumType implements Type {
@@ -399,6 +465,10 @@ export class EnumType implements Type {
             return true;
         }
         return false;
+    }
+
+    isInstance(a: any) {
+        return this.literals.indexOf(a) !== -1;
     }
 
     feed(types: Map<string, Type>) {

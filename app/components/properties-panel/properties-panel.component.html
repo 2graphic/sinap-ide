@@ -36,6 +36,9 @@
                         <div *ngSwitchCase="'String'">
                             <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="text" class="text-input"/>
                         </div>
+                        <div *ngSwitchCase="'Character'">
+                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="text" maxlength="1" class="text-input"/>
+                        </div>
 
                         <div *ngSwitchCase="'List'">
                             List<{{pair[1].type}}>

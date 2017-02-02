@@ -133,8 +133,14 @@ export class Graph {
                 parents: [],
                 children: []
             };
+
+            const propertyMap = new Map(guiNode.pluginProperties.properties);
+
             for (const [key, keyReal] of guiNode.pluginProperties.wrapped.propertyMap.entries()) {
                 const value = guiNode.pluginProperties.get(key);
+                if (!(propertyMap.get(key) as Type.Type).isInstance(value)) {
+                    console.log("key: ", key, " value: ", value, " is not an instance of ", propertyMap.get(key));
+                }
                 result[keyReal] = value;
             }
             nodes.set(guiNode, result);
@@ -154,8 +160,13 @@ export class Graph {
                 destination: dest
             };
 
+            const propertyMap = new Map(guiEdge.pluginProperties.properties);
+
             for (const [key, keyReal] of guiEdge.pluginProperties.wrapped.propertyMap.entries()) {
                 const value = guiEdge.pluginProperties.get(key);
+                if (!(propertyMap.get(key) as Type.Type).isInstance(value)) {
+                    console.log("key: ", key, " value: ", value, " is not an instance of ", propertyMap.get(key));
+                }
                 result[keyReal] = value;
             }
 
@@ -166,7 +177,5 @@ export class Graph {
 
         this.nodes = [...nodes.values()];
         this.edges = edges;
-        if (this.nodes.length > 0)
-            console.log(this.nodes[0]['StartState']);
     }
 }

@@ -1,11 +1,28 @@
 declare var Interpreter: any, InterpreterGraph: any, Program: any, ProgramInput: any, ProgramOutput: any, RunningProgram: any;
 //import { Graph, Node, Edge } from "../app/models/plugin";
 
+class Node {
+    isAcceptState: boolean;
+    isStartState: boolean;
+    children: Edge[];
+}
+
+class Graph {
+    edges: Edge[];
+    nodes: Node[];
+}
+
+class Edge {
+    source: Node;
+    destination: Node;
+    label: string;
+}
+
 /**
  * This function compiles a DFA.
  */
-export function interpret(graph: any): Promise<any> {
-    return new Promise((resolve, reject) => {
+export function interpret(graph: Graph): Promise<DFAProgram> {
+    return new Promise<DFAProgram>((resolve, reject) => {
         let alphabet = new Set<string>();
         let acceptStates = [];
         var startState: Node | null = null;
@@ -28,7 +45,7 @@ export function interpret(graph: any): Promise<any> {
             if (node.isAcceptState) {
                 acceptStates.push(node);
             }
-            let symbols = node.children.map((edge: any) => edge.label);
+            let symbols = node.children.map((edge: Edge) => edge.label);
             let uniqueSymbols = new Set(symbols);
             if (symbols.length !== uniqueSymbols.size) {
                 return reject("This interpreter does not handle NFAs. Non-unique edge label detected.");
@@ -55,14 +72,14 @@ class DFAProgram {
 
     // TODO: Implement debugging.
 
-    run(input: string): Promise<any> {
-        return new Promise((resolve, reject) => {
-            let current: any = this.startState;
+    run(input: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            let current: Node = this.startState;
             for (const symbol of input) {
                 // TODO: Maybe build a state table for each node for efficiency.
                 let destinations = current.children
-                    .filter((edge: any) => edge.label === input)
-                    .map((edge: any) => edge.destination);
+                    .filter((edge: Edge) => edge.label === input)
+                    .map((edge: Edge) => edge.destination);
                 if (destinations.length == 1) {
                     current = destinations[0];
                     break;
@@ -73,8 +90,8 @@ class DFAProgram {
                     return reject("This is a DFA!");
                 }
             }
-
-            return resolve(true);
+            // TODO: shouldn't need to coerce here
+            return resolve(current.isAcceptState);
         });
     }
 }
