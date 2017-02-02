@@ -706,13 +706,13 @@ export class GraphEditorCanvas {
         });
         // 1/3
         pts.push({
-            x: (8 * pts[0].x + 12 * (pt2.x + pt3.x) + pts[1].x) / 27,
-            y: (8 * pts[0].y + 12 * (pt2.y + pt3.y) + pts[1].y) / 27
+            x: (8 * pts[0].x + 12 * pt2.x + 6 * pt3.x + pts[1].x) / 27,
+            y: (8 * pts[0].y + 12 * pt2.y + 6 * pt3.y + pts[1].y) / 27
         });
         // 2/3
         pts.push({
-            x: (pts[0].x + 6 * (pt2.x + pt3.x) + 8 * pts[1].x) / 27,
-            y: (pts[0].y + 6 * (pt2.y + pt3.y) + 8 * pts[1].y) / 27
+            x: (pts[0].x + 6 * pt2.x + 12 * pt3.x + 8 * pts[1].x) / 27,
+            y: (pts[0].y + 6 * pt2.y + 12 * pt3.y + 8 * pts[1].y) / 27
         });
         pts.push(pt2);
         pts.push(pt3);

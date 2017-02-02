@@ -38,8 +38,16 @@ and dot products. Doing the same with Bezier curves is a bit more involved and
 requires computing roots. To get around this, hit detection for curved lines is
 approximated by splitting the curve up into segments and hit testing along the
 straight line segments between precomputed points along the curve. This
-approximation is good enough, since the threshold for hit detections is large
-enough.
+approximation is good enough, since the threshold for hit detections is
+relatively large.
+
+Selection box hit detection is a little trickier. For nodes, everything is
+treated as a rectangle. The bounds of the selection box are extended by half the
+height and width of a node, and the center point of the node is checked to be
+within the extended selection boundary. For edges, the precomputed points can be
+used to detect if one of them is within the selection boundary. If none of the
+points are found to be within the boundary, then each border segment of the
+selection box is tested for line intersection with the edge.
 
 ### Input Behavior
 Input to the graph editor is handled through mouse events. The `mousedown` event
@@ -80,6 +88,8 @@ This file contains useful constants and linear algebra functions.
 
 
 # Resources
+- Bezier Curves:
+  https://en.wikipedia.org/wiki/Bézier_curve
 - System colors:
   https://www.w3.org/TR/REC-CSS2/ui.html#system-colors
 
