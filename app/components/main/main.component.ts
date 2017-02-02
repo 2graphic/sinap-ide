@@ -26,6 +26,7 @@ import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
 import { FileService } from "../../services/files.service";
 import { SerializerService } from "../../services/serializer.service";
 import { SandboxService } from "../../services/sandbox.service";
+import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
 
 // TODO: remove
 import { isSyntaxError } from "../../types/types"
@@ -92,7 +93,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 this.graphEditor.redraw();
             }
             if (this.pluginService) {
-                if (this.context.graph.core.plugin.kind == "machine-learning.sinap.graph-kind") {
+                if (this.context.graph.core.plugin.kind == MagicConstants.MACHINE_LEARNING_PLUGIN_KIND) {
                     this.barMessages = []
                     this.package = "Machine Learning"
                 } else {
@@ -121,7 +122,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     newFile(f?: String, g?: Core.Graph) {
         const kind = this.toolsPanel.activeGraphType == "Machine Learning" ?
-            "machine-learning.sinap.graph-kind" : "dfa.sinap.graph-kind";
+            MagicConstants.MACHINE_LEARNING_PLUGIN_KIND : MagicConstants.DFA_PLUGIN_KIND;
 
         this.pluginService.getPlugin(kind).then((plugin) => {
             g = g ? g : new Core.Graph(plugin);
@@ -224,7 +225,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                                 throw "invalid file format version";
                             }
 
-                            this.pluginService.getPlugin("dfa.sinap.graph-kind").then((plugin) => {
+                            this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND).then((plugin) => {
                                 this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
                                     filename.lastIndexOf("\\")) + 1),
                                     new Core.Graph(plugin));

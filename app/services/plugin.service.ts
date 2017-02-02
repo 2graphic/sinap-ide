@@ -7,6 +7,7 @@ import { Object as SinapObject } from "../models/object";
 import { Program, InterpreterError, Graph, ProgramInput, ProgramOutput } from "../models/plugin";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { FileService } from "../services/files.service";
+import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
 // TODO:
 // this file has a bunch of calls to 
@@ -54,7 +55,7 @@ class Validator {
 }
 
 class ConcretePlugin implements Core.Plugin {
-    kind = "dfa.sinap.graph-kind";
+    kind = MagicConstants.DFA_PLUGIN_KIND;
 
     get nodeTypes() {
         return this.definitions.nodes.keys();
@@ -97,6 +98,8 @@ export class PluginService {
     private plugins = new Map<string, Promise<ConcretePlugin>>();
     private interpretCode: Script;
     private runInputCode: Script;
+    // TODO: load from somewhere
+    private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, { definitions: "./dfa-definition.sinapdef", interpreter: "./build/plugins/dfa-interpreter.js" }]])
 
     constructor( @Inject(FileService) private fileService: FileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
@@ -136,27 +139,25 @@ export class PluginService {
     }
 
     public makePlugin(kind: string): Promise<ConcretePlugin> {
-        switch (kind) {
-            case "dfa.sinap.graph-kind":
-                let defintions = this.fileService.readFile("./dfa-definition.sinapdef")
-                    .then((s) => {
-                        return this.loadPluginTypeDefinitions(s);
-                    });
-                let script = this.fileService.readFile("./build/plugins/dfa-interpreter.js") // TODO: Put real file in here.
-                    .then((code) => this.sandboxService.compileScript(code));
-                return Promise.all([defintions, script])
-                    .then(([def, scr]) => new ConcretePlugin(def, scr));
+        const val = this.pluginKinds.get(kind);
 
-            case "machine-learning.sinap.graph-kind":
-                throw "ML NOT IMPLEMENTED YET";
-            // break;
-            default:
-                throw "Unsupported Filetype";
+        if (!val) {
+            throw "Unsupported Filetype";
         }
+
+        const {definitions, interpreter} = val;
+
+        let defintions = this.fileService.readFile(definitions)
+            .then((s) => {
+                return this.loadPluginTypeDefinitions(s);
+            });
+        let script = this.fileService.readFile(interpreter)
+            .then((code) => this.sandboxService.compileScript(code));
+        return Promise.all([defintions, script])
+            .then(([def, scr]) => new ConcretePlugin(def, scr));
     }
 
     public loadPluginTypeDefinitions(src: string): Definitions {
-
         const scope = Type.parseScope(src);
         scope.validate();
 
