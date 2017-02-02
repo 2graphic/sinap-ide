@@ -116,6 +116,30 @@ export interface Edge {
     [propName: string]: any;
 }
 
+const conversions = new Map<Type.Type, (a: any) => any>([
+    [Type.Integer, Math.round],
+    [Type.Number, Number],
+    [Type.String, String],
+    [Type.Boolean, Boolean],
+    [Type.Color, String],
+    [Type.Character, (a) => {
+        a = String(a);
+        if (a.length !== 1) {
+            throw "Cannot coerce: Not a character";
+        }
+        return a;
+    }],
+]);
+
+export function coerceIfPossible(a: any, t: Type.Type) {
+    const conversion = conversions.get(t);
+    if (!conversion) {
+        return a;
+    } else {
+        return conversion(a);
+    }
+}
+
 /**
  * This class is the graph presented to the user. For convenience of reading this data structure, there are duplicate
  * and cyclical references. The constructor guarantees that these are consistent, but any changes after construction
@@ -137,11 +161,20 @@ export class Graph {
             const propertyMap = new Map(guiNode.pluginProperties.properties);
 
             for (const [key, keyReal] of guiNode.pluginProperties.wrapped.propertyMap.entries()) {
-                const value = guiNode.pluginProperties.get(key);
-                if (!(propertyMap.get(key) as Type.Type).isInstance(value)) {
-                    console.log("key: ", key, " value: ", value, " is not an instance of ", propertyMap.get(key));
+                const t = propertyMap.get(key) as Type.Type;
+                let value;
+                try {
+                    value = coerceIfPossible(guiNode.pluginProperties.get(key), t);
+                } catch (e) {
+                    console.log("error", e);
                 }
-                result[keyReal] = value;
+                if (!t.isInstance(value)) {
+                    console.log("key: ", key, " value: ", value, " is not an instance of ", propertyMap.get(key));
+                } else {
+                    // TODO: don't just silence the above error
+                    // give up and print a message
+                    result[keyReal] = value;
+                }
             }
             nodes.set(guiNode, result);
         }
@@ -163,11 +196,20 @@ export class Graph {
             const propertyMap = new Map(guiEdge.pluginProperties.properties);
 
             for (const [key, keyReal] of guiEdge.pluginProperties.wrapped.propertyMap.entries()) {
-                const value = guiEdge.pluginProperties.get(key);
-                if (!(propertyMap.get(key) as Type.Type).isInstance(value)) {
-                    console.log("key: ", key, " value: ", value, " is not an instance of ", propertyMap.get(key));
+                const t = propertyMap.get(key) as Type.Type;
+                let value;
+                try {
+                    value = coerceIfPossible(guiEdge.pluginProperties.get(key), t);
+                } catch (e) {
+                    console.log("error", e);
                 }
-                result[keyReal] = value;
+                if (!t.isInstance(value)) {
+                    console.log("key: ", key, " value: ", value, " is not an instance of ", propertyMap.get(key));
+                } else {
+                    // TODO: don't just silence the above error
+                    // give up and print a message
+                    result[keyReal] = value;
+                }
             }
 
             source.children.push(result);

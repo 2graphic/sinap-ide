@@ -69,6 +69,7 @@ class CharacterType extends Structure.PrimitiveType {
     }
 
     subtype(t: Structure.Type) {
+        // Make sure rsubtype ends up called correctly
         if (super.subtype(t)) {
             return true;
         }

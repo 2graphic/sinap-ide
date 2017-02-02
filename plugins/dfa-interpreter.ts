@@ -66,7 +66,7 @@ export function interpret(graph: Graph): Promise<DFAProgram> {
     });
 }
 
-class DFAProgram {
+export class DFAProgram {
     constructor(readonly compilationMessages: [string], private startState: Node) {
     }
 
@@ -77,12 +77,11 @@ class DFAProgram {
             let current: Node = this.startState;
             for (const symbol of input) {
                 // TODO: Maybe build a state table for each node for efficiency.
-                let destinations = current.children
-                    .filter((edge: Edge) => edge.label === input)
-                    .map((edge: Edge) => edge.destination);
+                const destinations = current.children
+                    .filter(edge => edge.label === symbol)
+                    .map(edge => edge.destination);
                 if (destinations.length == 1) {
                     current = destinations[0];
-                    break;
                 } else if (destinations.length == 0) {
                     return resolve(false);
                 } else {
@@ -90,7 +89,6 @@ class DFAProgram {
                     return reject("This is a DFA!");
                 }
             }
-            // TODO: shouldn't need to coerce here
             return resolve(current.isAcceptState);
         });
     }
