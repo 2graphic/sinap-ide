@@ -8,7 +8,7 @@
 // - Draw anchor points.
 
 
-import * as CONST from "./constants";
+import * as DEFAULT from "./defaults";
 import { GraphEditorCanvas, point } from "./canvas";
 import { DrawableEdge } from "./drawable-interfaces";
 
@@ -42,9 +42,9 @@ export function makeDrawEdge(
                 /////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
@@ -76,9 +76,9 @@ export function makeDrawEdge(
                 //////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
@@ -110,9 +110,9 @@ export function makeDrawEdge(
                 ///////////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
@@ -144,9 +144,9 @@ export function makeDrawEdge(
                 ///////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
@@ -180,12 +180,12 @@ export function makeDrawEdge(
                 ////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -194,7 +194,7 @@ export function makeDrawEdge(
                         let ctl = pts[3];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -202,7 +202,7 @@ export function makeDrawEdge(
                     default:
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -214,12 +214,12 @@ export function makeDrawEdge(
                 /////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -228,7 +228,7 @@ export function makeDrawEdge(
                         let ctl = pts[3];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -236,7 +236,7 @@ export function makeDrawEdge(
                     default:
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -248,12 +248,12 @@ export function makeDrawEdge(
                 //////////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -262,7 +262,7 @@ export function makeDrawEdge(
                         let ctl = pts[3];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -270,7 +270,7 @@ export function makeDrawEdge(
                     default:
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -282,12 +282,12 @@ export function makeDrawEdge(
                 //////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -296,7 +296,7 @@ export function makeDrawEdge(
                         let ctl = pts[3];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -304,7 +304,7 @@ export function makeDrawEdge(
                     default:
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                             canvas.drawEdgeLabel(labelPt, size, lines);
                         };
@@ -318,9 +318,9 @@ export function makeDrawEdge(
                 ////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             canvas.drawEdgeLabel(labelPt, size, lines);
@@ -346,9 +346,9 @@ export function makeDrawEdge(
                 /////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
                             canvas.drawEdgeLabel(labelPt, size, lines);
@@ -374,9 +374,9 @@ export function makeDrawEdge(
                 //////////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
                             canvas.drawEdgeLabel(labelPt, size, lines);
@@ -402,9 +402,9 @@ export function makeDrawEdge(
                 //////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             canvas.drawEdgeLabel(labelPt, size, lines);
@@ -434,9 +434,9 @@ export function makeDrawEdge(
                 ///////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
@@ -465,9 +465,9 @@ export function makeDrawEdge(
                 ////////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
@@ -496,9 +496,9 @@ export function makeDrawEdge(
                 /////////////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
@@ -527,9 +527,9 @@ export function makeDrawEdge(
                 /////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.globalAlpha = 0.5;
                             canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
@@ -560,12 +560,12 @@ export function makeDrawEdge(
                 //////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             g.shadowBlur = 0;
                         };
@@ -574,7 +574,7 @@ export function makeDrawEdge(
                         let ctl = pts[3];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                             g.shadowBlur = 0;
                         };
@@ -582,7 +582,7 @@ export function makeDrawEdge(
                     default:
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawStraightEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                             g.shadowBlur = 0;
                         };
@@ -594,12 +594,12 @@ export function makeDrawEdge(
                 ///////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
                             g.shadowBlur = 0;
                         };
@@ -608,7 +608,7 @@ export function makeDrawEdge(
                         let ctl = pts[3];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, src);
                             g.shadowBlur = 0;
                         };
@@ -616,7 +616,7 @@ export function makeDrawEdge(
                     default:
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, dst, src);
                             g.shadowBlur = 0;
                         };
@@ -628,12 +628,12 @@ export function makeDrawEdge(
                 ////////////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
                             g.shadowBlur = 0;
                         };
@@ -642,7 +642,7 @@ export function makeDrawEdge(
                         let ctl = pts[3];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl, dst);
                             g.shadowBlur = 0;
                         };
@@ -650,7 +650,7 @@ export function makeDrawEdge(
                     default:
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawStraightEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, src, dst);
                             g.shadowBlur = 0;
                         };
@@ -662,12 +662,12 @@ export function makeDrawEdge(
                 ////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                             g.shadowBlur = 0;
                         };
@@ -676,7 +676,7 @@ export function makeDrawEdge(
                         let ctl = pts[3];
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawQuadraticEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl);
                             g.shadowBlur = 0;
                         };
@@ -684,7 +684,7 @@ export function makeDrawEdge(
                     default:
                         return () => {
                             g.shadowBlur = 20 * canvas.scale;
-                            g.shadowColor = CONST.SELECTION_COLOR;
+                            g.shadowColor = DEFAULT.SELECTION_COLOR;
                             canvas.drawStraightEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst);
                             g.shadowBlur = 0;
                         };
@@ -698,9 +698,9 @@ export function makeDrawEdge(
                 //////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             canvas.drawCubicEdgeBothArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                         };
@@ -723,9 +723,9 @@ export function makeDrawEdge(
                 ///////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl1, src);
                         };
@@ -748,9 +748,9 @@ export function makeDrawEdge(
                 ////////////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             canvas.drawCubicEdgeOneArrow(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2, ctl2, dst);
                         };
@@ -773,9 +773,9 @@ export function makeDrawEdge(
                 ////////////////////////////////////
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        let ctl1 = pts[3];
-                        let ctl2 = pts[4];
+                    case 7:
+                        let ctl1 = pts[5];
+                        let ctl2 = pts[6];
                         return () => {
                             canvas.drawCubicEdgeNoArrows(e.color, e.lineWidth, e.lineStyle, src, dst, ctl1, ctl2);
                         };
@@ -821,21 +821,21 @@ export function makeDrawSelectedEdge(
         if (isHovered) {
             if (e.showSourceArrow && e.showDestinationArrow) {
                 return () => {
-                    g.fillStyle = CONST.SELECTION_COLOR;
+                    g.fillStyle = DEFAULT.SELECTION_COLOR;
                     g.shadowBlur = 20 * canvas.scale;
-                    g.shadowColor = CONST.SELECTION_COLOR;
+                    g.shadowColor = DEFAULT.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
-                        case 5:
-                            canvas.drawCubicEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4]);
+                        case 7:
+                            canvas.drawCubicEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6]);
                             break;
                         // Quadratic
                         case 4:
-                            canvas.drawQuadraticEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
+                            canvas.drawQuadraticEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
                             break;
                         // Straight
                         default:
-                            canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
+                            canvas.drawStraightEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                             break;
                     }
                     g.lineWidth = e.lineWidth;
@@ -844,21 +844,21 @@ export function makeDrawSelectedEdge(
             }
             else if (e.showSourceArrow && !e.showDestinationArrow) {
                 return () => {
-                    g.fillStyle = CONST.SELECTION_COLOR;
+                    g.fillStyle = DEFAULT.SELECTION_COLOR;
                     g.shadowBlur = 20 * canvas.scale;
-                    g.shadowColor = CONST.SELECTION_COLOR;
+                    g.shadowColor = DEFAULT.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
-                        case 5:
-                            canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4], pts[3], src);
+                        case 7:
+                            canvas.drawCubicEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6], pts[5], src);
                             break;
                         // Quadratic
                         case 4:
-                            canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], src);
+                            canvas.drawQuadraticEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], src);
                             break;
                         // Straight
                         default:
-                            canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, dst, src);
+                            canvas.drawStraightEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, dst, src);
                             break;
                     }
                     g.lineWidth = e.lineWidth;
@@ -867,21 +867,21 @@ export function makeDrawSelectedEdge(
             }
             else if (!e.showSourceArrow && e.showDestinationArrow) {
                 return () => {
-                    g.fillStyle = CONST.SELECTION_COLOR;
+                    g.fillStyle = DEFAULT.SELECTION_COLOR;
                     g.shadowBlur = 20 * canvas.scale;
-                    g.shadowColor = CONST.SELECTION_COLOR;
+                    g.shadowColor = DEFAULT.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
-                        case 5:
-                            canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4], pts[4], dst);
+                        case 7:
+                            canvas.drawCubicEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6], pts[6], dst);
                             break;
                         // Quadratic
                         case 4:
-                            canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], dst);
+                            canvas.drawQuadraticEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], dst);
                             break;
                         // Straight
                         default:
-                            canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, src, dst);
+                            canvas.drawStraightEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, src, dst);
                             break;
                     }
                     g.lineWidth = e.lineWidth;
@@ -890,21 +890,21 @@ export function makeDrawSelectedEdge(
             }
             else {
                 return () => {
-                    g.fillStyle = CONST.SELECTION_COLOR;
+                    g.fillStyle = DEFAULT.SELECTION_COLOR;
                     g.shadowBlur = 20 * canvas.scale;
-                    g.shadowColor = CONST.SELECTION_COLOR;
+                    g.shadowColor = DEFAULT.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
-                        case 5:
-                            canvas.drawCubicEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4]);
+                        case 7:
+                            canvas.drawCubicEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6]);
                             break;
                         // Quadratic
                         case 4:
-                            canvas.drawQuadraticEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
+                            canvas.drawQuadraticEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
                             break;
                         // Straight
                         default:
-                            canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
+                            canvas.drawStraightEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                             break;
                     }
                     g.lineWidth = e.lineWidth;
@@ -918,19 +918,19 @@ export function makeDrawSelectedEdge(
         else {
             if (e.showSourceArrow && e.showDestinationArrow) {
                 return () => {
-                    g.fillStyle = CONST.SELECTION_COLOR;
+                    g.fillStyle = DEFAULT.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
-                        case 5:
-                            canvas.drawCubicEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4]);
+                        case 7:
+                            canvas.drawCubicEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6]);
                             break;
                         // Quadratic
                         case 4:
-                            canvas.drawQuadraticEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
+                            canvas.drawQuadraticEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
                             break;
                         // Straight
                         default:
-                            canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
+                            canvas.drawStraightEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                             break;
                     }
                     g.lineWidth = e.lineWidth;
@@ -939,19 +939,19 @@ export function makeDrawSelectedEdge(
             }
             else if (e.showSourceArrow && !e.showDestinationArrow) {
                 return () => {
-                    g.fillStyle = CONST.SELECTION_COLOR;
+                    g.fillStyle = DEFAULT.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
-                        case 5:
-                            canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4], pts[3], src);
+                        case 7:
+                            canvas.drawCubicEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6], pts[5], src);
                             break;
                         // Quadratic
                         case 4:
-                            canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], src);
+                            canvas.drawQuadraticEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], src);
                             break;
                         // Straight
                         default:
-                            canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, dst, src);
+                            canvas.drawStraightEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, dst, src);
                             break;
                     }
                     g.lineWidth = e.lineWidth;
@@ -960,19 +960,19 @@ export function makeDrawSelectedEdge(
             }
             else if (!e.showSourceArrow && e.showDestinationArrow) {
                 return () => {
-                    g.fillStyle = CONST.SELECTION_COLOR;
+                    g.fillStyle = DEFAULT.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
-                        case 5:
-                            canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4], pts[4], dst);
+                        case 7:
+                            canvas.drawCubicEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6], pts[6], dst);
                             break;
                         // Quadratic
                         case 4:
-                            canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], dst);
+                            canvas.drawQuadraticEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], dst);
                             break;
                         // Straight
                         default:
-                            canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, src, dst);
+                            canvas.drawStraightEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, src, dst);
                             break;
                     }
                     g.lineWidth = e.lineWidth;
@@ -981,19 +981,19 @@ export function makeDrawSelectedEdge(
             }
             else {
                 return () => {
-                    g.fillStyle = CONST.SELECTION_COLOR;
+                    g.fillStyle = DEFAULT.SELECTION_COLOR;
                     switch (pts.length) {
                         // Bezier
-                        case 5:
-                            canvas.drawCubicEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4]);
+                        case 7:
+                            canvas.drawCubicEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6]);
                             break;
                         // Quadratic
                         case 4:
-                            canvas.drawQuadraticEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
+                            canvas.drawQuadraticEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
                             break;
                         // Straight
                         default:
-                            canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
+                            canvas.drawStraightEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                             break;
                     }
                     g.lineWidth = e.lineWidth;
@@ -1009,19 +1009,19 @@ export function makeDrawSelectedEdge(
         if (e.showSourceArrow && e.showDestinationArrow) {
             return () => {
                 g.shadowBlur = 20 * canvas.scale;
-                g.shadowColor = CONST.SELECTION_COLOR;
+                g.shadowColor = DEFAULT.SELECTION_COLOR;
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        canvas.drawCubicEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4]);
+                    case 7:
+                        canvas.drawCubicEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6]);
                         break;
                     // Quadratic
                     case 4:
-                        canvas.drawQuadraticEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
+                        canvas.drawQuadraticEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
                         break;
                     // Straight
                     default:
-                        canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
+                        canvas.drawStraightEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                         break;
                 }
                 g.shadowBlur = 0;
@@ -1030,19 +1030,19 @@ export function makeDrawSelectedEdge(
         else if (e.showSourceArrow && !e.showDestinationArrow) {
             return () => {
                 g.shadowBlur = 20 * canvas.scale;
-                g.shadowColor = CONST.SELECTION_COLOR;
+                g.shadowColor = DEFAULT.SELECTION_COLOR;
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4], pts[3], src);
+                    case 7:
+                        canvas.drawCubicEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6], pts[5], src);
                         break;
                     // Quadratic
                     case 4:
-                        canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], src);
+                        canvas.drawQuadraticEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], src);
                         break;
                     // Straight
                     default:
-                        canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, dst, src);
+                        canvas.drawStraightEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, dst, src);
                         break;
                 }
                 g.shadowBlur = 0;
@@ -1051,19 +1051,19 @@ export function makeDrawSelectedEdge(
         else if (!e.showSourceArrow && e.showDestinationArrow) {
             return () => {
                 g.shadowBlur = 20 * canvas.scale;
-                g.shadowColor = CONST.SELECTION_COLOR;
+                g.shadowColor = DEFAULT.SELECTION_COLOR;
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4], pts[4], dst);
+                    case 7:
+                        canvas.drawCubicEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6], pts[6], dst);
                         break;
                     // Quadratic
                     case 4:
-                        canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], dst);
+                        canvas.drawQuadraticEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], dst);
                         break;
                     // Straight
                     default:
-                        canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, src, dst);
+                        canvas.drawStraightEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, src, dst);
                         break;
                 }
                 g.shadowBlur = 0;
@@ -1072,19 +1072,19 @@ export function makeDrawSelectedEdge(
         else {
             return () => {
                 g.shadowBlur = 20 * canvas.scale;
-                g.shadowColor = CONST.SELECTION_COLOR;
+                g.shadowColor = DEFAULT.SELECTION_COLOR;
                 switch (pts.length) {
                     // Bezier
-                    case 5:
-                        canvas.drawCubicEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4]);
+                    case 7:
+                        canvas.drawCubicEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6]);
                         break;
                     // Quadratic
                     case 4:
-                        canvas.drawQuadraticEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
+                        canvas.drawQuadraticEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
                         break;
                     // Straight
                     default:
-                        canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
+                        canvas.drawStraightEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                         break;
                 }
                 g.shadowBlur = 0;
@@ -1098,16 +1098,16 @@ export function makeDrawSelectedEdge(
         return () => {
             switch (pts.length) {
                 // Bezier
-                case 5:
-                    canvas.drawCubicEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4]);
+                case 7:
+                    canvas.drawCubicEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6]);
                     break;
                 // Quadratic
                 case 4:
-                    canvas.drawQuadraticEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
+                    canvas.drawQuadraticEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
                     break;
                 // Straight
                 default:
-                    canvas.drawStraightEdgeBothArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
+                    canvas.drawStraightEdgeBothArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                     break;
             }
         };
@@ -1116,16 +1116,16 @@ export function makeDrawSelectedEdge(
         return () => {
             switch (pts.length) {
                 // Bezier
-                case 5:
-                    canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4], pts[3], src);
+                case 7:
+                    canvas.drawCubicEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6], pts[5], src);
                     break;
                 // Quadratic
                 case 4:
-                    canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], src);
+                    canvas.drawQuadraticEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], src);
                     break;
                 // Straight
                 default:
-                    canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, dst, src);
+                    canvas.drawStraightEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, dst, src);
                     break;
             }
         };
@@ -1134,16 +1134,16 @@ export function makeDrawSelectedEdge(
         return () => {
             switch (pts.length) {
                 // Bezier
-                case 5:
-                    canvas.drawCubicEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4], pts[4], dst);
+                case 7:
+                    canvas.drawCubicEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6], pts[6], dst);
                     break;
                 // Quadratic
                 case 4:
-                    canvas.drawQuadraticEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], dst);
+                    canvas.drawQuadraticEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], dst);
                     break;
                 // Straight
                 default:
-                    canvas.drawStraightEdgeOneArrow(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, src, dst);
+                    canvas.drawStraightEdgeOneArrow(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, src, dst);
                     break;
             }
         };
@@ -1152,16 +1152,16 @@ export function makeDrawSelectedEdge(
         return () => {
             switch (pts.length) {
                 // Bezier
-                case 5:
-                    canvas.drawCubicEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3], pts[4]);
+                case 7:
+                    canvas.drawCubicEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[5], pts[6]);
                     break;
                 // Quadratic
                 case 4:
-                    canvas.drawQuadraticEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
+                    canvas.drawQuadraticEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst, pts[3]);
                     break;
                 // Straight
                 default:
-                    canvas.drawStraightEdgeNoArrows(CONST.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
+                    canvas.drawStraightEdgeNoArrows(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", src, dst);
                     break;
             }
         };
