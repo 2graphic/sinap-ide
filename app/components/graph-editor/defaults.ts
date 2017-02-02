@@ -1,12 +1,12 @@
-// File: constants.ts
+// File: defaults.ts
 // Created by: CJ Dimaano
 // Date created: January 9, 2016
 //
 // THIS FILE IS INTENDED TO BE IMPORTED ONLY INTO graph-editor.component.ts
 //
 // Note:
-// Many of these values should probably be defined in some user/workspace
-// preferences file.
+// These values should probably be defined in some user/workspace preferences
+// file.
 //
 
 
@@ -24,12 +24,6 @@ export const FONT_FAMILY: string = "monospace";
  *   Default font size.
  */
 export const FONT_SIZE: number = 10;
-
-/**
- * AA_SCALE  
- *   Anti-aliasing scale.
- */
-export const AA_SCALE: number = 2;
 
 /**
  * GRID_SPACING  
@@ -78,6 +72,18 @@ export const GRID_MINOR_STYLE: string = "dotted";
  *   Linewidth of minor grid tickmarks.
  */
 export const GRID_MINOR_WIDTH: number = 0.5;
+
+/**
+ * SCALE_MIN  
+ *   The minimum scale value.
+ */
+export const SCALE_MIN: number = 0.125;
+
+/**
+ * SCALE_MAX  
+ *   The maximum scale value.
+ */
+export const SCALE_MAX: number = 8;
 
 /**
  * NUDGE  

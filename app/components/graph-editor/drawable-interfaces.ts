@@ -6,7 +6,7 @@
 //
 
 
-import { EDGE_DEFAULTS, NODE_DEFAULTS } from "./constants";
+import { EDGE_DEFAULTS, NODE_DEFAULTS } from "./defaults";
 import * as MathEx from "./math";
 
 
@@ -96,7 +96,7 @@ export interface DrawableGraph {
      *   Checks if a drawable edge can be created with the given source and
      *   destination nodes.
      * 
-     *   If `like` is specified, a drawable edge with a matching type of `like` is
+     *   If `like` is specified, a drawable edge with a matching type of `like`
      *   is checked against the given source and destination nodes.
      * 
      *   This method must be called before calling `createEdge`.
@@ -111,8 +111,8 @@ export interface DrawableGraph {
      * createEdge  
      *   Creates a drawable edge with a source and destination node.
      * 
-     *   If `like` is specified, a drawable edge with a matching type of `like` is
-     *   created.
+     *   If `like` is specified, a drawable edge with a matching type of `like`
+     *   is created.
      * 
      *   The `canCreateEdge` method must be called to check if creating the edge
      *   is valid.
@@ -184,9 +184,6 @@ export interface DrawableEdge {
      *   The text label to be displayed by the edge.
      */
     label: string;
-
-    // TODO:
-    // more display properties.
 }
 
 /**
@@ -237,9 +234,6 @@ export interface DrawableNode {
      *   non-negative.
      */
     borderWidth: number;
-
-    // TODO:
-    // more display properties
 }
 
 
@@ -275,9 +269,7 @@ export class DefaultEdge implements DrawableEdge {
     lineWidth: number = EDGE_DEFAULTS.lineWidth;
     label = EDGE_DEFAULTS.label;
 
-    constructor(
-        sourceNode: DrawableNode | null = EDGE_DEFAULTS.source
-    ) {
+    constructor(sourceNode: DrawableNode | null = EDGE_DEFAULTS.source) {
         this.source = sourceNode;
     }
 }
@@ -309,67 +301,38 @@ export function isDrawableNode(obj: any): obj is DrawableNode {
 function isItThat(it: any, that: any): boolean {
     if (!it)
         return false;
-    for (let p in that) {
-        if (!(
-            (p in it) &&
-            (typeof that[p] === typeof it[p])
-        ))
+    for (const p in that) {
+        if (!((p in it) && (typeof that[p] === typeof it[p])))
             return false;
     }
     return true;
 }
 
 /**
- * isEdgeOverlapped  
- *   Checks if two edges are overlapping.  
- *   It is assumed that the edge being checked does not have the same source
- *   and destination nodes.
+ * getOverlappedEdges  
+ *   Gets the set of overlapped edges between two nodes. Both nodes are assumed
+ *   to be distinct.
  */
-export function isEdgeOverlapped(
-    e: DrawableEdge,
-    nodeEdges: Map<DrawableNode,
-        Set<DrawableEdge>>
-): boolean {
-    let edges = new Set<DrawableEdge>([
-        ...(nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>),
-        ...(nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)
-    ]);
-    for (const edge of edges) {
-        if (
-            e !== edge &&
-            e.source === edge.destination &&
-            e.destination === edge.source
-        )
-            return true;
-    }
-    return false;
+export function getOpposingEdges(src: DrawableNode, dst: DrawableNode, nodeEdges: Map<DrawableNode, Set<DrawableEdge>>): Set<DrawableEdge> {
+    return intersectNodeEdges(src, dst, nodeEdges, v => src === v.destination && dst === v.source);
 }
 
 /**
- * getOverlappedEdges  
- *   Gets the set of edges that overlap with a given edge.  
- *   It is assumed that the edge being checked does not have the same source
- *   and destination nodes.
+ * getAdjacentEdges  
+ *   Gets adjacent edges.
  */
-export function getOverlappedEdges(e: DrawableEdge, nodeEdges: Map<DrawableNode, Set<DrawableEdge>>): Set<DrawableEdge> {
-    let overlapped = new Set<DrawableEdge>();
-    for (const edge of (nodeEdges.get(e.source as DrawableNode) as Set<DrawableEdge>)) {
-        if (
-            e !== edge &&
-            e.source === edge.destination &&
-            e.destination === edge.source
-        )
-            overlapped.add(edge);
-    }
-    for (const edge of (nodeEdges.get(e.destination as DrawableNode) as Set<DrawableEdge>)) {
-        if (
-            e !== edge &&
-            e.source === edge.destination &&
-            e.destination === edge.source
-        )
-            overlapped.add(edge);
-    }
-    return overlapped;
+export function getAdjacentEdges(src: DrawableNode, dst: DrawableNode, nodeEdges: Map<DrawableNode, Set<DrawableEdge>>): Set<DrawableEdge> {
+    return intersectNodeEdges(src, dst, nodeEdges, v => src === v.source && dst === v.destination);
+}
+
+/**
+ * intersectNodeEdges  
+ *   Gets the intersection of two edge sets based on a given filter.
+ */
+function intersectNodeEdges(src: DrawableNode, dst: DrawableNode, nodeEdges: Map<DrawableNode, Set<DrawableEdge>>, filter: (v: DrawableEdge) => boolean): Set<DrawableEdge> {
+    let srcEdges = nodeEdges.get(src) as Set<DrawableEdge>;
+    let dstEdges = nodeEdges.get(dst) as Set<DrawableEdge>;
+    return new Set<DrawableEdge>([...srcEdges, ...dstEdges].filter(filter));
 }
 
 /**
