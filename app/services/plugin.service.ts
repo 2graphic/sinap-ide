@@ -1,14 +1,14 @@
 import { Injectable, Inject } from '@angular/core';
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 
-import * as Type from "../types/types";
+import { Type, MetaType } from "sinap-core";
 import * as Core from '../models/core'
 import { Program, InterpreterError, Graph, ProgramInput, ProgramOutput } from "../models/plugin"
 import { Context, SandboxService, Script } from "../services/sandbox.service"
 import { FileService } from "../services/files.service"
 
 class ConcretePropertyList implements PropertyList {
-    constructor(public properties: [string, Type.Type][], private backerObject: any) {
+    constructor(public properties: [string, MetaType][], private backerObject: any) {
 
     }
     get(property: string) {
@@ -23,7 +23,7 @@ class ConcretePropertyList implements PropertyList {
 class PluginPropertyData implements Core.PluginData {
     backer: any = {};
     propertyList: PropertyList;
-    constructor(public type: string, types: [string, Type.Type][]) {
+    constructor(public type: string, types: [string, MetaType][]) {
         this.propertyList = new ConcretePropertyList(types, this.backer);
     }
 }
@@ -77,7 +77,7 @@ class MLPlugin implements Core.Plugin {
         return new PluginPropertyData(type, this.nodePluginDataHelper(type));
     }
 
-    private nodePluginDataHelper(type: string): [string, Type.Type][] {
+    private nodePluginDataHelper(type: string): [string, MetaType][] {
         switch (type) {
             case "Input":
                 return [["shape", Type.String]];
@@ -101,7 +101,7 @@ class MLPlugin implements Core.Plugin {
         return new PluginPropertyData("Edge", []);
     };
 
-    // getNodeComputedProperties(): Array<[string, Type.Type, (entity: PropertiedEntity) => void]> {
+    // getNodeComputedProperties(): Array<[string, MetaType, (entity: PropertiedEntity) => void]> {
     //     return [["Label", Type.String,
     //         (th: PropertiedEntity) => {
     //             let contentString = "";

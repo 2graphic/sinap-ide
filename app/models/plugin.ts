@@ -1,5 +1,5 @@
-import * as Core from '../models/core'
-import * as Type from '../types/types'
+import * as Core from '../models/core';
+import { Type, MetaType } from 'sinap-core';
 
 /**
  * Indicates an error during compilation of a graph. This is a class instead of an interface so that it can be discovered through instanceof.
@@ -34,7 +34,7 @@ export interface RunningProgram {
     /**
      * Gets the result of the computation after the program completes. Behavior is undefined if called when isComplete is false.
      */
-    result: [any, Type.Type] | null;
+    result: [any, MetaType] | null;
     /**
      * Performs one unit of work in the forward direction. Advanced debugging support should be provided elsewhere (such as step over or continue).
      */
@@ -46,7 +46,7 @@ export interface RunningProgram {
     /**
      * Retrieves the value of a property enumerated in debugProperties.
      */
-    getDebugValue(property: string): [any, Type.Type];
+    getDebugValue(property: string): [any, MetaType];
 }
 
 /**
