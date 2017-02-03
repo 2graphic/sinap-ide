@@ -1,140 +1,110 @@
 import { Injectable, Inject } from '@angular/core';
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 
-import * as Type from "../types/types";
-import * as Core from '../models/core'
-import { Program, InterpreterError, Graph, ProgramInput, ProgramOutput } from "../models/plugin"
-import { Context, SandboxService, Script } from "../services/sandbox.service"
-import { FileService } from "../services/files.service"
+import { Type, MetaType, ClassMetaType, parseScope } from "sinap-core";
+import * as Core from '../models/core';
+import { Object as SinapObject } from "../models/object";
+import { Program, InterpreterError, Graph, ProgramInput, ProgramOutput } from "../models/plugin";
+import { Context, SandboxService, Script } from "../services/sandbox.service";
+import { FileService } from "../services/files.service";
+import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
-class ConcretePropertyList implements PropertyList {
-    constructor(public properties: [string, Type.Type][], private backerObject: any) {
+// TODO:
+// this file has a bunch of calls to 
+// `instanceof` that could probably be encoded in the 
+// type system
 
-    }
-    get(property: string) {
-        return this.backerObject[property];
-    }
-    set(property: string, value: any) {
-        this.backerObject[property] = value;
+
+export class PluginPropertyData implements Core.PluginData {
+    backer: any = {};
+    object: SinapObject;
+    constructor(public kind: string, t: ClassMetaType) {
+        this.object = new SinapObject(t, this.backer);
     }
 }
 
+type Definitions = {
+    all: Map<string, MetaType>,
+    nodes: Map<string, ClassMetaType>,
+    edges: Map<string, ClassMetaType>,
+    graphs: Map<string, ClassMetaType>,
+};
 
-class PluginPropertyData implements Core.PluginData {
-    backer: any = {};
-    propertyList: PropertyList;
-    constructor(public type: string, types: [string, Type.Type][]) {
-        this.propertyList = new ConcretePropertyList(types, this.backer);
+class Validator {
+    plugin: ConcretePlugin;
+    nodes = new Map<string, ClassMetaType>();
+    edges = new Map<string, [ClassMetaType, ClassMetaType]>();
+
+    constructor(definitions: Definitions) {
+        this.nodes = definitions.nodes;
+
+        for (const [edgeType, values] of definitions.edges.entries()) {
+            const [st, dt] = [values.typeOf("source"), values.typeOf("destination")];
+            if (!((st instanceof ClassMetaType) && (dt instanceof ClassMetaType))) {
+                throw "Validator.constructor: inconsistancy error";
+            }
+            this.edges.set(edgeType, [st, dt]);
+        }
+    }
+
+    isValidEdge(t: string, src: string, dst: string): boolean {
+        const edgets = this.edges.get(t);
+        const srct = this.nodes.get(src);
+        const dstt = this.nodes.get(dst);
+        if (!edgets || !srct || !dstt) {
+            throw "validator state error";
+        }
+        const [srce, dste] = edgets;
+        return srct.subtype(srce) && dstt.subtype(dste);
     }
 }
 
 class ConcretePlugin implements Core.Plugin {
-    kind = "dfa.sinap.graph-kind";
-    script: Promise<Script>;
+    kind = MagicConstants.DFA_PLUGIN_KIND;
 
-    validator = {
-        isValidEdge(t: string, src: string, dst: string) {
-            return true;
+    get nodeTypes() {
+        return this.definitions.nodes.keys();
+    }
+    get edgeTypes() {
+        return this.definitions.nodes.keys();
+    }
+
+    validator: Validator;
+
+    constructor(private definitions: Definitions, public script: Script) {
+        this.validator = new Validator(definitions);
+    }
+
+    graphPluginData(kind: string) {
+        const type = this.definitions.graphs.get(kind);
+        if (!type) {
+            throw "type not found";
         }
+        return new PluginPropertyData(kind, type);
     }
-
-    nodeTypes = ["DFA Node"];
-    edgeTypes = ["DFA Edge"];
-
-    graphPluginData() {
-        return new PluginPropertyData("Graph", []);
+    nodePluginData(kind: string) {
+        const type = this.definitions.nodes.get(kind);
+        if (!type) {
+            throw "type not found";
+        }
+        return new PluginPropertyData(kind, type);
     }
-    nodePluginData(type: string) {
-        return new PluginPropertyData(type, [
-            ["Start State", Type.Boolean],
-            ["Accept State", Type.Boolean],
-        ]);
-    }
-    edgePluginData(type: string) {
-        return new PluginPropertyData(type, []);
+    edgePluginData(kind: string) {
+        const type = this.definitions.edges.get(kind);
+        if (!type) {
+            throw "type not found";
+        }
+        return new PluginPropertyData(kind, type);
     };
-}
-
-
-
-
-class MLPlugin implements Core.Plugin {
-    kind = "machine-learning.sinap.graph-kind";
-    nodeTypes = ["Input", "Fully Connected", "Conv2D", "Max Pooling", "Reshape", "Output"];
-    edgeTypes = ["Connection"];
-
-    validator = {
-        isValidEdge(t: string, src: string, dst: string) {
-            return true;
-        }
-    }
-
-    graphPluginData() {
-        return new PluginPropertyData("Graph", []);
-    }
-
-    nodePluginData(type: string) {
-        return new PluginPropertyData(type, this.nodePluginDataHelper(type));
-    }
-
-    private nodePluginDataHelper(type: string): [string, Type.Type][] {
-        switch (type) {
-            case "Input":
-                return [["shape", Type.String]];
-            case "Fully Connected":
-                return [];
-            case "Conv2D":
-                return [["stride", Type.Point],
-                ["output depth", Type.Number]];
-            case "Max Pooling":
-                return [["size", Type.Point]];
-            case "Reshape":
-                return [["shape", Type.String]];
-            case "Output":
-                return [];
-            default:
-                return [["beta", Type.Boolean]];
-        }
-    }
-
-    edgePluginData(type: string) {
-        return new PluginPropertyData("Edge", []);
-    };
-
-    // getNodeComputedProperties(): Array<[string, Type.Type, (entity: PropertiedEntity) => void]> {
-    //     return [["Label", Type.String,
-    //         (th: PropertiedEntity) => {
-    //             let contentString = "";
-    //             switch (th.entityName) {
-    //                 case "Input":
-    //                     contentString = "Shape: " + th.pluginProperties.get("shape");
-    //                     break;
-    //                 case "Output":
-    //                 case "Fully Connected":
-    //                     break;
-    //                 case "Conv2D":
-    //                     contentString = "Stride: (" + th.pluginProperties.get("stride").x + ", " + th.pluginProperties.get("stride").y + ")\nOutput Depth: " + th.pluginProperties.get("output depth");
-    //                     break;
-    //                 case "Max Pooling":
-    //                     contentString = "Size: (" + th.pluginProperties.get("size").x + ", " + th.pluginProperties.get("size").y + ")";
-    //                     break;
-    //                 case "Reshape":
-    //                     contentString = "Shape: " + th.pluginProperties.get("shape");
-    //                     break;
-    //                 default:
-    //                     break;
-    //             }
-
-    //             return (th as any)["Label"] = th.entityName + "\n" + contentString;
-    //         }]];
-    // }
 }
 
 @Injectable()
 export class PluginService {
+    private plugins = new Map<string, Promise<ConcretePlugin>>();
     private interpretCode: Script;
     private runInputCode: Script;
-    private plugins: Map<string, ConcretePlugin> = new Map<string, ConcretePlugin>();
+    // TODO: load from somewhere
+    private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, { definitions: "./dfa-definition.sinapdef", interpreter: "./build/plugins/dfa-interpreter.js" }]])
 
     constructor( @Inject(FileService) private fileService: FileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
@@ -145,52 +115,86 @@ export class PluginService {
     }
 
     public getInterpreter(graph: Core.Graph): Promise<Program> {
-        // TODO: consider: this could really just be a cast and 
-        // graph.plugin.context
-        let context: Promise<Context> = this.getPlugin(graph.plugin.kind).script.then((script) => this.getContext(script));
-        return context.then((context: Context): Promise<Program> => {
-            context.sinap.__graph = new Graph(graph);
-            return this.interpretCode
-                .runInContext(context)
-                .then((program) => {
-                    return {
-                        run: (input: ProgramInput): Promise<ProgramOutput> => {
-                            context.sinap.__input = input;
-                            // Cast is necessary. 
-                            // I prefer forcing it to be explicit (and thus not any)
-                            return this.runInputCode.runInContext(context) as Promise<ProgramOutput>;
-                        },
-                        compilationMessages: [""]
-                    };
-                });
-        });
+        if (!(graph.plugin instanceof ConcretePlugin)) {
+            throw "Error: only get interpreters for graphs created with PluginService";
+        }
+
+        let context = this.addToContext(this.getContext(graph.plugin.script), "__graph", new Graph(graph));
+
+        return this.interpretCode
+            .runInContext(context)
+            .then<Program>((program) => {
+                return {
+                    run: (input: ProgramInput): Promise<ProgramOutput> =>
+                        this.runInputCode
+                            .runInContext(this.addToContext(context, "__input", input)),
+                    compilationMessages: [""]
+                };
+            });
     }
 
-    public getPlugin(kind: string): ConcretePlugin {
-        // TODO: Figure out how to cache this without bad performance.
-        const result = this.plugins.get(kind);
-        if (result) {
-            return result;
-        } else {
-            const newPlugin = this.makePlugin(kind);
-            this.plugins.set(kind, newPlugin);
-            return newPlugin;
+    public getPlugin(kind: string): Promise<ConcretePlugin> {
+        const loadedPlugin = this.plugins.get(kind);
+        if (loadedPlugin) {
+            return loadedPlugin;
         }
+        const plugin = this.makePlugin(kind);
+        this.plugins.set(kind, plugin);
+        return plugin;
     }
 
-    private makePlugin(kind: string): ConcretePlugin {
-        switch (kind) {
-            case "dfa.sinap.graph-kind":
-                const plugin = new ConcretePlugin();
-                plugin.script = this.fileService.readFile("./build/plugins/dfa-interpreter.js")// TODO: Put real file in here.
-                    .then((code: string) => this.sandboxService.compileScript(code));
-                return plugin;
-            case "machine-learning.sinap.graph-kind":
-                throw "ML NOT IMPLEMENTED YET";
-            // break;
-            default:
-                throw "Unsupported Filetype";
+    public makePlugin(kind: string): Promise<ConcretePlugin> {
+        const val = this.pluginKinds.get(kind);
+
+        if (!val) {
+            throw "Unsupported Filetype";
         }
+
+        const {definitions, interpreter} = val;
+
+        let defintions = this.fileService.readFile(definitions)
+            .then((s) => {
+                return this.loadPluginTypeDefinitions(s);
+            });
+        let script = this.fileService.readFile(interpreter)
+            .then((code) => this.sandboxService.compileScript(code));
+        return Promise.all([defintions, script])
+            .then(([def, scr]) => new ConcretePlugin(def, scr));
+    }
+
+    public loadPluginTypeDefinitions(src: string): Definitions {
+        const scope = parseScope(src);
+        scope.validate();
+
+        const nodes: [string, ClassMetaType][] = [];
+        const edges: [string, ClassMetaType][] = [];
+        const graphs: [string, ClassMetaType][] = [];
+
+        for (const [name, value] of scope.definitions.entries()) {
+            if (value.subtype(Type.Node)) {
+                nodes.push([name, value as ClassMetaType]);
+            }
+            if (value.subtype(Type.Edge)) {
+                edges.push([name, value as ClassMetaType]);
+            }
+            if (value.subtype(Type.Graph)) {
+                graphs.push([name, value as ClassMetaType]);
+            }
+        }
+
+        if (nodes.length < 1) {
+            nodes.push(["Default", Type.Node]);
+        }
+
+        if (edges.length < 1) {
+            edges.push(["Default", Type.Edge]);
+        }
+
+        if (graphs.length < 1) {
+            graphs.push(["Default", Type.Graph]);
+        }
+
+        return { all: scope.definitions, nodes: new Map(nodes), edges: new Map(edges), graphs: new Map(graphs) };
     }
 
     private getContext(script: Script): Promise<Context> {
@@ -204,8 +208,13 @@ export class PluginService {
             interpret: null
         });
 
-        return new Promise<Context>((resolve, reject) => {
-            return script.runInContext(context).then((_) => resolve(context));
-        });
+        return script.runInContext(context).then((_) => context);
+    }
+
+    private addToContext(ctx: Promise<Context>, key: string, value: any) {
+        return ctx.then((context) => {
+            context.sinap[key] = value;
+            return context;
+        })
     }
 }
