@@ -63,3 +63,7 @@
   font-size: larger;
   font-weight: bold;
 }
+
+[hidden] {
+  display: none !important;
+}
