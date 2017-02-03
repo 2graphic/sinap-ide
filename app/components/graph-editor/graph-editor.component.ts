@@ -1027,6 +1027,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private updateNodeDimensions(n: DrawableNode): void {
         this.nodeDimensions.set(n, this.canvas.getNodeDimensions(n));
+        this.updateDrawable(n);
     }
 
     /**
@@ -1099,7 +1100,7 @@ export class GraphEditorComponent implements AfterViewInit {
         // Update the hover object if the edge can be created at the
         // node being hovered.
         let hit = this.hitPtTestNodes(ePt);
-        if (hit && hit.pt !== hit.d.position) {
+        if (hit) {
             let src = (e.source ? e.source : hit.d);
             let dst = (e.destination ? e.destination : hit.d);
             let like = (this.moveEdge ? this.moveEdge : undefined);
@@ -1183,11 +1184,11 @@ export class GraphEditorComponent implements AfterViewInit {
         let dim = this.nodeDimensions.get(n);
         switch (n.shape) {
             case "circle":
-                let r = dim.r + DEFAULT.GRID_SPACING / 4;
+                let r = dim.out;
                 let v = { x: pt.x - n.position.x, y: pt.y - n.position.y };
                 let d = MathEx.mag(v);
                 if (d <= r) {
-                    r -= DEFAULT.GRID_SPACING / 4;
+                    r = dim.in;
                     let anchor: pt = n.position;
                     if (d >= r) {
                         let shift = this.canvas.getEdgePtShift(
@@ -1207,7 +1208,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 }
 
             case "square":
-                let hs = dim.s / 2 + DEFAULT.GRID_SPACING / 4;
+                let hs = dim.out / 2;
                 let rect = this.canvas.makeRect(
                     { x: n.position.x - hs, y: n.position.y - hs },
                     { x: n.position.x + hs, y: n.position.y + hs }
@@ -1216,12 +1217,13 @@ export class GraphEditorComponent implements AfterViewInit {
                     (pt.y >= rect.y && pt.y <= rect.y + rect.w)) {
                     let v = { x: pt.x - n.position.x, y: pt.y - n.position.y };
                     let d = MathEx.mag(v);
-                    rect.x += DEFAULT.GRID_SPACING / 4;
-                    rect.y += DEFAULT.GRID_SPACING / 4;
-                    rect.h -= DEFAULT.GRID_SPACING / 4;
-                    rect.w -= DEFAULT.GRID_SPACING / 4;
+                    hs = dim.in / 2;
+                    rect = this.canvas.makeRect(
+                        { x: n.position.x - hs, y: n.position.y - hs },
+                        { x: n.position.x + hs, y: n.position.y + hs }
+                    );
                     let anchor: pt = n.position;
-                    if ((pt.x <= rect.x || pt.x >= rect.x + rect.w) &&
+                    if ((pt.x <= rect.x || pt.x >= rect.x + rect.w) ||
                         (pt.y <= rect.y || pt.y >= rect.y + rect.w)) {
                         let shift = this.canvas.getEdgePtShift(
                             { x: v.x / d, y: v.y / d },

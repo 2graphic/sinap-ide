@@ -4,7 +4,7 @@
 
 
 import { Component, SimpleChanges, Output, EventEmitter } from "@angular/core";
-import * as Type from "../../types/types";
+import { Type, MetaType } from "sinap-core";
 
 @Component({
     selector: "sinap-properties-panel",
@@ -15,7 +15,7 @@ export class PropertiesPanelComponent {
     public selectedEntity: PropertiedEntity | null = null;
     public console = console;
 
-    Type = Type
+    Type = Type;
 
     @Output() propertyChanged = new EventEmitter();
 
@@ -78,7 +78,7 @@ export class PropertiesPanelComponent {
 }
 
 export interface PropertyList {
-    readonly properties: [string, Type.Type][];
+    readonly properties: [string, MetaType][];
     get(property: string): any;
     set(property: string, value: any): void;
 }

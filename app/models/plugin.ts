@@ -1,5 +1,5 @@
-import * as Core from '../models/core'
-import * as Type from '../types/types'
+import * as Core from '../models/core';
+import { Type, MetaType } from 'sinap-core';
 
 /**
  * Indicates an error during compilation of a graph. This is a class instead of an interface so that it can be discovered through instanceof.
@@ -34,7 +34,7 @@ export interface RunningProgram {
     /**
      * Gets the result of the computation after the program completes. Behavior is undefined if called when isComplete is false.
      */
-    result: [any, Type.Type] | null;
+    result: [any, MetaType] | null;
     /**
      * Performs one unit of work in the forward direction. Advanced debugging support should be provided elsewhere (such as step over or continue).
      */
@@ -46,7 +46,7 @@ export interface RunningProgram {
     /**
      * Retrieves the value of a property enumerated in debugProperties.
      */
-    getDebugValue(property: string): [any, Type.Type];
+    getDebugValue(property: string): [any, MetaType];
 }
 
 /**
@@ -102,18 +102,42 @@ function fillInProgram(program: any): Promise<Program> {
 }
 
 export interface Node {
-    Label: string;
-    Parents: Edge[];
-    Children: Edge[];
+    label: string;
+    parents: Edge[];
+    children: Edge[];
     [propName: string]: any;
 }
 
 // TODO: Consider capitalization here after typechecker is built.
 export interface Edge {
-    Label: string;
-    Source: Node;
-    Destination: Node;
+    label: string;
+    source: Node;
+    destination: Node;
     [propName: string]: any;
+}
+
+const conversions = new Map<MetaType, (a: any) => any>([
+    [Type.Integer, Math.round],
+    [Type.Number, Number],
+    [Type.String, String],
+    [Type.Boolean, Boolean],
+    [Type.Color, String],
+    [Type.Character, (a) => {
+        a = String(a);
+        if (a.length !== 1) {
+            throw "Cannot coerce: Not a character";
+        }
+        return a;
+    }],
+]);
+
+export function coerceIfPossible(a: any, t: MetaType) {
+    const conversion = conversions.get(t);
+    if (!conversion) {
+        return a;
+    } else {
+        return conversion(a);
+    }
 }
 
 /**
@@ -129,13 +153,28 @@ export class Graph {
         const nodes = new Map<Core.Node, Node>();
         for (const guiNode of graph.nodes) {
             let result: any = {
-                Label: guiNode.label,
-                Parents: [],
-                Children: []
+                label: guiNode.label,
+                parents: [],
+                children: []
             };
-            for (const [key, _] of guiNode.pluginProperties.properties) {
-                const value = guiNode.pluginProperties.get(key);
-                result[key] = value;
+
+            const propertyMap = new Map(guiNode.pluginProperties.properties);
+
+            for (const [key, keyReal] of guiNode.pluginProperties.wrapped.propertyMap.entries()) {
+                const t = propertyMap.get(key) as MetaType;
+                let value;
+                try {
+                    value = coerceIfPossible(guiNode.pluginProperties.get(key), t);
+                } catch (e) {
+                    console.log("error", e);
+                }
+                if (!t.isInstance(value)) {
+                    console.log("key: ", key, " value: ", value, " is not an instance of ", propertyMap.get(key));
+                } else {
+                    // TODO: don't just silence the above error
+                    // give up and print a message
+                    result[keyReal] = value;
+                }
             }
             nodes.set(guiNode, result);
         }
@@ -149,24 +188,36 @@ export class Graph {
             let dest = getNode(guiEdge, false);
 
             const result: any = {
-                Label: guiEdge.label,
-                Source: source,
-                Destination: dest
+                label: guiEdge.label,
+                source: source,
+                destination: dest
             };
 
-            for (const [key, _] of guiEdge.pluginProperties.properties) {
-                const value = guiEdge.pluginProperties.get(key);
-                result[key] = value;
+            const propertyMap = new Map(guiEdge.pluginProperties.properties);
+
+            for (const [key, keyReal] of guiEdge.pluginProperties.wrapped.propertyMap.entries()) {
+                const t = propertyMap.get(key) as MetaType;
+                let value;
+                try {
+                    value = coerceIfPossible(guiEdge.pluginProperties.get(key), t);
+                } catch (e) {
+                    console.log("error", e);
+                }
+                if (!t.isInstance(value)) {
+                    console.log("key: ", key, " value: ", value, " is not an instance of ", propertyMap.get(key));
+                } else {
+                    // TODO: don't just silence the above error
+                    // give up and print a message
+                    result[keyReal] = value;
+                }
             }
 
-            source.Children.push(result);
-            dest.Parents.push(result);
+            source.children.push(result);
+            dest.parents.push(result);
             return result;
         });
 
         this.nodes = [...nodes.values()];
         this.edges = edges;
-        if (this.nodes.length > 0)
-            console.log(this.nodes[0]['Start State']);
     }
 }

@@ -101,6 +101,9 @@ export const STICKY_DELAY: number = 500;
 /**
  * NODE_DEFAULTS  
  *   Default property values for drawable nodes.
+ * 
+ *   Only `DrawableNode` properties should be in this object and nothing else.
+ *   This object is used as the template for `isDrawableNode`.
  */
 export const NODE_DEFAULTS: DrawableNode = {
     position: { x: 0, y: 0 },
@@ -119,6 +122,20 @@ export const NODE_DEFAULTS: DrawableNode = {
 export const NODE_DRAG_SHADOW_COLOR: string = "#000";
 
 /**
+ * NODE_THRESHOLD_OUT  
+ *   The distance going out from the boundary of a node that determines the
+ *   edge-creation region.
+ */
+export const NODE_THRESHOLD_OUT: number = GRID_SPACING / 2;
+
+/**
+ * NODE_THRESHOLD_IN  
+ *   The distance going in from the boundary of a node that determines the edge-
+ *   creation region.
+ */
+export const NODE_THRESHOLD_IN: number = GRID_SPACING / 8;
+
+/**
  * EDGE_HIT_MARGIN  
  *   Margin away from an edge for hit detection.
  */
@@ -133,6 +150,9 @@ export const EDGE_DRAG_LINESTYLE: LineStyles = "dotted";
 /**
  * EDGE_DEFAULTS  
  *   Default property values for drawable edges.
+ * 
+ *   Only `DrawableEdge` properties should be in this object and nothing else.
+ *   This object is used as the template for `isDrawableEdge`.
  */
 export const EDGE_DEFAULTS: DrawableEdge = {
     source: null,

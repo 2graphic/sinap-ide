@@ -1,23 +1,34 @@
 declare var Interpreter: any, InterpreterGraph: any, Program: any, ProgramInput: any, ProgramOutput: any, RunningProgram: any;
 //import { Graph, Node, Edge } from "../app/models/plugin";
 
-/* global interpret */
+class Node {
+    isAcceptState: boolean;
+    isStartState: boolean;
+    children: Edge[];
+}
 
-function isAccepted(node: any): boolean {
-    return node['Accept State'];
+class Graph {
+    edges: Edge[];
+    nodes: Node[];
+}
+
+class Edge {
+    source: Node;
+    destination: Node;
+    label: string;
 }
 
 /**
  * This function compiles a DFA.
  */
-export function interpret(graph: any): Promise<any> {
-    return new Promise((resolve, reject) => {
+export function interpret(graph: Graph): Promise<DFAProgram> {
+    return new Promise<DFAProgram>((resolve, reject) => {
         let alphabet = new Set<string>();
         let acceptStates = [];
         var startState: Node | null = null;
 
         for (let edge of graph.edges) {
-            let sym: string = edge.Label;
+            let sym: string = edge.label;
             if (sym.length != 1) {
                 return reject("Symbols must be one character");
             }
@@ -25,16 +36,16 @@ export function interpret(graph: any): Promise<any> {
         }
 
         for (let node of graph.nodes) {
-            if (node["Start State"]) {
+            if (node.isStartState) {
                 if (startState != null) {
                     return reject("Too many start states.");
                 }
                 startState = node;
             }
-            if (isAccepted(node)) {
+            if (node.isAcceptState) {
                 acceptStates.push(node);
             }
-            let symbols = node.Children.map((edge: any) => edge.Label);
+            let symbols = node.children.map((edge: Edge) => edge.label);
             let uniqueSymbols = new Set(symbols);
             if (symbols.length !== uniqueSymbols.size) {
                 return reject("This interpreter does not handle NFAs. Non-unique edge label detected.");
@@ -55,23 +66,22 @@ export function interpret(graph: any): Promise<any> {
     });
 }
 
-class DFAProgram {
+export class DFAProgram {
     constructor(readonly compilationMessages: [string], private startState: Node) {
     }
 
     // TODO: Implement debugging.
 
-    run(input: string): Promise<any> {
-        return new Promise((resolve, reject) => {
-            let current: any = this.startState;
+    run(input: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            let current: Node = this.startState;
             for (const symbol of input) {
                 // TODO: Maybe build a state table for each node for efficiency.
-                let destinations = current.Children
-                    .filter((edge: any) => edge.Label === input)
-                    .map((edge: any) => edge.Destination);
+                const destinations = current.children
+                    .filter(edge => edge.label === symbol)
+                    .map(edge => edge.destination);
                 if (destinations.length == 1) {
                     current = destinations[0];
-                    break;
                 } else if (destinations.length == 0) {
                     return resolve(false);
                 } else {
@@ -79,8 +89,7 @@ class DFAProgram {
                     return reject("This is a DFA!");
                 }
             }
-
-            return resolve(true);
+            return resolve(current.isAcceptState);
         });
     }
 }
