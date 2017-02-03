@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@angular/core';
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 
-import * as Type from "../types/types";
+import { Type, MetaType, ClassMetaType, parseScope } from "sinap-core";
 import * as Core from '../models/core';
 import { Object as SinapObject } from "../models/object";
 import { Program, InterpreterError, Graph, ProgramInput, ProgramOutput } from "../models/plugin";
@@ -18,24 +18,29 @@ import * as MagicConstants from "../models/constants-not-to-be-included-in-beta"
 export class PluginPropertyData implements Core.PluginData {
     backer: any = {};
     object: SinapObject;
-    constructor(public kind: string, t: Type.ClassType) {
+    constructor(public kind: string, t: ClassMetaType) {
         this.object = new SinapObject(t, this.backer);
     }
 }
 
-type Definitions = { all: Map<string, Type.Type>, nodes: Map<string, Type.ClassType>, edges: Map<string, Type.ClassType>, graphs: Map<string, Type.ClassType> };
+type Definitions = {
+    all: Map<string, MetaType>,
+    nodes: Map<string, ClassMetaType>,
+    edges: Map<string, ClassMetaType>,
+    graphs: Map<string, ClassMetaType>,
+};
 
 class Validator {
     plugin: ConcretePlugin;
-    nodes = new Map<string, Type.ClassType>();
-    edges = new Map<string, [Type.ClassType, Type.ClassType]>();
+    nodes = new Map<string, ClassMetaType>();
+    edges = new Map<string, [ClassMetaType, ClassMetaType]>();
 
     constructor(definitions: Definitions) {
         this.nodes = definitions.nodes;
 
         for (const [edgeType, values] of definitions.edges.entries()) {
             const [st, dt] = [values.typeOf("source"), values.typeOf("destination")];
-            if (!((st instanceof Type.ClassType) && (dt instanceof Type.ClassType))) {
+            if (!((st instanceof ClassMetaType) && (dt instanceof ClassMetaType))) {
                 throw "Validator.constructor: inconsistancy error";
             }
             this.edges.set(edgeType, [st, dt]);
@@ -158,22 +163,22 @@ export class PluginService {
     }
 
     public loadPluginTypeDefinitions(src: string): Definitions {
-        const scope = Type.parseScope(src);
+        const scope = parseScope(src);
         scope.validate();
 
-        const nodes: [string, Type.ClassType][] = [];
-        const edges: [string, Type.ClassType][] = [];
-        const graphs: [string, Type.ClassType][] = [];
+        const nodes: [string, ClassMetaType][] = [];
+        const edges: [string, ClassMetaType][] = [];
+        const graphs: [string, ClassMetaType][] = [];
 
         for (const [name, value] of scope.definitions.entries()) {
             if (value.subtype(Type.Node)) {
-                nodes.push([name, value as Type.ClassType]);
+                nodes.push([name, value as ClassMetaType]);
             }
             if (value.subtype(Type.Edge)) {
-                edges.push([name, value as Type.ClassType]);
+                edges.push([name, value as ClassMetaType]);
             }
             if (value.subtype(Type.Graph)) {
-                graphs.push([name, value as Type.ClassType]);
+                graphs.push([name, value as ClassMetaType]);
             }
         }
 

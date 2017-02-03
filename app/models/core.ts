@@ -7,7 +7,7 @@
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 import { LineStyles, Shapes } from "../components/graph-editor/graph-editor.component";
 import { Object as SinapObject } from "./object";
-import * as Type from "../types/types";
+import { Type, parseType, MetaType } from "sinap-core";
 
 
 export interface PluginData {
@@ -29,7 +29,7 @@ export interface Plugin {
 }
 
 class Element implements PropertiedEntity {
-    drawablePropertyTypes: [string, string, Type.Type][];
+    drawablePropertyTypes: [string, string, MetaType][];
     public pluginProperties: MaskingPropertyList;
     public drawableProperties: MappedPropertyList;
 
@@ -44,10 +44,10 @@ class Element implements PropertiedEntity {
 }
 
 export class Graph extends Element {
-    @DrawableProperty("Nodes", Type.parseType("List<Node>"))
+    @DrawableProperty("Nodes", parseType("List<Node>"))
     public nodes: Node[] = [];
 
-    @DrawableProperty("Edges", Type.parseType("List<Edge>"))
+    @DrawableProperty("Edges", parseType("List<Edge>"))
     public edges: Edge[] = [];
 
     public pluginData: PluginData;
@@ -76,7 +76,7 @@ export class Graph extends Element {
     @DrawableProperty("Background", Type.Color)
     backgroundColor = "#ffffff";
 
-    @DrawableProperty("Example Tuple", Type.parseType("(String, Number)"))
+    @DrawableProperty("Example Tuple", parseType("(String, Number)"))
     exampleTuple = ["hello", 10];
 
     constructor(public plugin: Plugin) {
@@ -147,7 +147,7 @@ export class Edge extends Element {
 
 // HELPER CLASSES /////////////////////////////////////////////////////////////
 
-function DrawableProperty(name: string, type: Type.Type) {
+function DrawableProperty(name: string, type: MetaType) {
     return (target: Element, propertyKey: string | Symbol) => {
         if (propertyKey instanceof Symbol) {
             propertyKey = propertyKey.toString();
@@ -161,9 +161,9 @@ function DrawableProperty(name: string, type: Type.Type) {
 
 
 export class MappedPropertyList implements PropertyList {
-    properties: [string, Type.Type][] = [];
+    properties: [string, MetaType][] = [];
     propertyMap = new Map<string, string>();
-    constructor(properties: [string, string, Type.Type][], public backerObject: any) {
+    constructor(properties: [string, string, MetaType][], public backerObject: any) {
         for (let [prettyName, backName, t] of properties) {
             this.properties.push([prettyName, t]);
             this.propertyMap.set(prettyName, backName);

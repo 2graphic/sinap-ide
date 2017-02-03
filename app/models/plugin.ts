@@ -1,5 +1,5 @@
-import * as Core from '../models/core'
-import * as Type from '../types/types'
+import * as Core from '../models/core';
+import { Type, MetaType } from 'sinap-core';
 
 /**
  * Indicates an error during compilation of a graph. This is a class instead of an interface so that it can be discovered through instanceof.
@@ -34,7 +34,7 @@ export interface RunningProgram {
     /**
      * Gets the result of the computation after the program completes. Behavior is undefined if called when isComplete is false.
      */
-    result: [any, Type.Type] | null;
+    result: [any, MetaType] | null;
     /**
      * Performs one unit of work in the forward direction. Advanced debugging support should be provided elsewhere (such as step over or continue).
      */
@@ -46,7 +46,7 @@ export interface RunningProgram {
     /**
      * Retrieves the value of a property enumerated in debugProperties.
      */
-    getDebugValue(property: string): [any, Type.Type];
+    getDebugValue(property: string): [any, MetaType];
 }
 
 /**
@@ -116,7 +116,7 @@ export interface Edge {
     [propName: string]: any;
 }
 
-const conversions = new Map<Type.Type, (a: any) => any>([
+const conversions = new Map<MetaType, (a: any) => any>([
     [Type.Integer, Math.round],
     [Type.Number, Number],
     [Type.String, String],
@@ -131,7 +131,7 @@ const conversions = new Map<Type.Type, (a: any) => any>([
     }],
 ]);
 
-export function coerceIfPossible(a: any, t: Type.Type) {
+export function coerceIfPossible(a: any, t: MetaType) {
     const conversion = conversions.get(t);
     if (!conversion) {
         return a;
@@ -161,7 +161,7 @@ export class Graph {
             const propertyMap = new Map(guiNode.pluginProperties.properties);
 
             for (const [key, keyReal] of guiNode.pluginProperties.wrapped.propertyMap.entries()) {
-                const t = propertyMap.get(key) as Type.Type;
+                const t = propertyMap.get(key) as MetaType;
                 let value;
                 try {
                     value = coerceIfPossible(guiNode.pluginProperties.get(key), t);
@@ -196,7 +196,7 @@ export class Graph {
             const propertyMap = new Map(guiEdge.pluginProperties.properties);
 
             for (const [key, keyReal] of guiEdge.pluginProperties.wrapped.propertyMap.entries()) {
-                const t = propertyMap.get(key) as Type.Type;
+                const t = propertyMap.get(key) as MetaType;
                 let value;
                 try {
                     value = coerceIfPossible(guiEdge.pluginProperties.get(key), t);

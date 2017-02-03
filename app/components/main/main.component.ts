@@ -28,9 +28,6 @@ import { SerializerService } from "../../services/serializer.service";
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
 
-// TODO: remove
-import { isSyntaxError } from "../../types/types"
-
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
