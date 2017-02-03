@@ -18,6 +18,29 @@ h2 {
     padding-left: 0.5em;
 }
 
+h3 {
+    background-color: #666;
+    font-size: 1em;
+    font-family: sans-serif;
+    color: white;
+
+    display: flex;
+    align-items: center;
+
+    padding-left: 0.5em;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+}
+
+li {
+    padding-left: 0.5em;
+    color: white;
+}
+
+li:hover {
+    background-color: #777;
+}
+
 img {
     width: 100%;
 }

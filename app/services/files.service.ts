@@ -1,3 +1,6 @@
+// Resources:
+// https://nodejs.org/api/fs.html
+
 import { Injectable, NgZone } from '@angular/core';
 
 // TODO: Add in a service that does not use electron for static website.
@@ -29,6 +32,30 @@ export class FileService {
                     reject(err);
                 } else {
                     resolve(data);
+                }
+            });
+        });
+    }
+
+    readDirectory(path: string): Promise<{}> {
+        return new Promise((resolve, reject) => {
+            fs.readdir(path, "utf8", (err: any, data: string[]) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    let obj = {
+                        directories: [] as string[],
+                        files: [] as string[]
+                    };
+                    for (let name of data) {
+                        let stat = fs.statSync(path + "/" + name);
+                        if (stat.isDirectory())
+                            obj.directories.push(name);
+                        else
+                            obj.files.push(name);
+                    }
+                    resolve(obj);
                 }
             });
         });
