@@ -1,4 +1,4 @@
-_Last updated: January 31, 2017_
+_Last updated: February 3, 2017_
 
 # Notes
 
@@ -64,7 +64,9 @@ set to be delegates. Events are just registered and unregistered as needed.
 
 ## canvas.ts
 The `GraphEditorCanvas` class separates the majority of the drawing logic from
-the component class.
+the component class. Note that the trace functions manually add the origin
+coordinates to each point. This is by design to accomodate the `drawGrid`
+methods.
 
 ## defaults.ts
 This file contains default constants for various graph editor properties. In the

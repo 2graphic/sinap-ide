@@ -14,15 +14,12 @@ import {
     LineStyles
 } from "./drawable-interfaces";
 
-import { makeDrawEdge, makeDrawSelectedEdge } from "./make-draw-edge";
-import { makeDrawNode, makeDrawSelectedNode } from "./make-draw-node";
-
 
 /**
  * AA_SCALE  
  *   Anti-aliasing scale.
  */
-export const AA_SCALE: number = 2;
+const AA_SCALE: number = 2;
 
 
 // Type Aliases ////////////////////////////////////////////////////////////////
@@ -47,12 +44,20 @@ export type size = { h: number, w: number };
 export type rect = point & size;
 
 
+/**
+ * GraphEditorCanvas  
+ *   Object that handles all of the drawing logic of the graph editor.
+ */
 export class GraphEditorCanvas {
 
 
     // Fields //////////////////////////////////////////////////////////////////
 
 
+    /**
+     * _scale  
+     *   Scaling factor of the canvas.
+     */
     private _scale: number = AA_SCALE;
 
     /**
@@ -66,36 +71,30 @@ export class GraphEditorCanvas {
 
 
     constructor(private g: CanvasRenderingContext2D) {
+        // These probably don't do anything.
         this.g.mozImageSmoothingEnabled = true;
         this.g.msImageSmoothingEnabled = true;
         this.g.oImageSmoothingEnabled = true;
     }
 
 
-    // Draw methods ////////////////////////////////////////////////////////////
+    // Trace methods ///////////////////////////////////////////////////////////
 
 
     /**
-     * clear  
-     *   Clears the canvas.
+     * tracePath  
+     *   Traces line segments from point to point of the given points.
      */
-    clear(bgColor?: string): void {
-        let canvas = this.g.canvas;
-        if (bgColor) {
-            this.g.fillStyle = bgColor;
-            this.g.fillRect(0, 0, canvas.width / this._scale, canvas.height / this._scale);
-        }
-        else {
-            this.g.clearRect(0, 0, canvas.width / this._scale, canvas.height / this._scale);
-        }
-    }
-
     tracePath(...pts: point[]) {
         this.g.moveTo(pts[0].x + this.origin.x, pts[0].y + this.origin.y);
         for (let i = 1; i < pts.length; i++)
             this.g.lineTo(pts[i].x + this.origin.x, pts[i].y + this.origin.y);
     }
 
+    /**
+     * traceQuadratic  
+     *   Traces a quadratic Bezier curve.
+     */
     traceQuadratic(start: point, end: point, control: point) {
         this.g.moveTo(start.x + this.origin.x, start.y + this.origin.y);
         this.g.quadraticCurveTo(
@@ -104,6 +103,10 @@ export class GraphEditorCanvas {
         );
     }
 
+    /**
+     * traceCubic  
+     *   Traces a cubic Bezier curve.
+     */
     traceCubic(start: point, end: point, control1: point, control2: point) {
         this.g.moveTo(start.x + this.origin.x, start.y + this.origin.y);
         this.g.bezierCurveTo(
@@ -113,6 +116,10 @@ export class GraphEditorCanvas {
         );
     }
 
+    /**
+     * traceRect  
+     *   Traces a rectangle.
+     */
     traceRect(rect: rect) {
         this.g.beginPath();
         this.tracePath(
@@ -124,6 +131,10 @@ export class GraphEditorCanvas {
         this.g.closePath();
     }
 
+    /**
+     * traceCircle  
+     *   Traces a circle.
+     */
     traceCircle(origin: point, radius: number) {
         this.g.beginPath();
         this.g.arc(
@@ -131,22 +142,6 @@ export class GraphEditorCanvas {
             radius,
             0, 2 * Math.PI
         );
-    }
-
-    /**
-     * drawSelectionBox  
-     *   Draws the selection box.
-     */
-    drawSelectionBox(rect: rect): void {
-        this.traceRect(rect);
-        this.g.strokeStyle = DEFAULT.SELECTION_COLOR;
-        this.g.fillStyle = DEFAULT.SELECTION_COLOR;
-        this.g.globalAlpha = 0.1;
-        this.g.fill();
-        this.g.globalAlpha = 1.0;
-        this.g.lineWidth = 1;
-        this.lineStyle = { style: "solid" };
-        this.g.stroke();
     }
 
     /**
@@ -184,6 +179,41 @@ export class GraphEditorCanvas {
 
     }
 
+
+    // Draw methods ////////////////////////////////////////////////////////////
+
+
+    /**
+     * clear  
+     *   Clears the canvas.
+     */
+    clear(bgColor?: string): void {
+        let canvas = this.g.canvas;
+        if (bgColor) {
+            this.g.fillStyle = bgColor;
+            this.g.fillRect(0, 0, canvas.width / this._scale, canvas.height / this._scale);
+        }
+        else {
+            this.g.clearRect(0, 0, canvas.width / this._scale, canvas.height / this._scale);
+        }
+    }
+
+    /**
+     * drawSelectionBox  
+     *   Draws the selection box.
+     */
+    drawSelectionBox(rect: rect): void {
+        this.traceRect(rect);
+        this.g.strokeStyle = DEFAULT.SELECTION_COLOR;
+        this.g.fillStyle = DEFAULT.SELECTION_COLOR;
+        this.g.globalAlpha = 0.1;
+        this.g.fill();
+        this.g.globalAlpha = 1.0;
+        this.g.lineWidth = 1;
+        this.lineStyle = { style: "solid" };
+        this.g.stroke();
+    }
+
     /**
      * drawCircle  
      *   Draws a circle.
@@ -200,11 +230,11 @@ export class GraphEditorCanvas {
         this.traceCircle(o, r);
         this.g.fillStyle = fillColor;
         if (shadowColor) {
-            this.g.shadowBlur = 20 * this._scale;
+            this.shadowBlur = 20;
             this.g.shadowColor = shadowColor;
         }
         this.g.fill();
-        this.g.shadowBlur = 0;
+        this.shadowBlur = 0;
         if (borderWidth > 0) {
             this.lineStyle = { style: borderStyle, dotSize: borderWidth };
             this.g.lineWidth = borderWidth;
@@ -229,11 +259,11 @@ export class GraphEditorCanvas {
         this.traceRect({ x: p.x - s / 2, y: p.y - s / 2, h: s, w: s });
         this.g.fillStyle = fillColor;
         if (shadowColor) {
-            this.g.shadowBlur = 20 * this._scale;
+            this.shadowBlur = 20;
             this.g.shadowColor = shadowColor;
         }
         this.g.fill();
-        this.g.shadowBlur = 0;
+        this.shadowBlur = 0;
         if (borderWidth > 0) {
             this.lineStyle = { style: borderStyle, dotSize: borderWidth };
             this.g.lineWidth = borderWidth;
@@ -272,6 +302,10 @@ export class GraphEditorCanvas {
 
     }
 
+    /**
+     * drawGridLines  
+     *   Draws a bunch of evenly-spaced grid lines.
+     */
     private drawGridLines(o: point, h: number, w: number) {
         for (let x = o.x; x < w + DEFAULT.GRID_SPACING; x += DEFAULT.GRID_SPACING) {
             this.g.beginPath();
@@ -342,6 +376,10 @@ export class GraphEditorCanvas {
         );
     }
 
+    /**
+     * drawEdgeLabelRect  
+     *   Draws the background rectangle of an edge label.
+     */
     drawEdgeLabelRect(
         labelPt: point,
         size: size
@@ -351,165 +389,7 @@ export class GraphEditorCanvas {
             { x: labelPt.x + size.w / 2 + 6, y: labelPt.y + size.h / 2 }
         ));
         this.g.fill();
-        this.g.shadowBlur = 0;
-        this.g.stroke();
-    }
-
-    drawCubicEdgeBothArrows(
-        strokeStyle: string,
-        lineWidth: number,
-        lineStyle: string,
-        src: point,
-        dst: point,
-        ctl1: point,
-        ctl2: point
-    ): void {
-        this.g.strokeStyle = strokeStyle;
-        this.g.lineWidth = lineWidth;
-        this.lineStyle = { style: lineStyle };
-        this.g.beginPath();
-        this.traceCubic(src, dst, ctl1, ctl2);
-        this.traceArrow(ctl1, src);
-        this.traceArrow(ctl2, dst);
-        this.g.stroke();
-    }
-
-    drawCubicEdgeOneArrow(
-        strokeStyle: string,
-        lineWidth: number,
-        lineStyle: string,
-        src: point,
-        dst: point,
-        ctl1: point,
-        ctl2: point,
-        asrc: point,
-        adst: point
-    ): void {
-        this.g.strokeStyle = strokeStyle;
-        this.g.lineWidth = lineWidth;
-        this.lineStyle = { style: lineStyle };
-        this.g.beginPath();
-        this.traceCubic(src, dst, ctl1, ctl2);
-        this.traceArrow(asrc, adst);
-        this.g.stroke();
-    }
-
-    drawCubicEdgeNoArrows(
-        strokeStyle: string,
-        lineWidth: number,
-        lineStyle: string,
-        src: point,
-        dst: point,
-        ctl1: point,
-        ctl2: point
-    ): void {
-        this.g.strokeStyle = strokeStyle;
-        this.g.lineWidth = lineWidth;
-        this.lineStyle = { style: lineStyle };
-        this.g.beginPath();
-        this.traceCubic(src, dst, ctl1, ctl2);
-        this.g.stroke();
-    }
-
-    drawQuadraticEdgeBothArrows(
-        strokeStyle: string,
-        lineWidth: number,
-        lineStyle: string,
-        src: point,
-        dst: point,
-        ctl: point
-    ): void {
-        this.g.strokeStyle = strokeStyle;
-        this.g.lineWidth = lineWidth;
-        this.lineStyle = { style: lineStyle };
-        this.g.beginPath();
-        this.traceQuadratic(src, dst, ctl);
-        this.traceArrow(ctl, src);
-        this.traceArrow(ctl, dst);
-        this.g.stroke();
-    }
-
-    drawQuadraticEdgeOneArrow(
-        strokeStyle: string,
-        lineWidth: number,
-        lineStyle: string,
-        src: point,
-        dst: point,
-        ctl: point,
-        adst: point
-    ): void {
-        this.g.strokeStyle = strokeStyle;
-        this.g.lineWidth = lineWidth;
-        this.lineStyle = { style: lineStyle };
-        this.g.beginPath();
-        this.traceQuadratic(src, dst, ctl);
-        this.traceArrow(ctl, adst);
-        this.g.stroke();
-    }
-
-    drawQuadraticEdgeNoArrows(
-        strokeStyle: string,
-        lineWidth: number,
-        lineStyle: string,
-        src: point,
-        dst: point,
-        ctl: point
-    ): void {
-        this.g.strokeStyle = strokeStyle;
-        this.g.lineWidth = lineWidth;
-        this.lineStyle = { style: lineStyle };
-        this.g.beginPath();
-        this.traceQuadratic(src, dst, ctl);
-        this.g.stroke();
-    }
-
-    drawStraightEdgeBothArrows(
-        strokeStyle: string,
-        lineWidth: number,
-        lineStyle: string,
-        src: point,
-        dst: point
-    ): void {
-        this.g.strokeStyle = strokeStyle;
-        this.g.lineWidth = lineWidth;
-        this.lineStyle = { style: lineStyle };
-        this.g.beginPath();
-        this.tracePath(src, dst);
-        this.traceArrow(dst, src);
-        this.traceArrow(src, dst);
-        this.g.stroke();
-    }
-
-    drawStraightEdgeOneArrow(
-        strokeStyle: string,
-        lineWidth: number,
-        lineStyle: string,
-        src: point,
-        dst: point,
-        asrc: point,
-        adst: point
-    ): void {
-        this.g.strokeStyle = strokeStyle;
-        this.g.lineWidth = lineWidth;
-        this.lineStyle = { style: lineStyle };
-        this.g.beginPath();
-        this.tracePath(src, dst);
-        this.traceArrow(asrc, adst);
-        this.g.stroke();
-    }
-
-    drawStraightEdgeNoArrows(
-        strokeStyle: string,
-        lineWidth: number,
-        lineStyle: string,
-        src: point,
-        dst: point
-    ): void {
-        this.g.strokeStyle = strokeStyle;
-        this.g.lineWidth = lineWidth;
-        this.lineStyle = { style: lineStyle };
-        this.g.beginPath();
-        this.tracePath(src, dst);
+        this.shadowBlur = 0;
         this.g.stroke();
     }
 
@@ -517,6 +397,10 @@ export class GraphEditorCanvas {
     // Get and Set methods /////////////////////////////////////////////////////
 
 
+    /**
+     * size  
+     *   Sets the size of the canvas.
+     */
     set size(value: { h: number, w: number }) {
         let el = this.g.canvas;
         el.height = value.h * AA_SCALE;
@@ -524,6 +408,10 @@ export class GraphEditorCanvas {
         this.scale = this.scale;
     }
 
+    /**
+     * scale  
+     *   Sets the size of the canvas scaling factor.
+     */
     set scale(value: number) {
         value = Math.min(DEFAULT.SCALE_MAX, value);
         value = Math.max(DEFAULT.SCALE_MIN, value);
@@ -531,6 +419,10 @@ export class GraphEditorCanvas {
         this.g.setTransform(this._scale, 0, 0, this._scale, 0, 0);
     }
 
+    /**
+     * scale  
+     *   Gets the canvas scaling factor.
+     */
     get scale(): number {
         return this._scale / AA_SCALE;
     }
@@ -555,6 +447,10 @@ export class GraphEditorCanvas {
         }
     }
 
+    /**
+     * shadowBlur  
+     *   Sets the shadow blur range.
+     */
     set shadowBlur(value: number) {
         this.g.shadowBlur = value * this._scale;
     }
@@ -816,67 +712,247 @@ export class GraphEditorCanvas {
         };
     }
 
+    /**
+     * makeTraceEdge  
+     *   Makes a function that traces the geometry of an edge.
+     */
+    private makeTraceEdge(
+        pts: point[],
+        showSourceArrow: boolean,
+        showDestinationArrow: boolean
+    ): () => void {
+        switch (pts.length) {
+            case 7:
+                if (showSourceArrow && showDestinationArrow)
+                    return () => {
+                        this.traceCubic(pts[0], pts[1], pts[5], pts[6]);
+                        this.traceArrow(pts[5], pts[0]);
+                        this.traceArrow(pts[6], pts[1]);
+                    };
+                else if (showSourceArrow && !showDestinationArrow)
+                    return () => {
+                        this.traceCubic(pts[0], pts[1], pts[5], pts[6]);
+                        this.traceArrow(pts[5], pts[0]);
+                    };
+                else if (!showSourceArrow && showDestinationArrow)
+                    return () => {
+                        this.traceCubic(pts[0], pts[1], pts[5], pts[6]);
+                        this.traceArrow(pts[6], pts[1]);
+                    };
+                else
+                    return () => {
+                        this.traceCubic(pts[0], pts[1], pts[5], pts[6]);
+                    };
+
+            case 4:
+                if (showSourceArrow && showDestinationArrow)
+                    return () => {
+                        this.traceQuadratic(pts[0], pts[1], pts[3]);
+                        this.traceArrow(pts[3], pts[0]);
+                        this.traceArrow(pts[3], pts[1]);
+                    };
+                else if (showSourceArrow && !showDestinationArrow)
+                    return () => {
+                        this.traceQuadratic(pts[0], pts[1], pts[3]);
+                        this.traceArrow(pts[3], pts[0]);
+                    };
+                else if (!showSourceArrow && showDestinationArrow)
+                    return () => {
+                        this.traceQuadratic(pts[0], pts[1], pts[3]);
+                        this.traceArrow(pts[3], pts[1]);
+                    };
+                else
+                    return () => {
+                        this.traceQuadratic(pts[0], pts[1], pts[3]);
+                    }
+
+            default:
+                if (showSourceArrow && showDestinationArrow)
+                    return () => {
+                        this.tracePath(pts[0], pts[1]);
+                        this.traceArrow(pts[1], pts[0]);
+                        this.traceArrow(pts[0], pts[1]);
+                    };
+                else if (showSourceArrow && !showDestinationArrow)
+                    return () => {
+                        this.tracePath(pts[0], pts[1]);
+                        this.traceArrow(pts[1], pts[0]);
+                    };
+                else if (!showSourceArrow && showDestinationArrow)
+                    return () => {
+                        this.tracePath(pts[0], pts[1]);
+                        this.traceArrow(pts[0], pts[1]);
+                    };
+        }
+        return () => {
+            this.tracePath(pts[0], pts[1]);
+        };
+    }
+
+    /**
+     * makePreDrawEdge  
+     *   Makes a function that sets up the canvas for drawing an edge.
+     */
+    private makePreDrawEdge(
+        color: string,
+        lineWidth: number,
+        lineStyle: string,
+        isDragging: boolean,
+        isHovered: boolean
+    ): () => void {
+        if (isDragging)
+            return () => {
+                this.g.globalAlpha = 0.5;
+                this.g.strokeStyle = color;
+                this.g.lineWidth = lineWidth;
+                this.lineStyle = { style: lineStyle };
+            };
+        else if (isHovered)
+            return () => {
+                this.shadowBlur = 20;
+                this.g.shadowColor = DEFAULT.SELECTION_COLOR;
+                this.g.strokeStyle = color;
+                this.g.lineWidth = lineWidth;
+                this.lineStyle = { style: lineStyle };
+            };
+        return () => {
+            this.g.strokeStyle = color;
+            this.g.lineWidth = lineWidth;
+            this.lineStyle = { style: lineStyle };
+        }
+    }
+
+    /**
+     * makeDrawEdge  
+     *   Makes a draw function for a given edge.
+     */
     makeDrawEdge(
         e: DrawableEdge,
         pts: point[],
         isDragging: boolean,
         isHovered: boolean
     ): () => void {
-        return makeDrawEdge(
-            this,
-            this.g,
-            e,
-            pts,
-            isDragging,
-            isHovered
-        );
+        let preDrawThunk = this.makePreDrawEdge(e.color, e.lineWidth, e.lineStyle, isDragging, isHovered);
+        let traceThunk = this.makeTraceEdge(pts, e.showSourceArrow, e.showDestinationArrow);
+        let drawLabelThunk = () => { };
+        if (e.label.trim() !== "") {
+            let lines = e.label.split("\n");
+            let size = this.getTextSize(lines);
+            drawLabelThunk = () => {
+                this.drawEdgeLabel(pts[2], size, lines);
+            };
+        }
+        return () => {
+            preDrawThunk();
+            this.g.beginPath();
+            traceThunk();
+            this.g.stroke();
+            drawLabelThunk();
+            this.shadowBlur = 0;
+            this.g.globalAlpha = 1;
+        };
     }
 
+    /**
+     * makeDrawSelectedEdge  
+     *   Makes a draw function for the selection shadow of a given edge.
+     */
     makeDrawSelectedEdge(
         e: DrawableEdge,
         pts: point[],
         isHovered: boolean
     ) {
-        return makeDrawSelectedEdge(
-            this,
-            this.g,
-            e,
-            pts,
-            isHovered
-        );
+        let preDrawThunk = this.makePreDrawEdge(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", false, isHovered);
+        let traceThunk = this.makeTraceEdge(pts, e.showSourceArrow, e.showDestinationArrow);
+        let drawLabelThunk = () => { };
+        if (e.label.trim() !== "") {
+            let lines = e.label.split("\n");
+            let size = this.getTextSize(lines);
+            size.h += 4;
+            size.w += 4;
+            drawLabelThunk = () => {
+                this.g.lineWidth = e.lineWidth;
+                this.g.fillStyle = DEFAULT.SELECTION_COLOR;
+                this.drawEdgeLabelRect(pts[2], size);
+            };
+        }
+        return () => {
+            preDrawThunk();
+            this.g.beginPath();
+            traceThunk();
+            this.g.stroke();
+            drawLabelThunk();
+            this.shadowBlur = 0;
+            this.g.globalAlpha = 1;
+        };
     }
 
-    makeDrawNode(
-        n: DrawableNode,
-        dim: any,
-        isDragging: boolean,
-        isHovered: boolean,
-        pt?: point
-    ): () => void {
-        return makeDrawNode(
-            this,
-            this.g,
-            n,
-            dim,
-            isDragging,
-            isHovered,
-            pt
-        );
+    /**
+     * makeDrawNode  
+     *   Makes a draw function for a given node.
+     */
+    makeDrawNode(n: DrawableNode, dim: any, isDragging: boolean, isHovered: boolean, pt?: point): () => void {
+        let shadowColor = (isDragging ? DEFAULT.NODE_DRAG_SHADOW_COLOR : (isHovered ? DEFAULT.SELECTION_COLOR : undefined));
+        let shapeThunk = () => {
+            switch (n.shape) {
+                case "circle":
+                    this.drawCircle(n.position, dim.r, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
+                    break;
+                case "square":
+                    this.drawSquare(n.position, dim.s, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
+                    break;
+            }
+        }
+        if (n.label && n.label.trim() !== "") {
+            let lines = n.label.split("\n");
+            ///////////////////////////
+            // Labelled, With Anchor //
+            ///////////////////////////
+            if (pt && pt !== n.position) {
+                return () => {
+                    shapeThunk();
+                    this.drawText(n.position, dim.th, lines, "#fff", 2, "#000");
+                    this.drawCircle(pt, 5, "solid", 1, "#000", "#fff");
+                };
+            }
+            /////////////////////////////
+            // Labeled, Without Anchor //
+            /////////////////////////////
+            return () => {
+                shapeThunk();
+                this.drawText(n.position, dim.th, lines, "#fff", 2, "#000");
+            };
+        }
+        /////////////////////////////
+        // Unlabelled, With Anchor //
+        /////////////////////////////
+        if (pt && pt !== n.position) {
+            return () => {
+                shapeThunk();
+                this.drawCircle(n.position, 5, "solid", 1, "#000", "#fff");
+            };
+        }
+        ////////////////////////////////
+        // Unlabelled, Without Anchor //
+        ////////////////////////////////
+        return shapeThunk;
     }
 
-    makeDrawSelectedNode(
-        n: DrawableNode,
-        dim: any,
-        isDragging: boolean,
-        isHovered: boolean
-    ) {
-        return makeDrawSelectedNode(
-            this,
-            this.g,
-            n,
-            dim,
-            isDragging,
-            isHovered
-        );
+    /**
+     * makeDrawSelectedNode  
+     *   Makes a draw function for the selection shadow of a given node.
+     */
+    makeDrawSelectedNode(n: DrawableNode, dim: any, isDragging: boolean, isHovered: boolean): () => void {
+        let shadowColor = (isDragging ? DEFAULT.NODE_DRAG_SHADOW_COLOR : (isHovered ? DEFAULT.SELECTION_COLOR : undefined));
+        return () => {
+            switch (n.shape) {
+                case "circle":
+                    this.drawCircle(n.position, dim.r + n.borderWidth / 2 + 2, "solid", n.borderWidth, DEFAULT.SELECTION_COLOR, DEFAULT.SELECTION_COLOR, shadowColor);
+                    break;
+                case "square":
+                    this.drawSquare(n.position, dim.s + n.borderWidth + 4, "solid", n.borderWidth, DEFAULT.SELECTION_COLOR, DEFAULT.SELECTION_COLOR, shadowColor);
+                    break;
+            }
+        };
     }
 }
