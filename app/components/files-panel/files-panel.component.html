@@ -1,4 +1,5 @@
 <div id="wrapper">
     <h2>Files</h2>
-    <sinap-collapsible-list [items]="files" [header]="directory"></sinap-collapsible-list>
+    <sinap-collapsible-list [items]="openFiles" text="Open Editors"></sinap-collapsible-list>
+    <sinap-collapsible-list [items]="files" [text]="directory ? directory : 'No folder opened'" [tooltip]="fullPath ? fullPath : ''"></sinap-collapsible-list>
 </div>

@@ -1,0 +1,28 @@
+.text {
+    background-color: #666;
+    font-size: 1em;
+    font-family: sans-serif;
+    font-weight: bold;
+    color: white;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+}
+
+.toggle {
+  text-align: center;
+  width: 1em;
+  display: inline-block;
+}
+
+.label {
+  display: inline-block;
+}
+
+li {
+    padding-left: 1.5em;
+    color: white;
+}
+
+li:hover, .active {
+    background-color: #5c5c5c;
+}

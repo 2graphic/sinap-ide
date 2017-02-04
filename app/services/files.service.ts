@@ -1,3 +1,9 @@
+// File: files.service.ts
+// Created by: Dyllon Gagnier
+// Date created: January 16, 2017
+//
+// Contributors: CJ Dimaano
+//
 // Resources:
 // https://nodejs.org/api/fs.html
 
@@ -6,11 +12,16 @@ import { Injectable, NgZone } from '@angular/core';
 // TODO: Add in a service that does not use electron for static website.
 import { remote } from 'electron';
 const fs = remote.require('fs');
+const _path = remote.require("path");
 const {dialog} = remote;
 
 @Injectable()
 export class FileService {
     constructor() {
+    }
+
+    get sep() {
+        return _path.sep;
     }
 
     writeFile(filename: string, data: string): Promise<{}> {
@@ -59,6 +70,10 @@ export class FileService {
                 }
             });
         });
+    }
+
+    resolve(path: string): string {
+        return _path.resolve(path);
     }
 
     requestFilename(forSave: boolean): Promise<string> {

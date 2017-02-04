@@ -1,9 +1,17 @@
 // File: collapsible-list.component.ts
-// Author: CJ Dimaano
+// Created by: CJ Dimaano
 // Date created: February 1, 2017
+//
+// Resources:
+// http://stackoverflow.com/questions/40811809/add-component-dynamically-inside-an-ngif
+// http://blog.rangle.io/dynamically-creating-components-with-angular-2/
+//
+// TODO:
+// - Figure out a way to handle custom list items. E.g. a list item that is a
+//   collapsible list component.
 
 
-import { Component, Input } from "@angular/core";
+import { Component, Input, Output, EventEmitter } from "@angular/core";
 
 
 @Component({
@@ -16,10 +24,44 @@ import { Component, Input } from "@angular/core";
 })
 export class CollapsibleListComponent {
 
-    @Input()
-    public items: any[] = [];
+    private _isExpanded: boolean = true;
+    private _selectedIndex: number = -1;
 
     @Input()
-    public header: string = "header";
+    items: any[] = [];
+
+    @Input()
+    text: string = "";
+
+    @Input()
+    tooltip: string | null;
+
+    @Output()
+    selectedIndexChanged = new EventEmitter();
+
+    get selectedIndex() {
+        return this._selectedIndex;
+    }
+
+    set selectedIndex(value: number) {
+        this._selectedIndex = value;
+        this.selectedIndexChanged.emit(this);
+    }
+
+    get isExpanded() {
+        return this._isExpanded;
+    }
+
+    set isExpanded(value: boolean) {
+        this._isExpanded = value;
+    }
+
+    private toggleList() {
+        this.isExpanded = !this.isExpanded;
+    }
+
+    private clickItem(e: MouseEvent) {
+        this.selectedIndex = parseInt((e.target as Element).id);
+    }
 
 }
