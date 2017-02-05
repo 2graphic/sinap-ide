@@ -1,16 +1,17 @@
 .text {
     background-color: #666;
-    font-size: 1em;
+    font-size: normal;
     font-family: sans-serif;
     font-weight: bold;
-    color: white;
-    padding-top: 0.1em;
-    padding-bottom: 0.1em;
+    color: #FFF;
+    padding: .25em;
 }
 
 .toggle {
   text-align: center;
-  width: 1em;
+  vertical-align: middle;
+  font-size: .45em;
+  width: 1.25em;
   display: inline-block;
 }
 
@@ -19,8 +20,12 @@
 }
 
 li {
-    padding-left: 1.5em;
-    color: white;
+    padding: .25em .15em;
+    padding-left: 1.75em;
+    color: #EEE;
+    font-family: sans-serif;
+    font-weight: normal;
+    font-size: small;
 }
 
 li:hover, .active {

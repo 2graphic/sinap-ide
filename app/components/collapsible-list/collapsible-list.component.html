@@ -1,7 +1,7 @@
 <div (click)="toggleList()" class="text" [attr.title]="tooltip ? tooltip : text">
   <div class="toggle">
-    <template [ngIf]="isExpanded">-</template>
-    <template [ngIf]="!isExpanded">+</template>
+    <template [ngIf]="isExpanded">&#9660;</template>
+    <template [ngIf]="!isExpanded">&#9658;</template>
   </div>
   <div class="label">{{text}}</div>
 </div>
