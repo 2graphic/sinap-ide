@@ -13,6 +13,7 @@ import { BrowserModule } from "@angular/platform-browser";
 import { FormsModule } from '@angular/forms';
 
 import { MainComponent } from "./components/main/main.component";
+import { CollapsibleListComponent } from "./components/collapsible-list/collapsible-list.component";
 import { SideBarComponent } from "./components/side-bar/side-bar.component";
 import { PropertiesPanelComponent } from "./components/properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "./components/tools-panel/tools-panel.component";
@@ -32,6 +33,7 @@ import { BindingDirective } from "./directives/bind.directive";
     ],
     declarations: [
         MainComponent,
+        CollapsibleListComponent,
         SideBarComponent,
         PropertiesPanelComponent,
         ToolsPanelComponent,
