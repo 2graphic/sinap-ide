@@ -65,15 +65,20 @@ export class SerializerService {
 
     private serializeElement(element: Core.Element): any {
         let result: any = {};
+        const badKeys = ['Nodes', 'Edges', 'Children', 'Source', 'Destination'];
         function serializePropList(props: PropertyList): any {
             let result: any = {};
             for (const [key, type] of props.properties) {
-                result[key] = props.get(key);
+                if (badKeys.indexOf(key) < 0) {
+                    result[key] = props.get(key);
+                }
             }
             return result;
         }
         result.drawableProperties = serializePropList(element.drawableProperties);
         result.pluginProperties = serializePropList(element.pluginProperties);
+        result.entityKind = element.entityKind;
+        return result;
     }
 
     public serialize(entity: Core.Graph): any {
@@ -89,17 +94,47 @@ export class SerializerService {
             let result = this.serializeElement(edge)
             result.source = nodeMap.get(edge.source);
             result.destination = nodeMap.get(edge.destination);
+            return result;
         });
         result.nodes = nodes;
         result.edges = edges;
-        result.plugin = entity.plugin.kind;
-        return result;
+        return {
+            'graph': result,
+            'sinap-file-format-version': '0.0.3',
+            'plugin': entity.plugin.kind
+        };
     }
 
-    public deserialize(graph: any): Promise<Core.Graph> {
-        return this.pluginService.getPlugin(graph.plugin)
+    public deserialize(pojo: any): Promise<Core.Graph> {
+        return this.pluginService.getPlugin(pojo.plugin)
             .then((plugin) => {
                 const result = new Core.Graph(plugin);
+                function propsFromPojo(element: Core.Element, source: any) {
+                    function insertProps(propList: PropertyList, sourceProps: any) {
+                        for(const prop in sourceProps) {
+                            propList.set(prop, sourceProps[prop]);
+                        }
+                    }
+                    insertProps(element.drawableProperties, source.drawableProperties);
+                    insertProps(element.pluginProperties, source.pluginProperties);
+                }
+
+                const graph = pojo.graph;
+                propsFromPojo(result, graph);
+
+                const nodes = graph.nodes.map((nodePojo: any): Core.Node => {
+                    const node = result.createNode(nodePojo.entityKind);
+                    propsFromPojo(node, nodePojo);
+                    return node;
+                });
+
+                for(const edgePojo of graph.edges) {
+                    const source = nodes[edgePojo.source];
+                    const destination = nodes[edgePojo.destination];
+                    const edge = result.createEdge(edgePojo.entityKind, source, destination);
+                    propsFromPojo(edge, edgePojo);
+                }
+                
                 return result;
             });
     }
