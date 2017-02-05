@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { PropertiedEntity, PropertyList, PropertiedEntityLists } from "../components/properties-panel/properties-panel.component";
 import * as Core from '../models/core'
+import { PluginService } from '../services/plugin.service'
 
 function isPropertiedEntity(src: any): src is PropertiedEntity {
     return !!(src && src.drawableProperties && src.pluginProperties && src.entityName);
@@ -58,21 +59,48 @@ function serialize(entity: PropertiedEntity, store: Store): any {
     return { "pointerTo": index };
 }
 
-
 @Injectable()
 export class SerializerService {
-    constructor() { }
-
-    public serialize(entity: PropertiedEntity): [{ "pointerTo": number }, any[]] {
-        const store = new Store();
-        return [serialize(entity, store), store.transformed];
+    constructor(@Inject(PluginService) private pluginService: PluginService) { }
+    
+    private serializeElement(element: Core.Element): any {
+        let result: any = {};
+        function serializePropList(props: PropertyList): any {
+            let result: any = {};
+            for(const [key, type] of props.properties) {
+                result[key] = props.get(key);
+            }
+            return result;
+        }
+        result.drawableProperties = serializePropList(element.drawableProperties);
+        result.pluginProperties = serializePropList(element.pluginProperties);
     }
 
-    public deserialize(a: [{ "pointerTo": number }, any[]], plugin: Plugin): PropertiedEntity {
-        const [initialPointer, store] = a;
-        store[initialPointer.pointerTo];
+    public serialize(entity: Core.Graph): any {
+        const result: any = this.serializeElement(entity);
+        const nodeMap = new Map<Core.Node, number>();
+        let nodes: any[] = [];
+        for(const node of entity.nodes) {
+            const result = this.serializeElement(node);
+            nodeMap.set(node, nodes.length);
+            nodes.push(result);
+        }
+        const edges = entity.edges.map((edge) => {
+            let result = this.serializeElement(edge)
+            result.source = nodeMap.get(edge.source);
+            result.destination = nodeMap.get(edge.destination);
+        });
+        result.nodes = nodes;
+        result.edges = edges;
+        result.plugin = entity.plugin.kind;
+        return result;
+    }
 
-
-        return {} as PropertiedEntity;
+    public deserialize(graph: any): Promise<Core.Graph> {
+        return this.pluginService.getPlugin(graph.plugin)
+            .then((plugin) => {
+                const result = new Core.Graph(plugin);
+                return result;
+            });
     }
 }
