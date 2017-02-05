@@ -55,7 +55,7 @@ export class SerializerService {
                 const result = new Core.Graph(plugin);
                 function propsFromPojo(element: Core.Element, source: any) {
                     function insertProps(propList: PropertyList, sourceProps: any) {
-                        for(const prop in sourceProps) {
+                        for (const prop in sourceProps) {
                             propList.set(prop, sourceProps[prop]);
                         }
                     }
@@ -72,13 +72,13 @@ export class SerializerService {
                     return node;
                 });
 
-                for(const edgePojo of graph.edges) {
+                for (const edgePojo of graph.edges) {
                     const source = nodes[edgePojo.source];
                     const destination = nodes[edgePojo.destination];
                     const edge = result.createEdge(edgePojo.entityKind, source, destination);
                     propsFromPojo(edge, edgePojo);
                 }
-                
+
                 return result;
             });
     }

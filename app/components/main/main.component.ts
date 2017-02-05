@@ -223,9 +223,9 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                             this.serializerService.deserialize(pojo).then((graph) => {
                                 this.newFile(filename, graph);
                             })
-                            .catch((err) => {
-                                alert(`Could not read graph: ${err}.`);
-                            });
+                                .catch((err) => {
+                                    alert(`Could not read graph: ${err}.`);
+                                });
                         } catch (e) {
                             alert(`Could not de-serialize graph: ${e}.`);
                         }
