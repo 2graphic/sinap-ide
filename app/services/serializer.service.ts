@@ -61,13 +61,13 @@ function serialize(entity: PropertiedEntity, store: Store): any {
 
 @Injectable()
 export class SerializerService {
-    constructor(@Inject(PluginService) private pluginService: PluginService) { }
-    
+    constructor( @Inject(PluginService) private pluginService: PluginService) { }
+
     private serializeElement(element: Core.Element): any {
         let result: any = {};
         function serializePropList(props: PropertyList): any {
             let result: any = {};
-            for(const [key, type] of props.properties) {
+            for (const [key, type] of props.properties) {
                 result[key] = props.get(key);
             }
             return result;
@@ -80,7 +80,7 @@ export class SerializerService {
         const result: any = this.serializeElement(entity);
         const nodeMap = new Map<Core.Node, number>();
         let nodes: any[] = [];
-        for(const node of entity.nodes) {
+        for (const node of entity.nodes) {
             const result = this.serializeElement(node);
             nodeMap.set(node, nodes.length);
             nodes.push(result);
