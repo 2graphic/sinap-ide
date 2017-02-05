@@ -71,6 +71,7 @@ export class GraphEditorCanvas {
 
 
     constructor(private g: CanvasRenderingContext2D) {
+        g.font = DEFAULT.FONT_SIZE + "pt " + DEFAULT.FONT_FAMILY;
         // These probably don't do anything.
         this.g.mozImageSmoothingEnabled = true;
         this.g.msImageSmoothingEnabled = true;
@@ -335,7 +336,6 @@ export class GraphEditorCanvas {
     ) {
         let x = p.x + this.origin.x;
         let y = p.y + this.origin.y - (height - 1.5 * DEFAULT.FONT_SIZE) / 2;
-        this.g.font = DEFAULT.FONT_SIZE + "pt " + DEFAULT.FONT_FAMILY;
         this.g.textAlign = "center";
         this.g.textBaseline = "middle";
         this.g.fillStyle = color;
@@ -355,42 +355,6 @@ export class GraphEditorCanvas {
                 y += 1.5 * DEFAULT.FONT_SIZE;
             }
         }
-    }
-
-    /**
-     * drawEdgeLabel  
-     *   Draws the edge label.
-     */
-    drawEdgeLabel(
-        labelPt: point,
-        size: size,
-        lines: string[]
-    ): void {
-        this.g.fillStyle = "#fff";
-        this.drawEdgeLabelRect(labelPt, size);
-        this.drawText(
-            labelPt,
-            size.h,
-            lines,
-            "#000"
-        );
-    }
-
-    /**
-     * drawEdgeLabelRect  
-     *   Draws the background rectangle of an edge label.
-     */
-    drawEdgeLabelRect(
-        labelPt: point,
-        size: size
-    ) {
-        this.traceRect(this.makeRect(
-            { x: labelPt.x - size.w / 2 - 6, y: labelPt.y - size.h / 2 },
-            { x: labelPt.x + size.w / 2 + 6, y: labelPt.y + size.h / 2 }
-        ));
-        this.g.fill();
-        this.shadowBlur = 0;
-        this.g.stroke();
     }
 
 
@@ -455,20 +419,30 @@ export class GraphEditorCanvas {
         this.g.shadowBlur = value * this._scale;
     }
 
+    set shadowColor(value: string) {
+        this.g.shadowColor = value;
+    }
+
+    set globalAlpha(value: number) {
+        this.g.globalAlpha = value;
+    }
+
+    set strokeStyle(value: string) {
+        this.g.strokeStyle = value;
+    }
+
+    set fillStyle(value: string) {
+        this.g.fillStyle = value;
+    }
+
+    set lineWidth(value: number) {
+        this.g.lineWidth = value;
+    }
+
     /**
-     * getTextSize  
-     *   Gets the bounding box of text.
      */
-    getTextSize(lines: Array<string>) {
-        this.g.font = DEFAULT.FONT_SIZE + "pt " + DEFAULT.FONT_FAMILY;
-        let textHeight = lines.length * 1.5 * DEFAULT.FONT_SIZE;
-        let textWidth = 0;
-        for (let l = 0; l < lines.length; l++) {
-            let tw = this.g.measureText(lines[l]).width;
-            if (textWidth < tw)
-                textWidth = tw;
-        }
-        return { h: textHeight, w: textWidth };
+    getTextWidth(text: string) {
+        return this.g.measureText(text).width;
     }
 
     /**
@@ -484,475 +458,38 @@ export class GraphEditorCanvas {
         };
     }
 
-    /**
-     * getEdgePtShift  
-     *   Gets the vector in the direction of `u` that is on the boundary of a
-     *   node based on its geometry.
-     */
-    getEdgePtShift(
-        u: point,
-        n: DrawableNode,
-        dim: any
-    ): point {
-        let v: point = { x: 0, y: 0 };
 
-        switch (n.shape) {
-            // The boundary of a circle is just its radius plus half its border width.
-            case "circle":
-                v.x = u.x * dim.r + n.borderWidth / 2;
-                v.y = u.y * dim.r + n.borderWidth / 2;
-                break;
+    // Redirects ///////////////////////////////////////////////////////////////
 
-            // The boundary of a square depends on the direction of u.
-            case "square":
-                let up = {
-                    x: (u.x < 0 ? -u.x : u.x),
-                    y: (u.y < 0 ? -u.y : u.y)
-                };
-                let s = dim.s / 2;
-                if (up.x < up.y) {
-                    let ratio = up.x / up.y;
-                    let b = s / up.y;
-                    let a = ratio * up.x;
-                    s = MathEx.mag({ x: a, y: b });
-                }
-                else {
-                    let ratio = up.y / up.x;
-                    let a = s / up.x;
-                    let b = ratio * up.y;
-                    s = MathEx.mag({ x: a, y: b });
-                }
-                v.x = u.x * s + n.borderWidth / 2;
-                v.y = u.y * s + n.borderWidth / 2;
-                break;
-        }
-        return v;
+
+    beginPath() {
+        this.g.beginPath();
     }
 
-    /**
-     * getStraightEdgePoints  
-     *   Gets the end points and midpoint of a straight line.
-     */
-    getStraightEdgePoints(
-        e: DrawableEdge,
-        srcDim?: any,
-        dstDim?: any,
-        pt?: point
-    ): point[] {
-        console.assert((e.source && srcDim) || !e.source, "error getStraightEdgePoints: srcDim undefined");
-        console.assert((e.destination && dstDim) || !e.destination, "error getStraightEdgePoints: dstDim undefined");
-        console.assert(((e.source || e.destination) && pt) || (e.source && e.destination), "error getStraightEdgePoints: pt undefined");
-        let pts: point[] = [];
-        let src = (e.source ? e.source.position : pt) as point;
-        let dst = (e.destination ? e.destination.position : pt) as point;
-        let v = { x: dst.x - src.x, y: dst.y - src.y };
-        let d = MathEx.mag(v);
-        let u = { x: v.x / d, y: v.y / d };
-        if (e.source) {
-            let shift = this.getEdgePtShift(u, e.source, srcDim);
-            pts.push({ x: src.x + shift.x, y: src.y + shift.y });
-        }
-        else
-            pts.push(pt as point);
-        if (e.destination) {
-            u.x *= -1;
-            u.y *= -1;
-            let shift = this.getEdgePtShift(u, e.destination, dstDim);
-            pts.push({ x: dst.x + shift.x, y: dst.y + shift.y });
-        }
-        else
-            pts.push(pt as point);
-        pts.push({
-            x: (pts[0].x + pts[1].x) / 2,
-            y: (pts[0].y + pts[1].y) / 2
-        });
-        return pts;
+    stroke() {
+        this.g.stroke();
     }
 
-    /**
-     * getLoopEdgePoints  
-     *   Gets the edge points and midpoint of a self-referencing node.
-     */
-    getLoopEdgePoints(
-        e: DrawableEdge,
-        src: DrawableNode,
-        srcDim: any
-    ): point[] {
-        let u: point = { x: MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
-        let v: point = { x: -MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
-        let pt0: point = this.getEdgePtShift(u, src, srcDim);
-        let pt1: point = this.getEdgePtShift(v, src, srcDim);
-        let pt2: point = {
-            x: src.position.x + 2 * DEFAULT.GRID_SPACING * u.x,
-            y: src.position.y + 2 * DEFAULT.GRID_SPACING * u.y
-        };
-        let pt3: point = {
-            x: src.position.x + 2 * DEFAULT.GRID_SPACING * v.x,
-            y: src.position.y + 2 * DEFAULT.GRID_SPACING * v.y
-        };
-        let pts: point[] = [];
-        // src
-        pts.push({ x: src.position.x + pt0.x, y: src.position.y + pt0.y });
-        // dst
-        pts.push({ x: src.position.x + pt1.x, y: src.position.y + pt1.y });
-        // mid
-        pts.push({
-            x: (pts[0].x + 3 * (pt2.x + pt3.x) + pts[1].x) / 8,
-            y: (pts[0].y + 3 * (pt2.y + pt3.y) + pts[1].y) / 8
-        });
-        // 1/3
-        pts.push({
-            x: (8 * pts[0].x + 12 * pt2.x + 6 * pt3.x + pts[1].x) / 27,
-            y: (8 * pts[0].y + 12 * pt2.y + 6 * pt3.y + pts[1].y) / 27
-        });
-        // 2/3
-        pts.push({
-            x: (pts[0].x + 6 * pt2.x + 12 * pt3.x + 8 * pts[1].x) / 27,
-            y: (pts[0].y + 6 * pt2.y + 12 * pt3.y + 8 * pts[1].y) / 27
-        });
-        pts.push(pt2);
-        pts.push(pt3);
-        return pts;
+    fill() {
+        this.g.fill();
     }
 
-    /**
-     * getQuadraticEdgePoints  
-     *   Gets the edge points and midpoint of an overlapping edge.
-     */
-    getQuadraticEdgePoints(
-        e: DrawableEdge,
-        src: DrawableNode,
-        dst: DrawableNode,
-        srcDim: any,
-        dstDim: any
-    ): point[] {
-        // Get a vector from the source node to the destination node.
-        let v: point = {
-            x: dst.position.x - src.position.x,
-            y: dst.position.y - src.position.y
-        };
-        // Get the normal to the vector.
-        let d = MathEx.mag(v);
-        let n: point = {
-            x: v.y / d,
-            y: -v.x / d
-        };
-
-        // Set the control point to the midpoint of the vector plus the scaled
-        // normal.
-        let pt1: point = {
-            x: v.x / 2 + v.y / d * DEFAULT.GRID_SPACING,
-            y: v.y / 2 - v.x / d * DEFAULT.GRID_SPACING
-        };
-        // Shift the source endpoint.
-        d = MathEx.mag(pt1);
-        let shiftPt: point = this.getEdgePtShift({ x: pt1.x / d, y: pt1.y / d }, src, srcDim);
-        let pt0: point = {
-            x: src.position.x + shiftPt.x,
-            y: src.position.y + shiftPt.y
-        };
-        // Shift the destination endpoint.
-        shiftPt = this.getEdgePtShift({ x: (pt1.x - v.x) / d, y: (pt1.y - v.y) / d }, dst, dstDim);
-        let pt2: point = {
-            x: src.position.x + v.x + shiftPt.x,
-            y: src.position.y + v.y + shiftPt.y
-        };
-        // Translate the controlpoint by the position of the source node.
-        pt1.x += src.position.x;
-        pt1.y += src.position.y;
-        let pts: point[] = [];
-        pts.push(pt0);
-        pts.push(pt2);
-        // Midpoint.
-        pts.push({
-            x: (pt0.x + 2 * pt1.x + pt2.x) / 4,
-            y: (pt0.y + 2 * pt1.y + pt2.y) / 4
-        });
-        pts.push(pt1);
-        return pts;
-    }
-
-    /**
-     * getNodeDimensions  
-     *   Gets the deminsions of a given node based on its geometry.
-     */
-    getNodeDimensions(
-        n: DrawableNode
-    ): any {
-        let lines = n.label.split("\n");
-        let size = this.getTextSize(lines);
-        let s = (DEFAULT.GRID_SPACING > size.h + 1.5 * DEFAULT.FONT_SIZE ?
-            DEFAULT.GRID_SPACING : size.h + 1.5 * DEFAULT.FONT_SIZE);
-        s = (s < size.w + DEFAULT.FONT_SIZE ? size.w + DEFAULT.FONT_SIZE : s);
-        switch (n.shape) {
-            case "circle":
-                s = s / 2;
-                return { r: s, th: size.h, in: s - DEFAULT.NODE_THRESHOLD_IN, out: s + DEFAULT.NODE_THRESHOLD_OUT };
-
-            case "square":
-                return { s: s, th: size.h, in: s - 2 * DEFAULT.NODE_THRESHOLD_IN, out: s + 2 * DEFAULT.NODE_THRESHOLD_OUT };
-        }
-    }
+}
 
 
-    // Make methods ////////////////////////////////////////////////////////////
+// Static functions ////////////////////////////////////////////////////////////
 
 
-    /**
-     * makeRect  
-     *   Makes a rectangle object with the bottom-left corner and height and width
-     *   using the given opposing corner points.
-     */
-    makeRect(pt1: point, pt2: point): rect {
-        return {
-            x: Math.min(pt2.x, pt1.x),
-            y: Math.min(pt2.y, pt1.y),
-            w: Math.abs(pt2.x - pt1.x),
-            h: Math.abs(pt2.y - pt1.y)
-        };
-    }
-
-    /**
-     * makeTraceEdge  
-     *   Makes a function that traces the geometry of an edge.
-     */
-    private makeTraceEdge(
-        pts: point[],
-        showSourceArrow: boolean,
-        showDestinationArrow: boolean
-    ): () => void {
-        switch (pts.length) {
-            case 7:
-                if (showSourceArrow && showDestinationArrow)
-                    return () => {
-                        this.traceCubic(pts[0], pts[1], pts[5], pts[6]);
-                        this.traceArrow(pts[5], pts[0]);
-                        this.traceArrow(pts[6], pts[1]);
-                    };
-                else if (showSourceArrow && !showDestinationArrow)
-                    return () => {
-                        this.traceCubic(pts[0], pts[1], pts[5], pts[6]);
-                        this.traceArrow(pts[5], pts[0]);
-                    };
-                else if (!showSourceArrow && showDestinationArrow)
-                    return () => {
-                        this.traceCubic(pts[0], pts[1], pts[5], pts[6]);
-                        this.traceArrow(pts[6], pts[1]);
-                    };
-                else
-                    return () => {
-                        this.traceCubic(pts[0], pts[1], pts[5], pts[6]);
-                    };
-
-            case 4:
-                if (showSourceArrow && showDestinationArrow)
-                    return () => {
-                        this.traceQuadratic(pts[0], pts[1], pts[3]);
-                        this.traceArrow(pts[3], pts[0]);
-                        this.traceArrow(pts[3], pts[1]);
-                    };
-                else if (showSourceArrow && !showDestinationArrow)
-                    return () => {
-                        this.traceQuadratic(pts[0], pts[1], pts[3]);
-                        this.traceArrow(pts[3], pts[0]);
-                    };
-                else if (!showSourceArrow && showDestinationArrow)
-                    return () => {
-                        this.traceQuadratic(pts[0], pts[1], pts[3]);
-                        this.traceArrow(pts[3], pts[1]);
-                    };
-                else
-                    return () => {
-                        this.traceQuadratic(pts[0], pts[1], pts[3]);
-                    }
-
-            default:
-                if (showSourceArrow && showDestinationArrow)
-                    return () => {
-                        this.tracePath(pts[0], pts[1]);
-                        this.traceArrow(pts[1], pts[0]);
-                        this.traceArrow(pts[0], pts[1]);
-                    };
-                else if (showSourceArrow && !showDestinationArrow)
-                    return () => {
-                        this.tracePath(pts[0], pts[1]);
-                        this.traceArrow(pts[1], pts[0]);
-                    };
-                else if (!showSourceArrow && showDestinationArrow)
-                    return () => {
-                        this.tracePath(pts[0], pts[1]);
-                        this.traceArrow(pts[0], pts[1]);
-                    };
-        }
-        return () => {
-            this.tracePath(pts[0], pts[1]);
-        };
-    }
-
-    /**
-     * makePreDrawEdge  
-     *   Makes a function that sets up the canvas for drawing an edge.
-     */
-    private makePreDrawEdge(
-        color: string,
-        lineWidth: number,
-        lineStyle: string,
-        isDragging: boolean,
-        isHovered: boolean
-    ): () => void {
-        if (isDragging)
-            return () => {
-                this.g.globalAlpha = 0.5;
-                this.g.strokeStyle = color;
-                this.g.lineWidth = lineWidth;
-                this.lineStyle = { style: lineStyle };
-            };
-        else if (isHovered)
-            return () => {
-                this.shadowBlur = 20;
-                this.g.shadowColor = DEFAULT.SELECTION_COLOR;
-                this.g.strokeStyle = color;
-                this.g.lineWidth = lineWidth;
-                this.lineStyle = { style: lineStyle };
-            };
-        return () => {
-            this.g.strokeStyle = color;
-            this.g.lineWidth = lineWidth;
-            this.lineStyle = { style: lineStyle };
-        }
-    }
-
-    /**
-     * makeDrawEdge  
-     *   Makes a draw function for a given edge.
-     */
-    makeDrawEdge(
-        e: DrawableEdge,
-        pts: point[],
-        isDragging: boolean,
-        isHovered: boolean
-    ): () => void {
-        let preDrawThunk = this.makePreDrawEdge(e.color, e.lineWidth, e.lineStyle, isDragging, isHovered);
-        let traceThunk = this.makeTraceEdge(pts, e.showSourceArrow, e.showDestinationArrow);
-        let drawLabelThunk = () => { };
-        if (e.label.trim() !== "") {
-            let lines = e.label.split("\n");
-            let size = this.getTextSize(lines);
-            drawLabelThunk = () => {
-                this.drawEdgeLabel(pts[2], size, lines);
-            };
-        }
-        return () => {
-            preDrawThunk();
-            this.g.beginPath();
-            traceThunk();
-            this.g.stroke();
-            drawLabelThunk();
-            this.shadowBlur = 0;
-            this.g.globalAlpha = 1;
-        };
-    }
-
-    /**
-     * makeDrawSelectedEdge  
-     *   Makes a draw function for the selection shadow of a given edge.
-     */
-    makeDrawSelectedEdge(
-        e: DrawableEdge,
-        pts: point[],
-        isHovered: boolean
-    ) {
-        let preDrawThunk = this.makePreDrawEdge(DEFAULT.SELECTION_COLOR, e.lineWidth + 4, "solid", false, isHovered);
-        let traceThunk = this.makeTraceEdge(pts, e.showSourceArrow, e.showDestinationArrow);
-        let drawLabelThunk = () => { };
-        if (e.label.trim() !== "") {
-            let lines = e.label.split("\n");
-            let size = this.getTextSize(lines);
-            size.h += 4;
-            size.w += 4;
-            drawLabelThunk = () => {
-                this.g.lineWidth = e.lineWidth;
-                this.g.fillStyle = DEFAULT.SELECTION_COLOR;
-                this.drawEdgeLabelRect(pts[2], size);
-            };
-        }
-        return () => {
-            preDrawThunk();
-            this.g.beginPath();
-            traceThunk();
-            this.g.stroke();
-            drawLabelThunk();
-            this.shadowBlur = 0;
-            this.g.globalAlpha = 1;
-        };
-    }
-
-    /**
-     * makeDrawNode  
-     *   Makes a draw function for a given node.
-     */
-    makeDrawNode(n: DrawableNode, dim: any, isDragging: boolean, isHovered: boolean, pt?: point): () => void {
-        let shadowColor = (isDragging ? DEFAULT.NODE_DRAG_SHADOW_COLOR : (isHovered ? DEFAULT.SELECTION_COLOR : undefined));
-        let shapeThunk = () => {
-            switch (n.shape) {
-                case "circle":
-                    this.drawCircle(n.position, dim.r, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
-                    break;
-                case "square":
-                    this.drawSquare(n.position, dim.s, n.borderStyle, n.borderWidth, n.borderColor, n.color, shadowColor);
-                    break;
-            }
-        }
-        if (n.label && n.label.trim() !== "") {
-            let lines = n.label.split("\n");
-            ///////////////////////////
-            // Labelled, With Anchor //
-            ///////////////////////////
-            if (pt && pt !== n.position) {
-                return () => {
-                    shapeThunk();
-                    this.drawText(n.position, dim.th, lines, "#fff", 2, "#000");
-                    this.drawCircle(pt, 5, "solid", 1, "#000", "#fff");
-                };
-            }
-            /////////////////////////////
-            // Labeled, Without Anchor //
-            /////////////////////////////
-            return () => {
-                shapeThunk();
-                this.drawText(n.position, dim.th, lines, "#fff", 2, "#000");
-            };
-        }
-        /////////////////////////////
-        // Unlabelled, With Anchor //
-        /////////////////////////////
-        if (pt && pt !== n.position) {
-            return () => {
-                shapeThunk();
-                this.drawCircle(n.position, 5, "solid", 1, "#000", "#fff");
-            };
-        }
-        ////////////////////////////////
-        // Unlabelled, Without Anchor //
-        ////////////////////////////////
-        return shapeThunk;
-    }
-
-    /**
-     * makeDrawSelectedNode  
-     *   Makes a draw function for the selection shadow of a given node.
-     */
-    makeDrawSelectedNode(n: DrawableNode, dim: any, isDragging: boolean, isHovered: boolean): () => void {
-        let shadowColor = (isDragging ? DEFAULT.NODE_DRAG_SHADOW_COLOR : (isHovered ? DEFAULT.SELECTION_COLOR : undefined));
-        return () => {
-            switch (n.shape) {
-                case "circle":
-                    this.drawCircle(n.position, dim.r + n.borderWidth / 2 + 2, "solid", n.borderWidth, DEFAULT.SELECTION_COLOR, DEFAULT.SELECTION_COLOR, shadowColor);
-                    break;
-                case "square":
-                    this.drawSquare(n.position, dim.s + n.borderWidth + 4, "solid", n.borderWidth, DEFAULT.SELECTION_COLOR, DEFAULT.SELECTION_COLOR, shadowColor);
-                    break;
-            }
-        };
-    }
+/**
+ * makeRect  
+ *   Makes a rectangle object with the bottom-left corner and height and width
+ *   using the given opposing corner points.
+ */
+export function makeRect(pt1: point, pt2: point): rect {
+    return {
+        x: Math.min(pt2.x, pt1.x),
+        y: Math.min(pt2.y, pt1.y),
+        w: Math.abs(pt2.x - pt1.x),
+        h: Math.abs(pt2.y - pt1.y)
+    };
 }

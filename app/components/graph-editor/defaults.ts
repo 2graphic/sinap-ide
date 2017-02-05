@@ -155,13 +155,13 @@ export const EDGE_DRAG_LINESTYLE: LineStyles = "dotted";
  *   This object is used as the template for `isDrawableEdge`.
  */
 export const EDGE_DEFAULTS: DrawableEdge = {
-    source: null,
-    destination: null,
+    source: NODE_DEFAULTS,
+    destination: NODE_DEFAULTS,
     label: "",
     color: "#000",
     lineStyle: "solid",
     lineWidth: 2,
-    showDestinationArrow: false,
+    showDestinationArrow: true,
     showSourceArrow: false
 };
 
