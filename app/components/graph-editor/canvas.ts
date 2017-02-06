@@ -527,8 +527,8 @@ export class GraphEditorCanvas {
     get size() {
         let el = this.g.canvas;
         return {
-            h: el.height/AA_SCALE,
-            w: el.width/AA_SCALE
+            h: el.height / AA_SCALE,
+            w: el.width / AA_SCALE
         }
     }
 
