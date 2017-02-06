@@ -4,7 +4,7 @@
     background-color: #515151;
 }
 
-h2 {
+#toolbar {
     background-color: #444;
     font-size: 1.25em;
     font-family: sans-serif;
@@ -15,4 +15,29 @@ h2 {
     align-items: center;
 
     padding-left: 0.5em;
+}
+
+.toolbar-button {
+    flex:none;
+    height: .75em;
+    width: .75em;
+    width: 1em;
+    padding: .25em;
+    cursor: pointer;
+    background: grey;
+    border-radius: 4px;
+    margin: 1px;
+}
+
+.disabled {
+    cursor: not-allowed;
+}
+
+.toggled {
+    background: lightgray;
+}
+
+.toolbar-spacer {
+    flex:none;
+    width: .7em;
 }

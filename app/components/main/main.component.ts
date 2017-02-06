@@ -82,7 +82,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     @ViewChild(StatusBarComponent)
     private statusBar: StatusBarComponent;
 
-    onContextChanged = () => { // arrow syntax to bind correct "this"
+    private onContextChanged() {
         if (this.context) {
             this.context.graph.activeEdgeType = "DFAEdge";
             this.context.graph.activeNodeType = "DFANode";
@@ -90,32 +90,29 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 this.graphEditor.redraw();
             }
             if (this.pluginService) {
+                this.barMessages = [];
+
                 if (this.context.graph.core.plugin.kind == MagicConstants.MACHINE_LEARNING_PLUGIN_KIND) {
-                    this.barMessages = []
                     this.package = "Machine Learning"
                 } else {
-                    let interp = this.pluginService.getInterpreter(this.context.graph.core);
                     this.package = "Finite Automata";
-                    interp.then((program) => {
-                        this.barMessages = program.compilationMessages;
-                        for (let triplet of this.testComponent.tests) {
-                            program.run(triplet[0] as string)
-                                .then((output) => {
-                                    triplet[2] = output;
-                                })
-                                .catch((err) => {
-                                    console.log(err);
-                                });
-                        }
-                    })
-                        .catch((err) => {
-                            console.log(err);
-                            this.barMessages = ["Compilation Error", err];
-                        });
+                    this.onChanges();
                 }
             }
         }
-    };
+    }
+
+    private onChanges() {
+        if (this.context && this.context.graph.core.plugin.kind == MagicConstants.DFA_PLUGIN_KIND) {
+            let interp = this.pluginService.getInterpreter(this.context.graph.core);
+            interp.then((program) => {
+                this.barMessages = program.compilationMessages;
+                this.testComponent.runTests(program);
+            }).catch((err) => {
+                this.barMessages = ["Compilation Error:", err];
+            });
+        }
+    }
 
     newFile(f?: String, g?: Core.Graph) {
         const kind = this.toolsPanel.activeGraphType == "Machine Learning" ?
@@ -249,6 +246,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     propertyChanged(event: [PropertiedEntity, keyof PropertiedEntityLists, string, string[]]) {
+        this.onChanges();
+
         // THIS IS SUPER DIRTY AND CJ SHOULD REALLY HOOK THE CHANGE DETECTOR
         // TODO: KILL THIS WITH FIRE
         let [entity, group, key, keyPath] = event;
@@ -258,6 +257,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             this.graphEditor.update(entity as any, drawableKey);
         }
     }
+
     graphSelectionChanged(selected: Set<PropertiedEntity>) {
         let newSelectedEntity: PropertiedEntity | null = null;
         if (selected.size > 0) {
