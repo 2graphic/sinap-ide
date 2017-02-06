@@ -12,45 +12,63 @@ import { Program } from "../../models/plugin";
     styleUrls: ["./test-panel.component.css", "../../styles/bottom-panel.component.css"]
 })
 export class TestPanelComponent {
-    private tests: Test[] = [{
-        input: "101",
-        expected: true,
-        output: null
-    }];
+    private _program: Program | null = null;
 
+    set program(program: Program | null) {
+        this._program = program;
+
+        if (program && this.autoplay) {
+            this.runTests();
+        }
+    }
+
+    get program() {
+        return this._program;
+    }
+
+    private tests: Test[] = [];
     private selected = new Set<Test>();
 
-    // Whether changes to the graph should automatically run through all tests.
+    /**
+     * Whether changes to the graph should automatically run through all tests.
+     */
     private autoplay: Boolean = true;
 
-    // Keep track of last ran program
-    private program: Program | null = null;
-
-    runTests(program?: Program) {
-        if (program) {
-            this.program = program;
-        }
 
 
+    private runTests() {
+        this.tests.forEach((test) => {
+            this.runTest(test);
+        });
+    }
+
+    private runTest(test: Test) {
         if (this.program) {
-            let program = this.program;
-
-            this.tests.forEach((test) => {
-                this.runTestWithProgram(test, program);
+            this.program.run(test.input).then((output) => {
+                console.log(test, output);
+                test.output = output as boolean;
+            }).catch((error) => {
+                test.output = null;
             });
         }
     }
 
-    testChanged(test: Test) {
-        if (this.autoplay && this.program) {
-            this.runTestWithProgram(test, this.program);
+    private runSelectedTests(tests: Set<Test>) {
+        tests.forEach((test) => {
+            this.runTest(test);
+        });
+    }
+
+    private testChanged(test: Test) {
+        if (this.autoplay) {
+            this.runTest(test);
         }
     }
 
-    newTest() {
+    private newTest() {
         this.tests.push({
             input: "",
-            expected: false,
+            expected: true,
             output: null
         });
     }
@@ -80,24 +98,7 @@ export class TestPanelComponent {
 
         this.selected = new Set();
     }
-
-    private runSelectedTests() {
-        if (this.program) {
-            let program = this.program;
-            this.selected.forEach((test) => {
-                this.runTestWithProgram(test, program);
-            });
-        }
-    }
-
-    private runTestWithProgram(test: Test, program: Program) {
-        program.run(test.input).then((output) => {
-            console.log(test, output);
-            test.output = output as boolean;
-        }).catch((error) => {
-            test.output = null;
-        });
-    }
+    
 }
 
 interface Test {

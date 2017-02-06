@@ -107,7 +107,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             let interp = this.pluginService.getInterpreter(this.context.graph.core);
             interp.then((program) => {
                 this.barMessages = program.compilationMessages;
-                this.testComponent.runTests(program);
+                this.testComponent.program = program;
             }).catch((err) => {
                 this.barMessages = ["Compilation Error:", err];
             });

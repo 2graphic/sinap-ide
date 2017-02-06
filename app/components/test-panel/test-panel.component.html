@@ -9,7 +9,7 @@
         <img src="${require('../../images/autoplay.svg')}" (click)="toggleAutoplay()" class="toolbar-button" [class.toggled]="autoplay" [title]="'autorun is '+(autoplay?'on':'off')" />
         <span class="toolbar-spacer"></span>
         <img src="${require('../../images/play-all.svg')}" (click)="runTests()" class="toolbar-button" title="Run all tests" />
-        <img src="${require('../../images/play.svg')}" (click)="runSelectedTests()" class="toolbar-button" title="Run selected tests" [class.disabled]="selected.size == 0" />
+        <img src="${require('../../images/play.svg')}" (click)="runSelectedTests(this.selected)" class="toolbar-button" title="Run selected tests" [class.disabled]="selected.size == 0" />
     </div>
 
     <div *ngIf="tests.length > 0" id="tests">
