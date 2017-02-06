@@ -524,6 +524,14 @@ export class GraphEditorCanvas {
         this.scale = this.scale;
     }
 
+    get size() {
+        let el = this.g.canvas;
+        return {
+            h: el.height / AA_SCALE,
+            w: el.width / AA_SCALE
+        }
+    }
+
     set scale(value: number) {
         value = Math.min(DEFAULT.SCALE_MAX, value);
         value = Math.max(DEFAULT.SCALE_MIN, value);
