@@ -128,19 +128,15 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         });
     }
 
+    ngAfterViewChecked() {
+        this.graphEditor.resize();
+    }
+
     promptNewFile() {
         let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL);
 
         result.then((result: string) => {
             this.newFile(result);
-            setTimeout(() => {
-                /**
-                 * There might be a better way to do this, but during this angular cycle
-                 * the parent element has height 0 so the canvas doesn't get drawn,
-                 * we have to let everything render then resize the canvas.
-                 */
-                this.graphEditor.resize();
-            }, 0);
         });
     }
 
@@ -196,11 +192,9 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                     return;
                 }
 
-                let graph = {
-                    'sinap-file-format-version': "0.0.2",
-                    'graph': this.serializerService.serialize(this.context.graph.core),
-                };
-                this.fileService.writeFile(filename, JSON.stringify(graph))
+                const pojo = this.serializerService.serialize(this.context.graph.core);
+
+                this.fileService.writeFile(filename, JSON.stringify(pojo))
                     .catch((err) => {
                         alert(`Error occurred while saving to file ${filename}: ${err}.`);
                     });
@@ -215,15 +209,16 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                         try {
                             let pojo = JSON.parse(data);
 
-                            if (pojo['sinap-file-format-version'] != "0.0.2") {
+                            if (pojo['sinap-file-format-version'] != "0.0.3") {
                                 throw "invalid file format version";
                             }
 
-                            this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND).then((plugin) => {
-                                this.newFile(filename.substring(Math.max(filename.lastIndexOf("/"),
-                                    filename.lastIndexOf("\\")) + 1),
-                                    new Core.Graph(plugin));
+                            this.serializerService.deserialize(pojo).then((graph) => {
+                                this.newFile(filename, graph);
                             })
+                                .catch((err) => {
+                                    alert(`Could not read graph: ${err}.`);
+                                });
                         } catch (e) {
                             alert(`Could not de-serialize graph: ${e}.`);
                         }
