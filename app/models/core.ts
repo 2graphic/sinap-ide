@@ -28,7 +28,7 @@ export interface Plugin {
     edgePluginData(kind: string): PluginData;
 }
 
-class Element implements PropertiedEntity {
+export class Element implements PropertiedEntity {
     drawablePropertyTypes: [string, string, MetaType][];
     public pluginProperties: MaskingPropertyList;
     public drawableProperties: MappedPropertyList;
