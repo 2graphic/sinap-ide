@@ -4,16 +4,10 @@ import { PropertiedEntity, PropertyList } from "../components/properties-panel/p
 import { Type, MetaType, ClassMetaType, parseScope } from "sinap-core";
 import * as Core from '../models/core';
 import { Object as SinapObject } from "../models/object";
-import { Program, InterpreterError, Graph, ProgramInput, ProgramOutput } from "../models/plugin";
+import { Program, Graph, ProgramInput, ProgramOutput } from "../models/plugin";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { FileService } from "../services/files.service";
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
-
-// TODO:
-// this file has a bunch of calls to 
-// `instanceof` that could probably be encoded in the 
-// type system
-
 
 export class PluginPropertyData implements Core.PluginData {
     backer: any = {};

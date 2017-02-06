@@ -2,14 +2,6 @@ import * as Core from '../models/core';
 import { Type, MetaType } from 'sinap-core';
 
 /**
- * Indicates an error during compilation of a graph. This is a class instead of an interface so that it can be discovered through instanceof.
- */
-export class InterpreterError {
-    constructor(readonly message: string) {
-    }
-}
-
-/**
  * Types which can be used for program input.
  */
 export type ProgramInput = string;
