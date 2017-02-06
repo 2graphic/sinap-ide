@@ -1,0 +1,10 @@
+<div (click)="toggleList()" class="text" [attr.title]="tooltip ? tooltip : text">
+  <div class="toggle">
+    <template [ngIf]="isExpanded">&#9660;</template>
+    <template [ngIf]="!isExpanded">&#9658;</template>
+  </div>
+  <div class="label">{{text}}</div>
+</div>
+<ul [style.display]="isExpanded ? 'inherit' : 'none'">
+  <li *ngFor="let item of items; let i = index" (click)="clickItem($event)" [attr.id]="i" [class.active]="i == selectedIndex">{{item}}</li>
+</ul>
