@@ -29,7 +29,7 @@ import {
     HiddenNode
 } from "./drawable-interfaces";
 
-import { GraphEditorCanvas, makeRect, point, rect } from "./canvas";
+import { GraphEditorCanvas, makeRect, point, rect } from "./graph-editor-canvas";
 import { GraphEditorNode } from "./graph-editor-node";
 import { GraphEditorEdge } from "./graph-editor-edge";
 import * as DEFAULT from "./defaults";

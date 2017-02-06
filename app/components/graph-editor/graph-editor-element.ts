@@ -4,7 +4,7 @@
 
 
 import { FONT_FAMILY, FONT_SIZE } from "./defaults";
-import { GraphEditorCanvas, point, rect, size } from "./canvas";
+import { GraphEditorCanvas, point, rect, size } from "./graph-editor-canvas";
 import { Drawable, DrawableElement } from "./drawable-interfaces";
 
 

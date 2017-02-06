@@ -1,4 +1,4 @@
-// File: canvas.ts
+// File: graph-editor-canvas.ts
 // Created by: CJ Dimaano
 // Date created: January 9, 2016
 //

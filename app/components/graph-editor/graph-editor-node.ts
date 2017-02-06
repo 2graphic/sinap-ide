@@ -15,7 +15,7 @@ import {
 import { GraphEditorElement } from "./graph-editor-element";
 import { DrawableNode, HiddenNode } from "./drawable-interfaces";
 import { GraphEditorEdge } from "./graph-editor-edge";
-import { makeRect, point, rect, size, GraphEditorCanvas } from "./canvas";
+import { makeRect, point, rect, size, GraphEditorCanvas } from "./graph-editor-canvas";
 import * as MathEx from "./math";
 
 

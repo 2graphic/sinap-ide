@@ -12,7 +12,7 @@ import {
 import { DrawableEdge, DrawableNode } from "./drawable-interfaces";
 import { GraphEditorElement } from "./graph-editor-element";
 import { GraphEditorNode } from "./graph-editor-node";
-import { GraphEditorCanvas, makeRect, point, rect, size } from "./canvas";
+import { GraphEditorCanvas, makeRect, point, rect, size } from "./graph-editor-canvas";
 import * as MathEx from "./math";
 
 
