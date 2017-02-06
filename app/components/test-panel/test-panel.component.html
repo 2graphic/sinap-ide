@@ -12,31 +12,33 @@
         <img src="${require('../../images/play.svg')}" (click)="runSelectedTests()" class="toolbar-button" title="Run selected tests" [class.disabled]="selected.size == 0" />
     </div>
 
-    <table *ngIf="tests.length > 0">
-        <tr class="header">
-            <td>Input</td>
-            <td>Expected Result</td>
-            <td>Actual Result</td>
-        </tr>
-        <tr *ngFor="let test of tests" [class.bad]="test.output == null || test.output != test.expected" [class.selected]="selected.has(test)"
-            (click)="select(test)">
-            <td>
-                <input type="text" [(ngModel)]="test.input" (ngModelChange)="testChanged(test)"/>
-            </td>
-            <td>
-                <select [(ngModel)]="test.expected" (ngModelChange)="testChanged(test)">
-                    <option [ngValue]="true">True</option>
-                    <option [ngValue]="false">False</option>
-                </select>
-            </td>
-            <td>
-                <select [(ngModel)]="test.output" disabled>
-                    <option [ngValue]="true">True</option>
-                    <option [ngValue]="false">False</option>
-                </select>
-            </td>
-        </tr>
-    </table>
+    <div *ngIf="tests.length > 0" id="tests">
+        <table>
+            <tr class="header">
+                <td>Input</td>
+                <td>Expected Result</td>
+                <td>Actual Result</td>
+            </tr>
+            <tr *ngFor="let test of tests" [class.bad]="test.output == null || test.output != test.expected" [class.selected]="selected.has(test)"
+                (click)="select(test)">
+                <td>
+                    <input type="text" [(ngModel)]="test.input" (ngModelChange)="testChanged(test)"/>
+                </td>
+                <td>
+                    <select [(ngModel)]="test.expected" (ngModelChange)="testChanged(test)">
+                        <option [ngValue]="true">True</option>
+                        <option [ngValue]="false">False</option>
+                    </select>
+                </td>
+                <td>
+                    <select [(ngModel)]="test.output" disabled>
+                        <option [ngValue]="true">True</option>
+                        <option [ngValue]="false">False</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
     <div *ngIf="tests.length == 0" id="empty">
         <p>Click the plus to create a new unit test.</p>
     </div>
