@@ -11,7 +11,7 @@ import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service"
 import { GraphEditorComponent, Drawable as DrawableInterface } from "../graph-editor/graph-editor.component";
 import { PluginService } from "../../services/plugin.service";
-import { InterpreterError, Program } from "../../models/plugin";
+import { Program } from "../../models/plugin";
 import { WindowService } from "../../modal-windows/services/window.service"
 import { ModalInfo, ModalType } from './../../models/modal-window'
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
@@ -82,7 +82,20 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     @ViewChild(StatusBarComponent)
     private statusBar: StatusBarComponent;
 
+
+    private getInterpreter(): Promise<Program> {
+        const context = this.context;
+        if (context) {
+            const graph = this.serializerService.serialize(context.graph.core);
+            return this.pluginService.getInterpreter(graph);
+        } else {
+            return Promise.reject("No graph context available");
+        }
+    }
+
     private onContextChanged() {
+        this.barMessages = []
+
         if (this.context) {
             this.context.graph.activeEdgeType = "DFAEdge";
             this.context.graph.activeNodeType = "DFANode";
@@ -90,8 +103,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 this.graphEditor.redraw();
             }
             if (this.pluginService) {
-                this.barMessages = [];
-
                 if (this.context.graph.core.plugin.kind == MagicConstants.MACHINE_LEARNING_PLUGIN_KIND) {
                     this.package = "Machine Learning"
                 } else {
@@ -100,11 +111,11 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 }
             }
         }
-    }
+    };
 
     private onChanges() {
         if (this.context && this.context.graph.core.plugin.kind == MagicConstants.DFA_PLUGIN_KIND) {
-            let interp = this.pluginService.getInterpreter(this.context.graph.core);
+            let interp = this.getInterpreter();
             interp.then((program) => {
                 this.barMessages = program.compilationMessages;
                 this.testComponent.program = program;
@@ -194,7 +205,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
                 const pojo = this.serializerService.serialize(this.context.graph.core);
 
-                this.fileService.writeFile(filename, JSON.stringify(pojo))
+                this.fileService.writeFile(filename, JSON.stringify(pojo, null, 4))
                     .catch((err) => {
                         alert(`Error occurred while saving to file ${filename}: ${err}.`);
                     });
@@ -230,14 +241,15 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     run(input: string): Promise<string> {
-        if (this.context) {
-            let interpreter = this.pluginService.getInterpreter(this.context.graph.core);
-            return interpreter.then((program) => {
-                return program.run(input);
+        let interpreter = this.getInterpreter()
+            .catch((err) => {
+                this.barMessages = ['Compilation error', err];
+                return Promise.reject(err);
             });
-        } else {
-            throw new Error("No Graph to Run");
-        }
+        return interpreter.then((program) => {
+            this.barMessages = program.compilationMessages;
+            return program.run(input).then((obj: any): string => obj.toString());
+        });
     }
 
     propertyChanged(event: [PropertiedEntity, keyof PropertiedEntityLists, string, string[]]) {
