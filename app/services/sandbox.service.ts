@@ -5,24 +5,26 @@ import { Program } from "../models/plugin"
 import { remote } from 'electron';
 const vm = remote.require('vm');
 
-// TODO remove
-export class NativeResult { };
+interface ScriptLike {
+    runInContext(context: Context): any;
+}
 
-export class Script {
-    constructor(private nodeScript: { runInContext(ctx: Context): NativeResult }) {
+// TODO: I'm half tempted to make either this generic or ScriptLike just use any.
+export class Script implements ScriptLike {
+    constructor(private nodeScript: ScriptLike) {
     }
 
     // TODO: Make this run in a separate thread/process for performance.
-    // `Promise<any>` appears to be toxic to TypeScript's type inference
-    // and type engine in general. This forces an explicit case when you
-    // use run in context, but allows type inference to mostly keep 
-    // flowing
-    runInContext(context: Context | Promise<Context>): Promise<NativeResult> {
-        if (!(context instanceof Promise)) {
-            context = Promise.resolve(context);
-        }
-
-        return context.then((ctx) => this.nodeScript.runInContext(ctx));
+    // Even if Promise<any> messes with type inference, trying to hack around it just obfuscates code.
+    runInContext(context: Context): Promise<any> {
+        // It is generally bad form to accept a promise as input unless you can do work before you need that promise.
+        return new Promise((resolve, reject) => {
+            try {
+                resolve(this.nodeScript.runInContext(context));
+            } catch(err) {
+                reject(err);
+            }
+        });
     }
 }
 

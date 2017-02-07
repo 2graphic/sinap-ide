@@ -4,9 +4,10 @@ import { PropertiedEntity, PropertyList } from "../components/properties-panel/p
 import { Type, MetaType, ClassMetaType, parseScope } from "sinap-core";
 import * as Core from '../models/core';
 import { Object as SinapObject } from "../models/object";
-import { Program, Graph, ProgramInput, ProgramOutput } from "../models/plugin";
+import { Program, ProgramInput, ProgramOutput } from "../models/plugin";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { FileService } from "../services/files.service";
+import { SerializerService } from "../services/serializer.service"
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
 export class PluginPropertyData implements Core.PluginData {
@@ -101,11 +102,12 @@ export class PluginService {
     private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, { definitions: "./dfa-definition.sinapdef", interpreter: "./build/plugins/dfa-interpreter.js" }]])
 
     constructor( @Inject(FileService) private fileService: FileService,
-        @Inject(SandboxService) private sandboxService: SandboxService) {
+        @Inject(SandboxService) private sandboxService: SandboxService, 
+        @Inject(SerializerService) private serializerService: SerializerService) {
         this.interpretCode = sandboxService.compileScript('sinap.__program = module.interpret(sinap.__graph)');
         // TODO: Make sure that there is nothing weird about the output returned from the plugin
         // (such as an infinite loop for toString). Maybe make sure that it is JSON only?
-        this.runInputCode = sandboxService.compileScript('sinap.__program.then((program) => program.run(sinap.__input))');
+        this.runInputCode = sandboxService.compileScript('sinap.__program.run(sinap.__input)');
     }
 
     public getInterpreter(graph: Core.Graph): Promise<Program> {
@@ -113,18 +115,22 @@ export class PluginService {
             throw "Error: only get interpreters for graphs created with PluginService";
         }
 
-        let context = this.addToContext(this.getContext(graph.plugin.script), "__graph", new Graph(graph));
+        let serialGraph = this.serializerService.serialize(graph);
+        let context = this.getContext(graph.plugin.script) 
 
-        return this.interpretCode
-            .runInContext(context)
-            .then<Program>((program) => {
+        return context.then((context: Context): Promise<Program> => {
+            context.sinap.__graph = serialGraph;
+            return this.interpretCode.runInContext(context)
+            .then((_): Program => {
                 return {
-                    run: (input: ProgramInput): Promise<ProgramOutput> =>
-                        this.runInputCode
-                            .runInContext(this.addToContext(context, "__input", input)),
-                    compilationMessages: [""]
+                    run: (input: ProgramInput): Promise<ProgramOutput> => {
+                        context.sinap.__input = input;
+                        return this.runInputCode.runInContext(context);
+                    },
+                    compilationMessages: context.sinap.__program.compilationMessages
                 };
             });
+        })
     }
 
     public getPlugin(kind: string): Promise<ConcretePlugin> {
@@ -203,12 +209,5 @@ export class PluginService {
         });
 
         return script.runInContext(context).then((_) => context);
-    }
-
-    private addToContext(ctx: Promise<Context>, key: string, value: any) {
-        return ctx.then((context) => {
-            context.sinap[key] = value;
-            return context;
-        })
     }
 }
