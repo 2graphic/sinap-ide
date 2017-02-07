@@ -98,7 +98,7 @@ export class TestPanelComponent {
 
         this.selected = new Set();
     }
-    
+
 }
 
 interface Test {
