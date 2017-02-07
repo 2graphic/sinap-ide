@@ -83,7 +83,7 @@ interface Edge extends Element {
 
 function transferProperties(source: any, destination: PropertyObject) {
     const propSet = source.pluginProperties;
-    for(const propName in propSet) {
+    for (const propName in propSet) {
         destination[propName] = propSet[propName];
     }
 }
@@ -100,7 +100,7 @@ class Graph implements PropertyObject {
     public constructor(serialGraph: any) {
         serialGraph = serialGraph.graph;
         transferProperties(serialGraph, this);
-        
+
         this.nodes = serialGraph.nodes.map((oldNode: any) => {
             const result: Node = {
                 label: oldNode.label,

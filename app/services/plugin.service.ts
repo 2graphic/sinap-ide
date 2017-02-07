@@ -102,7 +102,7 @@ export class PluginService {
     private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, { definitions: "./dfa-definition.sinapdef", interpreter: "./build/plugins/dfa-interpreter.js" }]])
 
     constructor( @Inject(FileService) private fileService: FileService,
-        @Inject(SandboxService) private sandboxService: SandboxService, 
+        @Inject(SandboxService) private sandboxService: SandboxService,
         @Inject(SerializerService) private serializerService: SerializerService) {
         this.interpretCode = sandboxService.compileScript('sinap.__program = module.interpret(sinap.__graph)');
         // TODO: Make sure that there is nothing weird about the output returned from the plugin
@@ -116,20 +116,20 @@ export class PluginService {
         }
 
         let serialGraph = this.serializerService.serialize(graph);
-        let context = this.getContext(graph.plugin.script) 
+        let context = this.getContext(graph.plugin.script)
 
         return context.then((context: Context): Promise<Program> => {
             context.sinap.__graph = serialGraph;
             return this.interpretCode.runInContext(context)
-            .then((_): Program => {
-                return {
-                    run: (input: ProgramInput): Promise<ProgramOutput> => {
-                        context.sinap.__input = input;
-                        return this.runInputCode.runInContext(context);
-                    },
-                    compilationMessages: context.sinap.__program.compilationMessages
-                };
-            });
+                .then((_): Program => {
+                    return {
+                        run: (input: ProgramInput): Promise<ProgramOutput> => {
+                            context.sinap.__input = input;
+                            return this.runInputCode.runInContext(context);
+                        },
+                        compilationMessages: context.sinap.__program.compilationMessages
+                    };
+                });
         })
     }
 

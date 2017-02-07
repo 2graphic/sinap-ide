@@ -21,7 +21,7 @@ export class Script implements ScriptLike {
         return new Promise((resolve, reject) => {
             try {
                 resolve(this.nodeScript.runInContext(context));
-            } catch(err) {
+            } catch (err) {
                 reject(err);
             }
         });
