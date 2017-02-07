@@ -111,10 +111,6 @@ export class PluginService {
 
     // graph should be a serialized graph.
     public getInterpreter(graph: any): Promise<Program> {
-        if (!(graph.plugin instanceof ConcretePlugin)) {
-            throw "Error: only get interpreters for graphs created with PluginService";
-        }
-
         let context = this.getContext(graph.plugin.script)
 
         return context.then((context: Context): Promise<Program> => {
