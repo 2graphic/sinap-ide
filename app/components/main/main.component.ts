@@ -82,6 +82,16 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     @ViewChild(StatusBarComponent)
     private statusBar: StatusBarComponent;
 
+    private getInterpreter(): Promise<Program> {
+        const context = this.context;
+        if (context) {
+            const graph = this.serializerService.serialize(context.graph.core);
+            return this.pluginService.getInterpreter(graph);
+        } else {
+            return Promise.reject("No graph context available");
+        }
+    }
+
     onContextChanged = () => { // arrow syntax to bind correct "this"
         if (this.context) {
             this.context.graph.activeEdgeType = "DFAEdge";
@@ -94,7 +104,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                     this.barMessages = []
                     this.package = "Machine Learning"
                 } else {
-                    let interp = this.pluginService.getInterpreter(this.context.graph.core);
+                    let interp = this.getInterpreter();
                     this.package = "Finite Automata";
                     interp.then((program) => {
                         this.barMessages = program.compilationMessages;
@@ -233,14 +243,15 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     run(input: string): Promise<string> {
-        if (this.context) {
-            let interpreter = this.pluginService.getInterpreter(this.context.graph.core);
-            return interpreter.then((program) => {
-                return program.run(input);
-            });
-        } else {
-            throw new Error("No Graph to Run");
-        }
+        let interpreter = this.getInterpreter();
+        return interpreter.then((program) => {
+            this.barMessages = program.compilationMessages;
+            return program.run(input).then((obj: any): string => obj.toString());
+        })
+        .catch((err) => {
+            this.barMessages = ['Compilation error', err];
+            return Promise.reject(err);
+        });
     }
 
     propertyChanged(event: [PropertiedEntity, keyof PropertiedEntityLists, string, string[]]) {

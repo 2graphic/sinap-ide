@@ -102,24 +102,23 @@ export class PluginService {
     private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, { definitions: "./dfa-definition.sinapdef", interpreter: "./build/plugins/dfa-interpreter.js" }]])
 
     constructor( @Inject(FileService) private fileService: FileService,
-        @Inject(SandboxService) private sandboxService: SandboxService,
-        @Inject(SerializerService) private serializerService: SerializerService) {
+        @Inject(SandboxService) private sandboxService: SandboxService) {
         this.interpretCode = sandboxService.compileScript('sinap.__program = module.interpret(sinap.__graph)');
         // TODO: Make sure that there is nothing weird about the output returned from the plugin
         // (such as an infinite loop for toString). Maybe make sure that it is JSON only?
         this.runInputCode = sandboxService.compileScript('sinap.__program.run(sinap.__input)');
     }
 
-    public getInterpreter(graph: Core.Graph): Promise<Program> {
+    // graph should be a serialized graph.
+    public getInterpreter(graph: any): Promise<Program> {
         if (!(graph.plugin instanceof ConcretePlugin)) {
             throw "Error: only get interpreters for graphs created with PluginService";
         }
 
-        let serialGraph = this.serializerService.serialize(graph);
         let context = this.getContext(graph.plugin.script)
 
         return context.then((context: Context): Promise<Program> => {
-            context.sinap.__graph = serialGraph;
+            context.sinap.__graph = graph;
             return this.interpretCode.runInContext(context)
                 .then((_): Program => {
                     return {
