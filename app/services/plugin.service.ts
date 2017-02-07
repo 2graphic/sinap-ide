@@ -111,7 +111,9 @@ export class PluginService {
 
     // graph should be a serialized graph.
     public getInterpreter(graph: any): Promise<Program> {
-        let context = this.getContext(graph.plugin.script)
+        let context = this.getPlugin(graph.plugin).then((plugin) => {
+            return this.getContext(plugin.script);
+        });
 
         return context.then((context: Context): Promise<Program> => {
             context.sinap.__graph = graph;
@@ -199,8 +201,6 @@ export class PluginService {
                 __graph: null,
                 __input: null
             },
-
-            interpret: null
         });
 
         return script.runInContext(context).then((_) => context);
