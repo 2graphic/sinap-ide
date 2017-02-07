@@ -103,7 +103,12 @@ export class PluginService {
 
     constructor( @Inject(FileService) private fileService: FileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
-        this.interpretCode = sandboxService.compileScript('sinap.__program = module.interpret(sinap.__graph)');
+        this.interpretCode = sandboxService.compileScript(`
+            try{
+                sinap.__program = module.interpret(sinap.__graph);
+            } catch(err) {
+                sinap.__err = err.toString();
+            }`);
         // TODO: Make sure that there is nothing weird about the output returned from the plugin
         // (such as an infinite loop for toString). Maybe make sure that it is JSON only?
         this.runInputCode = sandboxService.compileScript('sinap.__program.run(sinap.__input)');
@@ -119,13 +124,18 @@ export class PluginService {
             context.sinap.__graph = graph;
             return this.interpretCode.runInContext(context)
                 .then((_): Program => {
-                    return {
-                        run: (input: ProgramInput): Promise<ProgramOutput> => {
-                            context.sinap.__input = input;
-                            return this.runInputCode.runInContext(context);
-                        },
-                        compilationMessages: context.sinap.__program.compilationMessages
-                    };
+                    console.log(context);
+                    if (context.sinap.__err) {
+                        return Promise.reject(context.sinap.__err) as any;
+                    } else {
+                        return {
+                                run: (input: ProgramInput): Promise<ProgramOutput> => {
+                                    context.sinap.__input = input;
+                                    return this.runInputCode.runInContext(context);
+                                },
+                                compilationMessages: context.sinap.__program.compilationMessages
+                            };
+                    }
                 });
         })
     }

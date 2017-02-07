@@ -103,7 +103,7 @@ class Graph implements PropertyObject {
 
         this.nodes = serialGraph.nodes.map((oldNode: any) => {
             const result: Node = {
-                label: oldNode.Label,
+                label: oldNode.drawableProperties.Label,
                 parents: [],
                 children: []
             };
@@ -117,7 +117,7 @@ class Graph implements PropertyObject {
             const destination = this.nodes[oldEdge.destination];
 
             const result: Edge = {
-                label: oldEdge.Label,
+                label: oldEdge.pluginProperties.Symbol,
                 source: source,
                 destination: destination
             };
@@ -142,6 +142,8 @@ export function interpret(serialGraph: any): Program {
 
     for (let edge of graph.edges) {
         let sym: string = edge.label;
+        // if (!sym)
+        //     throw "Sym is null.";
         if (sym.length != 1) {
             throw "Symbols must be one character";
         }

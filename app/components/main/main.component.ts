@@ -243,15 +243,15 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     run(input: string): Promise<string> {
-        let interpreter = this.getInterpreter();
-        return interpreter.then((program) => {
-            this.barMessages = program.compilationMessages;
-            return program.run(input).then((obj: any): string => obj.toString());
-        })
+        let interpreter = this.getInterpreter()
             .catch((err) => {
                 this.barMessages = ['Compilation error', err];
                 return Promise.reject(err);
             });
+        return interpreter.then((program) => {
+            this.barMessages = program.compilationMessages;
+            return program.run(input).then((obj: any): string => obj.toString());
+        })
     }
 
     propertyChanged(event: [PropertiedEntity, keyof PropertiedEntityLists, string, string[]]) {
