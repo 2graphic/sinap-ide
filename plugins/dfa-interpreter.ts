@@ -94,7 +94,7 @@ function transferProperties(source: any, destination: PropertyObject) {
  * should be done in a consistent fashion. TODO: Make mutator methods for plugins to utilize once mutation of the graph
  * during interpretation is added.
  */
-class Graph implements PropertyObject {
+export class Graph implements PropertyObject {
     nodes: Node[];
     edges: Edge[];
     public constructor(serialGraph: any) {
@@ -134,8 +134,7 @@ class Graph implements PropertyObject {
 /**
  * This function compiles a DFA.
  */
-export function interpret(serialGraph: any): Program {
-    let graph = new Graph(serialGraph);
+export function interpret(graph: Graph): Program {
     let alphabet = new Set<string>();
     let acceptStates = [];
     var startState: Node | null = null;

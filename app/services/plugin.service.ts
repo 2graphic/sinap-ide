@@ -105,7 +105,7 @@ export class PluginService {
         @Inject(SandboxService) private sandboxService: SandboxService) {
         this.interpretCode = sandboxService.compileScript(`
             try{
-                sinap.__program = module.interpret(sinap.__graph);
+                sinap.__program = module.interpret(new module.Graph(sinap.__graph));
             } catch (err) {
                 sinap.__err = err.toString();
             }`);
