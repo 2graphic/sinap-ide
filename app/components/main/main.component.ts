@@ -207,7 +207,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
                 const pojo = this.serializerService.serialize(this.context.graph.core);
 
-                this.fileService.writeFile(filename, JSON.stringify(pojo))
+                this.fileService.writeFile(filename, JSON.stringify(pojo, null, 4))
                     .catch((err) => {
                         alert(`Error occurred while saving to file ${filename}: ${err}.`);
                     });
