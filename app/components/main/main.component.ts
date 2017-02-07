@@ -11,7 +11,7 @@ import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service"
 import { GraphEditorComponent, Drawable as DrawableInterface } from "../graph-editor/graph-editor.component";
 import { PluginService } from "../../services/plugin.service";
-import { InterpreterError, Program } from "../../models/plugin";
+import { Program } from "../../models/plugin";
 import { WindowService } from "../../modal-windows/services/window.service"
 import { ModalInfo, ModalType } from './../../models/modal-window'
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
