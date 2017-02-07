@@ -106,12 +106,18 @@ export class PluginService {
         this.interpretCode = sandboxService.compileScript(`
             try{
                 sinap.__program = module.interpret(sinap.__graph);
-            } catch(err) {
+            } catch (err) {
                 sinap.__err = err.toString();
             }`);
         // TODO: Make sure that there is nothing weird about the output returned from the plugin
         // (such as an infinite loop for toString). Maybe make sure that it is JSON only?
-        this.runInputCode = sandboxService.compileScript('sinap.__program.run(sinap.__input)');
+        this.runInputCode = sandboxService.compileScript(`
+            try {
+                sinap.__result = sinap.__program.run(sinap.__input)
+            } catch (err) {
+                sinap.__err = err.toString();
+            }
+        `);
     }
 
     // graph should be a serialized graph.
@@ -130,7 +136,15 @@ export class PluginService {
                         return {
                             run: (input: ProgramInput): Promise<ProgramOutput> => {
                                 context.sinap.__input = input;
-                                return this.runInputCode.runInContext(context);
+                                context.sinap.__err = null;
+                                return this.runInputCode.runInContext(context)
+                                    .then((_) => {
+                                        if (context.sinap.__err) {
+                                            return Promise.reject(context.sinap.__err) as any;
+                                        } else {
+                                            return context.sinap.__result;
+                                        }
+                                    });
                             },
                             compilationMessages: context.sinap.__program.compilationMessages
                         };
@@ -209,7 +223,8 @@ export class PluginService {
                 __program: null,
                 __graph: null,
                 __input: null,
-                __err: null
+                __err: null,
+                __result: null
             },
         });
 
