@@ -124,17 +124,16 @@ export class PluginService {
             context.sinap.__graph = graph;
             return this.interpretCode.runInContext(context)
                 .then((_): Program => {
-                    console.log(context);
-                    if (context.sinap.__err) {
+                    if (!context.sinap.__program) {
                         return Promise.reject(context.sinap.__err) as any;
                     } else {
                         return {
-                                run: (input: ProgramInput): Promise<ProgramOutput> => {
-                                    context.sinap.__input = input;
-                                    return this.runInputCode.runInContext(context);
-                                },
-                                compilationMessages: context.sinap.__program.compilationMessages
-                            };
+                            run: (input: ProgramInput): Promise<ProgramOutput> => {
+                                context.sinap.__input = input;
+                                return this.runInputCode.runInContext(context);
+                            },
+                            compilationMessages: context.sinap.__program.compilationMessages
+                        };
                     }
                 });
         })
@@ -209,7 +208,8 @@ export class PluginService {
             sinap: {
                 __program: null,
                 __graph: null,
-                __input: null
+                __input: null,
+                __err: null
             },
         });
 

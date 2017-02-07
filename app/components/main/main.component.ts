@@ -251,7 +251,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         return interpreter.then((program) => {
             this.barMessages = program.compilationMessages;
             return program.run(input).then((obj: any): string => obj.toString());
-        })
+        });
     }
 
     propertyChanged(event: [PropertiedEntity, keyof PropertiedEntityLists, string, string[]]) {
