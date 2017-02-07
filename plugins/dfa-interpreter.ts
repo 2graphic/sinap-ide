@@ -103,7 +103,7 @@ class Graph implements PropertyObject {
 
         this.nodes = serialGraph.nodes.map((oldNode: any) => {
             const result: Node = {
-                label: oldNode.label,
+                label: oldNode.Label,
                 parents: [],
                 children: []
             };
@@ -117,7 +117,7 @@ class Graph implements PropertyObject {
             const destination = this.nodes[oldEdge.destination];
 
             const result: Edge = {
-                label: oldEdge.label,
+                label: oldEdge.Label,
                 source: source,
                 destination: destination
             };
@@ -149,13 +149,13 @@ export function interpret(serialGraph: any): Program {
     }
 
     for (let node of graph.nodes) {
-        if (node['isStartState']) {
+        if (node['Start State']) {
             if (startState != null) {
                 throw "Too many start states.";
             }
             startState = node;
         }
-        if (node['isAcceptState']) {
+        if (node['Accept State']) {
             acceptStates.push(node);
         }
         let symbols = node.children.map((edge: Edge) => edge.label);
@@ -201,6 +201,6 @@ export class DFAProgram implements Program {
                 throw "This is a DFA!";
             }
         }
-        return current['isAcceptState'];
+        return current['Accept State'];
     }
 }
