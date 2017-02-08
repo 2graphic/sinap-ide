@@ -10,7 +10,7 @@
 //
 
 
-import { DrawableEdge, DrawableNode, LineStyles } from "./drawable-interfaces";
+import { LineStyles } from "./graph-editor-canvas";
 
 
 /**
@@ -99,20 +99,17 @@ export const NUDGE: number = 3;
 export const STICKY_DELAY: number = 500;
 
 /**
- * NODE_DEFAULTS  
+ * NODE_PROPERTIES  
  *   Default property values for drawable nodes.
- * 
- *   Only `DrawableNode` properties should be in this object and nothing else.
- *   This object is used as the template for `isDrawableNode`.
  */
-export const NODE_DEFAULTS: DrawableNode = {
-    position: { x: 0, y: 0 },
-    label: "",
-    shape: "circle",
-    color: "#fff200",
-    borderColor: "#000",
-    borderStyle: "solid",
-    borderWidth: 1
+export const NODE_PROPERTIES = {
+    get position() { return { get x() { return 0; }, get y() { return 0; } }; },
+    get label() { return ""; },
+    get shape() { return "circle"; },
+    get color() { return "#fff200"; },
+    get borderColor() { return "#000"; },
+    get borderStyle() { return "solid"; },
+    get borderWidth() { return 1; }
 };
 
 /**
@@ -148,21 +145,16 @@ export const EDGE_HIT_MARGIN: number = 20;
 export const EDGE_DRAG_LINESTYLE: LineStyles = "dotted";
 
 /**
- * EDGE_DEFAULTS  
+ * EDGE_PROPERTIES  
  *   Default property values for drawable edges.
- * 
- *   Only `DrawableEdge` properties should be in this object and nothing else.
- *   This object is used as the template for `isDrawableEdge`.
  */
-export const EDGE_DEFAULTS: DrawableEdge = {
-    source: NODE_DEFAULTS,
-    destination: NODE_DEFAULTS,
-    label: "",
-    color: "#000",
-    lineStyle: "solid",
-    lineWidth: 2,
-    showDestinationArrow: true,
-    showSourceArrow: false
+export const EDGE_PROPERTIES = {
+    get label() { return ""; },
+    get color() { return "#000"; },
+    get lineStyle() { return "solid"; },
+    get lineWidth() { return 2; },
+    get showDestinationArrow() { return true; },
+    get showSourceArrow() { return false; }
 };
 
 /**

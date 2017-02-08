@@ -1,34 +1,69 @@
-// File: graph-editor-edge.ts
+// File: drawable-edge.ts
 // Created by: CJ Dimaano
 // Date created: February 4, 2017
 
 
 import {
+    EDGE_PROPERTIES,
     EDGE_HIT_MARGIN,
     GRID_SPACING,
     SELECTION_COLOR
 } from "./defaults";
 
-import { DrawableEdge, DrawableNode } from "./drawable-interfaces";
-import { GraphEditorElement } from "./graph-editor-element";
-import { GraphEditorNode } from "./graph-editor-node";
-import { GraphEditorCanvas, makeRect, point, rect, size } from "./graph-editor-canvas";
+import { DrawableGraph } from "./drawable-graph";
+import { DrawableElement } from "./drawable-element";
+import { DrawableNode } from "./drawable-node";
+import {
+    GraphEditorCanvas,
+    LineStyles,
+    makeRect,
+    point,
+    rect,
+    size
+} from "./graph-editor-canvas";
 import * as MathEx from "./math";
 
 
-export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
+export class DrawableEdge extends DrawableElement {
 
-    private pts: point[];
+    // TODO:
+    // Each time a property is updated, mark this as dirty to signal a redraw.
+
+    /**
+     * showSourceArrow  
+     *   True to draw an arrow pointing to the source node; otherwise, false.
+     */
+    private _srcArrow: boolean;
+
+    /**
+     * showDestinationArrow  
+     *   True to draw an arrow pointing to the destination node; otherwise, false.
+     */
+    private _dstArrow: boolean;
+
+    /**
+     * lineStyle  
+     *   The line style of the edge. This can be `solid`, `dotted`, or `dashed`.
+     */
+    private _lineStyle: LineStyles;
+
+    /**
+     * lineWidth  
+     *   The width of the edge. This value must be non-negative.
+     */
+    private _lineWidth: number;
+
+    private _pts: point[];
 
     private set points(value: point[]) {
-        if (this.pts.length == value.length) {
+        if (this._pts.length == value.length) {
             for (let i = 0; i < value.length; i++) {
-                this.pts[i].x = value[i].x;
-                this.pts[i].y = value[i].y;
+                this._pts[i].x = value[i].x;
+                this._pts[i].y = value[i].y;
             }
         }
         else {
-            this.pts = value;
+            this._pts = value;
             this.updateDraw();
         }
     }
@@ -42,27 +77,65 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
     }
 
     get sourcePoint() {
-        return this.pts[0];
+        return this._pts[0];
     }
 
     get destinationPoint() {
-        return this.pts[1];
+        return this._pts[1];
+    }
+
+    get showSourceArrow() {
+        return this._srcArrow;
+    }
+
+    set showSourceArrow(value: boolean) {
+        if (this._srcArrow !== value) {
+            this._srcArrow = value;
+            this.updateDraw();
+        }
+    }
+
+    get showDestinationArrow() {
+        return this._dstArrow;
+    }
+
+    set showDestinationArrow(value: boolean) {
+        if (this._dstArrow !== value) {
+            this._dstArrow = value;
+            this.updateDraw();
+        }
+    }
+
+    get lineStyle() {
+        return this._lineStyle;
+    }
+
+    set lineStyle(value: LineStyles) {
+        if (this._lineStyle !== value) {
+            this._lineStyle = value;
+        }
+    }
+
+    get lineWidth() {
+        return this._lineWidth;
+    }
+
+    set lineWidth(value: number) {
+        if (this._lineWidth !== value) {
+            this._lineWidth = value;
+        }
     }
 
     constructor(
-        private src: GraphEditorNode,
-        private dst: GraphEditorNode,
-        d: DrawableEdge,
-        g: GraphEditorCanvas
+        private src: DrawableNode,
+        private dst: DrawableNode,
+        g: GraphEditorCanvas,
+        graph: DrawableGraph
     ) {
-        super(d, g);
-        src.outgoingEdges.add(this);
-        dst.incomingEdges.add(this);
-        this.pts = [];
-        this.update();
+        super(g, graph);
     }
 
-    protected updateGeometry(): void {
+    update(): void {
         console.assert(
             !this.src.isHidden || !this.dst.isHidden,
             "error GraphEditorEdge.updatePoints: drawable edge must " +
@@ -77,13 +150,13 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
             this.updateOverlappedEdges();
     }
 
-    protected updateDraw() {
+    updateDraw() {
         let hovered = this.isHovered;
         /////////////////////////
         // Set selected shadow //
         /////////////////////////
         if (this.isSelected) {
-            let preDrawThunk = this.makePreDrawEdge(SELECTION_COLOR, this.d.lineWidth + 4, "solid", false, this.isHovered);
+            let preDrawThunk = this.makePreDrawEdge(SELECTION_COLOR, this._lineWidth + 4, "solid", false, this.isHovered);
             let traceThunk = this.makeTraceEdge();
             let drawLabelThunk = () => { };
             if (this.textLines.length > 0) {
@@ -92,7 +165,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
                     w: this.textBox.w + 4
                 }
                 drawLabelThunk = () => {
-                    this.g.lineWidth = this.d.lineWidth;
+                    this.g.lineWidth = this._lineWidth;
                     this.g.fillStyle = SELECTION_COLOR;
                     this.drawLabelRect();
                 };
@@ -114,7 +187,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
         //////////////
         // Set edge //
         //////////////
-        let preDrawThunk = this.makePreDrawEdge(this.d.color, this.d.lineWidth, this.d.lineStyle, this.isDragging, hovered);
+        let preDrawThunk = this.makePreDrawEdge(this._color, this._lineWidth, this._lineStyle, this.isDragging, hovered);
         let traceThunk = this.makeTraceEdge();
         let drawLabelThunk = () => { };
         if (this.textLines.length > 0) {
@@ -135,10 +208,10 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
 
     hitPoint(pt: point): point | null {
         if (!(this.src.isHidden || this.dst.isHidden)) {
-            let src = this.pts[0];
-            let dst = this.pts[1];
-            let mid = this.pts[2];
-            let margin = this.d.lineWidth * this.d.lineWidth + EDGE_HIT_MARGIN * EDGE_HIT_MARGIN;
+            let src = this._pts[0];
+            let dst = this._pts[1];
+            let mid = this._pts[2];
+            let margin = this._lineWidth * this._lineWidth + EDGE_HIT_MARGIN * EDGE_HIT_MARGIN;
 
             let tl = {
                 x: Math.min(src.x, dst.x, mid.x) - margin,
@@ -149,11 +222,11 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
                 y: Math.max(src.y, dst.y, mid.y) + margin
             };
             if (pt.x >= tl.x && pt.y >= tl.y && pt.x <= br.x && pt.y <= br.y) {
-                switch (this.pts.length) {
+                switch (this._pts.length) {
                     // Cubic Bezier.
                     case 7: {
-                        let pt1 = this.pts[3];
-                        let pt2 = this.pts[4];
+                        let pt1 = this._pts[3];
+                        let pt2 = this._pts[4];
                         let hitPt1 = hitPtTestLine(src, pt1, pt, margin);
                         let hitPt2 = hitPtTestLine(pt1, pt2, pt, margin);
                         let hitPt3 = hitPtTestLine(pt2, dst, pt, margin);
@@ -203,7 +276,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
         const R = r.x + r.w;
         const T = r.y;
         const B = r.y + r.h;
-        let ps = this.pts;
+        let ps = this._pts;
         let p0 = ps[0];
         let p1 = ps[1];
         let p2 = ps[2];
@@ -234,16 +307,28 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
         }
     }
 
+    protected init() {
+        this._color = EDGE_PROPERTIES.color;
+        this.label = EDGE_PROPERTIES.label;
+        this._lineStyle = EDGE_PROPERTIES.lineStyle as LineStyles;
+        this._lineWidth = EDGE_PROPERTIES.lineWidth;
+        this._dstArrow = EDGE_PROPERTIES.showDestinationArrow;
+        this._srcArrow = EDGE_PROPERTIES.showSourceArrow;
+        this._pts = [];
+        this.src.addEdge(this);
+        this.dst.addEdge(this);
+    }
+
     private updateOverlappedEdges() {
         if (!this.src.isHidden && !this.dst.isHidden) {
             let srcIn = this.sourceNode.incomingEdges;
             let srcOut = this.sourceNode.outgoingEdges;
             let dstIn = this.destinationNode.incomingEdges;
             let dstOut = this.destinationNode.outgoingEdges;
-            let opposing = new Set<GraphEditorEdge>(
+            let opposing = new Set<DrawableEdge>(
                 [...dstOut].filter(v => srcIn.has(v))
             );
-            let adjacent = new Set<GraphEditorEdge>(
+            let adjacent = new Set<DrawableEdge>(
                 [...srcOut].filter(v => dstIn.has(v))
             );
             if (opposing.size > 0) {
@@ -272,8 +357,8 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
      */
     private setStraightPoints(): void {
         let pts: point[] = [];
-        let spt = this.d.source.position;
-        let dpt = this.d.destination.position;
+        let spt = this.src.position;
+        let dpt = this.dst.position;
         let v = { x: dpt.x - spt.x, y: dpt.y - spt.y };
         let d = MathEx.mag(v);
         let u = { x: v.x / d, y: v.y / d };
@@ -302,8 +387,8 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
      *   Gets the edge points and midpoint of an overlapping edge.
      */
     private setQuadraticPoints(): void {
-        let spt = this.d.source.position;
-        let dpt = this.d.destination.position;
+        let spt = this.src.position;
+        let dpt = this.dst.position;
         // Get a vector from the source node to the destination node.
         let v: point = { x: dpt.x - spt.x, y: dpt.y - spt.y, };
         // Get the normal to the vector.
@@ -345,7 +430,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
      *   Gets the edge points and midpoint of a self-referencing node.
      */
     private setLoopPoints(): void {
-        let spt = this.d.source.position;
+        let spt = this.src.position;
         let u: point = { x: MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
         let v: point = { x: -MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
         let pt0: point = this.src.getBoundaryPt(u);
@@ -421,9 +506,9 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
      *   Makes a function that traces the geometry of an edge.
      */
     private makeTraceEdge(): () => void {
-        let pts = this.pts;
-        let showSrc = this.d.showSourceArrow;
-        let showDst = this.d.showDestinationArrow;
+        let pts = this._pts;
+        let showSrc = this._srcArrow;
+        let showDst = this._dstArrow;
         switch (pts.length) {
             case 7:
                 if (showSrc && showDst)
@@ -493,7 +578,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
     }
 
     private drawLabelRect() {
-        let pt = this.pts[2];
+        let pt = this._pts[2];
         let sz = this.textBox;
         this.g.traceRect(makeRect(
             { x: pt.x - sz.w / 2 - 6, y: pt.y - sz.h / 2 },
@@ -511,7 +596,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
     private drawLabel(): void {
         this.g.fillStyle = "#fff";
         this.drawLabelRect();
-        this.g.drawText(this.pts[2], this.textBox.h, this.textLines, "#000");
+        this.g.drawText(this._pts[2], this.textBox.h, this.textLines, "#000");
     }
 
 }

@@ -8,11 +8,6 @@
 
 import * as DEFAULT from "./defaults";
 import * as MathEx from "./math";
-import {
-    DrawableEdge,
-    DrawableNode,
-    LineStyles
-} from "./drawable-interfaces";
 
 
 /**
@@ -24,6 +19,19 @@ const AA_SCALE: number = 2;
 
 // Type Aliases ////////////////////////////////////////////////////////////////
 
+
+/**
+ * LineStyles
+ */
+export type LineStyles = "solid" | "dotted" | "dashed";
+
+/**
+ * Shapes  
+ * 
+ * TODO:  
+ * -For now this only supports circles and squares.
+ */
+export type Shapes = "circle" | "square";
 
 /**
  * point  
