@@ -1,39 +1,45 @@
 <div id="wrapper">
-    <h2>Test</h2>
+    <div id="toolbar">
+        <h2>Tests</h2>
+        <span class="toolbar-spacer"></span>
+        <span class="toolbar-spacer"></span>
+        <img src="${require('../../images/plus.svg')}" (click)="newTest()" class="toolbar-button" title="Add test" />
+        <img src="${require('../../images/minus.svg')}" (click)="removeSelected()" class="toolbar-button" [class.disabled]="selected.size == 0" title="Remove Selected Tests" />
+        <span class="toolbar-spacer"></span>
+        <img src="${require('../../images/autoplay.svg')}" (click)="toggleAutoplay()" class="toolbar-button" [class.toggled]="autoplay" [title]="'autorun is '+(autoplay?'on':'off')" />
+        <span class="toolbar-spacer"></span>
+        <img src="${require('../../images/play-all.svg')}" (click)="runTests()" class="toolbar-button" title="Run all tests" />
+        <img src="${require('../../images/play.svg')}" (click)="runSelectedTests(this.selected)" class="toolbar-button" title="Run selected tests" [class.disabled]="selected.size == 0" />
+    </div>
 
-    <style>
-    #fake-input{
-    	width: 100%;
-    	color: white;
-    }
-    #fake-input tr.bad{
-    	background: #aa0000;
-    }
-    #fake-input .header{
-    	border-bottom: 1px solid #777;
-    }
-    #fake-input td{
-    	padding: 10px;
-    }
-    #fake-input input{
-    	width: 200px;
-    }
-    </style>
-
-    <table id="fake-input">
-    <tr class="header"><td>Input</td><td>Expected Result</td><td>Actual Result</td></tr>
-    <tr *ngFor="let triplet of tests" [class.bad]="triplet[1] != triplet[2]"><td>
-        <input type="text" [(value)]="triplet[0]"/>
-    </td><td>
-        <select [(ngModel)]="triplet[1]">
-            <option [ngValue]="true">True</option>
-            <option [ngValue]="false">False</option>
-        </select>
-    </td><td>
-        <select [(ngModel)]="triplet[2]" disabled>
-            <option [ngValue]="true">True</option>
-            <option [ngValue]="false">False</option>
-        </select>
-    </td></tr>
-    </table>
+    <div *ngIf="tests.length > 0" id="tests">
+        <table>
+            <tr class="header">
+                <td>Input</td>
+                <td>Expected Result</td>
+                <td>Actual Result</td>
+            </tr>
+            <tr *ngFor="let test of tests" [class.bad]="test.output == null || test.output != test.expected" [class.selected]="selected.has(test)"
+                (click)="select(test)">
+                <td>
+                    <input type="text" [(ngModel)]="test.input" (ngModelChange)="testChanged(test)"/>
+                </td>
+                <td>
+                    <select [(ngModel)]="test.expected" (ngModelChange)="testChanged(test)">
+                        <option [ngValue]="true">True</option>
+                        <option [ngValue]="false">False</option>
+                    </select>
+                </td>
+                <td>
+                    <select [(ngModel)]="test.output" disabled>
+                        <option [ngValue]="true">True</option>
+                        <option [ngValue]="false">False</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div *ngIf="tests.length == 0" id="empty">
+        <p>Click the plus to create a new unit test.</p>
+    </div>
 </div>
