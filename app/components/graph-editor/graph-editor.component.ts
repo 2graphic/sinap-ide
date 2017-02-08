@@ -34,9 +34,10 @@ import * as MathEx from "./math";
 // Re-exports //////////////////////////////////////////////////////////////////
 
 
-export { DrawableGraph, EdgeValidator } from "./drawable-graph";
+export { DrawableGraph, EdgeValidator, DrawableEdgeEventArgs, DrawableNodeEventArgs } from "./drawable-graph";
 export { DrawableEdge } from "./drawable-edge";
 export { DrawableNode } from "./drawable-node";
+export { DrawableElement } from "./drawable-element";
 
 
 // Type aliases ////////////////////////////////////////////////////////////////

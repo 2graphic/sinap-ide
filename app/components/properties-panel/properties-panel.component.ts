@@ -4,7 +4,7 @@
 
 
 import { Component, SimpleChanges, Output, EventEmitter } from "@angular/core";
-import { Type, MetaType } from "sinap-core";
+import { Type } from "sinap-core";
 
 @Component({
     selector: "sinap-properties-panel",
@@ -78,7 +78,7 @@ export class PropertiesPanelComponent {
 }
 
 export interface PropertyList {
-    readonly properties: [string, MetaType][];
+    readonly properties: [string, Type][];
     get(property: string): any;
     set(property: string, value: any): void;
 }
