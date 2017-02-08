@@ -6,11 +6,6 @@ import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { FileService } from "../services/files.service";
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
-// TODO:
-// this file has a bunch of calls to 
-// `instanceof` that could probably be encoded in the 
-// type system
-
 @Injectable()
 export class PluginService {
     private plugins = new Map<string, Plugin>();
@@ -21,10 +16,21 @@ export class PluginService {
 
     constructor( @Inject(FileService) private fileService: FileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
-        this.interpretCode = sandboxService.compileScript('sinap.__program = module.interpret(sinap.__graph)');
+        this.interpretCode = sandboxService.compileScript(`
+            try{
+                sinap.__program = module.interpret(new module.Graph(sinap.__graph));
+            } catch (err) {
+                sinap.__err = err.toString();
+            }`);
         // TODO: Make sure that there is nothing weird about the output returned from the plugin
         // (such as an infinite loop for toString). Maybe make sure that it is JSON only?
-        this.runInputCode = sandboxService.compileScript('sinap.__program.then((program) => program.run(sinap.__input))');
+        this.runInputCode = sandboxService.compileScript(`
+            try {
+                sinap.__result = sinap.__program.run(sinap.__input)
+            } catch (err) {
+                sinap.__err = err.toString();
+            }
+        `);
     }
 
     public getPlugin(kind: string){
@@ -46,19 +52,12 @@ export class PluginService {
             sinap: {
                 __program: null,
                 __graph: null,
-                __input: null
+                __input: null,
+                __err: null,
+                __result: null
             },
-
-            interpret: null
         });
 
         return script.runInContext(context).then((_) => context);
-    }
-
-    private addToContext(ctx: Promise<Context>, key: string, value: any) {
-        return ctx.then((context) => {
-            context.sinap[key] = value;
-            return context;
-        })
     }
 }
