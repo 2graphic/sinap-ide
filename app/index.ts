@@ -14,7 +14,7 @@
 // References to app and BrowserWindow are needed in order to start an Electron
 // application.
 //
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import { ModalInfo, ModalType } from './models/modal-window'
 
 
@@ -31,7 +31,6 @@ let win: Electron.BrowserWindow | null;
  */
 function createWindow() {
     win = new BrowserWindow({
-        icon: require("./images/icons/icon.png"),
         width: 1150,
         height: 720,
         center: true,
@@ -107,6 +106,7 @@ function createNewWindow(selector: string, type: ModalType): ModalInfo {
             center: true,
             resizable: false
         });
+        newWindow.setMenu(null as any);
 
         var info: ModalInfo = {
             id: newWindow.id,

@@ -12,7 +12,7 @@ var CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 // TODO: Split this up into a general, development, and production configuration
-const ENV = process.env.NODE_ENV = process.env.ENV = 'development';
+const ENV = 'development';
 
 module.exports = [
 
@@ -64,7 +64,8 @@ module.exports = [
         target: 'web',
 
         node: {
-            fs: false
+            fs: false,
+            process: false
         },
 
         entry: {
