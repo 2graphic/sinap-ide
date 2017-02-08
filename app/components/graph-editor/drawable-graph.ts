@@ -115,18 +115,25 @@ export class DrawableGraph {
         return this._selected;
     }
 
+    get selectedItemCount(): number {
+        return this._selected.size;
+    }
+
     /**
      * origin  
      *   The displacement of the origin point of the graph editor canvas.
      */
     get origin() {
-        return this._origin;
+        let pt = this._origin;
+        return { get x() { return pt.x; }, get y() { return pt.y; } };
     }
 
     set origin(value: { x: number, y: number }) {
+        let old = this.origin;
         if (this._origin.x !== value.x || this._origin.y !== value.y) {
             this._origin.x = value.x;
             this._origin.y = value.y;
+            this.onPropertyChanged("origin", old);
         }
     }
 
@@ -139,8 +146,10 @@ export class DrawableGraph {
     }
 
     set scale(value: number) {
+        let old = this._scale;
         if (this._scale !== value) {
             this._scale = value;
+            this.onPropertyChanged("scale", old);
         }
     }
 
@@ -210,12 +219,16 @@ export class DrawableGraph {
 
     /**
      * createNode  
-     *   Creates a drawable node with an optional position.
+     *   Creates a drawable node.
      */
     createNode(): DrawableNode | null {
-        // TODO:
-        // Events.
-        return null;
+        return this.createItem(
+            this._nodes,
+            new DrawableNode(this),
+            this._creatingNodeEmitter,
+            this._createdNodeEmitter,
+            "nodes"
+        );
     }
 
     /**
@@ -223,9 +236,12 @@ export class DrawableGraph {
      *   Guarantees that the given node is not present in the graph.
      */
     deleteNode(node: DrawableNode): boolean {
-        // TODO:
-        // Events.
-        return this._nodes.delete(node);
+        return this.deleteItem(
+            this._nodes,
+            node,
+            this._deletedNodeEmitter,
+            "nodes"
+        );
     }
 
     /**
@@ -243,8 +259,15 @@ export class DrawableGraph {
         dst: DrawableNode,
         like?: DrawableEdge
     ): DrawableEdge | null {
-        let d = new DrawableEdge(src, dst, g)
-        return null;
+        if (like)
+            this.deleteEdge(like);
+        return this.createItem(
+            this._edges,
+            new DrawableEdge(this, src, dst, like),
+            this._creatingEdgeEmitter,
+            this._createdEdgeEmitter,
+            "edges"
+        );
     }
 
     /**
@@ -256,8 +279,8 @@ export class DrawableGraph {
             this._edges,
             edge,
             this._deletedEdgeEmitter,
-            this._propertyChangedEmitter,
-            "edge");
+            "edges"
+        );
     }
 
     selectItems(...items: DrawableElement[]) {
@@ -316,23 +339,44 @@ export class DrawableGraph {
             ));
     }
 
-    private deleteItem<T extends DrawableElement>(
-        items: Set<T>,
-        item: T,
-        deletedEmitter: DrawableEventEmitter<T>,
-        propertyEmitter: PropertyChangedEventEmitter<any>,
-        key: string
+    private onPropertyChanged(key: keyof this, old: any) {
+        this._propertyChangedEmitter.emit(new PropertyChangedEventArgs<any>(
+            this,
+            key,
+            old,
+            this[key]
+        ));
+    }
+
+    private createItem<D extends DrawableElement>(
+        items: Set<D>,
+        item: D,
+        creatingEmitter: DrawableEventEmitter<D>,
+        createdEmitter: DrawableEventEmitter<D>,
+        key: keyof this
+    ) {
+        let old = [...items];
+        let args = new DrawableEventArgs<D>(this, item);
+        creatingEmitter.emit(args)
+        if (args.isCancelled)
+            return null;
+        items.add(item);
+        createdEmitter.emit(args);
+        this.onPropertyChanged(key, old);
+        return item;
+    }
+
+    private deleteItem<D extends DrawableElement>(
+        items: Set<D>,
+        item: D,
+        deletedEmitter: DrawableEventEmitter<D>,
+        key: keyof this
     ): boolean {
         let old = [...items];
         if (items.delete(item)) {
             this.deselectItems(item);
-            deletedEmitter.emit(new DrawableEventArgs<T>(this, item)),
-                propertyEmitter.emit(new PropertyChangedEventArgs<any>(
-                    this,
-                    key,
-                    old,
-                    [...items]
-                ));
+            deletedEmitter.emit(new DrawableEventArgs<D>(this, item));
+            this.onPropertyChanged(key, old);
             return true;
         }
         return false;
@@ -365,7 +409,7 @@ export class DrawableGraph {
 
 }
 
-class DrawableEventArgs<D extends DrawableElement> extends CancellableEventArgs {
+export class DrawableEventArgs<D extends DrawableElement> extends CancellableEventArgs {
     constructor(source: any, public readonly drawable: D) {
         super(source);
     }
@@ -373,7 +417,4 @@ class DrawableEventArgs<D extends DrawableElement> extends CancellableEventArgs 
 
 class DrawableEventEmitter<D extends DrawableElement>
     extends CancellableEventEmitter<DrawableEventArgs<D>, DrawableEventListener<D>> {
-    protected invoke(l: DrawableEventListener<D>, a: DrawableEventArgs<D>) {
-        l(a);
-    }
 }
