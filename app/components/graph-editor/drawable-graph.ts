@@ -1,14 +1,19 @@
 // File: drawable-graph.ts
 // Created by: CJ Dimaano
 // Date created: January 9, 2016
-//
-// THIS FILE IS INTENDED TO BE IMPORTED ONLY INTO graph-editor.component.ts
-//
 
 
 import { DrawableElement } from "./drawable-element";
 import { DrawableEdge } from "./drawable-edge";
 import { DrawableNode } from "./drawable-node";
+import {
+    CancellableEventArgs,
+    CancellableEventEmitter,
+    Listener,
+    PropertyChangedEventArgs,
+    PropertyChangedEventEmitter,
+    PropertyChangedEventListener
+} from "./events";
 
 
 /**
@@ -23,7 +28,7 @@ import { DrawableNode } from "./drawable-node";
  *   is checked against the given source and destination nodes.
  */
 export type EdgeValidator = (
-    src: DrawableNode | null,
+    src: DrawableNode,
     dst?: DrawableNode,
     like?: DrawableEdge
 ) => boolean;
@@ -275,6 +280,8 @@ export class DrawableGraph {
      *   Guarantees that the given edge is not present in the graph.
      */
     deleteEdge(edge: DrawableEdge): boolean {
+        edge.sourceNode.removeEdge(edge);
+        edge.destinationNode.removeEdge(edge);
         return this.deleteItem(
             this._edges,
             edge,
@@ -303,40 +310,32 @@ export class DrawableGraph {
         let selected = [...this._selected];
         let edges = [...this._edges];
         let nodes = [...this._nodes];
+        let deleteEdge = (d: DrawableEdge) => {
+            if (this._edges.delete(d)) {
+                d.sourceNode.removeEdge(d);
+                d.destinationNode.removeEdge(d);
+                this._deletedEdgeEmitter.emit(
+                    new DrawableEventArgs<DrawableEdge>(this, d)
+                );
+            }
+        }
         this.clearSelection();
         selected.forEach(v => {
-            if (v instanceof DrawableEdge && this._edges.delete(v)) {
-                this._deletedEdgeEmitter.emit(
-                    new DrawableEventArgs<DrawableEdge>(this, v)
-                );
+            if (v instanceof DrawableEdge) {
+                deleteEdge(v);
             }
             else if (v instanceof DrawableNode) {
                 this._nodes.delete(v);
                 this._deletedNodeEmitter.emit(
                     new DrawableEventArgs<DrawableNode>(this, v)
                 );
-                v.edges.forEach(e => {
-                    if (this._edges.delete(e))
-                        this._deletedEdgeEmitter.emit(
-                            new DrawableEventArgs<DrawableEdge>(this, e)
-                        );
-                });
+                v.edges.forEach(e => deleteEdge(e));
             }
         });
         if (edges.length !== this._edges.size)
-            this._propertyChangedEmitter.emit(new PropertyChangedEventArgs<any>(
-                this,
-                "edges",
-                edges,
-                [...this._edges]
-            ));
+            this.onPropertyChanged("edges", edges);
         if (nodes.length !== this._nodes.size)
-            this._propertyChangedEmitter.emit(new PropertyChangedEventArgs<any>(
-                this,
-                "nodes",
-                nodes,
-                [...this._nodes]
-            ));
+            this.onPropertyChanged("nodes", nodes);
     }
 
     private onPropertyChanged(key: keyof this, old: any) {
@@ -390,9 +389,9 @@ export class DrawableGraph {
         let oldSelection = [...this._selected];
         items.forEach(v => {
             if (!dst.has(v)) {
-                v.isSelected = (dst === this._selected);
                 dst.add(v);
                 src.delete(v);
+                v.isSelected = (dst === this._selected);
             }
         });
         if (oldSelection.length !== this._selected.size) {
