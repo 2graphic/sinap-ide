@@ -33,13 +33,13 @@ export class PluginService {
         `);
     }
 
-    public getPlugin(kind: string){
+    public getPlugin(kind: string) {
         let plugin = this.plugins.get(kind);
-        if (plugin){
+        if (plugin) {
             return plugin;
         }
         const fileName = this.pluginKinds.get(kind);
-        if (! fileName){
+        if (!fileName) {
             throw "Plugin not installed";
         }
         plugin = new Plugin(fileName);

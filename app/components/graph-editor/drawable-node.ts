@@ -82,14 +82,12 @@ export class DrawableNode extends DrawableElement {
     }
 
     set position(value: point) {
+        let old = this.position;
         if (this._position.x !== value.x || this._position.y !== value.y) {
             // TODO:
             // Make sure this doesn't break the draw call.
             this._position = value;
-            for (let e of this._incomingSet)
-                e.update();
-            for (let e of this._outgoingSet)
-                e.update();
+            this.onPropertyChanged("position", old);
         }
     }
 
@@ -98,8 +96,10 @@ export class DrawableNode extends DrawableElement {
     }
 
     set shape(value: Shapes) {
+        let old = this._shape;
         if (this._shape !== value) {
             this._shape = value;
+            this.onPropertyChanged("shape", old);
         }
     }
 
@@ -108,8 +108,10 @@ export class DrawableNode extends DrawableElement {
     }
 
     set borderColor(value: string) {
+        let old = this._borderColor;
         if (this._borderColor !== value) {
             this._borderColor = value;
+            this.onPropertyChanged("borderColor", old);
         }
     }
 
@@ -118,8 +120,10 @@ export class DrawableNode extends DrawableElement {
     }
 
     set borderStyle(value: LineStyles) {
+        let old = this._borderStyle;
         if (this._borderStyle !== value) {
             this._borderStyle = value;
+            this.onPropertyChanged("borderStyle", old);
         }
     }
 
@@ -128,8 +132,10 @@ export class DrawableNode extends DrawableElement {
     }
 
     set borderWidth(value: number) {
+        let old = this._borderWidth;
         if (this._borderWidth !== value) {
             this._borderWidth = value;
+            this.onPropertyChanged("borderWidth", old);
         }
     }
 
@@ -152,15 +158,17 @@ export class DrawableNode extends DrawableElement {
         ]);
     }
 
-    set anchorPoint(value: point) {
-        if (this._apt !== value) {
-            this._apt = value;
-        }
-    }
-
     get anchorPoint() {
         let pt = this._apt;
         return { get x() { return pt.x; }, get y() { return pt.y; } };
+    }
+
+    set anchorPoint(value: point) {
+        let old = this.anchorPoint;
+        if (this._apt !== value) {
+            this._apt = value;
+            this.onPropertyChanged("anchorPoint", old);
+        }
     }
 
     get isAnchorVisible() {
@@ -176,24 +184,27 @@ export class DrawableNode extends DrawableElement {
     }
 
     addEdge(e: DrawableEdge) {
-        this._incomingSet.add(e);
-        this._outgoingSet.add(e);
-        e.update();
+        let old = this.edges;
+        if (e.sourceNode === this)
+            this._outgoingSet.add(e);
+        else if (e.destinationNode === this)
+            this._incomingSet.add(e);
+        this.onPropertyChanged("edges", old);
     }
 
     removeEdge(e: DrawableEdge) {
-        if (this._incomingSet.delete(e))
-            e.update();
-        if (this._outgoingSet.delete(e))
-            e.update();
+        let old = this.edges;
+        this._incomingSet.delete(e);
+        this._outgoingSet.delete(e);
+        this.onPropertyChanged("edges", old);
     }
 
     update(g: GraphEditorCanvas) {
-        let size = { h: this._lines.length * 1.5 * FONT_SIZE, w: 0 };
-        this._lines.forEach(v => size.w = Math.max(g.getTextWidth(v), size.w));
-        let s = (GRID_SPACING > size.h + 1.5 * FONT_SIZE ?
-            GRID_SPACING : size.h + 1.5 * FONT_SIZE);
-        s = (s < size.w + FONT_SIZE ? size.w + FONT_SIZE : s);
+        this.updateTextSize(g);
+        let s = (GRID_SPACING > this._textSize.h + 1.5 * FONT_SIZE ?
+            GRID_SPACING : this._textSize.h + 1.5 * FONT_SIZE);
+        s = (s < this._textSize.w + FONT_SIZE ?
+            this._textSize.w + FONT_SIZE : s);
         this._size.h = s;
         this._size.w = s;
         this._innerBound.h = s - 2 * NODE_THRESHOLD_IN;
@@ -251,7 +262,7 @@ export class DrawableNode extends DrawableElement {
             if (this.isAnchorVisible) {
                 this._draw = () => {
                     shapeThunk();
-                    g.drawText(pt, size.h, this.textLines, "#fff", 2, "#000");
+                    g.drawText(pt, this._textSize.h, this._lines, "#fff", 2, "#000");
                     g.drawCircle(this._apt, 5, "solid", 1, "#000", "#fff");
                 };
             }
@@ -261,7 +272,7 @@ export class DrawableNode extends DrawableElement {
             else {
                 this._draw = () => {
                     shapeThunk();
-                    g.drawText(pt, this.textBox.h, this.textLines, "#fff", 2, "#000");
+                    g.drawText(pt, this._textSize.h, this._lines, "#fff", 2, "#000");
                 };
             }
         }
@@ -408,13 +419,13 @@ export class DrawableNode extends DrawableElement {
  *   Creates an invisible drawable node.
  */
 export class HiddenNode extends DrawableNode {
-    constructor(g: GraphEditorCanvas, graph: DrawableGraph) {
-        super(g, graph);
+    constructor(graph: DrawableGraph) {
+        super(graph);
     }
 
-    update() { }
+    update(g: GraphEditorCanvas) { }
 
-    updateDraw() {
-        this.draw = () => { };
+    updateDraw(g: GraphEditorCanvas) {
+        this._draw = () => { };
     }
 }

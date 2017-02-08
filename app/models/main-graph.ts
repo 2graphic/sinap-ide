@@ -8,7 +8,7 @@ import { DrawableGraph, DrawableEdge, DrawableNode, EdgeValidator, DrawableEdgeE
 import { CoreGraph, CoreEdge, CoreNode } from "sinap-core";
 
 export class MainGraph {
-    constructor(public drawable: DrawableGraph, public core: CoreGraph){
+    constructor(public drawable: DrawableGraph, public core: CoreGraph) {
         drawable.addCreatingNodeListener(this.onCreatingNode);
         drawable.addCreatedNodeListener(this.onCreatedNode);
         drawable.addCreatingEdgeListener(this.onCreatingEdge);
@@ -16,20 +16,20 @@ export class MainGraph {
         drawable.addPropertyChangedListener(this.onPropertyChanged);
     }
 
-    onCreatedNode(n: DrawableNodeEventArgs){
+    onCreatedNode(n: DrawableNodeEventArgs) {
 
     }
-    onCreatedEdge(e: DrawableEdgeEventArgs){
+    onCreatedEdge(e: DrawableEdgeEventArgs) {
 
     }
-    onPropertyChanged(a: PropertyChangedEventArgs<any>){
-        
-    }
-
-    onCreatingNode(n: DrawableNodeEventArgs){
+    onPropertyChanged(a: PropertyChangedEventArgs<any>) {
 
     }
-    onCreatingEdge(e: DrawableEdgeEventArgs){
+
+    onCreatingNode(n: DrawableNodeEventArgs) {
+
+    }
+    onCreatingEdge(e: DrawableEdgeEventArgs) {
 
     }
 }
