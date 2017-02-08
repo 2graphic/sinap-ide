@@ -289,8 +289,10 @@ export class GraphEditorComponent implements AfterViewInit {
         let pel = (el.parentNode as HTMLElement);
         let h = pel.offsetHeight;
         let w = pel.offsetWidth;
-        this.canvas.size = { h: h, w: w };
-        this.redraw();
+        if (this.canvas.size.h != h || this.canvas.size.w != w) {
+            this.canvas.size = { h: h, w: w };
+            this.redraw();
+        }
     }
 
     /**

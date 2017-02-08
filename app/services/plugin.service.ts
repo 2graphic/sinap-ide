@@ -4,16 +4,11 @@ import { PropertiedEntity, PropertyList } from "../components/properties-panel/p
 import { Type, MetaType, ClassMetaType, parseScope } from "sinap-core";
 import * as Core from '../models/core';
 import { Object as SinapObject } from "../models/object";
-import { Program, InterpreterError, Graph, ProgramInput, ProgramOutput } from "../models/plugin";
+import { Program, ProgramInput, ProgramOutput } from "../models/plugin";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { FileService } from "../services/files.service";
+import { SerializerService } from "../services/serializer.service"
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
-
-// TODO:
-// this file has a bunch of calls to 
-// `instanceof` that could probably be encoded in the 
-// type system
-
 
 export class PluginPropertyData implements Core.PluginData {
     backer: any = {};
@@ -108,29 +103,54 @@ export class PluginService {
 
     constructor( @Inject(FileService) private fileService: FileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
-        this.interpretCode = sandboxService.compileScript('sinap.__program = module.interpret(sinap.__graph)');
+        this.interpretCode = sandboxService.compileScript(`
+            try{
+                sinap.__program = module.interpret(new module.Graph(sinap.__graph));
+            } catch (err) {
+                sinap.__err = err.toString();
+            }`);
         // TODO: Make sure that there is nothing weird about the output returned from the plugin
         // (such as an infinite loop for toString). Maybe make sure that it is JSON only?
-        this.runInputCode = sandboxService.compileScript('sinap.__program.then((program) => program.run(sinap.__input))');
+        this.runInputCode = sandboxService.compileScript(`
+            try {
+                sinap.__result = sinap.__program.run(sinap.__input)
+            } catch (err) {
+                sinap.__err = err.toString();
+            }
+        `);
     }
 
-    public getInterpreter(graph: Core.Graph): Promise<Program> {
-        if (!(graph.plugin instanceof ConcretePlugin)) {
-            throw "Error: only get interpreters for graphs created with PluginService";
-        }
+    // graph should be a serialized graph.
+    public getInterpreter(graph: any): Promise<Program> {
+        let context = this.getPlugin(graph.plugin).then((plugin) => {
+            return this.getContext(plugin.script);
+        });
 
-        let context = this.addToContext(this.getContext(graph.plugin.script), "__graph", new Graph(graph));
-
-        return this.interpretCode
-            .runInContext(context)
-            .then<Program>((program) => {
-                return {
-                    run: (input: ProgramInput): Promise<ProgramOutput> =>
-                        this.runInputCode
-                            .runInContext(this.addToContext(context, "__input", input)),
-                    compilationMessages: [""]
-                };
-            });
+        return context.then((context: Context): Promise<Program> => {
+            context.sinap.__graph = graph;
+            return this.interpretCode.runInContext(context)
+                .then((_): Program => {
+                    if (!context.sinap.__program) {
+                        return Promise.reject(context.sinap.__err) as any;
+                    } else {
+                        return {
+                            run: (input: ProgramInput): Promise<ProgramOutput> => {
+                                context.sinap.__input = input;
+                                context.sinap.__err = null;
+                                return this.runInputCode.runInContext(context)
+                                    .then((_) => {
+                                        if (context.sinap.__err) {
+                                            return Promise.reject(context.sinap.__err) as any;
+                                        } else {
+                                            return context.sinap.__result;
+                                        }
+                                    });
+                            },
+                            compilationMessages: context.sinap.__program.compilationMessages
+                        };
+                    }
+                });
+        })
     }
 
     public getPlugin(kind: string): Promise<ConcretePlugin> {
@@ -202,19 +222,12 @@ export class PluginService {
             sinap: {
                 __program: null,
                 __graph: null,
-                __input: null
+                __input: null,
+                __err: null,
+                __result: null
             },
-
-            interpret: null
         });
 
         return script.runInContext(context).then((_) => context);
-    }
-
-    private addToContext(ctx: Promise<Context>, key: string, value: any) {
-        return ctx.then((context) => {
-            context.sinap[key] = value;
-            return context;
-        })
     }
 }
