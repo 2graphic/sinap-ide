@@ -13,7 +13,8 @@ export enum MenuEventAction {
 }
 
 function clickHandlerMake(event: MenuEventAction) {
-    let id = remote.BrowserWindow.getFocusedWindow().id;
+    let id = remote.getCurrentWindow().id;
+
     return function(item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
         remote.BrowserWindow.fromId(id).webContents.send("MenuEvent", event);
     };
@@ -103,6 +104,18 @@ var viewMenu: Electron.MenuItemOptions = {
                 if (focusedWindow)
                     focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
             }
+        },
+        {
+            type: 'separator'
+        },
+        {
+            role: 'resetzoom'
+        },
+        {
+            role: 'zoomin'
+        },
+        {
+            role: 'zoomout'
         },
     ]
 };

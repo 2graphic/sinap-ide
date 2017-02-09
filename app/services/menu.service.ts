@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 
-import { remote, ipcRenderer } from 'electron';
+import { remote, ipcRenderer, webFrame } from 'electron';
 let { Menu, MenuItem, app } = remote;
 
 import { MENU_TEMPLATE, MenuEventAction } from '../models/menu'
@@ -14,7 +14,10 @@ export class MenuService {
         let menu = Menu.buildFromTemplate(MENU_TEMPLATE);
         Menu.setApplicationMenu(menu);
 
-        let id = remote.BrowserWindow.getFocusedWindow().id;
+        // Prevent users from incrementing the visual zoom (only regular zoom.)
+        webFrame.setVisualZoomLevelLimits(1, 1);
+
+        let id = remote.getCurrentWindow().id;;
 
         ipcRenderer.on("MenuEvent", (event, action: MenuEventAction) => {
             if (remote.BrowserWindow.getFocusedWindow().id == id) {
