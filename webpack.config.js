@@ -19,7 +19,6 @@ module.exports = [
     // electron target
     {
         devtool: 'source-map',
-        debug: true,
         target: 'electron',
 
         node: {
@@ -39,14 +38,14 @@ module.exports = [
         },
 
         resolve: {
-            extensions: ['', '.ts', '.js', '.json', '.css', '.html']
+            extensions: ['.ts', '.js', '.json', '.css', '.html']
         },
 
         module: {
             loaders: [
                 {
                     test: /\.ts$/,
-                    loader: 'ts',
+                    loader: 'ts-loader',
                     exclude: [/node_modules/, /plugins/]
                 },
                 {
@@ -60,7 +59,6 @@ module.exports = [
     // web target
     {
         devtool: 'source-map',
-        debug: true,
         target: 'web',
 
         node: {
@@ -82,14 +80,15 @@ module.exports = [
         },
 
         resolve: {
-            extensions: ['', '.ts', '.js', '.json', '.css', '.html']
+            extensions: ['.ts', '.js', '.json', '.css', '.html']
         },
 
         module: {
+            exprContextCritical: false, //https://github.com/angular/angular/issues/11580
             loaders: [
                 {
                     test: /\.ts$/,
-                    loaders: ['ts', 'angular2-template-loader']
+                    loaders: ['ts-loader', 'angular2-template-loader']
                 },
                 {
                     test: /\.html$/,
@@ -111,9 +110,15 @@ module.exports = [
         },
 
         plugins: [
-            new webpack.NoErrorsPlugin(),
-            new webpack.optimize.DedupePlugin(),
-            // TODO: Uglify plugin is incompatible with ES6, wait or use another plugin to minify...?
+            new webpack.NoEmitOnErrorsPlugin(),
+            // new webpack.optimize.UglifyJsPlugin({
+            //     debug: false,
+            //     minimize: true,
+            //     sourceMap: false,
+            //     output: {
+            //         comments: false
+            //     },
+            // }),
             new HtmlWebpackPlugin({
                 template: './app/index.html',
                 chunks: ['polyfills', 'vendor', 'main']
@@ -127,7 +132,7 @@ module.exports = [
             new webpack.optimize.CommonsChunkPlugin({
                 name: ['vendor', 'polyfills']
             }),
-            
+
             new webpack.DefinePlugin({
                 'process.env': {
                     'ENV': JSON.stringify(ENV)
@@ -148,11 +153,10 @@ module.exports = [
             'system': '{}',
             'file': '{}'
         }
-    }, 
+    },
 
     // plugin target.
     {
-        debug: true,
         target: 'web',
         node: {
             fs: false
@@ -175,7 +179,7 @@ module.exports = [
             loaders: [
                 {
                     test: /dfa-interpreter.ts$/,
-                    loaders: ['ts'],
+                    loaders: ['ts-loader'],
                     exclude: [/node_modules/, /app/, /build/]
                 }
             ]
