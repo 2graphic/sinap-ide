@@ -365,6 +365,10 @@ export class GraphEditorCanvas {
 
     // Get and Set methods /////////////////////////////////////////////////////
 
+    /**
+     * size  
+     *   Gets or sets the size dimensions of the canvas.
+     */
     get size() {
         let el = this.g.canvas;
         return {
@@ -373,10 +377,6 @@ export class GraphEditorCanvas {
         };
     }
 
-    /**
-     * size  
-     *   Sets the size of the canvas.
-     */
     set size(value: { h: number, w: number }) {
         let el = this.g.canvas;
         el.height = value.h * AA_SCALE;
@@ -386,16 +386,12 @@ export class GraphEditorCanvas {
 
     /**
      * scale  
-     *   Gets the canvas scaling factor.
+     *   Gets or sets the canvas scaling factor.
      */
     get scale(): number {
         return this._scale / AA_SCALE;
     }
 
-    /**
-     * scale  
-     *   Sets the size of the canvas scaling factor.
-     */
     set scale(value: number) {
         value = Math.min(DEFAULT.SCALE_MAX, value);
         value = Math.max(DEFAULT.SCALE_MIN, value);
@@ -404,7 +400,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * setLineStyle  
+     * lineStyle  
      *   Sets the line style of the rendering context.
      */
     set lineStyle(value: { style: string, dotSize?: number }) {
@@ -431,27 +427,49 @@ export class GraphEditorCanvas {
         this.g.shadowBlur = value * this._scale;
     }
 
+    /**
+     * shadowColor  
+     *   Sets the shadow color.
+     */
     set shadowColor(value: string) {
         this.g.shadowColor = value;
     }
 
+    /**
+     * globalAlpha  
+     *   Sets the global alpha channel.
+     */
     set globalAlpha(value: number) {
         this.g.globalAlpha = value;
     }
 
+    /**
+     * strokeStyle  
+     *   Sets the stroke color.
+     */
     set strokeStyle(value: string) {
         this.g.strokeStyle = value;
     }
 
+    /**
+     * fillStyle  
+     *   Sets the fill color.
+     */
     set fillStyle(value: string) {
         this.g.fillStyle = value;
     }
 
+    /**
+     * lineWidth  
+     *   Sets the line width.
+     */
     set lineWidth(value: number) {
         this.g.lineWidth = value;
     }
 
     /**
+     * getTextWidth  
+     *   Gets the width of a string.
      */
     getTextWidth(text: string) {
         this.g.font = DEFAULT.FONT_SIZE + "pt " + DEFAULT.FONT_FAMILY;
@@ -460,7 +478,7 @@ export class GraphEditorCanvas {
 
     /**
      * getPt  
-     *   Gets the canvas coordinates from a mouse event.
+     *   Gets the canvas coordinates from a DOM event.
      */
     getPt(pt: point): point {
         let canvas = this.g.canvas;
@@ -475,14 +493,26 @@ export class GraphEditorCanvas {
     // Redirects ///////////////////////////////////////////////////////////////
 
 
+    /**
+     * beginPath  
+     *   Starts tracing a path.
+     */
     beginPath() {
         this.g.beginPath();
     }
 
+    /**
+     * stroke  
+     *   Strokes a path.
+     */
     stroke() {
         this.g.stroke();
     }
 
+    /**
+     * fill  
+     *   Fills a path.
+     */
     fill() {
         this.g.fill();
     }

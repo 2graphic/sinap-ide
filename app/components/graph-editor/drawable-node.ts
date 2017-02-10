@@ -28,54 +28,85 @@ import {
 import * as MathEx from "./math";
 
 
+/**
+ * DrawableNode  
+ *   Represents a node that is drawn on a graph editor canvas.
+ */
 export class DrawableNode extends DrawableElement {
 
-    // TODO:
-    // Each time a property is updated, mark this as dirty to signal a redraw.
-
     /**
-     * position  
+     * _position  
      *   The coordinates of the center of the node.
      */
     private _position: point;
 
     /**
-     * shape  
+     * _shape  
      *   The shape of the node.
      */
     private _shape: Shapes;
 
     /**
-     * borderColor  
+     * _borderColor  
      *   The border color of the node.  Can be any valid `CSS` color string.
      */
     private _borderColor: string;
 
     /**
-     * borderStyle  
+     * _borderStyle  
      *   The line style of the border. Can be `solid`, `dotted`, or `dashed`.
      */
     private _borderStyle: LineStyles;
 
     /**
-     * borderWidth  
+     * _borderWidth  
      *   The line width of the border. Set to 0 to draw no border; value must be
      *   non-negative.
      */
     private _borderWidth: number;
 
+    /**
+     * _size  
+     *   The dimensions of the node.
+     */
     private _size: size;
 
+    /**
+     * _innerBound  
+     *   The inner dimensions of the node for hit detecting the edge creation
+     *   region.
+     */
     private _innerBound: size;
 
+    /**
+     * _outerBound  
+     *   The outer dimensions of the noed for hit detecting the edge creation
+     *   region.
+     */
     private _outerBound: size;
 
+    /**
+     * _incomingSet  
+     *   The set of incoming edges.
+     */
     private _incomingSet: Set<DrawableEdge>;
 
+    /**
+     * _outgoingSet  
+     *   The set of outgoing edges.
+     */
     private _outgoingSet: Set<DrawableEdge>;
 
+    /**
+     * _apt  
+     *   The anchor point.
+     */
     private _apt: point;
 
+    /**
+     * position  
+     *   Gets or sets the position of the node.
+     */
     get position() {
         return this._position;
     }
@@ -89,6 +120,10 @@ export class DrawableNode extends DrawableElement {
         }
     }
 
+    /**
+     * shape  
+     *   Gets or sets the shape of the node.
+     */
     get shape() {
         return this._shape;
     }
@@ -101,6 +136,10 @@ export class DrawableNode extends DrawableElement {
         }
     }
 
+    /**
+     * borderColor  
+     *   Gets or sets the color of the node border.
+     */
     get borderColor() {
         return this._borderColor;
     }
@@ -113,6 +152,10 @@ export class DrawableNode extends DrawableElement {
         }
     }
 
+    /**
+     * borderStyle  
+     *   Gets or sets the line style of the border.
+     */
     get borderStyle() {
         return this._borderStyle;
     }
@@ -125,6 +168,10 @@ export class DrawableNode extends DrawableElement {
         }
     }
 
+    /**
+     * borderWidth  
+     *   Gets or sets the line width of the border.
+     */
     get borderWidth() {
         return this._borderWidth;
     }
@@ -137,18 +184,34 @@ export class DrawableNode extends DrawableElement {
         }
     }
 
+    /**
+     * isHidden  
+     *   Gets whether or not this node is hidden.
+     */
     get isHidden() {
         return this instanceof HiddenNode;
     }
 
+    /**
+     * incomingEdges  
+     *   Gets the set of incoming edges.
+     */
     get incomingEdges() {
         return new Set<DrawableEdge>([...this._incomingSet]);
     }
 
+    /**
+     * outgoingEdges  
+     *   Gets the set of outgoing edges.
+     */
     get outgoingEdges() {
         return new Set<DrawableEdge>([...this._outgoingSet]);
     }
 
+    /**
+     * edges  
+     *   Gets the set of incoming and outgoing edges.
+     */
     get edges() {
         return new Set<DrawableEdge>([
             ...this._incomingSet,
@@ -156,6 +219,10 @@ export class DrawableNode extends DrawableElement {
         ]);
     }
 
+    /**
+     * anchorPoint  
+     *   Gets or sets the visible anchor point.
+     */
     get anchorPoint() {
         return this._apt;
     }
@@ -164,10 +231,17 @@ export class DrawableNode extends DrawableElement {
         this._apt = value;
     }
 
+    /**
+     * isAnchorVisible  
+     *   Gets whether or not the anchor point should be visible.
+     */
     get isAnchorVisible() {
         return this._apt !== this._position;
     }
 
+    /**
+     * constructor
+     */
     constructor(graph: DrawableGraph) {
         super(graph);
         this._position = {
@@ -176,8 +250,7 @@ export class DrawableNode extends DrawableElement {
         };
         this._shape = NODE_PROPERTIES.shape as Shapes;
         this._color = NODE_PROPERTIES.color;
-        // this.label = NODE_PROPERTIES.label;
-        this.label = "" + DrawableElement.i++;
+        this.label = NODE_PROPERTIES.label;
         this._borderColor = NODE_PROPERTIES.borderColor;
         this._borderStyle = NODE_PROPERTIES.borderStyle as LineStyles;
         this._borderWidth = NODE_PROPERTIES.borderWidth;
@@ -189,10 +262,18 @@ export class DrawableNode extends DrawableElement {
         this._apt = this._position;
     }
 
+    /**
+     * clearAnchor  
+     *   Clears the anchor visibility.
+     */
     clearAnchor() {
         this.anchorPoint = this._position;
     }
 
+    /**
+     * addEdge  
+     *   Adds an edge to this node.
+     */
     addEdge(e: DrawableEdge) {
         let old = this.edges;
         if (e.sourceNode === this)
@@ -202,6 +283,10 @@ export class DrawableNode extends DrawableElement {
         this.onPropertyChanged("edges", old);
     }
 
+    /**
+     * removeEdge  
+     *   Removes an edge from this node.
+     */
     removeEdge(e: DrawableEdge) {
         let old = this.edges;
         this._incomingSet.delete(e);
@@ -209,6 +294,10 @@ export class DrawableNode extends DrawableElement {
         this.onPropertyChanged("edges", old);
     }
 
+    /**
+     * update  
+     *   Updates the node geometry and draw logic.
+     */
     update(g: GraphEditorCanvas) {
         this.updateTextSize(g);
         let s = (GRID_SPACING > this._textSize.h + 1.5 * FONT_SIZE ?
@@ -224,6 +313,10 @@ export class DrawableNode extends DrawableElement {
         this.updateDraw(g);
     }
 
+    /**
+     * updateDraw  
+     *   Updates the draw logic of the node.
+     */
     updateDraw(g: GraphEditorCanvas) {
         let pt = this._position;
         let sz = this._size;
@@ -305,6 +398,14 @@ export class DrawableNode extends DrawableElement {
         }
     }
 
+    /**
+     * hitPoint  
+     *   Tests whether or not a point is within the hit threshold of the node.
+     * 
+     * @returns
+     *   An anchor point if the given point is within the threshold of the node;
+     *   otherwise, null.
+     */
     hitPoint(pt: point): point | null {
         let posn = this._position;
         switch (this._shape) {
@@ -349,6 +450,10 @@ export class DrawableNode extends DrawableElement {
         return null;
     }
 
+    /**
+     * hitRect  
+     *   Tests whether or not the node is captured by a rectangle.
+     */
     hitRect(r: rect): boolean {
         const L = r.x;
         const R = r.x + r.w;
@@ -361,15 +466,17 @@ export class DrawableNode extends DrawableElement {
     }
 
     /**
-     * Gets the vector in the direction of `u` that is on the boundary of a
-     * node based on its geometry.
+     * getBoundaryPt  
+     *   Gets the vector in the direction of `u` that is on the boundary of a
+     *   node based on its geometry.
      */
     getBoundaryPt(u: point) {
         let v: point = { x: 0, y: 0 };
         let border = this._borderWidth / 2;
 
         switch (this._shape) {
-            // The boundary of a circle is just its radius plus half its border width.
+            // The boundary of a circle is just its radius plus half its border
+            // width.
             case "circle":
                 let r = this._size.h / 2;
                 v.x = u.x * r + border;

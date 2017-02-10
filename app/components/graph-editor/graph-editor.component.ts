@@ -153,6 +153,10 @@ export class GraphEditorComponent implements AfterViewInit {
     private drawList: DrawableElement[]
     = [];
 
+    /**
+     * redrawDelegate  
+     *   For suspending and resuming draw calls.
+     */
     private redrawDelegate: () => void
     = () => { };
 
@@ -208,85 +212,6 @@ export class GraphEditorComponent implements AfterViewInit {
                     d.draw();
             };
             this.redrawDelegate();
-        }
-    }
-
-    private registerGraph(g: DrawableGraph) {
-        this.graph = g;
-        this.scale = g.scale;
-        this.origin = g.origin;
-        g.addCreatedEdgeListener(this.onCreatedEdge);
-        g.addCreatedNodeListener(this.onCreatedNode);
-        g.addDeletedEdgeListener(this.onDeletedEdge);
-        g.addDeletedNodeListener(this.onDeletedNode);
-        g.addPropertyChangedListener(this.onDrawablePropertyChanged);
-        this.drawList = [];
-        for (const d of [...g.edges, ...g.nodes])
-            this.registerDrawable(d);
-    }
-
-    private unregisterGraph(g: DrawableGraph) {
-        g.removeCreatedEdgeListener(this.onCreatedEdge);
-        g.removeCreatedNodeListener(this.onCreatedNode);
-        g.removeDeletedEdgeListener(this.onDeletedEdge);
-        g.removeDeletedNodeListener(this.onDeletedNode);
-        g.removePropertyChangedListener(this.onDrawablePropertyChanged);
-        for (const d of [...g.edges, ...g.nodes])
-            this.unregisterDrawable(d);
-    }
-
-    private registerDrawable(d: DrawableElement) {
-        if (this.drawList.findIndex(v => v === d) < 0)
-            this.drawList.push(d);
-        if (d instanceof DrawableEdge) {
-            this.drawList = this.drawList.filter(v => {
-                return v !== d.sourceNode && v !== d.destinationNode;
-            });
-            this.drawList.push(d.destinationNode, d.sourceNode);
-        }
-        d.update(this.canvas);
-        d.addPropertyChangedEventListener(this.onDrawablePropertyChanged);
-        this.redraw();
-    }
-
-    private unregisterDrawable(d: DrawableElement) {
-        this.drawList = this.drawList.filter(v => v !== d);
-        d.removePropertyChangedEventListener(this.onDrawablePropertyChanged);
-        this.redraw();
-    }
-
-    private onCreatedEdge = (evt: DrawableEventArgs<DrawableEdge>) => {
-        this.registerDrawable(evt.drawable);
-    }
-
-    private onCreatedNode = (evt: DrawableEventArgs<DrawableNode>) => {
-        this.registerDrawable(evt.drawable);
-    }
-
-    private onDeletedEdge = (evt: DrawableEventArgs<DrawableEdge>) => {
-        evt.drawable.update(this.canvas);
-        this.unregisterDrawable(evt.drawable);
-
-    }
-
-    private onDeletedNode = (evt: DrawableEventArgs<DrawableNode>) => {
-        this.unregisterDrawable(evt.drawable);
-    }
-
-    private onDrawablePropertyChanged = (evt: PropertyChangedEventArgs<any>) => {
-        if (evt.source instanceof DrawableElement) {
-            evt.source.update(this.canvas);
-            this.redraw();
-        }
-        else if (evt.source instanceof DrawableGraph) {
-            switch (evt.key) {
-                case "origin":
-                    this.origin = evt.source[evt.key];
-                    break;
-                case "scale":
-                    this.scale = evt.source[evt.key];
-                    break;
-            }
         }
     }
 
@@ -363,7 +288,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
 
-    // Delegates ///////////////////////////////////////////////////////////////
+    // Event handlers //////////////////////////////////////////////////////////
 
 
     /**
@@ -579,6 +504,41 @@ export class GraphEditorComponent implements AfterViewInit {
         }
     }
 
+    private onCreatedEdge = (evt: DrawableEventArgs<DrawableEdge>) => {
+        this.registerDrawable(evt.drawable);
+    }
+
+    private onCreatedNode = (evt: DrawableEventArgs<DrawableNode>) => {
+        this.registerDrawable(evt.drawable);
+    }
+
+    private onDeletedEdge = (evt: DrawableEventArgs<DrawableEdge>) => {
+        evt.drawable.update(this.canvas);
+        this.unregisterDrawable(evt.drawable);
+
+    }
+
+    private onDeletedNode = (evt: DrawableEventArgs<DrawableNode>) => {
+        this.unregisterDrawable(evt.drawable);
+    }
+
+    private onDrawablePropertyChanged = (evt: PropertyChangedEventArgs<any>) => {
+        if (evt.source instanceof DrawableElement) {
+            evt.source.update(this.canvas);
+            this.redraw();
+        }
+        else if (evt.source instanceof DrawableGraph) {
+            switch (evt.key) {
+                case "origin":
+                    this.origin = evt.source[evt.key];
+                    break;
+                case "scale":
+                    this.scale = evt.source[evt.key];
+                    break;
+            }
+        }
+    }
+
 
     // Add and Remove Methods //////////////////////////////////////////////////
 
@@ -609,6 +569,50 @@ export class GraphEditorComponent implements AfterViewInit {
         el.removeEventListener("mousemove", this.onMouseMove);
         el.removeEventListener("wheel", this.onWheel);
         el.removeEventListener("keydown", this.onKeyDown);
+    }
+
+    private registerGraph(g: DrawableGraph) {
+        this.graph = g;
+        this.scale = g.scale;
+        this.origin = g.origin;
+        g.addCreatedEdgeListener(this.onCreatedEdge);
+        g.addCreatedNodeListener(this.onCreatedNode);
+        g.addDeletedEdgeListener(this.onDeletedEdge);
+        g.addDeletedNodeListener(this.onDeletedNode);
+        g.addPropertyChangedListener(this.onDrawablePropertyChanged);
+        this.drawList = [];
+        for (const d of [...g.edges, ...g.nodes])
+            this.registerDrawable(d);
+    }
+
+    private unregisterGraph(g: DrawableGraph) {
+        g.removeCreatedEdgeListener(this.onCreatedEdge);
+        g.removeCreatedNodeListener(this.onCreatedNode);
+        g.removeDeletedEdgeListener(this.onDeletedEdge);
+        g.removeDeletedNodeListener(this.onDeletedNode);
+        g.removePropertyChangedListener(this.onDrawablePropertyChanged);
+        for (const d of [...g.edges, ...g.nodes])
+            this.unregisterDrawable(d);
+    }
+
+    private registerDrawable(d: DrawableElement) {
+        if (this.drawList.findIndex(v => v === d) < 0)
+            this.drawList.push(d);
+        if (d instanceof DrawableEdge) {
+            this.drawList = this.drawList.filter(v => {
+                return v !== d.sourceNode && v !== d.destinationNode;
+            });
+            this.drawList.push(d.destinationNode, d.sourceNode);
+        }
+        d.update(this.canvas);
+        d.addPropertyChangedEventListener(this.onDrawablePropertyChanged);
+        this.redraw();
+    }
+
+    private unregisterDrawable(d: DrawableElement) {
+        this.drawList = this.drawList.filter(v => v !== d);
+        d.removePropertyChangedEventListener(this.onDrawablePropertyChanged);
+        this.redraw();
     }
 
 

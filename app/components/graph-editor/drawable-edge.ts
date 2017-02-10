@@ -24,61 +24,100 @@ import {
 import * as MathEx from "./math";
 
 
+/**
+ * DrawableEdge  
+ *   Represents an edge that is drawn on the graph editor canvas.
+ */
 export class DrawableEdge extends DrawableElement {
 
     /**
-     * showSourceArrow  
-     *   True to draw an arrow pointing to the source node; otherwise, false.
+     * _srcArrow  
+     *   Keeps track of whether or not the source arrow is displayed.
      */
     private _srcArrow: boolean;
 
     /**
-     * showDestinationArrow  
-     *   True to draw an arrow pointing to the destination node; otherwise, false.
+     * _dstArrow  
+     *   Keeps track of whether or not the destination arrow is displayed.
      */
     private _dstArrow: boolean;
 
     /**
-     * lineStyle  
-     *   The line style of the edge. This can be `solid`, `dotted`, or `dashed`.
+     * _lineStyle  
+     *   Keeps track of the line style of the edge.
      */
     private _lineStyle: LineStyles;
 
     /**
-     * lineWidth  
-     *   The width of the edge. This value must be non-negative.
+     * _lineWidth  
+     *   Keeps track of the line width of the edge.
      */
     private _lineWidth: number;
 
+    /**
+     * _pts  
+     *   Keeps track of points-of-interest related to the edge.
+     * 
+     * <p>
+     *   The first two points represent the boundary points along the source and
+     *   destination nodes respectively. The third point is the midpoint along
+     *   the edge line. For cubic lines, the fourth and fifth points are more
+     *   points along the line. The remaining points are control points for
+     *   either quadratic or cubic Bezier curves.
+     * </p>
+     */
     private _pts: point[];
 
+    /**
+     * points  
+     *   Updates the points-of-interest related to the edge.
+     */
     private set points(value: point[]) {
         if (this._pts.length == value.length) {
-            for (let i = 0; i < value.length; i++) {
+            for (let i = 0; i < value.length; i++)
                 this._pts[i] = value[i];
-            }
         }
-        else {
+        else
             this._pts = value;
-        }
     }
 
+    /**
+     * sourceNode  
+     *   Gets the reference to the drawable source node of the edge.
+     */
     get sourceNode() {
         return this.src;
     }
 
+    /**
+     * destinationNode  
+     *   Gets the reference to the drawable destination node of the edge.
+     */
     get destinationNode() {
         return this.dst;
     }
 
+    /**
+     * sourcePoint  
+     *   Gets the point of the edge along the boundary of its source node.
+     */
     get sourcePoint() {
         return this._pts[0];
     }
 
+    /**
+     * destinationPoint  
+     *   Gets the point of the edge along the boundary of its destination node.
+     */
     get destinationPoint() {
         return this._pts[1];
     }
 
+    /**
+     * showSourceArrow  
+     *   Gets or sets whether or not an arrow should be displayed towards the
+     *   source node.
+     */
     get showSourceArrow() {
         return this._srcArrow;
     }
@@ -91,6 +130,11 @@ export class DrawableEdge extends DrawableElement {
         }
     }
 
+    /**
+     * showDestinationArrow  
+     *   Gets or sets whether or not an arrow should be displayed towards the
+     *   destination node.
+     */
     get showDestinationArrow() {
         return this._dstArrow;
     }
@@ -103,6 +147,10 @@ export class DrawableEdge extends DrawableElement {
         }
     }
 
+    /**
+     * lineStyle  
+     *   Gets or sets the line style of the edge.
+     */
     get lineStyle() {
         return this._lineStyle;
     }
@@ -113,6 +161,10 @@ export class DrawableEdge extends DrawableElement {
         }
     }
 
+    /**
+     * lineWidth  
+     *   Gets or sets the width of the line of the edge.
+     */
     get lineWidth() {
         return this._lineWidth;
     }
@@ -123,6 +175,9 @@ export class DrawableEdge extends DrawableElement {
         }
     }
 
+    /**
+     * constructor  
+     */
     constructor(
         graph: DrawableGraph,
         private readonly src: DrawableNode,
@@ -151,6 +206,10 @@ export class DrawableEdge extends DrawableElement {
         this.dst.addEdge(this);
     }
 
+    /**
+     * update  
+     *   Updates the geometry and draw logic of the edge.
+     */
     update(g: GraphEditorCanvas): void {
         console.assert(
             !this.src.isHidden || !this.dst.isHidden,
@@ -167,13 +226,24 @@ export class DrawableEdge extends DrawableElement {
         this.updateDraw(g);
     }
 
+    /**
+     * updateDraw  
+     *   Updates the draw logic of the edge.
+     */
     updateDraw(g: GraphEditorCanvas) {
         let hovered = this.isHovered;
         /////////////////////////
         // Set selected shadow //
         /////////////////////////
         if (this.isSelected) {
-            let preDrawThunk = this.makePreDrawEdge(g, SELECTION_COLOR, this._lineWidth + 4, "solid", false, this.isHovered);
+            let preDrawThunk = this.makePreDrawEdge(
+                g,
+                SELECTION_COLOR,
+                this._lineWidth + 4,
+                "solid",
+                false,
+                this.isHovered
+            );
             let traceThunk = this.makeTraceEdge(g);
             let drawLabelThunk = () => { };
             if (this._lines.length > 0) {
@@ -204,7 +274,14 @@ export class DrawableEdge extends DrawableElement {
         //////////////
         // Set edge //
         //////////////
-        let preDrawThunk = this.makePreDrawEdge(g, this._color, this._lineWidth, this._lineStyle, this.isDragging, hovered);
+        let preDrawThunk = this.makePreDrawEdge(
+            g,
+            this._color,
+            this._lineWidth,
+            this._lineStyle,
+            this.isDragging,
+            hovered
+        );
         let traceThunk = this.makeTraceEdge(g);
         let drawLabelThunk = () => { };
         if (this._lines.length > 0) {
@@ -223,6 +300,14 @@ export class DrawableEdge extends DrawableElement {
         };
     }
 
+    /**
+     * hitPoint  
+     *   Tests whether or not a point is within the hit threshold of the edge.
+     * 
+     * @returns
+     *   An anchor point if the given point is within the threshold of the edge;
+     *   otherwise, null.
+     */
     hitPoint(pt: point): point | null {
         if (!(this.src.isHidden || this.dst.isHidden)) {
             let src = this._pts[0];
@@ -288,6 +373,10 @@ export class DrawableEdge extends DrawableElement {
         return null;
     }
 
+    /**
+     * hitRect  
+     *   Tests if any part of the edge is captured by a rectangle.
+     */
     hitRect(r: rect): boolean {
         const L = r.x;
         const R = r.x + r.w;
@@ -324,6 +413,9 @@ export class DrawableEdge extends DrawableElement {
         }
     }
 
+    /**
+     * updateOverlappedEdges  
+     */
     private updateOverlappedEdges(g: GraphEditorCanvas) {
         if (!this.src.isHidden && !this.dst.isHidden) {
             let srcIn = this.sourceNode.incomingEdges;
@@ -366,7 +458,8 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     *   Gets the end points and midpoint of a straight line.
+     * setStraightPoints  
+     *   Sets the end points and midpoint of a straight line.
      */
     private setStraightPoints(): void {
         let pts: point[] = [];
@@ -397,7 +490,8 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     *   Gets the edge points and midpoint of an overlapping edge.
+     * setQuadraticPoints  
+     *   Sets the edge points and midpoint of an overlapping edge.
      */
     private setQuadraticPoints(): void {
         let spt = this.src.position;
@@ -440,7 +534,8 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     *   Gets the edge points and midpoint of a self-referencing node.
+     * setLoopPoints  
+     *   Sets the edge points and midpoint of a self-referencing node.
      */
     private setLoopPoints(): void {
         let spt = this.src.position;
@@ -591,6 +686,10 @@ export class DrawableEdge extends DrawableElement {
         };
     }
 
+    /**
+     * drawLabelRect  
+     *   Draws the background rectangle for the edge label.
+     */
     private drawLabelRect(g: GraphEditorCanvas) {
         let pt = this._pts[2];
         let sz = this._textSize;
@@ -616,6 +715,10 @@ export class DrawableEdge extends DrawableElement {
 }
 
 
+/**
+ * hitPtTestLine  
+ *   Tests if a point is within the threshold of a straight line segment.
+ */
 function hitPtTestLine(
     src: point,
     dst: point,
@@ -653,6 +756,11 @@ function hitPtTestLine(
     return null;
 }
 
+/**
+ * hitRectTestCubicEdge  
+ *   Tests whether any part of a cubic Bezier curve has been captured by a
+ *   rectangle.
+ */
 function hitRectTestCubicEdge(
     top: number,
     left: number,
@@ -767,6 +875,11 @@ function hitRectTestCubicEdge(
     return false;
 }
 
+/**
+ * hitRectTestQuadraticEdge  
+ *   Tests whether any part of a quadratic Bezier curve has been captured by a
+ *   rectangle.
+ */
 function hitRectTestQuadraticEdge(
     T: number,
     L: number,
@@ -776,6 +889,8 @@ function hitRectTestQuadraticEdge(
     p1: point,
     p2: point
 ): boolean {
+    // TODO:
+    // Debug.
     let a = MathEx.quadBezAv(p0, p1, p2);
     let b = MathEx.quadBezBv(p0, p2);
     let c = { x: p0.x - L, y: p0.y - T };
@@ -811,6 +926,10 @@ function hitRectTestQuadraticEdge(
     return (t >= 0 && t <= 1 && x >= L && x <= R);
 }
 
+/**
+ * hitRectTestStraighEdge  
+ *   Test whether any part of a straight line has been captured by a rectangle.
+ */
 function hitRectTestStraighEdge(
     T: number,
     L: number,
