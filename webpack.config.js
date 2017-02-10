@@ -7,27 +7,24 @@
 
 // Lots of ideas taken from: https://angular.io/docs/ts/latest/guide/webpack.html
 
-var webpack = require('webpack');
-var CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
-var HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
+const CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpackMerge = require('webpack-merge');
 
-// TODO: Split this up into a general, development, and production configuration
-const ENV = process.env.NODE_ENV = process.env.ENV = 'development';
+module.exports = (env = {}) => { // pass command line arguments like `webpack ... --env.arg=value`
+    const ENV = env.ENV ? env.ENV : 'development';
 
-module.exports = [
-
-    // electron target
-    {
-        devtool: 'source-map',
-        target: 'electron',
+    /**
+     * Common configuration for all targets
+     */
+    let common = {
+        devtool: 'cheap-module-eval-source-map', // There's faster/slower options depending on the quality of source map you want.
 
         node: {
             __dirname: false,
-            __filename: false
-        },
-
-        entry: {
-            'index': './app/index',
+            __filename: false,
+            fs: false,
         },
 
         output: {
@@ -44,43 +41,75 @@ module.exports = [
         module: {
             loaders: [
                 {
-                    test: /\.ts$/,
-                    loader: 'ts-loader',
-                    exclude: [/node_modules/, /plugins/]
-                },
-                {
                     test: /\.(png|jpg|gif|svg)$/,
                     loader: "file-loader?name=[name]-[hash].[ext]"
                 }
             ]
-        }
-    },
-
-    // web target
-    {
-        devtool: 'source-map',
-        target: 'web',
-
-        node: {
-            fs: false
         },
+
+        plugins: [
+            new webpack.DefinePlugin({
+                'process.env': {
+                    'ENV': JSON.stringify(ENV)
+                }
+            }),
+        ]
+    }
+
+    /**
+     * Configurations to use specifically for ENV == 'production'
+     */
+    var productionTarget = {
+        devtool: 'none',
+
+        plugins: [
+            new webpack.NoEmitOnErrorsPlugin(),
+
+            // Note because our project is ES6, we're using the harmony branch of uglifyjs
+            new webpack.optimize.UglifyJsPlugin({
+                debug: false,
+                minimize: true,
+                output: {
+                    comments: false
+                },
+            }),
+        ]
+    };
+
+
+
+    /**
+     * Target configuration for our electron bootstrap project
+     */
+    var electronTarget = webpackMerge(common, {
+        devtool: 'source-map',
+        target: 'electron',
+
+        entry: {
+            'index': './app/index',
+        },
+
+        module: {
+            loaders: [
+                {
+                    test: /\.ts$/,
+                    loader: 'ts-loader',
+                }
+            ]
+        }
+    });
+
+    /**
+     * Target for the main sinap-ide project
+     */
+    var webTarget = webpackMerge(common, {
+        target: 'web',
 
         entry: {
             'polyfills': "./app/polyfills.ts",
             'vendor': "./app/vendor.ts",
             'main': './app/main',
             'modal': './app/modal-windows/main'
-        },
-
-        output: {
-            path: './build',
-            filename: '[name].js',
-            sourceMapFilename: '[name].js.map',
-            chunkFilename: '[id].chunk.js'
-        },
-
-        resolve: {
-            extensions: ['.ts', '.js', '.json', '.css', '.html']
         },
 
         module: {
@@ -97,28 +126,11 @@ module.exports = [
                 {
                     test: /\.css$/,
                     loaders: ["to-string-loader", "css-loader"]
-                },
-                {
-                    test: /\.(png|jpg|gif|svg)$/,
-                    loader: "file-loader?name=[name]-[hash].[ext]"
-                },
-                {
-                    test: /\.json$/,
-                    loader: "file-loader?name=[path][name].[ext]"
                 }
             ]
         },
 
         plugins: [
-            new webpack.NoEmitOnErrorsPlugin(),
-            // new webpack.optimize.UglifyJsPlugin({
-            //     debug: false,
-            //     minimize: true,
-            //     sourceMap: false,
-            //     output: {
-            //         comments: false
-            //     },
-            // }),
             new HtmlWebpackPlugin({
                 template: './app/index.html',
                 chunks: ['polyfills', 'vendor', 'main']
@@ -131,12 +143,6 @@ module.exports = [
 
             new webpack.optimize.CommonsChunkPlugin({
                 name: ['vendor', 'polyfills']
-            }),
-
-            new webpack.DefinePlugin({
-                'process.env': {
-                    'ENV': JSON.stringify(ENV)
-                }
             }),
         ],
 
@@ -153,24 +159,23 @@ module.exports = [
             'system': '{}',
             'file': '{}'
         }
-    },
+    });
 
-    // plugin target.
-    {
+    /**
+     * Temporary target to build in a DFA Interpreter into the project.
+     */
+    var pluginTarget = webpackMerge(common, {
         target: 'web',
-        node: {
-            fs: false
-        },
+
         entry: {
             'dfa-interpreter': './plugins/dfa-interpreter'
         },
+
         output: {
             path: './build/plugins',
-            filename: '[name].js',
-            sourceMapFilename: '[name].js.map',
-            chunkFilename: '[id].chunk.js',
             library: 'module'
         },
+
         resolve: {
             extensions: ['.ts']
         },
@@ -184,4 +189,24 @@ module.exports = [
                 }
             ]
         }
-    }];
+    });
+
+
+    /**
+     * Our webpack configuration
+     */
+    var config = [
+        electronTarget,
+        webTarget,
+        pluginTarget,
+    ];
+
+    // Adjustments for production build.
+    if (ENV == 'production') {
+        config = Array.from(config, (target) => {
+            return webpackMerge(target, productionTarget);
+        });
+    }
+
+    return config;
+};

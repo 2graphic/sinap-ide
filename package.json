@@ -15,12 +15,13 @@
     "format": "tsfmt -r",
     "prebuild": "npm install && npm run format",
     "build": "npm run prebuild && npm run webpack",
-    "build:watch": "npm run build -- --watch",
+    "build:prod": "npm run prebuild && npm run webpack -- --env.ENV=production",
+    "build:watch": "npm run prebuild && npm run webpack -- --watch",
     "start": "electron build",
     "build:start": "npm run build && npm run start",
     "build:watch:start": "concurrently \"npm run build:watch\" \"npm run start\"",
     "electron-packager": "electron-packager build sinap --out=dist --no-prune --arch=all --overwrite --icon=./app/images/icons/icon",
-    "prepackage": "npm run clean && npm run build && cpx package.json build",
+    "prepackage": "npm run clean && npm run build:prod && cpx package.json build",
     "package": "npm run prepackage && npm run electron-packager -- --platform=all",
     "package:darwin": "npm run prepackage && npm run electron-packager -- --platform=darwin",
     "package:win": "npm run prepackage && npm run electron-packager -- --platform=win32",
@@ -60,6 +61,7 @@
     "typescript": "2.1.x",
     "typescript-formatter": "4.0.x",
     "uglify-js": "git+https://github.com/mishoo/UglifyJS2.git#harmony",
-    "webpack": "2.2.x"
+    "webpack": "2.2.x",
+    "webpack-merge": "2.6.x"
   }
 }
