@@ -183,7 +183,7 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
         module: {
             loaders: [
                 {
-                    test: /dfa-interpreter.ts$/,
+                    test: /\.ts$/,
                     loaders: ['ts-loader'],
                     exclude: [/node_modules/, /app/, /build/]
                 }
