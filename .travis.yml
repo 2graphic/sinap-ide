@@ -9,5 +9,7 @@ before_install:
 install:
     - npm install
 script:
-    - npm run build:dll build build:prod
+    - npm run build:dll
+    - npm run build 
+    - npm run build:prod
     - git diff --quiet HEAD
