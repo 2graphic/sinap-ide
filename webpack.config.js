@@ -82,7 +82,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
      * Target configuration for our electron bootstrap project
      */
     var electronTarget = webpackMerge(common, {
-        devtool: 'source-map',
         target: 'electron',
 
         entry: {
@@ -107,7 +106,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
 
         entry: {
             'polyfills': "./app/polyfills.ts",
-            'vendor': "./app/vendor.ts",
             'main': './app/main',
             'modal': './app/modal-windows/main'
         },
@@ -133,16 +131,18 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
         plugins: [
             new HtmlWebpackPlugin({
                 template: './app/index.html',
-                chunks: ['polyfills', 'vendor', 'main']
+                chunks: ['polyfills', 'main']
             }),
             new HtmlWebpackPlugin({
                 template: './app/modal-windows/index.html',
                 filename: 'modal.html',
-                chunks: ['polyfills', 'vendor', 'modal']
+                chunks: ['polyfills', 'modal']
             }),
 
-            new webpack.optimize.CommonsChunkPlugin({
-                name: ['vendor', 'polyfills']
+            // Make sure to run `npm run build:dll` everytime you update angular
+            new webpack.DllReferencePlugin({
+                context: '.',
+                manifest: require('./dll/vendor-manifest.json'),
             }),
         ],
 

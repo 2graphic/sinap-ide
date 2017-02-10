@@ -34,7 +34,7 @@ node_modules/
 
 # Required #
 ############
-!webpack.config.js
+!*.config.js
 
 # Misc. #
 #########
@@ -45,3 +45,4 @@ node_modules/
 .vscode*
 build
 dist
+dll
