@@ -184,8 +184,7 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
             loaders: [
                 {
                     test: /\.ts$/,
-                    loaders: ['ts-loader'],
-                    exclude: [/node_modules/, /app/, /build/]
+                    loaders: ['ts-loader']
                 }
             ]
         }
