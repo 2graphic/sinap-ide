@@ -1,0 +1,13 @@
+language: nodejs
+node_js:
+    - "6.1.x"
+before_install:
+  - curl -s -o $HOME/.nvm/nvm.sh https://raw.githubusercontent.com/creationix/nvm/v0.31.0/nvm.sh
+  - source $HOME/.nvm/nvm.sh
+  - nvm install stable
+  - node --version
+install:
+    - npm install
+script:
+    - npm run build:dll build build:prod
+    - git diff --quiet HEAD
