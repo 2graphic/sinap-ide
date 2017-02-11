@@ -69,7 +69,10 @@ export class LocalFileService {
 
     requestFiles(): Promise<File[]> {
         return new Promise<File[]>((resolve, reject) => {
-            dialog.showOpenDialog({}, (filenames) => resolve(filenames.map((name) => new LocalFile(name))))
+            const options: any = {
+                properties: ['openFile', 'multiSelections']
+            }
+            dialog.showOpenDialog(options, (filenames: string[]) => resolve(filenames.map((name) => new LocalFile(name))))
         });
     }
 }
