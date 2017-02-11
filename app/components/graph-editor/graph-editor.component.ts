@@ -334,6 +334,18 @@ export class GraphEditorComponent implements AfterViewInit {
         this.redrawDelegate();
     }
 
+    copy(): void {
+        console.log("Editor copy");
+    }
+
+    cut(): void {
+        console.log("Editor cut");
+    }
+
+    paste(): void {
+        console.log("Editor paste");
+    }
+
 
     // Delegates ///////////////////////////////////////////////////////////////
 
