@@ -7,8 +7,9 @@
 //
 
 
-import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
-import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service"
+import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
+import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
+import { MenuEventAction } from "../../models/menu";
 import { GraphEditorComponent, Drawable as DrawableInterface } from "../graph-editor/graph-editor.component";
 import { PluginService } from "../../services/plugin.service";
 import { Program } from "../../models/plugin";
@@ -182,17 +183,54 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
 
     menuEvent(e: MenuEvent) {
-        switch (e) {
-            case MenuEvent.NEW_FILE:
+        switch (e.action) {
+            case MenuEventAction.NEW_FILE:
                 this.promptNewFile();
                 break;
-            case MenuEvent.LOAD_FILE:
+            case MenuEventAction.LOAD_FILE:
                 this.loadFile();
                 break;
-            case MenuEvent.SAVE_FILE:
+            case MenuEventAction.SAVE_FILE:
                 this.saveFile();
                 break;
+            case MenuEventAction.CUT:
+                if (this.focusIsChildOf("editor-panel")) {
+                    this.graphEditor.cut();
+                    e.preventDefault();
+                }
+                break;
+            case MenuEventAction.COPY:
+                if (this.focusIsChildOf("editor-panel")) {
+                    this.graphEditor.copy();
+                    e.preventDefault();
+                }
+                break;
+            case MenuEventAction.PASTE:
+                if (this.focusIsChildOf("editor-panel")) {
+                    this.graphEditor.paste();
+                    e.preventDefault();
+                }
+                break;
         }
+    }
+
+    /**
+     * Return true if the focused element is a child of an element with an `id` of `childOf`
+     */
+    private focusIsChildOf(childOf: string) {
+        function elementIsChildOf(element: Element, id: string): boolean {
+            while (element.parentElement) {
+                if (element.parentElement.id == id) {
+                    return true;
+                } else {
+                    return elementIsChildOf(element.parentElement, id);
+                }
+            }
+
+            return false;
+        }
+
+        return document.hasFocus() && elementIsChildOf(document.activeElement, childOf);
     }
 
     saveFile() {
