@@ -35,19 +35,21 @@ export interface FileService {
     getCurrentDirectory(): Promise<Directory>;
     fileByName(fullName: string): Promise<File>;
     directoryByName(fullName: string): Promise<Directory>;
-    requestFiles(forSave: boolean): Promise<File[]>;
+    requestSaveFile(): Promise<File>;
+    requestFiles(): Promise<File[]>;
 }
 
-function surroundSync<T>(func: ()=>T): Promise<T> {
+function surroundSync<T>(func: () => T): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         try {
             resolve(func());
-        } catch(err) {
+        } catch (err) {
             reject(err);
         }
     });
 }
 
+@Injectable()
 export class LocalFileService {
     getCurrentDirectory(): Promise<Directory> {
         return surroundSync(() => process.cwd());
@@ -62,17 +64,21 @@ export class LocalFileService {
     }
 
     requestSaveFile(): Promise<File> {
-        return this.requestFiles(true).then((files) => files[0]);
+        return this.requestFilesGen(true).then((files) => files[0]);
     }
 
-    private requestFiles(forSave: boolean): Promise<File[]> {
+    requestFiles(): Promise<File[]> {
+        return this.requestFilesGen(false);
+    }
+
+    private requestFilesGen(forSave: boolean): Promise<File[]> {
         return new Promise<File[]>((resolve, reject) => {
             if (forSave) {
                 dialog.showSaveDialog({}, (name) => resolve([new LocalFile(name)]));
             } else {
                 dialog.showOpenDialog({}, (filenames) => filenames.map((name) => new LocalFile(name)));
-           }
-       });
+            }
+        });
     }
 }
 
@@ -144,13 +150,13 @@ class LocalDirectory implements Directory {
             .then((names) => {
                 return Promise.all(names.map((name) => {
                     return this.isDirectory(name)
-                    .then((isDirectory) => {
-                        if (isDirectory) {
-                            return new LocalDirectory(name);
-                        } else {
-                            return new LocalFile(name);
-                        }
-                    });
+                        .then((isDirectory) => {
+                            if (isDirectory) {
+                                return new LocalDirectory(name);
+                            } else {
+                                return new LocalFile(name);
+                            }
+                        });
                 }));
             });
     }

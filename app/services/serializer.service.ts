@@ -3,6 +3,9 @@ import { PropertiedEntity, PropertyList, PropertiedEntityLists } from "../compon
 import * as Core from '../models/core'
 import { PluginService } from '../services/plugin.service'
 
+const fileFormatVersion = 'sinap-file-format-version';
+const currentFormatVersion = '0.0.3';
+
 @Injectable()
 export class SerializerService {
     constructor( @Inject(PluginService) private pluginService: PluginService) { }
@@ -44,12 +47,15 @@ export class SerializerService {
         result.edges = edges;
         return {
             'graph': result,
-            'sinap-file-format-version': '0.0.3',
+            fileFormatVersion: currentFormatVersion,
             'plugin': entity.plugin.kind
         };
     }
 
     public deserialize(pojo: any): Promise<Core.Graph> {
+        if (pojo[fileFormatVersion] != currentFormatVersion) {
+            return Promise.reject("invalid file format version");
+        }
         return this.pluginService.getPlugin(pojo.plugin)
             .then((plugin) => {
                 const result = new Core.Graph(plugin);
