@@ -45,15 +45,18 @@ export class SerializerService {
         });
         result.nodes = nodes;
         result.edges = edges;
-        return {
+        let realResult: any = {
             'graph': result,
-            fileFormatVersion: currentFormatVersion,
             'plugin': entity.plugin.kind
         };
+        realResult[fileFormatVersion] = currentFormatVersion;
+        return result;
     }
 
     public deserialize(pojo: any): Promise<Core.Graph> {
         if (pojo[fileFormatVersion] != currentFormatVersion) {
+            console.log(pojo);
+            console.log(pojo[fileFormatVersion]);
             return Promise.reject("invalid file format version");
         }
         return this.pluginService.getPlugin(pojo.plugin)

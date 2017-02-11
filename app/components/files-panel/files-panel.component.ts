@@ -38,7 +38,7 @@ export class FilesPanelComponent {
         }
     }
 
-    constructor(private fileService: FileService) {
+    constructor(private fileService: LocalFileService) {
         // TODO:
         // Replace this with a button that will ask the user to open a folder.
         this.setDirectory(".");
