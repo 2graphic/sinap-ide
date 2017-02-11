@@ -7,28 +7,25 @@
 
 // Lots of ideas taken from: https://angular.io/docs/ts/latest/guide/webpack.html
 
-var webpack = require('webpack');
-var CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
-var HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
+const CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpackMerge = require('webpack-merge');
 
-// TODO: Split this up into a general, development, and production configuration
-const ENV = 'development';
+module.exports = (env = {}) => { // pass command line arguments like `webpack ... --env.arg=value`
+    const ENV = env.ENV ? env.ENV : 'development';
 
-module.exports = [
-
-    // electron target
-    {
-        devtool: 'source-map',
-        debug: true,
-        target: 'electron',
+    /**
+     * Common configuration for all targets
+     */
+    let common = {
+        devtool: 'cheap-module-eval-source-map', // There's faster/slower options depending on the quality of source map you want.
 
         node: {
             __dirname: false,
-            __filename: false
-        },
-
-        entry: {
-            'index': './app/index',
+            __filename: false,
+            fs: false,
+            process: false,
         },
 
         output: {
@@ -39,58 +36,87 @@ module.exports = [
         },
 
         resolve: {
-            extensions: ['', '.ts', '.js', '.json', '.css', '.html']
+            extensions: ['.ts', '.js', '.json', '.css', '.html']
         },
 
         module: {
             loaders: [
-                {
-                    test: /\.ts$/,
-                    loader: 'ts',
-                    exclude: [/node_modules/, /plugins/]
-                },
                 {
                     test: /\.(png|jpg|gif|svg)$/,
                     loader: "file-loader?name=[name]-[hash].[ext]"
                 }
             ]
-        }
-    },
-
-    // web target
-    {
-        devtool: 'source-map',
-        debug: true,
-        target: 'web',
-
-        node: {
-            fs: false,
-            process: false
         },
+
+        plugins: [
+            new webpack.DefinePlugin({
+                'process.env': {
+                    'ENV': JSON.stringify(ENV)
+                }
+            }),
+        ]
+    }
+
+    /**
+     * Configurations to use specifically for ENV == 'production'
+     */
+    var productionTarget = {
+        devtool: 'none',
+
+        plugins: [
+            new webpack.NoEmitOnErrorsPlugin(),
+
+            // Note because our project is ES6, we're using the harmony branch of uglifyjs
+            new webpack.optimize.UglifyJsPlugin({
+                debug: false,
+                minimize: true,
+                output: {
+                    comments: false
+                },
+            }),
+        ]
+    };
+
+
+
+    /**
+     * Target configuration for our electron bootstrap project
+     */
+    var electronTarget = webpackMerge(common, {
+        target: 'electron',
 
         entry: {
-            'polyfills': "./app/polyfills.ts",
-            'vendor': "./app/vendor.ts",
-            'main': './app/main',
-            'modal': './app/modal-windows/main'
-        },
-
-        output: {
-            path: './build',
-            filename: '[name].js',
-            sourceMapFilename: '[name].js.map',
-            chunkFilename: '[id].chunk.js'
-        },
-
-        resolve: {
-            extensions: ['', '.ts', '.js', '.json', '.css', '.html']
+            'index': './app/index',
         },
 
         module: {
             loaders: [
                 {
                     test: /\.ts$/,
-                    loaders: ['ts', 'angular2-template-loader']
+                    loader: 'ts-loader',
+                }
+            ]
+        }
+    });
+
+    /**
+     * Target for the main sinap-ide project
+     */
+    var webTarget = webpackMerge(common, {
+        target: 'web',
+
+        entry: {
+            'polyfills': "./app/polyfills.ts",
+            'main': './app/main',
+            'modal': './app/modal-windows/main'
+        },
+
+        module: {
+            exprContextCritical: false, //https://github.com/angular/angular/issues/11580
+            loaders: [
+                {
+                    test: /\.ts$/,
+                    loaders: ['ts-loader', 'angular2-template-loader']
                 },
                 {
                     test: /\.html$/,
@@ -99,40 +125,25 @@ module.exports = [
                 {
                     test: /\.css$/,
                     loaders: ["to-string-loader", "css-loader"]
-                },
-                {
-                    test: /\.(png|jpg|gif|svg)$/,
-                    loader: "file-loader?name=[name]-[hash].[ext]"
-                },
-                {
-                    test: /\.json$/,
-                    loader: "file-loader?name=[path][name].[ext]"
                 }
             ]
         },
 
         plugins: [
-            new webpack.NoErrorsPlugin(),
-            new webpack.optimize.DedupePlugin(),
-            // TODO: Uglify plugin is incompatible with ES6, wait or use another plugin to minify...?
             new HtmlWebpackPlugin({
                 template: './app/index.html',
-                chunks: ['polyfills', 'vendor', 'main']
+                chunks: ['polyfills', 'main']
             }),
             new HtmlWebpackPlugin({
                 template: './app/modal-windows/index.html',
                 filename: 'modal.html',
-                chunks: ['polyfills', 'vendor', 'modal']
+                chunks: ['polyfills', 'modal']
             }),
 
-            new webpack.optimize.CommonsChunkPlugin({
-                name: ['vendor', 'polyfills']
-            }),
-            
-            new webpack.DefinePlugin({
-                'process.env': {
-                    'ENV': JSON.stringify(ENV)
-                }
+            // Make sure to run `npm run build:dll` everytime you update angular
+            new webpack.DllReferencePlugin({
+                context: '.',
+                manifest: require('./dll/vendor-manifest.json'),
             }),
         ],
 
@@ -149,25 +160,23 @@ module.exports = [
             'system': '{}',
             'file': '{}'
         }
-    }, 
+    });
 
-    // plugin target.
-    {
-        debug: true,
+    /**
+     * Temporary target to build in a DFA Interpreter into the project.
+     */
+    var pluginTarget = webpackMerge(common, {
         target: 'web',
-        node: {
-            fs: false
-        },
+
         entry: {
             'dfa-interpreter': './plugins/dfa-interpreter'
         },
+
         output: {
             path: './build/plugins',
-            filename: '[name].js',
-            sourceMapFilename: '[name].js.map',
-            chunkFilename: '[id].chunk.js',
             library: 'module'
         },
+
         resolve: {
             extensions: ['.ts']
         },
@@ -175,10 +184,29 @@ module.exports = [
         module: {
             loaders: [
                 {
-                    test: /dfa-interpreter.ts$/,
-                    loaders: ['ts'],
-                    exclude: [/node_modules/, /app/, /build/]
+                    test: /\.ts$/,
+                    loaders: ['ts-loader']
                 }
             ]
         }
-    }];
+    });
+
+
+    /**
+     * Our webpack configuration
+     */
+    var config = [
+        electronTarget,
+        webTarget,
+        pluginTarget,
+    ];
+
+    // Adjustments for production build.
+    if (ENV == 'production') {
+        config = Array.from(config, (target) => {
+            return webpackMerge(target, productionTarget);
+        });
+    }
+
+    return config;
+};
