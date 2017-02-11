@@ -167,7 +167,7 @@ export class PluginService {
         const val = this.pluginKinds.get(kind);
 
         if (!val) {
-            throw "Unsupported Filetype";
+            return Promise.reject(`Unsupported plugin kind: ${kind}`);
         }
 
         const {definitions, interpreter} = val;
