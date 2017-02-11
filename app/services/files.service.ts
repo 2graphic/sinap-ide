@@ -64,20 +64,12 @@ export class LocalFileService {
     }
 
     requestSaveFile(): Promise<File> {
-        return this.requestFilesGen(true).then((files) => files[0]);
+        return new Promise<File>((resolve, reject) => dialog.showSaveDialog({}, (name) => resolve(new LocalFile(name))));
     }
 
     requestFiles(): Promise<File[]> {
-        return this.requestFilesGen(false);
-    }
-
-    private requestFilesGen(forSave: boolean): Promise<File[]> {
         return new Promise<File[]>((resolve, reject) => {
-            if (forSave) {
-                dialog.showSaveDialog({}, (name) => resolve([new LocalFile(name)]));
-            } else {
-                dialog.showOpenDialog({}, (filenames) => filenames.map((name) => new LocalFile(name)));
-            }
+            dialog.showOpenDialog({}, (filenames) => resolve(filenames.map((name) => new LocalFile(name))))
         });
     }
 }
