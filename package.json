@@ -10,7 +10,6 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf ./build && rimraf ./dist && rimraf ./dll",
-    "clean:node_modules": "npm run clean && rimraf ./node_modules",
     "webpack": "webpack --progress --profile --colors --display-error-details --display-cached",
     "format": "tsfmt -r",
     "build": "npm run format && npm run webpack",
