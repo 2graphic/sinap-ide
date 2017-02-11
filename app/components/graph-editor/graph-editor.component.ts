@@ -68,11 +68,6 @@ type callback = () => void;
  *   Angular2 component that provides a canvas for drawing nodes and edges.
  */
 export class GraphEditorComponent implements AfterViewInit {
-
-
-    // Constructor /////////////////////////////////////////////////////////////
-
-
     constructor(private el: ElementRef) { }
 
 
@@ -166,7 +161,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
     /**
      * setGraph  
-     *   Input property for the graph context.
+     *   Input property for the graph.
      */
     @Input("graph")
     set setGraph(value: DrawableGraph | null) {
@@ -177,12 +172,12 @@ export class GraphEditorComponent implements AfterViewInit {
             this.oldGraph = this.graph;
             this.suspendRedraw();
             this.registerGraph(value);
-            this.addEventListeners(this.el.nativeElement);
+            this.registerEventListeners(this.el.nativeElement);
             this.resumeRedraw();
         }
         else {
             this.oldGraph = null;
-            this.removeEventListeners(this.el.nativeElement);
+            this.unregisterEventListeners(this.el.nativeElement);
             this.suspendRedraw();
             this.panPt = null;
             this.downEvt = null;
@@ -197,10 +192,18 @@ export class GraphEditorComponent implements AfterViewInit {
         this.redraw();
     }
 
+    /**
+     * suspendRedraw  
+     *   Suspends updates to the canvas.
+     */
     suspendRedraw() {
         this.redrawDelegate = () => { };
     }
 
+    /**
+     * resumeRedraw  
+     *   Resumes updates to the canvas and forces a redraw.
+     */
     resumeRedraw() {
         if (this.canvas) {
             this.redrawDelegate = () => {
@@ -298,7 +301,8 @@ export class GraphEditorComponent implements AfterViewInit {
      * TODO:
      * - Remove this from the editor.
      */
-    private onKeyDown = (e: KeyboardEvent): void => {
+    private onKeyDown
+    = (e: KeyboardEvent): void => {
         // Delete keyCode is 46; backspace is 8.
         if (e.keyCode == 46 || e.keyCode == 8) {
             this.suspendRedraw();
@@ -311,11 +315,13 @@ export class GraphEditorComponent implements AfterViewInit {
      * onMouseDown  
      *   Handles the mousedown event.
      */
-    private onMouseDown = (e: MouseEvent): void => {
-
+    private onMouseDown
+    = (e: MouseEvent): void => {
         switch (e.buttons) {
+
             // Handle the left mouse button event.
-            case 1:
+            case 1: {
+
                 // Swap up and down events.
                 this.el.nativeElement.removeEventListener(
                     "mousedown",
@@ -336,16 +342,17 @@ export class GraphEditorComponent implements AfterViewInit {
                         setTimeout(this.onStickey, DEFAULT.STICKY_DELAY));
                 }
 
+                // Update the drag object if something is being hovered.
                 else
                     this.updateDragObject();
 
-                break;
+            } break;
 
             // Handle the right mouse button event.
-            case 2:
+            case 2: {
                 // Capture the down pt.
                 this.panPt = e;
-                break;
+            } break;
         }
     }
 
@@ -353,7 +360,8 @@ export class GraphEditorComponent implements AfterViewInit {
      * onMouseMove  
      *   Handles the mousemove event.
      */
-    private onMouseMove = (e: MouseEvent): void => {
+    private onMouseMove
+    = (e: MouseEvent): void => {
         let ePt = this.canvas.getPt(e);
 
         // Capture the down event if the drag object has been set.
@@ -418,7 +426,8 @@ export class GraphEditorComponent implements AfterViewInit {
      * onMouseUp  
      *   Handles the mouseup event.
      */
-    private onMouseUp = (e: MouseEvent): void => {
+    private onMouseUp
+    = (e: MouseEvent): void => {
 
         // Make sure a down event was previously captured.
         if (this.downEvt) {
@@ -473,7 +482,8 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Handles the mouse wheel event for devices that do not register touch
      *   events for zooming.
      */
-    private onWheel = (e: WheelEvent) => {
+    private onWheel
+    = (e: WheelEvent) => {
         // Apply zoom.
         if (e.deltaY > 0)
             this.zoom(e, 1 / 1.1);
@@ -485,7 +495,8 @@ export class GraphEditorComponent implements AfterViewInit {
      * onStickey  
      *   Delayed mousedown event for creating nodes.
      */
-    private onStickey = (): void => {
+    private onStickey
+    = (): void => {
         // Create a new node and reset sticky.
         if (this.downEvt) {
             this.suspendRedraw();
@@ -504,25 +515,56 @@ export class GraphEditorComponent implements AfterViewInit {
         }
     }
 
-    private onCreatedEdge = (evt: DrawableEventArgs<DrawableEdge>) => {
+    /**
+     * onCreatedEdge  
+     *   Registers the edge for drawing and listening for property changed
+     *   events.
+     */
+    private onCreatedEdge
+    = (evt: DrawableEventArgs<DrawableEdge>) => {
         this.registerDrawable(evt.drawable);
     }
 
-    private onCreatedNode = (evt: DrawableEventArgs<DrawableNode>) => {
+    /**
+     * onCreatedNode  
+     *   Registers the node for drawing and listening for property changed
+     *   events.
+     */
+    private onCreatedNode
+    = (evt: DrawableEventArgs<DrawableNode>) => {
         this.registerDrawable(evt.drawable);
     }
 
-    private onDeletedEdge = (evt: DrawableEventArgs<DrawableEdge>) => {
+    /**
+     * onDeletedEdge  
+     *   Unregisters the edge from drawing and removes the event listener for
+     *   property changed events.
+     */
+    private onDeletedEdge
+    = (evt: DrawableEventArgs<DrawableEdge>) => {
         evt.drawable.update(this.canvas);
         this.unregisterDrawable(evt.drawable);
 
     }
 
-    private onDeletedNode = (evt: DrawableEventArgs<DrawableNode>) => {
+    /**
+     * onDeletedNode  
+     *   Unregisters the node from drawing and removes the event listener for
+     *   property changed events.
+     */
+    private onDeletedNode
+    = (evt: DrawableEventArgs<DrawableNode>) => {
         this.unregisterDrawable(evt.drawable);
     }
 
-    private onDrawablePropertyChanged = (evt: PropertyChangedEventArgs<any>) => {
+    /**
+     * onDrawablePropertyChanged  
+     *   Updates the drawable and refreshes the canvas if the event source is
+     *   a drawable element; otherwise, updates the scale or origin of the
+     *   drawable graph.
+     */
+    private onDrawablePropertyChanged
+    = (evt: PropertyChangedEventArgs<any>) => {
         if (evt.source instanceof DrawableElement) {
             evt.source.update(this.canvas);
             this.redraw();
@@ -540,14 +582,14 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
 
-    // Add and Remove Methods //////////////////////////////////////////////////
+    // Register Methods ////////////////////////////////////////////////////////
 
 
     /**
-     * addEventListeners  
-     *   Adds input event listeners.
+     * registerEventListeners  
+     *   Registers input event listeners.
      */
-    private addEventListeners(el: any) {
+    private registerEventListeners(el: any) {
         el.addEventListener("mousedown", this.onMouseDown);
         el.addEventListener("mousemove", this.onMouseMove);
         el.addEventListener("wheel", this.onWheel);
@@ -560,10 +602,10 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * removeEventListeners  
-     *   Removes event listeners.
+     * unregisterEventListeners  
+     *   Unregisters event listeners.
      */
-    private removeEventListeners(el: any) {
+    private unregisterEventListeners(el: any) {
         el.removeEventListener("mousedown", this.onMouseDown);
         el.removeEventListener("mouseup", this.onMouseUp);
         el.removeEventListener("mousemove", this.onMouseMove);
@@ -571,6 +613,10 @@ export class GraphEditorComponent implements AfterViewInit {
         el.removeEventListener("keydown", this.onKeyDown);
     }
 
+    /**
+     * registerGraph  
+     *   Registers event listeners for the newly bound graph.
+     */
     private registerGraph(g: DrawableGraph) {
         this.graph = g;
         this.scale = g.scale;
@@ -585,6 +631,10 @@ export class GraphEditorComponent implements AfterViewInit {
             this.registerDrawable(d);
     }
 
+    /**
+     * unregisterGraph  
+     *   Unregisters event listeners for the previously bound graph.
+     */
     private unregisterGraph(g: DrawableGraph) {
         g.removeCreatedEdgeListener(this.onCreatedEdge);
         g.removeCreatedNodeListener(this.onCreatedNode);
@@ -595,6 +645,10 @@ export class GraphEditorComponent implements AfterViewInit {
             this.unregisterDrawable(d);
     }
 
+    /**
+     * registerDrawable  
+     *   Registers event listeners for a drawable and adds it to the draw list.
+     */
     private registerDrawable(d: DrawableElement) {
         if (this.drawList.findIndex(v => v === d) < 0)
             this.drawList.push(d);
@@ -605,13 +659,18 @@ export class GraphEditorComponent implements AfterViewInit {
             this.drawList.push(d.destinationNode, d.sourceNode);
         }
         d.update(this.canvas);
-        d.addPropertyChangedEventListener(this.onDrawablePropertyChanged);
+        d.addPropertyChangedListener(this.onDrawablePropertyChanged);
         this.redraw();
     }
 
+    /**
+     * unregisterDrawable  
+     *   Unregisters event listeners for a drawable and removes it from the draw
+     *   list.
+     */
     private unregisterDrawable(d: DrawableElement) {
         this.drawList = this.drawList.filter(v => v !== d);
-        d.removePropertyChangedEventListener(this.onDrawablePropertyChanged);
+        d.removePropertyChangedListener(this.onDrawablePropertyChanged);
         this.redraw();
     }
 
@@ -657,13 +716,16 @@ export class GraphEditorComponent implements AfterViewInit {
         }
     }
 
+    /**
+     * updateDragObject  
+     *   Updates the object being dragged depending on the hovered object.
+     */
     private updateDragObject() {
-        let prev = this.dragObject;
+        // Create an edge or pick up the node if one is bing hovered.
         if (this.hoverObject instanceof DrawableNode) {
             // Create a new edge if an anchor pt is being displayed on the node.
-            if (this.hoverObject.isAnchorVisible) {
+            if (this.hoverObject.isAnchorVisible)
                 this.createDragEdge(this.hoverObject, true);
-            }
 
             // Set the drag object to the node if no anchor pt is being displayed.
             else {
@@ -673,6 +735,8 @@ export class GraphEditorComponent implements AfterViewInit {
             }
             this.redraw();
         }
+
+        // Pick up the edge if one is being hovered.
         else if (this.hoverObject instanceof DrawableEdge) {
             let spt = this.hoverObject.sourcePoint;
             let apt = this.hoverObject.sourceNode.anchorPoint;
@@ -687,6 +751,8 @@ export class GraphEditorComponent implements AfterViewInit {
             this.updateHoverObject(null);
             this.redraw();
         }
+
+        // Clear the drag object if the hover object is not a node or edge.
         else if (this.dragObject) {
             this.dragObject.isDragging = false;
             this.dragObject = null;
@@ -701,24 +767,27 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private updateHoverObject(value: { d: DrawableElement, pt: point } | null): void {
 
-        let prev = this.hoverObject;
-        if (prev) {
-            prev.isHovered = false;
-            if (prev instanceof DrawableNode) {
-                prev.clearAnchor();
-                prev.updateDraw(this.canvas);
+        // Update the previous hover object.
+        if (this.hoverObject) {
+            this.hoverObject.isHovered = false;
+            if (this.hoverObject instanceof DrawableNode) {
+                this.hoverObject.clearAnchor();
+                this.hoverObject.updateDraw(this.canvas);
             }
-            else if (prev instanceof DrawableEdge) {
-                prev.sourceNode.clearAnchor();
-                prev.destinationNode.clearAnchor();
-                prev.sourceNode.updateDraw(this.canvas);
-                prev.destinationNode.updateDraw(this.canvas);
+            else if (this.hoverObject instanceof DrawableEdge) {
+                this.hoverObject.sourceNode.clearAnchor();
+                this.hoverObject.destinationNode.clearAnchor();
+                this.hoverObject.sourceNode.updateDraw(this.canvas);
+                this.hoverObject.destinationNode.updateDraw(this.canvas);
             }
         }
 
+        // Set the new hover object.
         if (value) {
             this.hoverObject = value.d;
             value.d.isHovered = true;
+
+            // Display the anchor point if the hover object is an edge.
             if (value.d instanceof DrawableEdge) {
                 let spt = value.d.sourcePoint;
                 let apt = value.pt;
@@ -733,12 +802,13 @@ export class GraphEditorComponent implements AfterViewInit {
                 value.d.sourceNode.updateDraw(this.canvas);
                 value.d.destinationNode.updateDraw(this.canvas);
             }
+
+            // Update the anchor point if the hover object is a node.
             else if (value.d instanceof DrawableNode) {
                 if (this.graph.isValidEdge(value.d))
                     value.d.anchorPoint = value.pt;
                 else
                     value.d.clearAnchor();
-                value.d.updateDraw(this.canvas);
                 value.d.updateDraw(this.canvas);
             }
         }
@@ -754,6 +824,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Updates the collection of nodes being dragged.
      */
     private updateDragNodes(dragNode: DrawableNode, dPt: pt) {
+        this.suspendRedraw();
         if (dragNode.isSelected && this.graph.selectedItemCount > 0) {
             for (let d of this.graph.selectedItems)
                 if (d instanceof DrawableNode)
@@ -761,7 +832,7 @@ export class GraphEditorComponent implements AfterViewInit {
         }
         else
             this.updateDragNode(dragNode, dPt);
-        this.redraw();
+        this.resumeRedraw();
     }
 
     /**
@@ -778,6 +849,10 @@ export class GraphEditorComponent implements AfterViewInit {
     // Other Methods ///////////////////////////////////////////////////////////
 
 
+    /**
+     * pan  
+     *   Repositions the origin point of the canvas.
+     */
     private pan(p: pt) {
         let prev = this.panPt;
         let curr: pt = p;
@@ -789,6 +864,10 @@ export class GraphEditorComponent implements AfterViewInit {
         this.redraw();
     }
 
+    /**
+     * zoom  
+     *   Updates the scale of the canvas.
+     */
     private zoom(p: pt, s: number) {
         // Get the canvas coordinates before zoom.
         let pt1 = this.canvas.getPt(p);
@@ -809,6 +888,10 @@ export class GraphEditorComponent implements AfterViewInit {
         this.redraw();
     }
 
+    /**
+     * createDragEdge  
+     *   Creates a ghost edge to be dragged.
+     */
     private createDragEdge(
         n: DrawableNode,
         isSrc: boolean,
@@ -827,6 +910,9 @@ export class GraphEditorComponent implements AfterViewInit {
     /**
      * hitPtTest  
      *   Gets the first graph component that is hit by a pt.
+     * 
+     * TODO:
+     *   Should this return the entity closest to the given point?
      */
     private hitPtTest(pt: pt): { d: DrawableElement, pt: pt } | null {
         let hit = null;
@@ -858,20 +944,28 @@ export class GraphEditorComponent implements AfterViewInit {
         this.updateDragObject();
     }
 
+    /**
+     * checkValidEdgeDrop  
+     *   Checks if dropping an edge will be successfull.
+     */
     private checkValidEdgeDrop(e: DrawableEdge, pt: point): boolean {
         let hit: { d: DrawableNode, pt: point } | null = null;
         let src = e.sourceNode;
         let dst = e.destinationNode;
-        let like = (this.moveEdge ?
-            this.moveEdge :
-            undefined);
-        for (let n of this.drawList.filter(v => v instanceof DrawableNode) as DrawableNode[]) {
+        let like = (this.moveEdge ? this.moveEdge : undefined);
+        let nodes = this.drawList.filter(v => {
+            return v instanceof DrawableNode;
+        }) as DrawableNode[];
+
+        // Find the first node on which the edge can be dropped.
+        for (let n of nodes) {
             let d = n;
             if (n.hitPoint(pt) && this.graph.isValidEdge(
                 (src === this.dragObject ? d : src),
                 (dst === this.dragObject ? d : dst),
                 like
             )) {
+                // Get the anchor point where the edge will be dropped.
                 let posn = d.position;
                 src = (src.isHidden ? n : src);
                 dst = (dst.isHidden ? n : dst);
@@ -895,7 +989,10 @@ export class GraphEditorComponent implements AfterViewInit {
                 break;
             }
         }
+
+        // Indicate the node that will accept the edge.
         this.updateHoverObject(hit);
+
         return hit !== null;
     }
 
@@ -908,9 +1005,9 @@ export class GraphEditorComponent implements AfterViewInit {
         pt: pt
     ): void {
         let e = this.drawList.pop() as DrawableEdge;
-        // Move or create the edge if it was dropped on a node.
         let like = (this.moveEdge ? this.moveEdge : undefined);
         this.moveEdge = null;
+        // Move or create the edge if it was dropped on a node.
         if (this.hoverObject instanceof DrawableNode) {
             this.suspendRedraw();
             let srcNode = (e.sourceNode.isHidden ? this.hoverObject : e.sourceNode);
@@ -920,6 +1017,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.updateSelected(edge);
             this.resumeRedraw();
         }
+        // Update the original edge if one was being moved.
         else if (like) {
             like.isDragging = false;
             this.updateSelected(like);

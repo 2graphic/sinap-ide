@@ -1,6 +1,98 @@
-_Last updated: February 8, 2017_
+_Last updated: February 11, 2017_
 
-# Notes
+# Remarks
+The graph editor component is a custom Angular2 component that is intended to be
+used with an associated drawable graph object. `GraphEditorComponent` exposes a
+public `@Input` binding `graph` that expects a `DrawableGraph`. The
+`DrawableGraph` object constructor requires a validator function `isValidEdge`
+that determines whether or not an edge is valid for a given source and
+destination node. The destination node is an optional parameter; if it is not
+supplied by the caller, the intended use is to check if an edge can be created
+from the source node.
+
+## Example
+The following example code defines a custom Angular2 component `MyComponent`
+which binds to the `graph` property of its child element `sinap-graph-editor`.
+In `MyComponent`, the field `myGraph` is initialized as a new `DrawableGraph`
+object with a supplied edge validating function that always returns true.
+
+```typescript
+import { Component } from "@angular/core";
+import {
+  GraphEditorComponent,
+  DrawableGraph
+} from "./path/to/graph-editor.component";
+
+@Component({
+  selector: "my-component",
+  template: `<sinap-graph-editor [graph]="myGraph"></sinap-graph-editor>`
+})
+export class MyComponent {
+  myGraph = new DrawableGraph((src, dst?, like?) => { return true; });
+}
+```
+
+The `DrawableGraph` object is a container that houses `DrawableEdge` and
+`DrawableNode` entities. All drawable classes raise `PropertyChanged` events.
+The `DrawableGraph` class also raises `Creating`, `Created`, `Deleted`, and
+`SelectionChanged` events. Users of the drawable objects can subscribe to these
+events by invoking the `addListener` methods. The `Creating`, `Created`, and
+`Deleted` event payloads include a reference to the `DrawableElement` that is
+being created, has been created, or has been deleted. Listeners of these events
+can then add event listeners to the `PropertyChanged` events of these drawables.
+
+## Example
+The following example code is an extension of the previous example. As with the
+first example, `MyComponent` binds to `graph` and initializes `myGraph` to a new
+`DrawableGraph` object with a default edge validator. Then, in the constructor
+of `MyComponent`, event listeners are added to the `DrawableGraph` for the
+`CreatedNode` and `DeletedNode` events.
+
+In the event listener for the `CreatedNode` event, a `PropertyChanged` event is
+registered for the created `DrawableNode`. This event handler just logs the
+event payload of the `PropertyChanged` event to the console. The `DeletedNode`
+event handler removes the `PropertyChanged` event handler from the node.
+
+Note that the event listeners are not methods of the `MyComponent` class. This
+is because the event emitters currently do not properly bind to `this` when
+invoking each event listener.
+
+```typescript
+import { Component } from "@angular/core";
+import {
+  GraphEditorComponent,
+  DrawableGraph
+} from "./path/to/graph-editor.component";
+
+@Component({
+  selector: "my-component",
+  template: `<sinap-graph-editor [graph]="myGraph"></sinap-graph-editor>`
+})
+export class MyComponent {
+  myGraph;
+  
+  constructor() {
+    this.myGraph = new DrawableGraph((src, dst?, like?) => { return true; });
+    this.myGraph.addCreatedNodeListener(this.registerNode);
+    this.myGraph.addDeletedNodeListener(this.unregisterNode);
+  }
+
+  private registerNode = (evt) {
+    evt.drawable.addPropertyChangedListener(this.nodePropertyChanged);
+  }
+
+  private unregisterNode = (evt) {
+    evt.drawable.removePropertyChangedListener(this.nodePropertyChanged);
+  }
+
+  private nodePropertyChanged = (evt) {
+    console.log(evt);
+  }
+}
+```
+
+
+# Files
 
 ## graph-editor.component.ts
 The `GraphEditorComponent` class is the main Angular2 UI component class that
@@ -130,7 +222,7 @@ This file contains useful constants and linear algebra functions.
 
 
 # Discussion
-The graph editor no long emits events. Hook into the events on the
+The graph editor no longer emits events `@Output`. Hook into the events on the
 `DrawableGraph` object by supplying a listener to any of its `addListener`
 methods.
 

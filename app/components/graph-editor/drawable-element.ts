@@ -200,18 +200,18 @@ export abstract class DrawableElement {
     constructor(protected readonly graph: DrawableGraph) { }
 
     /**
-     * addPropertyChangedEventListener  
+     * addPropertyChangedListener  
      *   Adds an event listener for property changed events.
      */
-    addPropertyChangedEventListener(listener: PropertyChangedEventListener<any>) {
+    addPropertyChangedListener(listener: PropertyChangedEventListener<any>) {
         this._propertyChangedEmitter.addListener(listener);
     }
 
     /**
-     * removePropertyChangedEventListener  
+     * removePropertyChangedListener  
      *   Removes an event listener for property changed events.
      */
-    removePropertyChangedEventListener(listener: PropertyChangedEventListener<any>) {
+    removePropertyChangedListener(listener: PropertyChangedEventListener<any>) {
         this._propertyChangedEmitter.removeListener(listener);
     }
 
