@@ -50,7 +50,7 @@ export class SerializerService {
             'plugin': entity.plugin.kind
         };
         realResult[fileFormatVersion] = currentFormatVersion;
-        return result;
+        return realResult;
     }
 
     public deserialize(pojo: any): Promise<Core.Graph> {
