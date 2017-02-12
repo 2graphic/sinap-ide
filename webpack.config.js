@@ -25,7 +25,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
             __dirname: false,
             __filename: false,
             fs: false,
-            process: false,
         },
 
         output: {

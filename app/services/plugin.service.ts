@@ -6,7 +6,7 @@ import * as Core from '../models/core';
 import { Object as SinapObject } from "../models/object";
 import { Program, ProgramInput, ProgramOutput } from "../models/plugin";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
-import { FileService } from "../services/files.service";
+import { FileService, File, LocalFileService } from "../services/files.service";
 import { SerializerService } from "../services/serializer.service"
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
@@ -101,7 +101,7 @@ export class PluginService {
     // TODO: load from somewhere
     private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, { definitions: "./dfa-definition.sinapdef", interpreter: "./build/plugins/dfa-interpreter.js" }]])
 
-    constructor( @Inject(FileService) private fileService: FileService,
+    constructor( @Inject(LocalFileService) private fileService: FileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
         this.interpretCode = sandboxService.compileScript(`
             try{
@@ -167,18 +167,21 @@ export class PluginService {
         const val = this.pluginKinds.get(kind);
 
         if (!val) {
-            throw "Unsupported Filetype";
+            return Promise.reject(`Unsupported plugin kind: ${kind}`);
         }
 
         const {definitions, interpreter} = val;
 
-        let defintions = this.fileService.readFile(definitions)
+        const definitionsData = this.fileService.fileByName(definitions)
+            .then((defFile: File) => defFile.readData())
             .then((s) => {
                 return this.loadPluginTypeDefinitions(s);
             });
-        let script = this.fileService.readFile(interpreter)
+
+        const script = this.fileService.fileByName(interpreter)
+            .then((file: File) => file.readData())
             .then((code) => this.sandboxService.compileScript(code));
-        return Promise.all([defintions, script])
+        return Promise.all([definitionsData, script])
             .then(([def, scr]) => new ConcretePlugin(def, scr));
     }
 

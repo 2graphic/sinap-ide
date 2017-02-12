@@ -24,7 +24,7 @@ import * as Drawable from "../../models/drawable"
 import * as Core from "../../models/core"
 import { SideBarComponent } from "../side-bar/side-bar.component"
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
-import { FileService } from "../../services/files.service";
+import { FileService, LocalFileService, File } from "../../services/files.service";
 import { SerializerService } from "../../services/serializer.service";
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
@@ -33,11 +33,11 @@ import * as MagicConstants from "../../models/constants-not-to-be-included-in-be
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.css"],
-    providers: [MenuService, PluginService, WindowService, FileService, SerializerService, SandboxService]
+    providers: [MenuService, PluginService, WindowService, LocalFileService, SerializerService, SandboxService]
 })
 
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: FileService, private serializerService: SerializerService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private serializerService: SerializerService, private changeDetectorRef: ChangeDetectorRef) {
     }
 
     ngOnInit(): void {
@@ -234,8 +234,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     saveFile() {
-        this.fileService.requestFilename(true)
-            .then((filename: string) => {
+        this.fileService.requestSaveFile()
+            .then((file: File) => {
                 if (!this.context) {
                     alert("No open graph to save");
                     return;
@@ -243,38 +243,24 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
                 const pojo = this.serializerService.serialize(this.context.graph.core);
 
-                this.fileService.writeFile(filename, JSON.stringify(pojo, null, 4))
+                file.writeData(JSON.stringify(pojo, null, 4))
                     .catch((err) => {
-                        alert(`Error occurred while saving to file ${filename}: ${err}.`);
+                        alert(`Error occurred while saving to file ${file.name}: ${err}.`);
                     });
             });
     }
 
     loadFile() {
-        this.fileService.requestFilename(false)
-            .then((filename: string) => {
-                this.fileService.readFile(filename)
-                    .then((data: string) => {
-                        try {
-                            let pojo = JSON.parse(data);
-
-                            if (pojo['sinap-file-format-version'] != "0.0.3") {
-                                throw "invalid file format version";
-                            }
-
-                            this.serializerService.deserialize(pojo).then((graph) => {
-                                this.newFile(filename, graph);
-                            })
-                                .catch((err) => {
-                                    alert(`Could not read graph: ${err}.`);
-                                });
-                        } catch (e) {
-                            alert(`Could not de-serialize graph: ${e}.`);
-                        }
+        this.fileService.requestFiles()
+            .then((files: File[]) => {
+                for (const file of files) {
+                    file.readData().then((data) => {
+                        const pojo = JSON.parse(data);
+                        return this.serializerService.deserialize(pojo)
+                            .then((graph) => this.newFile(file.name, graph));
                     })
-                    .catch((err) => {
-                        alert(`Error reading file ${filename}: ${err}`);
-                    });
+                        .catch((err: any) => alert(`Error reading file ${file.name}: ${err}`));
+                }
             });
     }
 

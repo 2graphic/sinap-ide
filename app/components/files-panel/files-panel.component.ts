@@ -7,7 +7,7 @@
 
 
 import { Component, Input } from "@angular/core";
-import { FileService } from "../../services/files.service";
+import { FileService, LocalFileService, Directory, File } from "../../services/files.service";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
 
 
@@ -15,35 +15,30 @@ import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.c
     selector: "sinap-files-panel",
     templateUrl: "./files-panel.component.html",
     styleUrls: ["../../styles/side-panel.component.css"],
-    providers: [FileService]
+    providers: [LocalFileService]
 })
 export class FilesPanelComponent {
-
-    private fullPath?: string;
-    private directory?: string;
-    private files: string[] = [];
-    private openFiles: string[] = [];
+    private directory?: Directory;
+    private files: File[] = [];
+    private openFiles: File[] = [];
 
     @Input("directory")
     setDirectory(value: string | null) {
         if (value) {
-            this.fullPath = this.fileService.resolve(value);
-            this.directory = this.fullPath.split(this.fileService.sep).pop();
-            this.fileService.readDirectory(this.fullPath)
-                .then((data: { directories: string[], files: string[] }) => {
-                    data.directories.sort();
-                    data.files.sort();
-                    this.files = data.files;
+            this.fileService.directoryByName(value)
+                .then((directory: Directory) => {
+                    this.directory = directory;
+                    directory.getFiles().then((files: File[]) => this.files = files)
                 });
         }
         else {
-            this.fullPath = undefined;
+            this.directory = undefined;
             this.directory = undefined;
             this.files = [];
         }
     }
 
-    constructor(private fileService: FileService) {
+    constructor(private fileService: LocalFileService) {
         // TODO:
         // Replace this with a button that will ask the user to open a folder.
         this.setDirectory(".");
