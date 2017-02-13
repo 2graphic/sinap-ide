@@ -42,9 +42,6 @@ export class EventEmitter<A extends EventArgs, L extends Listener<A>> {
     }
 }
 
-/**
- * CancellableEventEmitter  
- */
 export class CancellableEventEmitter<A extends CancellableEventArgs, L extends Listener<A>>
     extends EventEmitter<A, L> {
     emit(args: A) {

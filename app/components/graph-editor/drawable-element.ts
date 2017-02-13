@@ -29,37 +29,64 @@ export enum DrawableStates {
  */
 export abstract class DrawableElement {
 
-    protected static i: number = 0;
-
-    // TODO:
-    // Each time a property is updated, mark this as dirty to signal a redraw.
-
+    /**
+     * _propertyChangedEmitter  
+     *   Event emitter for property changes.
+     */
     private _propertyChangedEmitter: PropertyChangedEventEmitter<any>
     = new PropertyChangedEventEmitter<any>();
 
+    /**
+     * _state  
+     *   The drawable state.
+     */
     protected _state: DrawableStates
     = DrawableStates.Default;
 
+    /**
+     * _selected  
+     *   Whether or not the drawable is selected.
+     */
     protected _selected: boolean
     = false;
 
+    /**
+     * _textSize  
+     *   The dimensions of the label text.
+     */
     protected _textSize: size
     = { h: 0, w: 0 };
 
+    /**
+     * _lines  
+     *   The lines of the label text.
+     */
     protected _lines: string[]
     = [];
 
+    /**
+     * _color  
+     *   The main color of the drawable.
+     */
     protected _color: string;
 
+    /**
+     * _draw  
+     *   The draw delegate for drawing the element.
+     */
     protected _draw: () => void
     = () => { };
 
+    /**
+     * _drawSelectionShadow  
+     *   The draw delegate for drawing the selection shadow.
+     */
     protected _drawSelectionShadow: () => void
     = () => { };
 
     /**
      * color  
-     *   The color of the element. This can be any valid `CSS` color string.
+     *   Gets or sets the main color of the element.
      */
     get color() {
         return this._color;
@@ -75,7 +102,7 @@ export abstract class DrawableElement {
 
     /**
      * label  
-     *   The text label to be displayed by the element.
+     *   Gets or sets the label of the element.
      */
     get label() {
         return this._lines.join("\n");
@@ -91,6 +118,10 @@ export abstract class DrawableElement {
         this.onPropertyChanged("label", old);
     }
 
+    /**
+     * state  
+     *   Gets or sets the drawable state.
+     */
     get state() {
         return this._state;
     }
@@ -103,20 +134,36 @@ export abstract class DrawableElement {
         }
     }
 
+    /**
+     * isHovered  
+     *   Gets or sets the hovered state of the element.
+     */
+    get isHovered() {
+        return this._state === DrawableStates.Hovered;
+    }
+
     set isHovered(value: boolean) {
         this.state = (value ? DrawableStates.Hovered : DrawableStates.Default);
     }
 
-    get isHovered() {
-        return this._state === DrawableStates.Hovered;
+    /**
+     * isDragging  
+     *   Gets or sets the dragging state of the element.
+     */
+    get isDragging() {
+        return this._state === DrawableStates.Dragging;
     }
 
     set isDragging(value: boolean) {
         this.state = (value ? DrawableStates.Dragging : DrawableStates.Default);
     }
 
-    get isDragging() {
-        return this._state === DrawableStates.Dragging;
+    /**
+     * isSelected  
+     *   Gets or sets the selected state of the element.
+     */
+    get isSelected() {
+        return this._selected;
     }
 
     set isSelected(value: boolean) {
@@ -131,36 +178,71 @@ export abstract class DrawableElement {
         }
     }
 
-    get isSelected() {
-        return this._selected;
-    }
-
+    /**
+     * draw  
+     *   Gets the draw delegate of the element.
+     */
     get draw() {
         return this._draw;
     }
 
+    /**
+     * drawSelectionShadow  
+     *   Gets the draw delegate of the selection shadow of the element.
+     */
     get drawSelectionShadow() {
         return this._drawSelectionShadow;
     }
 
+    /**
+     * constructor
+     */
     constructor(protected readonly graph: DrawableGraph) { }
 
-    addPropertyChangedEventListener(listener: PropertyChangedEventListener<any>) {
+    /**
+     * addPropertyChangedListener  
+     *   Adds an event listener for property changed events.
+     */
+    addPropertyChangedListener(listener: PropertyChangedEventListener<any>) {
         this._propertyChangedEmitter.addListener(listener);
     }
 
-    removePropertyChangedEventListener(listener: PropertyChangedEventListener<any>) {
+    /**
+     * removePropertyChangedListener  
+     *   Removes an event listener for property changed events.
+     */
+    removePropertyChangedListener(listener: PropertyChangedEventListener<any>) {
         this._propertyChangedEmitter.removeListener(listener);
     }
 
+    /**
+     * update  
+     *   Updates the geometry and draw logic of the drawable element.
+     */
     abstract update(g: GraphEditorCanvas): void;
 
+    /**
+     * updateDraw  
+     *   Updates the draw delegate of the element.
+     */
     abstract updateDraw(g: GraphEditorCanvas): void;
 
+    /**
+     * hitPoint  
+     *   Tests whether a point has captured the element.
+     */
     abstract hitPoint(pt: point): point | null;
 
+    /**
+     * hitRect  
+     *   Tests whether a rectangle has captured the element.
+     */
     abstract hitRect(r: rect): boolean;
 
+    /**
+     * updateTextSize  
+     *   Updates the text dimensions of the label.
+     */
     protected updateTextSize(g: GraphEditorCanvas) {
         this._textSize.h = this._lines.length * 1.5 * FONT_SIZE;
         this._textSize.w = 0;
@@ -169,6 +251,10 @@ export abstract class DrawableElement {
         });
     }
 
+    /**
+     * onPropertyChanged  
+     *   Emits the property changed event.
+     */
     protected onPropertyChanged(key: keyof this, oldVal: any) {
         this._propertyChangedEmitter.emit(new PropertyChangedEventArgs<any>(
             this,
