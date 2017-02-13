@@ -5,6 +5,7 @@
 
 import { FONT_SIZE } from "./defaults";
 import { GraphEditorCanvas, point, rect, size } from "./graph-editor-canvas";
+import { Drawable } from "./drawable";
 import { DrawableGraph } from "./drawable-graph";
 import {
     PropertyChangedEventArgs,
@@ -27,14 +28,7 @@ export enum DrawableStates {
  * DrawableElement  
  *   Common properties shared between drawable edges and nodes.
  */
-export abstract class DrawableElement {
-
-    /**
-     * _propertyChangedEmitter  
-     *   Event emitter for property changes.
-     */
-    private _propertyChangedEmitter: PropertyChangedEventEmitter<any>
-    = new PropertyChangedEventEmitter<any>();
+export abstract class DrawableElement extends Drawable {
 
     /**
      * _state  
@@ -197,22 +191,8 @@ export abstract class DrawableElement {
     /**
      * constructor
      */
-    constructor(protected readonly graph: DrawableGraph) { }
-
-    /**
-     * addPropertyChangedListener  
-     *   Adds an event listener for property changed events.
-     */
-    addPropertyChangedListener(listener: PropertyChangedEventListener<any>) {
-        this._propertyChangedEmitter.addListener(listener);
-    }
-
-    /**
-     * removePropertyChangedListener  
-     *   Removes an event listener for property changed events.
-     */
-    removePropertyChangedListener(listener: PropertyChangedEventListener<any>) {
-        this._propertyChangedEmitter.removeListener(listener);
+    constructor(protected readonly graph: DrawableGraph) {
+        super();
     }
 
     /**
@@ -249,19 +229,6 @@ export abstract class DrawableElement {
         this._lines.forEach(v => {
             this._textSize.w = Math.max(g.getTextWidth(v), this._textSize.w);
         });
-    }
-
-    /**
-     * onPropertyChanged  
-     *   Emits the property changed event.
-     */
-    protected onPropertyChanged(key: keyof this, oldVal: any) {
-        this._propertyChangedEmitter.emit(new PropertyChangedEventArgs<any>(
-            this,
-            key,
-            oldVal,
-            this[key]
-        ));
     }
 
 }

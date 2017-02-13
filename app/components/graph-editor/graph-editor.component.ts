@@ -39,6 +39,7 @@ export {
     DrawableNodeEventListener,
     DrawableNodeEventArgs
 } from "./drawable-graph";
+export { Drawable } from "./drawable";
 export { DrawableElement, DrawableStates } from "./drawable-element";
 export { DrawableEdge } from "./drawable-edge";
 export { DrawableNode } from "./drawable-node";

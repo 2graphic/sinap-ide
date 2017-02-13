@@ -13,7 +13,7 @@ export class Type {
 export enum CoreElementKind { Node, Edge, Graph };
 
 export class CoreElement {
-    data: {[a: string]: any};
+    data: { [a: string]: any };
 
     constructor(readonly type: Type, readonly kind: CoreElementKind) {
         this.data = {};
@@ -23,13 +23,13 @@ export class CoreElement {
 /**
  * Keep two dictionaries in sync, different efficient maps to the same data
  */
-class DoubleMap <A, B, C> {
+class DoubleMap<A, B, C> {
     private first: Map<A, C>;
     private second: Map<B, C>;
 
     constructor() {
         this.first = new Map();
-        this.second = new Map();        
+        this.second = new Map();
     }
 
     /**
@@ -37,7 +37,7 @@ class DoubleMap <A, B, C> {
      */
     set(a: A, b: B, c: C) {
         this.first.set(a, c);
-        this.second.set(b, c);        
+        this.second.set(b, c);
     }
 
     /**
@@ -64,7 +64,7 @@ class DoubleMap <A, B, C> {
 }
 
 class BridgingProxy {
-    proxy: {[a: string]: any};
+    proxy: { [a: string]: any };
 
     constructor(public core: CoreElement, public drawable: DrawableElement | DrawableGraph, private bridges: DoubleMap<DrawableElement | DrawableGraph, CoreElement, BridgingProxy>) {
         this.proxy = new Proxy(core.data, {
@@ -72,15 +72,15 @@ class BridgingProxy {
         });
     }
 
-    set(k: PropertyKey, v: any, updateDrawable=true) {
+    set(k: PropertyKey, v: any, updateDrawable = true) {
         let drawableValue = v;
         let coreValue = v;
-        
+
         // If v is a drawable element or a core element,
         // then when it gets set in the various proxied data
         // structures, set it differently. 
 
-        if (v instanceof CoreElement){  
+        if (v instanceof CoreElement) {
             // if v is a core element then 
             // when assigning the drawable elements below, 
             // use v by looking up in the bridge          
@@ -115,17 +115,17 @@ class BridgingProxy {
     }
 }
 
-function copyCoreToDrawable(core: CoreElement, drawable: DrawableElement, exclusionKeys=new Set<string>()) {
-    for (const key of Object.getOwnPropertyNames(drawable)){
-        if (!exclusionKeys.has(key)){
+function copyCoreToDrawable(core: CoreElement, drawable: DrawableElement, exclusionKeys = new Set<string>()) {
+    for (const key of Object.getOwnPropertyNames(drawable)) {
+        if (!exclusionKeys.has(key)) {
             (drawable as any)[key] = core.data[key];
         }
     }
 }
 
-function copyDrawableToCore(drawable: DrawableElement | DrawableGraph, core: CoreElement, exclusionKeys=new Set<string>()) {
-    for (const key of Object.getOwnPropertyNames(drawable)){
-        if (!exclusionKeys.has(key)){
+function copyDrawableToCore(drawable: DrawableElement | DrawableGraph, core: CoreElement, exclusionKeys = new Set<string>()) {
+    for (const key of Object.getOwnPropertyNames(drawable)) {
+        if (!exclusionKeys.has(key)) {
             core.data[key] = (drawable as any)[key];
         }
     }
@@ -136,12 +136,12 @@ export class MainGraph {
     public bridges = new DoubleMap<DrawableElement | DrawableGraph, CoreElement, BridgingProxy>();
 
     constructor(coresIter: Iterable<CoreElement>) {
-        this.drawable = new DrawableGraph(()=>true);
+        this.drawable = new DrawableGraph(() => true);
 
         const coreEdges: CoreElement[] = [];
-        for (const element of coresIter){
+        for (const element of coresIter) {
             let drawable: DrawableElement | DrawableGraph | null = null;
-            switch (element.kind){
+            switch (element.kind) {
                 case CoreElementKind.Edge:
                     coreEdges.push(element);
                     break;
@@ -157,9 +157,9 @@ export class MainGraph {
                     drawable = this.drawable;
                     break;
             }
-            if (drawable !== null){
+            if (drawable !== null) {
                 this.addDrawable(drawable, element);
-            }    
+            }
         }
         const srcDstSet = new Set(['source', 'destination']);
         for (const edge of coreEdges) {
@@ -179,18 +179,18 @@ export class MainGraph {
             this.addDrawable(drawableEdge, edge);
         }
 
-        this.drawable.addCreatingNodeListener((n: DrawableNodeEventArgs)=>this.onCreatingNode(n));
-        this.drawable.addCreatedNodeListener((n: DrawableNodeEventArgs)=>this.onCreatedNode(n));
-        this.drawable.addCreatingEdgeListener((e: DrawableEdgeEventArgs)=>this.onCreatingEdge(e));
-        this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs)=>this.onCreatedEdge(e));
-        this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>)=>this.onPropertyChanged(a));
+        this.drawable.addCreatingNodeListener((n: DrawableNodeEventArgs) => this.onCreatingNode(n));
+        this.drawable.addCreatedNodeListener((n: DrawableNodeEventArgs) => this.onCreatedNode(n));
+        this.drawable.addCreatingEdgeListener((e: DrawableEdgeEventArgs) => this.onCreatingEdge(e));
+        this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs) => this.onCreatedEdge(e));
+        this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
     }
 
-    addDrawable(drawable: DrawableElement | DrawableGraph, core?: CoreElement){
-        if (! core){
+    addDrawable(drawable: DrawableElement | DrawableGraph, core?: CoreElement) {
+        if (!core) {
             const kind = drawable instanceof DrawableEdge ?
-            CoreElementKind.Edge : (drawable instanceof DrawableNode ?
-            CoreElementKind.Node : CoreElementKind.Graph);
+                CoreElementKind.Edge : (drawable instanceof DrawableNode ?
+                    CoreElementKind.Node : CoreElementKind.Graph);
             // TODO: populate type
             core = new CoreElement(null as any, kind);
             copyDrawableToCore(drawable, core);
@@ -207,7 +207,7 @@ export class MainGraph {
     onPropertyChanged(a: PropertyChangedEventArgs<any>) {
         const bridge = this.bridges.getA(a.source)
         // TODO: this check can be removed, it checks an invariant
-        if (bridge !== undefined){
+        if (bridge !== undefined) {
             bridge.set(a.key, a.curr, false);
         } else {
             throw "Nodes/edges list out of sync";

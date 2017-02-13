@@ -3,6 +3,7 @@
 // Date created: January 9, 2016
 
 
+import { Drawable } from "./drawable";
 import { DrawableElement } from "./drawable-element";
 import { DrawableEdge } from "./drawable-edge";
 import { DrawableNode } from "./drawable-node";
@@ -54,7 +55,7 @@ type DrawableNodeEventEmitter = DrawableEventEmitter<DrawableNode>;
  * DrawableGraph  
  *   Exposes drawable graph properties and methods.
  */
-export class DrawableGraph {
+export class DrawableGraph extends Drawable {
 
     /**
      * _creatingNodeEmitter  
@@ -97,13 +98,6 @@ export class DrawableGraph {
      */
     private _deletedEdgeEmitter: DrawableEdgeEventEmitter
     = new DrawableEventEmitter<DrawableEdge>();
-
-    /**
-     * _propertyChangedEmitter  
-     *   The event emitter for property changes.
-     */
-    private _propertyChangedEmitter: PropertyChangedEventEmitter<any>
-    = new PropertyChangedEventEmitter<any>();
 
     /**
      * _selectionChangedEmitter  
@@ -157,7 +151,9 @@ export class DrawableGraph {
     /**
      * constructor
      */
-    constructor(public readonly isValidEdge: EdgeValidator) { }
+    constructor(public readonly isValidEdge: EdgeValidator) {
+        super();
+    }
 
     /**
      * nodes  
@@ -322,22 +318,6 @@ export class DrawableGraph {
     }
 
     /**
-     * addPropertyChangedListener  
-     *   Adds a listener to the property changed event.
-     */
-    addPropertyChangedListener(listener: PropertyChangedEventListener<any>) {
-        this._propertyChangedEmitter.addListener(listener);
-    }
-
-    /**
-     * removePropertyChangedListener  
-     *   Removes a listener from the property changed event.
-     */
-    removePropertyChangedListener(listener: PropertyChangedEventListener<any>) {
-        this._propertyChangedEmitter.removeListener(listener);
-    }
-
-    /**
      * addSelectionChangedListener  
      *   Adds a listener to the selection changed event.
      */
@@ -483,19 +463,6 @@ export class DrawableGraph {
             this.onPropertyChanged("edges", edges);
         if (nodes.length !== this._nodes.size)
             this.onPropertyChanged("nodes", nodes);
-    }
-
-    /**
-     * onPropertyChanged  
-     *   Emits the property changed event.
-     */
-    private onPropertyChanged(key: keyof this, old: any) {
-        this._propertyChangedEmitter.emit(new PropertyChangedEventArgs<any>(
-            this,
-            key,
-            old,
-            this[key]
-        ));
     }
 
     /**
