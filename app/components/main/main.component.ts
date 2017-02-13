@@ -19,7 +19,7 @@ import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { MainGraph } from "../../models/main-graph";
-import { CoreGraph } from "sinap-core";
+import { CoreElement, CoreElementKind } from "../../models/main-graph";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
 import { FileService } from "../../services/files.service";
@@ -90,10 +90,10 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         }
     };
 
-    newFile(f?: String, g?: CoreGraph) {
+    newFile(f?: String, g?: Iterable<CoreElement>) {
         const kind = this.toolsPanel.activeGraphType == "Machine Learning" ?
             MagicConstants.MACHINE_LEARNING_PLUGIN_KIND : MagicConstants.DFA_PLUGIN_KIND;
-        g = g ? g : new CoreGraph(null as any); // <--- TODO: liquid evil, please fix
+        g = g ? g : [new CoreElement(null as any, CoreElementKind.Graph)]; // <--- TODO: liquid evil, please fix
         let filename = f ? f : "Untitled";
         let tabNumber = this.tabBar.newTab(filename);
         this.tabs.set(tabNumber, new TabContext(new MainGraph(g), filename));
@@ -164,11 +164,11 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                     return;
                 }
 
-                let graph = this.context.graph.core.serialize();
-                this.fileService.writeFile(filename, JSON.stringify(graph))
-                    .catch((err) => {
-                        alert(`Error occurred while saving to file ${filename}: ${err}.`);
-                    });
+                // let graph = this.context.graph.core.serialize();
+                // this.fileService.writeFile(filename, JSON.stringify(graph))
+                //     .catch((err) => {
+                //         alert(`Error occurred while saving to file ${filename}: ${err}.`);
+                //     });
             });
     }
 

@@ -15,7 +15,9 @@ export enum CoreElementKind { Node, Edge, Graph };
 export class CoreElement {
     data: {[a: string]: any};
 
-    constructor(readonly type: Type, readonly kind: CoreElementKind) {}
+    constructor(readonly type: Type, readonly kind: CoreElementKind) {
+        this.data = {};
+    }
 }
 
 /**
@@ -114,10 +116,17 @@ class BridgingProxy {
 }
 
 function copyCoreToDrawable(core: CoreElement, drawable: DrawableElement, exclusionKeys=new Set<string>()) {
-    // TODO: ask CJ if own names is too restrictive
     for (const key of Object.getOwnPropertyNames(drawable)){
         if (!exclusionKeys.has(key)){
             (drawable as any)[key] = core.data[key];
+        }
+    }
+}
+
+function copyDrawableToCore(drawable: DrawableElement | DrawableGraph, core: CoreElement, exclusionKeys=new Set<string>()) {
+    for (const key of Object.getOwnPropertyNames(drawable)){
+        if (!exclusionKeys.has(key)){
+            core.data[key] = (drawable as any)[key];
         }
     }
 }
@@ -170,11 +179,11 @@ export class MainGraph {
             this.addDrawable(drawableEdge, edge);
         }
 
-        this.drawable.addCreatingNodeListener(this.onCreatingNode);
-        this.drawable.addCreatedNodeListener(this.onCreatedNode);
-        this.drawable.addCreatingEdgeListener(this.onCreatingEdge);
-        this.drawable.addCreatedEdgeListener(this.onCreatedEdge);
-        this.drawable.addPropertyChangedListener(this.onPropertyChanged);
+        this.drawable.addCreatingNodeListener((n: DrawableNodeEventArgs)=>this.onCreatingNode(n));
+        this.drawable.addCreatedNodeListener((n: DrawableNodeEventArgs)=>this.onCreatedNode(n));
+        this.drawable.addCreatingEdgeListener((e: DrawableEdgeEventArgs)=>this.onCreatingEdge(e));
+        this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs)=>this.onCreatedEdge(e));
+        this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>)=>this.onPropertyChanged(a));
     }
 
     addDrawable(drawable: DrawableElement | DrawableGraph, core?: CoreElement){
@@ -184,6 +193,7 @@ export class MainGraph {
             CoreElementKind.Node : CoreElementKind.Graph);
             // TODO: populate type
             core = new CoreElement(null as any, kind);
+            copyDrawableToCore(drawable, core);
         }
         this.bridges.set(drawable, core, new BridgingProxy(core, drawable, this.bridges));
     }
