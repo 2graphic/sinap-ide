@@ -55,8 +55,7 @@ export class DrawableEdge extends DrawableElement {
     private set points(value: point[]) {
         if (this._pts.length == value.length) {
             for (let i = 0; i < value.length; i++) {
-                this._pts[i].x = value[i].x;
-                this._pts[i].y = value[i].y;
+                this._pts[i] = value[i];
             }
         }
         else {
@@ -139,6 +138,17 @@ export class DrawableEdge extends DrawableElement {
             this._srcArrow = like._srcArrow;
             this.label = like.label;
         }
+        else {
+            this._color = EDGE_PROPERTIES.color;
+            this._lineStyle = EDGE_PROPERTIES.lineStyle as LineStyles;
+            this._lineWidth = EDGE_PROPERTIES.lineWidth;
+            this._dstArrow = EDGE_PROPERTIES.showDestinationArrow;
+            this._srcArrow = EDGE_PROPERTIES.showSourceArrow;
+            this.label = EDGE_PROPERTIES.label;
+        }
+        this._pts = [];
+        this.src.addEdge(this);
+        this.dst.addEdge(this);
     }
 
     update(g: GraphEditorCanvas): void {
@@ -153,7 +163,7 @@ export class DrawableEdge extends DrawableElement {
             this.setLoopPoints();
         }
         else
-            this.updateOverlappedEdges();
+            this.updateOverlappedEdges(g);
         this.updateDraw(g);
     }
 
@@ -314,19 +324,7 @@ export class DrawableEdge extends DrawableElement {
         }
     }
 
-    protected init() {
-        this._color = EDGE_PROPERTIES.color;
-        this.label = EDGE_PROPERTIES.label;
-        this._lineStyle = EDGE_PROPERTIES.lineStyle as LineStyles;
-        this._lineWidth = EDGE_PROPERTIES.lineWidth;
-        this._dstArrow = EDGE_PROPERTIES.showDestinationArrow;
-        this._srcArrow = EDGE_PROPERTIES.showSourceArrow;
-        this._pts = [];
-        this.src.addEdge(this);
-        this.dst.addEdge(this);
-    }
-
-    private updateOverlappedEdges() {
+    private updateOverlappedEdges(g: GraphEditorCanvas) {
         if (!this.src.isHidden && !this.dst.isHidden) {
             let srcIn = this.sourceNode.incomingEdges;
             let srcOut = this.sourceNode.outgoingEdges;
@@ -339,20 +337,28 @@ export class DrawableEdge extends DrawableElement {
                 [...srcOut].filter(v => dstIn.has(v))
             );
             if (opposing.size > 0) {
-                for (const edge of adjacent)
+                for (const edge of adjacent) {
                     edge.setQuadraticPoints();
+                    edge.updateDraw(g);
+                }
             }
             else {
-                for (const edge of adjacent)
+                for (const edge of adjacent) {
                     edge.setStraightPoints();
+                    edge.updateDraw(g);
+                }
             }
             if (adjacent.size > 0) {
-                for (const edge of opposing)
+                for (const edge of opposing) {
                     edge.setQuadraticPoints();
+                    edge.updateDraw(g);
+                }
             }
             else {
-                for (const edge of opposing)
+                for (const edge of opposing) {
                     edge.setStraightPoints();
+                    edge.updateDraw(g);
+                }
             }
         }
         else

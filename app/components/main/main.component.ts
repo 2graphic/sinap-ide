@@ -91,6 +91,15 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     };
 
     newFile(f?: String, g?: CoreGraph) {
+        const kind = this.toolsPanel.activeGraphType == "Machine Learning" ?
+            MagicConstants.MACHINE_LEARNING_PLUGIN_KIND : MagicConstants.DFA_PLUGIN_KIND;
+        this.pluginService.getPlugin(kind).then((plugin) => {
+            g = g ? g : new Core.Graph(plugin);
+            let filename = f ? f : "Untitled";
+            let tabNumber = this.tabBar.newTab(filename);
+            this.tabs.set(tabNumber, new TabContext(new Drawable.ConcreteGraph(g), filename));
+            this.selectedTab(tabNumber);
+        });
     }
 
     ngAfterViewChecked() {

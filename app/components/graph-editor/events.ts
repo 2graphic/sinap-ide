@@ -2,21 +2,22 @@
 // Created by: CJ Dimaano
 // Date created: February 7, 2017
 
-type Listener<A extends EventArgs> = (evt?: A) => void;
 
-type PropertyChangedEventListener<T> = Listener<PropertyChangedEventArgs<T>>;
+export type Listener<A extends EventArgs> = (evt?: A) => void;
 
-class EventArgs {
+export type PropertyChangedEventListener<T> = Listener<PropertyChangedEventArgs<T>>;
+
+export class EventArgs {
     constructor(public readonly source: any) { }
 }
 
-class CancellableEventArgs extends EventArgs {
+export class CancellableEventArgs extends EventArgs {
     constructor(source: any, public isCancelled: boolean = false) {
         super(source);
     }
 }
 
-class PropertyChangedEventArgs<T> extends EventArgs {
+export class PropertyChangedEventArgs<T> extends EventArgs {
     constructor(
         source: any,
         public readonly key: string,
@@ -27,7 +28,7 @@ class PropertyChangedEventArgs<T> extends EventArgs {
     }
 }
 
-class EventEmitter<A extends EventArgs, L extends Listener<A>> {
+export class EventEmitter<A extends EventArgs, L extends Listener<A>> {
     protected listeners: Set<L>
     = new Set<L>();
     addListener(l: L) {
@@ -44,7 +45,7 @@ class EventEmitter<A extends EventArgs, L extends Listener<A>> {
 /**
  * CancellableEventEmitter  
  */
-class CancellableEventEmitter<A extends CancellableEventArgs, L extends Listener<A>>
+export class CancellableEventEmitter<A extends CancellableEventArgs, L extends Listener<A>>
     extends EventEmitter<A, L> {
     emit(args: A) {
         for (const l of this.listeners) {
@@ -55,7 +56,7 @@ class CancellableEventEmitter<A extends CancellableEventArgs, L extends Listener
     }
 }
 
-class PropertyChangedEventEmitter<T>
+export class PropertyChangedEventEmitter<T>
     extends EventEmitter<
     PropertyChangedEventArgs<T>,
     Listener<PropertyChangedEventArgs<T>>

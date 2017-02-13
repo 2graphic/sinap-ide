@@ -2,8 +2,6 @@
 // Created by: CJ Dimaano
 // Date created: January 9, 2016
 //
-// THIS FILE IS INTENDED TO BE IMPORTED ONLY INTO graph-editor.component.ts
-//
 // Note:
 // These values should probably be defined in some user/workspace preferences
 // file.
@@ -23,7 +21,7 @@ export const FONT_FAMILY: string = "monospace";
  * FONT_SIZE  
  *   Default font size.
  */
-export const FONT_SIZE: number = 10;
+export const FONT_SIZE: number = 12;
 
 /**
  * GRID_SPACING  
@@ -109,7 +107,7 @@ export const NODE_PROPERTIES = {
     get color() { return "#fff200"; },
     get borderColor() { return "#000"; },
     get borderStyle() { return "solid"; },
-    get borderWidth() { return 1; }
+    get borderWidth() { return 2; }
 };
 
 /**

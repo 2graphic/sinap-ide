@@ -53,9 +53,9 @@ export class PropertiesPanelComponent {
             newValue = value;
         }
 
-        this.propertyChanged.emit([entity, group, key, keyPath]);
-
         entity[group].set(key, newValue);
+
+        this.propertyChanged.emit([entity, group, key, keyPath]);
     }
 
     private isEmpty() {

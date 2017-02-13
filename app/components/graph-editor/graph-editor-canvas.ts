@@ -1,9 +1,6 @@
 // File: graph-editor-canvas.ts
 // Created by: CJ Dimaano
 // Date created: January 9, 2016
-//
-// THIS FILE IS INTENDED TO BE IMPORTED ONLY INTO graph-editor.component.ts
-//
 
 
 import * as DEFAULT from "./defaults";
@@ -79,7 +76,6 @@ export class GraphEditorCanvas {
 
 
     constructor(private g: CanvasRenderingContext2D) {
-        g.font = DEFAULT.FONT_SIZE + "pt " + DEFAULT.FONT_FAMILY;
         // These probably don't do anything.
         this.g.mozImageSmoothingEnabled = true;
         this.g.msImageSmoothingEnabled = true;
@@ -344,6 +340,7 @@ export class GraphEditorCanvas {
     ) {
         let x = p.x + this.origin.x;
         let y = p.y + this.origin.y - (height - 1.5 * DEFAULT.FONT_SIZE) / 2;
+        this.g.font = DEFAULT.FONT_SIZE + "pt " + DEFAULT.FONT_FAMILY;
         this.g.textAlign = "center";
         this.g.textBaseline = "middle";
         this.g.fillStyle = color;
@@ -368,6 +365,13 @@ export class GraphEditorCanvas {
 
     // Get and Set methods /////////////////////////////////////////////////////
 
+    get size() {
+        let el = this.g.canvas;
+        return {
+            h: el.height / AA_SCALE,
+            w: el.width / AA_SCALE
+        };
+    }
 
     /**
      * size  
@@ -382,6 +386,14 @@ export class GraphEditorCanvas {
 
     /**
      * scale  
+     *   Gets the canvas scaling factor.
+     */
+    get scale(): number {
+        return this._scale / AA_SCALE;
+    }
+
+    /**
+     * scale  
      *   Sets the size of the canvas scaling factor.
      */
     set scale(value: number) {
@@ -389,14 +401,6 @@ export class GraphEditorCanvas {
         value = Math.max(DEFAULT.SCALE_MIN, value);
         this._scale = AA_SCALE * value;
         this.g.setTransform(this._scale, 0, 0, this._scale, 0, 0);
-    }
-
-    /**
-     * scale  
-     *   Gets the canvas scaling factor.
-     */
-    get scale(): number {
-        return this._scale / AA_SCALE;
     }
 
     /**
@@ -450,6 +454,7 @@ export class GraphEditorCanvas {
     /**
      */
     getTextWidth(text: string) {
+        this.g.font = DEFAULT.FONT_SIZE + "pt " + DEFAULT.FONT_FAMILY;
         return this.g.measureText(text).width;
     }
 

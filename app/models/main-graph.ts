@@ -4,7 +4,7 @@
 //
 //
 
-import { DrawableGraph, DrawableEdge, DrawableNode, EdgeValidator, DrawableEdgeEventArgs, DrawableNodeEventArgs } from "../components/graph-editor/graph-editor.component"
+import { DrawableGraph, DrawableEdge, DrawableNode, EdgeValidator, DrawableEdgeEventArgs, DrawableNodeEventArgs, PropertyChangedEventArgs } from "../components/graph-editor/graph-editor.component"
 import { CoreGraph, CoreEdge, CoreNode } from "sinap-core";
 
 export class MainGraph {

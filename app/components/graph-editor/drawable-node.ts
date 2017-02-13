@@ -77,16 +77,14 @@ export class DrawableNode extends DrawableElement {
     private _apt: point;
 
     get position() {
-        let pt = this._position;
-        return { get x() { return pt.x; }, get y() { return pt.y; } };
+        return this._position;
     }
 
     set position(value: point) {
         let old = this.position;
         if (this._position.x !== value.x || this._position.y !== value.y) {
-            // TODO:
-            // Make sure this doesn't break the draw call.
-            this._position = value;
+            this._position.x = value.x;
+            this._position.y = value.y;
             this.onPropertyChanged("position", old);
         }
     }
@@ -159,16 +157,11 @@ export class DrawableNode extends DrawableElement {
     }
 
     get anchorPoint() {
-        let pt = this._apt;
-        return { get x() { return pt.x; }, get y() { return pt.y; } };
+        return this._apt;
     }
 
     set anchorPoint(value: point) {
-        let old = this.anchorPoint;
-        if (this._apt !== value) {
-            this._apt = value;
-            this.onPropertyChanged("anchorPoint", old);
-        }
+        this._apt = value;
     }
 
     get isAnchorVisible() {
@@ -177,6 +170,23 @@ export class DrawableNode extends DrawableElement {
 
     constructor(graph: DrawableGraph) {
         super(graph);
+        this._position = {
+            x: NODE_PROPERTIES.position.x,
+            y: NODE_PROPERTIES.position.y
+        };
+        this._shape = NODE_PROPERTIES.shape as Shapes;
+        this._color = NODE_PROPERTIES.color;
+        // this.label = NODE_PROPERTIES.label;
+        this.label = "" + DrawableElement.i++;
+        this._borderColor = NODE_PROPERTIES.borderColor;
+        this._borderStyle = NODE_PROPERTIES.borderStyle as LineStyles;
+        this._borderWidth = NODE_PROPERTIES.borderWidth;
+        this._size = { h: 0, w: 0 };
+        this._innerBound = { h: 0, w: 0 };
+        this._outerBound = { h: 0, w: 0 };
+        this._incomingSet = new Set<DrawableEdge>();
+        this._outgoingSet = new Set<DrawableEdge>();
+        this._apt = this._position;
     }
 
     clearAnchor() {
@@ -392,25 +402,6 @@ export class DrawableNode extends DrawableElement {
         return v;
     }
 
-    protected init() {
-        this._position = {
-            x: NODE_PROPERTIES.position.x,
-            y: NODE_PROPERTIES.position.y
-        };
-        this._shape = NODE_PROPERTIES.shape as Shapes;
-        this._color = NODE_PROPERTIES.color;
-        this.label = NODE_PROPERTIES.label;
-        this._borderColor = NODE_PROPERTIES.borderColor;
-        this._borderStyle = NODE_PROPERTIES.borderStyle as LineStyles;
-        this._borderWidth = NODE_PROPERTIES.borderWidth;
-        this._size = { h: 0, w: 0 };
-        this._innerBound = { h: 0, w: 0 };
-        this._outerBound = { h: 0, w: 0 };
-        this._incomingSet = new Set<DrawableEdge>();
-        this._outgoingSet = new Set<DrawableEdge>();
-        this._apt = this._position;
-    }
-
 }
 
 
@@ -419,6 +410,7 @@ export class DrawableNode extends DrawableElement {
  *   Creates an invisible drawable node.
  */
 export class HiddenNode extends DrawableNode {
+
     constructor(graph: DrawableGraph) {
         super(graph);
     }

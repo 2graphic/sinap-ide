@@ -6,6 +6,11 @@
 import { FONT_SIZE } from "./defaults";
 import { GraphEditorCanvas, point, rect, size } from "./graph-editor-canvas";
 import { DrawableGraph } from "./drawable-graph";
+import {
+    PropertyChangedEventArgs,
+    PropertyChangedEventEmitter,
+    PropertyChangedEventListener
+} from "./events";
 
 
 /**
@@ -23,6 +28,8 @@ export enum DrawableStates {
  *   Common properties shared between drawable edges and nodes.
  */
 export abstract class DrawableElement {
+
+    protected static i: number = 0;
 
     // TODO:
     // Each time a property is updated, mark this as dirty to signal a redraw.
@@ -136,9 +143,7 @@ export abstract class DrawableElement {
         return this._drawSelectionShadow;
     }
 
-    constructor(protected readonly graph: DrawableGraph) {
-        this.init();
-    }
+    constructor(protected readonly graph: DrawableGraph) { }
 
     addPropertyChangedEventListener(listener: PropertyChangedEventListener<any>) {
         this._propertyChangedEmitter.addListener(listener);
@@ -155,8 +160,6 @@ export abstract class DrawableElement {
     abstract hitPoint(pt: point): point | null;
 
     abstract hitRect(r: rect): boolean;
-
-    protected abstract init(): void;
 
     protected updateTextSize(g: GraphEditorCanvas) {
         this._textSize.h = this._lines.length * 1.5 * FONT_SIZE;
