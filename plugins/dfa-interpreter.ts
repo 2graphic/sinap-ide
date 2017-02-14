@@ -20,6 +20,7 @@ export class DFAEdge {
 export class DFAGraph {
     nodes: DFANode[];
     edges: DFAEdge[];
+    test: string;
 }
 
 export type Nodes = DFANode | D2aNode
