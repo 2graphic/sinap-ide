@@ -7,6 +7,10 @@ export class DFANode {
 	children: DFAEdge[];
 }
 
+export class D2aNode {
+
+}
+
 export class DFAEdge {
 	/** Symbol */
 	label: string;
@@ -18,7 +22,7 @@ export class DFAGraph {
     edges: DFAEdge[];
 }
 
-export type Nodes = DFANode
+export type Nodes = DFANode | D2aNode
 export type Edges = DFAEdge
 export type Graph = DFAGraph
 

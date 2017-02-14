@@ -106,34 +106,28 @@ export class MainGraph {
         this.activeNodeType = this.plugin.elementTypes(CoreElementKind.Node).next().value;
 
         this.drawable = new DrawableGraph((src: DrawableNode,
-                    dst?: DrawableNode,
-                    like?: DrawableEdge) => {
-                        const source = this.bridges.getA(src);
-                        const destination = dst !== undefined ? this.bridges.getA(dst) : null;
-                        
-                        let edge : ObjectType;
-                        if (like !== undefined) {
-                            const e = this.bridges.getA(like);
-                            if (e === undefined) {
-                                throw "backer out of sync";
-                            }
-                            edge = e.core.type;
-                        } else {
-                            edge = this.plugin.typeEnvironment.getElementType(CoreElementKind.Edge, this.activeEdgeType);
-                        }
+            dst?: DrawableNode,
+            like?: DrawableEdge) => {
+            const source = this.bridges.getA(src);
+            const destination = dst !== undefined ? this.bridges.getA(dst) : null;
 
-                        if (source === undefined || destination === undefined) {
-                            throw "backer out of sync"
-                        }
-                        let dt;
-                        if (destination !== null) {
-                            dt = destination.core.type;
-                        } else {
-                            dt = this.plugin.typeEnvironment.getElementType(CoreElementKind.Node, this.activeNodeType);
-                        }
+            let edge: ObjectType;
+            if (like !== undefined) {
+                const e = this.bridges.getA(like);
+                if (e === undefined) {
+                    throw "backer out of sync";
+                }
+                edge = e.core.type;
+            } else {
+                edge = this.plugin.typeEnvironment.getElementType(CoreElementKind.Edge, this.activeEdgeType);
+            }
 
-                        return validateEdge(edge, source.core.type, dt);
-                    });
+            if (source === undefined || destination === undefined) {
+                throw "backer out of sync"
+            }
+
+            return validateEdge(edge, source.core.type, destination !== null ? destination.core.type : undefined);
+        });
         let coreGraph: CoreElement | null = null;
         const coreEdges: CoreElement[] = [];
 
@@ -201,7 +195,7 @@ export class MainGraph {
             const kind = drawable instanceof DrawableEdge ?
                 CoreElementKind.Edge : (drawable instanceof DrawableNode ?
                     CoreElementKind.Node : CoreElementKind.Graph);
-            
+
             let type = undefined;
             if (kind === CoreElementKind.Node) {
                 type = this.activeNodeType;
