@@ -99,7 +99,7 @@ export class MainGraph {
     drawable: DrawableGraph;
     activeNodeType: string;
     activeEdgeType: string;
-    private _selectedElements: Set<BridgingProxy>;
+    private selectedElements: Set<BridgingProxy>;
 
     public bridges = new DoubleMap<Drawable, CoreElement, BridgingProxy>();
 
@@ -187,8 +187,11 @@ export class MainGraph {
         this.drawable.addCreatingEdgeListener((e: DrawableEdgeEventArgs) => this.onCreatingEdge(e));
         this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs) => this.onCreatedEdge(e));
         this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
+        this.drawable.addSelectionChangedListener((a: PropertyChangedEventArgs<Iterable<DrawableElement>>)=>{
+            this.setSelectedElements(a.curr);
+        });
         // side effect of selecting the graph
-        this.selectedElements = undefined;
+        this.setSelectedElements(undefined);
     }
 
     addDrawable(drawable: Drawable, core?: CoreElement) {
@@ -253,19 +256,20 @@ export class MainGraph {
         }
     }
 
-    get selectedElements() {
-        return this._selectedElements;
-    }
-
-    set selectedElements(se: Set<Drawable | BridgingProxy | CoreElement> | undefined) {
-        if (se === undefined || se.size === 0) {
+    setSelectedElements(se: Iterable<Drawable | BridgingProxy | CoreElement> | undefined) {
+        if (se === undefined) {
+            se = [];
+        }
+        
+        const values = [...se];
+        if (values.length === 0) {
             const br = this.bridges.getA(this.drawable);
             if (br === undefined) {
                 throw "no graph element";
             }
-            this._selectedElements = new Set([br]);
+            this.selectedElements = new Set([br]);
         } else {
-            this._selectedElements = new Set([...se.values()].map((e) => this.toBridges(e)));
+            this.selectedElements = new Set(values.map((e) => this.toBridges(e)));
         }
     }
 
