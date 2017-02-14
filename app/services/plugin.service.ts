@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@angular/core';
 import { Type, ObjectType, CoreElement, loadPlugin, Plugin } from "sinap-core";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
-import { FileService } from "../services/files.service";
+import { LocalFileService } from "../services/files.service";
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
 @Injectable()
@@ -12,7 +12,7 @@ export class PluginService {
     // TODO: load from somewhere
     private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, "./plugins/dfa-interpreter.ts"]])
 
-    constructor( @Inject(FileService) private fileService: FileService,
+    constructor( @Inject(LocalFileService) private fileService: LocalFileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
         this.interpretCode = sandboxService.compileScript(`
             try{
