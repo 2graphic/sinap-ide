@@ -1,7 +1,3 @@
-#wrapper {
-    font-family: sans-serif;
-}
-
 #tests {
     width: 100%;
     height: calc(100% - 35px);
@@ -18,24 +14,33 @@
 #empty p {
     display: inline-block;
     width: 100%;
+    padding-bottom: 35px;
     text-align: center;
     font-size: larger;
     color: #a8a8a8;
 }
 
 table {
-    width: 100%;
-    color: white;
+    background-color: white;
+    margin: .75em;
+    width: calc(100% - 1.5em);
+    border-collapse: separate;
+    border: thin solid grey;
+    border-radius: 6px;
 }
+
 tr.bad {
     background: #aa0000;
 }
+
 .header {
     border-bottom: 1px solid #777;
 }
+
 td {
     padding: 10px;
 }
+
 input {
     width: 200px;
 }

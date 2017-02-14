@@ -1,15 +1,8 @@
-#wrapper {
-    color: white;
-    text-align: left;
-    font-family: sans-serif;
-}
-
 #empty {
     width: 100%;
     height: 100%;
     display: flex;
     box-sizing: border-box;
-    margin-top: -35px;
     align-items: center;
 }
 
@@ -18,7 +11,8 @@
     width: 100%;
     text-align: center;
     font-size: larger;
-    color: #a8a8a8;
+    font-weight: bold;
+    color: #909090;
 }
 
 table {
@@ -33,7 +27,7 @@ tr {
 }
 
 th {
-    background-color: #686868;
+    background-color: #CCCCCC;
     padding-left: .75em;
     height: 1.5em;
 }
@@ -44,12 +38,11 @@ th, td {
 
 input {
     box-sizing: border-box;
-
     width: 100%;
     height: 100%;
 }
 
-input[type="checkbox"]{
+input[type="checkbox"] {
     width: auto;
     height: auto;
 }

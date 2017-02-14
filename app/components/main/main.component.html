@@ -1,7 +1,6 @@
 <div class="flex-container-row full-size">
-  <div id="content" class="flex-container-column">
-    <div id="top-panels" class="flex-container-row">
-      <sinap-side-bar #leftSideBar class="side-bar" [icons]="
+  <div id="left-panels-group" class="flex-container-column">
+    <sinap-side-bar #leftPanelBar class="panel-bar-horizontal" [vertical]="false" [title]="true" [icons]="
           [{
             path: '${require('../../images/properties.svg')}',
             name: 'Properties'
@@ -15,29 +14,37 @@
             name: 'Files'
           }]">
       </sinap-side-bar>
-      <div id="side-panel">
-        <sinap-properties-panel [hidden]="!(leftSideBar.active == 'Properties')" (propertyChanged)="propertyChanged($event)">
+      
+      <div id="left-panels">
+        <sinap-properties-panel [hidden]="!(leftPanelBar.active == 'Properties')" (propertyChanged)="propertyChanged($event)">
         </sinap-properties-panel>
-        <sinap-tools-panel [hidden]="!(leftSideBar.active == 'Tools')">
+        <sinap-tools-panel [hidden]="!(leftPanelBar.active == 'Tools')">
         </sinap-tools-panel>
-        <sinap-files-panel [hidden]="!(leftSideBar.active == 'Files')">
+        <sinap-files-panel [hidden]="!(leftPanelBar.active == 'Files')">
         </sinap-files-panel>
       </div>
-      <div id="editor-panel" class="flex-container-column">
-        <div [hidden]="(this.tabs.size == 0)" class="full-size flex-container-column">
-          <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
-          <sinap-graph-editor [graph]="context ? context.graph : null" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor"></sinap-graph-editor>
-          <sinap-status-bar id="status-bar" [title]="package" [items]="barMessages"></sinap-status-bar>
+  </div>
+
+
+  <div id="content" class="flex-container-column">
+    <div id="editor-panel" class="flex-container-column">
+      <div [hidden]="(this.tabs.size == 0)" class="full-size flex-container-column">
+        <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
+        <div id="graph-editor-container">
+          <sinap-graph-editor [graph]="context ? context.graph : null" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor"
+            class="full-size"></sinap-graph-editor>
         </div>
-        <div [hidden]="(this.tabs.size > 0)" class="full-size">
-          <div (click)="promptNewFile()" id="empty-background">
-            <a>Click to create a new graph</a>
-          </div>
+        <sinap-status-bar id="status-bar" [title]="package" [items]="barMessages"></sinap-status-bar>
+      </div>
+      <div [hidden]="(this.tabs.size > 0)" class="full-size">
+        <div (click)="promptNewFile()" id="empty-background" class="full-size">
+          <a>Click to create a new graph</a>
         </div>
-      </div> 
+      </div>
     </div>
+
     <div id="bottom-panels" class="flex-container-row">
-      <sinap-side-bar #bottomSideBar class="side-bar" [icons]="
+      <sinap-side-bar #bottomSideBar class="panel-bar-vertical" [vertical]="true" [icons]="
           [{
             path: '${require('../../images/input.svg')}',
             name: 'Input'
@@ -50,11 +57,12 @@
             path: '${require('../../images/debug.svg')}',
             name: 'Debug'
           }]">
-      </sinap-side-bar>
-      <div id="bottom-panel">
-        <repl [hidden]="!(bottomSideBar.active == 'Input')"></repl>
-        <sinap-test-panel [hidden]="!(bottomSideBar.active == 'Test')"></sinap-test-panel>
-        <sinap-debug-panel [hidden]="!(bottomSideBar.active == 'Debug')"></sinap-debug-panel>
-      </div>
+        </sinap-side-bar>
+        <div id="bottom-panel">
+          <repl [hidden]="!(bottomSideBar.active == 'Input')"></repl>
+          <sinap-test-panel [hidden]="!(bottomSideBar.active == 'Test')"></sinap-test-panel>
+          <sinap-debug-panel [hidden]="!(bottomSideBar.active == 'Debug')"></sinap-debug-panel>
+        </div>
     </div>
   </div>
+</div>

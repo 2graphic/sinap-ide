@@ -1,24 +1,34 @@
 #wrapper {
     width: 100%;
     height: 100%;
-    background-color: #515151;
+    background-color: whitesmoke;
+    font-family: sans-serif;
+    color: black;
 }
 
 #toolbar {
-    background-color: #444;
-    font-size: 1.25em;
-    font-family: sans-serif;
-    color: white;
-
+    background-color: #E1E1E1;
     height: 35px;
     display: flex;
     align-items: center;
+    margin-left: -45px;
+    box-sizing: border-box;
+    border-top: thin solid lightgrey;
+}
 
-    padding-left: 0.5em;
+#toolbar h2 {
+    flex: none;
+    display: inline-block;
+    font-size: 1.25em;
+    font-weight: 600;
+    margin-left: 45px;
+    color: #333;
+    padding: .5em;
+    text-shadow: 1px 1px 0px whitesmoke;
 }
 
 .toolbar-button {
-    flex:none;
+    flex: none;
     height: .75em;
     width: .75em;
     width: 1em;
@@ -38,6 +48,6 @@
 }
 
 .toolbar-spacer {
-    flex:none;
+    flex: none;
     width: .7em;
 }

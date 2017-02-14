@@ -62,11 +62,11 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     @ViewChild(ToolsPanelComponent)
     private toolsPanel: ToolsPanelComponent;
 
-    @ViewChild("leftSideBar")
-    private leftSideBar: SideBarComponent;
+    @ViewChild("leftPanelBar")
+    private leftPanelBar: SideBarComponent;
 
-    @ViewChild("bottomSideBar")
-    private bottomSideBar: SideBarComponent;
+    @ViewChild("bottomPanelBar")
+    private bottomPanelBar: SideBarComponent;
 
     @ViewChild(TestPanelComponent)
     private testComponent: TestPanelComponent;

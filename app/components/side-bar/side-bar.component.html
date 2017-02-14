@@ -1,10 +1,11 @@
-<div id="wrapper">
-    <div id="logo">
-        <!-- Eventually we'll put the logo here -->
-    </div>
-    <img  *ngFor="let icon of icons"
-        [src]="icon.path"
+<div id="wrapper" [class.vertical]="vertical">
+    <h2 *ngIf="title" id="title">
+        {{active}}
+    </h2>
+    <div id="icons" [class.vertical]="vertical">
+        <div class="icon" *ngFor="let icon of getSortedIcons()"
+        [inlineSVG]="icon.path"
         [class.active]="icon.name == active"
-        (click)="setActive(icon)"
-        />
+        (click)="setActive(icon)"></div>
+    </div>
 </div>

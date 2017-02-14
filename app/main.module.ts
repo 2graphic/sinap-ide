@@ -12,6 +12,8 @@ import { BrowserModule } from "@angular/platform-browser";
 
 import { FormsModule } from '@angular/forms';
 
+import { InlineSVGModule } from 'ng-inline-svg';
+
 import { MainComponent } from "./components/main/main.component";
 import { CollapsibleListComponent } from "./components/collapsible-list/collapsible-list.component";
 import { SideBarComponent } from "./components/side-bar/side-bar.component";
@@ -29,7 +31,8 @@ import { BindingDirective } from "./directives/bind.directive";
 @NgModule({
     imports: [
         BrowserModule,
-        FormsModule
+        FormsModule,
+        InlineSVGModule
     ],
     declarations: [
         MainComponent,

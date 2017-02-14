@@ -31,15 +31,17 @@
     "@angular/compiler": "2.4.x",
     "@angular/core": "2.4.x",
     "@angular/forms": "2.4.x",
+    "@angular/http": "2.4.x",
     "@angular/platform-browser": "2.4.x",
     "@angular/platform-browser-dynamic": "2.4.x",
     "@angular/upgrade": "2.4.x",
     "core-js": "2.4.x",
+    "ng-inline-svg": "2.2.x",
     "reflect-metadata": "^0.1.x",
-    "rxjs": "5.0.x",
-    "zone.js": "0.7.4",
     "reset-css": "2.2.x",
-    "sinap-core": "^0.0.x"
+    "rxjs": "5.0.x",
+    "sinap-core": "^0.0.x",
+    "zone.js": "0.7.4"
   },
   "devDependencies": {
     "@types/electron": "1.4.30",
