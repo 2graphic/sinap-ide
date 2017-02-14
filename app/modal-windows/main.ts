@@ -10,6 +10,8 @@ import { enableProdMode } from '@angular/core';
 
 import { ModalWindowModule } from "./modal-window.module";
 
+import "file-loader?name=modal.html!extract-loader!./index.html";
+
 if (process.env.ENV === 'production') {
     enableProdMode();
 }
