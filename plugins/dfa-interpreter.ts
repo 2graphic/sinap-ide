@@ -1,10 +1,10 @@
 import * as sinap from "sinap";
 
 export class DFANode {
-	/** Accept State */
-	isAcceptState: boolean;
-	isStartState: boolean;
-	children: DFAEdge[];
+    /** Accept State */
+    isAcceptState: boolean;
+    isStartState: boolean;
+    children: DFAEdge[];
 }
 
 export class D2aNode {
@@ -12,9 +12,9 @@ export class D2aNode {
 }
 
 export class DFAEdge {
-	/** Symbol */
-	label: string;
-	destination: DFANode;
+    /** Symbol */
+    label: string;
+    destination: DFANode;
 }
 
 export class DFAGraph {

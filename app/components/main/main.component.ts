@@ -104,7 +104,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         // TODO:
         // Fix conflict
         // this.tabs.set(tabNumber, new TabContext(new MainGraph(g, plugin), filename));
-        
+
         this.selectedTab(tabNumber);
     }
 

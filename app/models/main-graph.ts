@@ -187,7 +187,7 @@ export class MainGraph {
         this.drawable.addCreatingEdgeListener((e: DrawableEdgeEventArgs) => this.onCreatingEdge(e));
         this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs) => this.onCreatedEdge(e));
         this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
-        this.drawable.addSelectionChangedListener((a: PropertyChangedEventArgs<Iterable<DrawableElement>>)=>{
+        this.drawable.addSelectionChangedListener((a: PropertyChangedEventArgs<Iterable<DrawableElement>>) => {
             this.setSelectedElements(a.curr);
         });
         // side effect of selecting the graph
@@ -260,7 +260,7 @@ export class MainGraph {
         if (se === undefined) {
             se = [];
         }
-        
+
         const values = [...se];
         if (values.length === 0) {
             const br = this.bridges.getA(this.drawable);

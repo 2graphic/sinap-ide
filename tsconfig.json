@@ -20,7 +20,6 @@
     "skipLibCheck": true
   },
   "exclude": [
-    "node_modules",
-    "plugins"
+    "node_modules"
   ]
 }
