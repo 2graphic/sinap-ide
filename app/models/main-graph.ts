@@ -29,7 +29,7 @@ import { DoubleMap } from "./double-map";
  * this will return a `BridgingProxy` in its place. Sets will intellegently
  * sync the backends even if the set `v` is a `BridgingProxy`
  */
-class BridgingProxy {
+export class BridgingProxy {
     proxy: { [a: string]: any };
 
     constructor(public core: CoreElement, public drawable: Drawable, private bridges: DoubleMap<Drawable, CoreElement, BridgingProxy>) {
@@ -99,6 +99,8 @@ export class MainGraph {
     drawable: DrawableGraph;
     activeNodeType: string;
     activeEdgeType: string;
+    private _selectedElements: Set<BridgingProxy>;
+
     public bridges = new DoubleMap<Drawable, CoreElement, BridgingProxy>();
 
     constructor(coresIter: Iterable<CoreElement>, private plugin: Plugin) {
@@ -108,6 +110,7 @@ export class MainGraph {
         this.drawable = new DrawableGraph((src: DrawableNode,
             dst?: DrawableNode,
             like?: DrawableEdge) => {
+            // TODO: maybe define this validation routine elsewhere? 
             const source = this.bridges.getA(src);
             const destination = dst !== undefined ? this.bridges.getA(dst) : null;
 
@@ -184,6 +187,8 @@ export class MainGraph {
         this.drawable.addCreatingEdgeListener((e: DrawableEdgeEventArgs) => this.onCreatingEdge(e));
         this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs) => this.onCreatedEdge(e));
         this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
+        // side effect of selecting the graph
+        this.selectedElements = undefined;
     }
 
     addDrawable(drawable: Drawable, core?: CoreElement) {
@@ -246,6 +251,37 @@ export class MainGraph {
         for (const key of keys) {
             (drawable as any)[key] = drawableFromAny(core.data[key], this.bridges);
         }
+    }
+
+    get selectedElements() {
+        return this._selectedElements;
+    }
+
+    set selectedElements(se: Set<Drawable | BridgingProxy | CoreElement> | undefined) {
+        if (se === undefined || se.size === 0) {
+            const br = this.bridges.getA(this.drawable);
+            if (br === undefined) {
+                throw "no graph element";
+            }
+            this._selectedElements = new Set([br]);
+        } else {
+            this._selectedElements = new Set([...se.values()].map((e) => this.toBridges(e)));
+        }
+    }
+
+    toBridges(e: Drawable | BridgingProxy | CoreElement): BridgingProxy {
+        let val: BridgingProxy | undefined;
+        if (e instanceof Drawable) {
+            val = this.bridges.getA(e);
+        } else if (e instanceof CoreElement) {
+            val = this.bridges.getB(e);
+        } else if (e instanceof BridgingProxy) {
+            val = e;
+        }
+        if (val === undefined) {
+            throw "element not found";
+        }
+        return val;
     }
 
     copyDrawableToCore(drawable: Drawable, core: CoreElement) {

@@ -1,73 +1,18 @@
 <div id="wrapper">
     <h2>Properties</h2>
-    <div *ngIf="isEmpty()" id="empty">
+    <div *ngIf="isEmpty" id="empty">
         <p>empty</p>
     </div>
 
-    <div *ngIf="!isEmpty()">
-        <table *ngFor="let group of groups" class="group-table">
-            <template [ngIf]="selectedEntity[group[1]] && selectedEntity[group[1]].properties.length > 0">
-                <tr><th colspan="2">{{group[0]}}</th></tr>
-                <tr *ngFor="let pair of selectedEntity[group[1]].properties">
+    <div *ngIf="!isEmpty">
+        <table class="group-table">
+            <template [ngIf]="fields">
+                <tr><th colspan="2">General</th></tr>
+                <tr *ngFor="let pair of fields">
                     <td class="label">{{pair[0]}}</td>
-                    <td [ngSwitch]="pair[1].kind">
-                        <div *ngSwitchCase="'Number'">
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="number" 
-                                class="number-input"/>
-                        </div>
-                        <div *ngSwitchCase="'Boolean'">
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="checkbox" />
-                        </div>
-                        <div *ngSwitchCase="'Enum'">
-                            <select [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)">
-                                <option *ngFor="let lit of pair[1].literals" [ngValue]="lit">{{lit}}</option>
-                            </select>
-                        </div>
-                        <div *ngSwitchCase="'File'">
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="file" />
-                        </div>
-                        <div *ngSwitchCase="'Color'">
-                            <label class="color-label" for="property{{pair[0]}}">
-                                <span class="color-preview" [style.background-color]="selectedEntity[group[1]].get(pair[0])"></span>
-                                {{selectedEntity[group[1]].get(pair[0])}}
-                                <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" id="property{{pair[0]}}" type="color" class="color-input"/>
-                            </label>
-                        </div>
-                        <div *ngSwitchCase="'String'">
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="text" class="text-input"/>
-                        </div>
-                        <div *ngSwitchCase="'Character'">
-                            <input [ngModel]="selectedEntity[group[1]].get(pair[0])" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event)" type="text" maxlength="1" class="text-input"/>
-                        </div>
-
-                        <div *ngSwitchCase="'List'">
-                            List<{{pair[1].type}}>
-                        </div>
-
-                        <div *ngSwitchCase="'Tuple'">
-                            (<span *ngFor="let t of pair[1].types">{{t}}, </span>)
-                        </div>
-
-                        <div *ngSwitchCase="'Class'">
-                            <template [ngIf]="pair[1].subtype(Type.Point)">
-                                <input [ngModel]="selectedEntity[group[1]].get(pair[0]).x" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event, ['x'])" type="number" placeholder="x" step="0.1"
-                                    class="text-input tuple-input"/>
-                                <input [ngModel]="selectedEntity[group[1]].get(pair[0]).y" (ngModelChange)="doChange(selectedEntity, group[1], pair[0], $event, ['y'])" type="number" placeholder="y" step="0.1"
-                                class="text-input tuple-input"/>
-                            </template>
-
-                            <template [ngIf]="pair[1].subtype(Type.Node)">
-                                <label  class="node-label">
-                                    <!-- TODO: Figure out a better way to allow nodes to sometimes be null
-                                        
-                                        Specifically, this doesn't have a value yet, and this breaks a lot of 
-                                        promises that say that there is always a start state, that is, we can't 
-                                        just make this optional.
-                                     -->
-                                    {{selectedEntity[group[1]].get(pair[0]) ? selectedEntity[group[1]].get(pair[0]).drawableProperties.get('Label') : "Not defined"}}
-                                </label>
-                            </template>
-                            <!-- add neither case-->
+                    <td [ngSwitch]="pair[1].name">
+                        <div *ngSwitchCase="'string'">
+                            <input [ngModel]="element[pair[0]]" (ngModelChange)="element[pair[0]] = $event" type="text" class="text-input"/>
                         </div>
                         <div *ngSwitchDefault> 
                             <!-- default -->

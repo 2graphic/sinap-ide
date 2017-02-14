@@ -1,6 +1,4 @@
 import { Injectable, Inject } from '@angular/core';
-import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
-
 import { Type, ObjectType, CoreElement, loadPlugin, Plugin } from "sinap-core";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { FileService } from "../services/files.service";
