@@ -14,7 +14,7 @@
             name: 'Files'
           }]">
       </sinap-side-bar>
-      
+
       <div id="left-panels">
         <sinap-properties-panel [hidden]="!(leftPanelBar.active == 'Properties')" (propertyChanged)="propertyChanged($event)">
         </sinap-properties-panel>
@@ -52,16 +52,11 @@
           {
             path: '${require('../../images/test.svg')}',
             name: 'Test'
-          },
-          {
-            path: '${require('../../images/debug.svg')}',
-            name: 'Debug'
           }]">
         </sinap-side-bar>
         <div id="bottom-panel">
           <repl [hidden]="!(bottomSideBar.active == 'Input')"></repl>
           <sinap-test-panel [hidden]="!(bottomSideBar.active == 'Test')"></sinap-test-panel>
-          <sinap-debug-panel [hidden]="!(bottomSideBar.active == 'Debug')"></sinap-debug-panel>
         </div>
     </div>
   </div>
