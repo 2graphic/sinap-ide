@@ -14,6 +14,12 @@
                         <div *ngSwitchCase="'string'">
                             <input [ngModel]="element[pair[0]]" (ngModelChange)="element[pair[0]] = $event" type="text" class="text-input"/>
                         </div>
+                        <div *ngSwitchCase="'number'">
+                            <input [ngModel]="element[pair[0]]" (ngModelChange)="element[pair[0]] = $event" type="number" class="number-input"/>
+                        </div>
+                        <div *ngSwitchCase="'boolean'">
+                            <input [ngModel]="element[pair[0]]" (ngModelChange)="element[pair[0]] = $event" type="checkbox"/>
+                        </div>
                         <div *ngSwitchDefault> 
                             <!-- default -->
                             N/A

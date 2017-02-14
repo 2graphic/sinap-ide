@@ -12,7 +12,6 @@ import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.s
 import { MenuEventAction } from "../../models/menu";
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
 import { PluginService } from "../../services/plugin.service";
-import { Program } from "../../models/plugin";
 import { WindowService } from "../../modal-windows/services/window.service"
 import { ModalInfo, ModalType } from './../../models/modal-window'
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
@@ -25,7 +24,6 @@ import { CoreElement, CoreElementKind } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component"
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
 import { FileService, LocalFileService, File } from "../../services/files.service";
-import { SerializerService } from "../../services/serializer.service";
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
 
@@ -33,11 +31,11 @@ import * as MagicConstants from "../../models/constants-not-to-be-included-in-be
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.css"],
-    providers: [MenuService, PluginService, WindowService, LocalFileService, SerializerService, SandboxService]
+    providers: [MenuService, PluginService, WindowService, LocalFileService, SandboxService]
 })
 
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private serializerService: SerializerService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
     }
 
     ngOnInit(): void {
@@ -223,14 +221,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     loadFile() {
         this.fileService.requestFiles()
             .then((files: File[]) => {
-                for (const file of files) {
-                    file.readData().then((data) => {
-                        const pojo = JSON.parse(data);
-                        return this.serializerService.deserialize(pojo)
-                            .then((graph) => this.newFile(file.name, graph));
-                    })
-                        .catch((err: any) => alert(`Error reading file ${file.name}: ${err}`));
-                }
             });
     }
 
