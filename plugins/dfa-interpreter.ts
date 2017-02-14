@@ -1,4 +1,4 @@
-import * as sinap from "sinap";
+import * as sinap from "sinap-core";
 
 export class DFANode {
     /** Accept State */
