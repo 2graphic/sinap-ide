@@ -7,22 +7,25 @@
 //
 
 
-import { Component, OnInit, ViewChild, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
+import { MenuEventAction } from "../../models/menu";
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
 import { PluginService } from "../../services/plugin.service";
-import { WindowService } from "../../modal-windows/services/window.service";
-import { ModalInfo, ModalType } from "./../../models/modal-window";
-import { REPLComponent, REPLDelegate } from "../repl/repl.component";
-import { PropertiesPanelComponent, PropertiedEntity, PropertiedEntityLists } from "../properties-panel/properties-panel.component";
-import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
-import { TestPanelComponent } from "../test-panel/test-panel.component";
-import { StatusBarComponent } from "../status-bar/status-bar.component";
+import { Program } from "../../models/plugin";
+import { WindowService } from "../../modal-windows/services/window.service"
+import { ModalInfo, ModalType } from './../../models/modal-window'
+import { REPLComponent, REPLDelegate } from "../repl/repl.component"
+import { PropertiesPanelComponent, PropertiedEntity, PropertiedEntityLists } from "../properties-panel/properties-panel.component"
+import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
+import { TestPanelComponent } from "../test-panel/test-panel.component"
+import { StatusBarComponent } from "../status-bar/status-bar.component"
 import { MainGraph } from "../../models/main-graph";
 import { CoreElement, CoreElementKind } from "sinap-core";
-import { SideBarComponent } from "../side-bar/side-bar.component";
-import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
-import { FileService } from "../../services/files.service";
+import { SideBarComponent } from "../side-bar/side-bar.component"
+import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
+import { FileService, LocalFileService, File } from "../../services/files.service";
+import { SerializerService } from "../../services/serializer.service";
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
 
@@ -30,11 +33,11 @@ import * as MagicConstants from "../../models/constants-not-to-be-included-in-be
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.css"],
-    providers: [MenuService, PluginService, WindowService, FileService, SandboxService]
+    providers: [MenuService, PluginService, WindowService, LocalFileService, SerializerService, SandboxService]
 })
 
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: FileService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private serializerService: SerializerService, private changeDetectorRef: ChangeDetectorRef) {
     }
 
     ngOnInit(): void {
@@ -98,7 +101,10 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         g = g ? g : [];
         let filename = f ? f : "Untitled";
         let tabNumber = this.tabBar.newTab(filename);
-        this.tabs.set(tabNumber, new TabContext(new MainGraph(g, plugin), filename));
+        // TODO:
+        // Fix conflict
+        // this.tabs.set(tabNumber, new TabContext(new MainGraph(g, plugin), filename));
+        
         this.selectedTab(tabNumber);
     }
 
@@ -145,53 +151,86 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
 
     menuEvent(e: MenuEvent) {
-        switch (e) {
-            case MenuEvent.NEW_FILE:
+        switch (e.action) {
+            case MenuEventAction.NEW_FILE:
                 this.promptNewFile();
                 break;
-            case MenuEvent.LOAD_FILE:
+            case MenuEventAction.LOAD_FILE:
                 this.loadFile();
                 break;
-            case MenuEvent.SAVE_FILE:
+            case MenuEventAction.SAVE_FILE:
                 this.saveFile();
+                break;
+            case MenuEventAction.CUT:
+                if (this.focusIsChildOf("editor-panel")) {
+                    this.graphEditor.cut();
+                    e.preventDefault();
+                }
+                break;
+            case MenuEventAction.COPY:
+                if (this.focusIsChildOf("editor-panel")) {
+                    this.graphEditor.copy();
+                    e.preventDefault();
+                }
+                break;
+            case MenuEventAction.PASTE:
+                if (this.focusIsChildOf("editor-panel")) {
+                    this.graphEditor.paste();
+                    e.preventDefault();
+                }
                 break;
         }
     }
 
+    /**
+     * Return true if the focused element is a child of an element with an `id` of `childOf`
+     */
+    private focusIsChildOf(childOf: string) {
+        function elementIsChildOf(element: Element, id: string): boolean {
+            while (element.parentElement) {
+                if (element.parentElement.id == id) {
+                    return true;
+                } else {
+                    return elementIsChildOf(element.parentElement, id);
+                }
+            }
+
+            return false;
+        }
+
+        return document.hasFocus() && elementIsChildOf(document.activeElement, childOf);
+    }
+
     saveFile() {
-        this.fileService.requestFilename(true)
-            .then((filename: string) => {
+        this.fileService.requestSaveFile()
+            .then((file: File) => {
                 if (!this.context) {
                     alert("No open graph to save");
                     return;
                 }
 
-                // let graph = this.context.graph.core.serialize();
-                // this.fileService.writeFile(filename, JSON.stringify(graph))
+                // TODO:
+                // Fix conflict.
+                // const pojo = this.serializerService.serialize(this.context.graph.core);
+
+                // file.writeData(JSON.stringify(pojo, null, 4))
                 //     .catch((err) => {
-                //         alert(`Error occurred while saving to file ${filename}: ${err}.`);
+                //         alert(`Error occurred while saving to file ${file.name}: ${err}.`);
                 //     });
             });
     }
 
     loadFile() {
-        this.fileService.requestFilename(false)
-            .then((filename: string) => {
-                this.fileService.readFile(filename)
-                    .then((data: string) => {
-                        try {
-                            let pojo = JSON.parse(data);
-
-                            if (pojo['sinap-file-format-version'] != "0.0.3") {
-                                throw "invalid file format version";
-                            }
-                        } catch (e) {
-                            alert(`Could not de-serialize graph: ${e}.`);
-                        }
+        this.fileService.requestFiles()
+            .then((files: File[]) => {
+                for (const file of files) {
+                    file.readData().then((data) => {
+                        const pojo = JSON.parse(data);
+                        return this.serializerService.deserialize(pojo)
+                            .then((graph) => this.newFile(file.name, graph));
                     })
-                    .catch((err) => {
-                        alert(`Error reading file ${filename}: ${err}`);
-                    });
+                        .catch((err: any) => alert(`Error reading file ${file.name}: ${err}`));
+                }
             });
     }
 
