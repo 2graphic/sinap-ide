@@ -19,7 +19,7 @@ import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { MainGraph } from "../../models/main-graph";
-import { CoreElement, CoreElementKind } from "../../models/main-graph";
+import { CoreElement, CoreElementKind } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
 import { FileService } from "../../services/files.service";
@@ -93,10 +93,12 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     newFile(f?: String, g?: Iterable<CoreElement>) {
         const kind = this.toolsPanel.activeGraphType == "Machine Learning" ?
             MagicConstants.MACHINE_LEARNING_PLUGIN_KIND : MagicConstants.DFA_PLUGIN_KIND;
-        g = g ? g : [new CoreElement(null as any, CoreElementKind.Graph)]; // <--- TODO: liquid evil, please fix
+
+        const plugin = this.pluginService.getPlugin(kind);
+        g = g ? g : [];
         let filename = f ? f : "Untitled";
         let tabNumber = this.tabBar.newTab(filename);
-        this.tabs.set(tabNumber, new TabContext(new MainGraph(g), filename));
+        this.tabs.set(tabNumber, new TabContext(new MainGraph(g, plugin), filename));
         this.selectedTab(tabNumber);
     }
 

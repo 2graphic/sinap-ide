@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@angular/core';
 import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
 
-import { Type, ObjectType, Plugin, CoreGraph } from "sinap-core";
+import { Type, ObjectType, CoreElement, loadPlugin, Plugin } from "sinap-core";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { FileService } from "../services/files.service";
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
@@ -12,7 +12,7 @@ export class PluginService {
     private interpretCode: Script;
     private runInputCode: Script;
     // TODO: load from somewhere
-    private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, "./dfa-definition.sinapdef"]])
+    private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, "./plugins/dfa-interpreter.ts"]])
 
     constructor( @Inject(FileService) private fileService: FileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
@@ -42,7 +42,7 @@ export class PluginService {
         if (!fileName) {
             throw "Plugin not installed";
         }
-        plugin = new Plugin(fileName);
+        plugin = loadPlugin(fileName);
         this.plugins.set(kind, plugin);
         return plugin;
     }

@@ -4,71 +4,38 @@
 //
 //
 
-import { DrawableElement, DrawableGraph, DrawableEdge, DrawableNode, EdgeValidator, DrawableEdgeEventArgs, DrawableNodeEventArgs, PropertyChangedEventArgs } from "../components/graph-editor/graph-editor.component"
+import {
+    DrawableElement,
+    Drawable,
+    DrawableGraph,
+    DrawableEdge,
+    DrawableNode,
+    EdgeValidator,
+    DrawableEdgeEventArgs,
+    DrawableNodeEventArgs,
+    PropertyChangedEventArgs
+} from "../components/graph-editor/graph-editor.component";
 
-export class Type {
-
-}
-
-export enum CoreElementKind { Node, Edge, Graph };
-
-export class CoreElement {
-    data: { [a: string]: any };
-
-    constructor(readonly type: Type, readonly kind: CoreElementKind) {
-        this.data = {};
-    }
-}
+import { CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType } from "sinap-core";
+import { DoubleMap } from "./double-map";
 
 /**
- * Keep two dictionaries in sync, different efficient maps to the same data
+ * Contains a reference to a `CoreElement` and a `Drawable`.
+ * 
+ * Calls to get/set will update both. It also conatins a 
+ * `proxy` field. Reads and writes to this will intelligently update 
+ * the core element and the drawable. For any of these uses, if 
+ * the backer object (core/drawable) references another core or drawable
+ * this will return a `BridgingProxy` in its place. Sets will intellegently
+ * sync the backends even if the set `v` is a `BridgingProxy`
  */
-class DoubleMap<A, B, C> {
-    private first: Map<A, C>;
-    private second: Map<B, C>;
-
-    constructor() {
-        this.first = new Map();
-        this.second = new Map();
-    }
-
-    /**
-     * Map `a` and `b` to `c`
-     */
-    set(a: A, b: B, c: C) {
-        this.first.set(a, c);
-        this.second.set(b, c);
-    }
-
-    /**
-     * Get the `C` value that goes with `a`
-     */
-    getA(a: A) {
-        return this.first.get(a);
-    }
-
-    /**
-     * Get the `C` value that goes with `b`
-     */
-    getB(b: B) {
-        return this.second.get(b);
-    }
-
-    values() {
-        return this.first.values();
-    }
-
-    entries() {
-        return this.first.values();
-    }
-}
-
 class BridgingProxy {
     proxy: { [a: string]: any };
 
-    constructor(public core: CoreElement, public drawable: DrawableElement | DrawableGraph, private bridges: DoubleMap<DrawableElement | DrawableGraph, CoreElement, BridgingProxy>) {
+    constructor(public core: CoreElement, public drawable: Drawable, private bridges: DoubleMap<Drawable, CoreElement, BridgingProxy>) {
         this.proxy = new Proxy(core.data, {
             set: (data, k, v) => this.set(k, v),
+            get: (data, k) => this.get(k),
         });
     }
 
@@ -80,22 +47,13 @@ class BridgingProxy {
         // then when it gets set in the various proxied data
         // structures, set it differently. 
 
-        if (v instanceof CoreElement) {
-            // if v is a core element then 
-            // when assigning the drawable elements below, 
-            // use v by looking up in the bridge          
-            const bridge = this.bridges.getB(v);
-            if (bridge !== undefined) {
-                drawableValue = bridge.drawable;
-            }
-        } else {
-            // if we mapped a drawable element (note the "A" in `getA`)
-            // to something, then v is a drawable element and we want to 
-            // use the core value it maps to when setting the core element
-            const bridge = this.bridges.getA(v);
-            if (bridge !== undefined) {
-                coreValue = bridge.core;
-            }
+        if (v instanceof BridgingProxy) {
+            drawableValue = v.drawable;
+            coreValue = v.core;
+        } else if (v instanceof CoreElement) {
+            drawableValue = drawableFromAny(v, this.bridges);
+        } else if (v instanceof Drawable) {
+            coreValue = coreFromAny(v, this.bridges);
         }
 
         if (updateDrawable) {
@@ -111,38 +69,81 @@ class BridgingProxy {
         const proxiedValue = this.bridges.getB(coreValue);
         // return the proxy. That is, any changes made to the returned 
         // object should propogate to both backers
-        return proxiedValue !== undefined ? proxiedValue.proxy : coreValue;
+        return proxiedValue !== undefined ? proxiedValue : coreValue;
     }
 }
 
-function copyCoreToDrawable(core: CoreElement, drawable: DrawableElement, exclusionKeys = new Set<string>()) {
-    for (const key of Object.getOwnPropertyNames(drawable)) {
-        if (!exclusionKeys.has(key)) {
-            (drawable as any)[key] = core.data[key];
+function drawableFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingProxy>) {
+    if (a instanceof CoreElement) {
+        const bridge = bridges.getB(a);
+        if (bridge === undefined) {
+            throw "trying to reference a core element that doesn't have an analogous drawable";
         }
+        a = bridge.drawable;
     }
+    return a;
 }
 
-function copyDrawableToCore(drawable: DrawableElement | DrawableGraph, core: CoreElement, exclusionKeys = new Set<string>()) {
-    for (const key of Object.getOwnPropertyNames(drawable)) {
-        if (!exclusionKeys.has(key)) {
-            core.data[key] = (drawable as any)[key];
+function coreFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingProxy>) {
+    if (a instanceof Drawable) {
+        const bridge = bridges.getA(a);
+        if (bridge === undefined) {
+            throw "trying to reference a drawable element that doesn't have an analogous core";
         }
+        a = bridge.core;
     }
+    return a;
 }
 
 export class MainGraph {
     drawable: DrawableGraph;
-    public bridges = new DoubleMap<DrawableElement | DrawableGraph, CoreElement, BridgingProxy>();
+    activeNodeType: string;
+    activeEdgeType: string;
+    public bridges = new DoubleMap<Drawable, CoreElement, BridgingProxy>();
 
-    constructor(coresIter: Iterable<CoreElement>) {
-        this.drawable = new DrawableGraph(() => true);
+    constructor(coresIter: Iterable<CoreElement>, private plugin: Plugin) {
+        this.activeEdgeType = this.plugin.elementTypes(CoreElementKind.Edge).next().value;
+        this.activeNodeType = this.plugin.elementTypes(CoreElementKind.Node).next().value;
 
+        this.drawable = new DrawableGraph((src: DrawableNode,
+                    dst?: DrawableNode,
+                    like?: DrawableEdge) => {
+                        const source = this.bridges.getA(src);
+                        const destination = dst !== undefined ? this.bridges.getA(dst) : null;
+                        
+                        let edge : ObjectType;
+                        if (like !== undefined) {
+                            const e = this.bridges.getA(like);
+                            if (e === undefined) {
+                                throw "backer out of sync";
+                            }
+                            edge = e.core.type;
+                        } else {
+                            edge = this.plugin.typeEnvironment.getElementType(CoreElementKind.Edge, this.activeEdgeType);
+                        }
+
+                        if (source === undefined || destination === undefined) {
+                            throw "backer out of sync"
+                        }
+                        let dt;
+                        if (destination !== null) {
+                            dt = destination.core.type;
+                        } else {
+                            dt = this.plugin.typeEnvironment.getElementType(CoreElementKind.Node, this.activeNodeType);
+                        }
+
+                        return validateEdge(edge, source.core.type, dt);
+                    });
+        let coreGraph: CoreElement | null = null;
         const coreEdges: CoreElement[] = [];
+
+        // each core element we iterate over needs to have a drawable equivilant made for it
         for (const element of coresIter) {
-            let drawable: DrawableElement | DrawableGraph | null = null;
+            // placeholder for the new drawable (if we make one)
+            let drawable: Drawable | null = null;
             switch (element.kind) {
                 case CoreElementKind.Edge:
+                    // do edges last, they reference nodes
                     coreEdges.push(element);
                     break;
                 case CoreElementKind.Node:
@@ -150,35 +151,40 @@ export class MainGraph {
                     if (drawable === null) {
                         throw "node creation canceled while loading from core";
                     }
-                    copyCoreToDrawable(element, drawable);
+                    this.copyCoreToDrawable(element, drawable);
                     break;
                 case CoreElementKind.Graph:
-                    // TODO: copy core to drawable
                     drawable = this.drawable;
+                    // we want to keep track of the graph element
+                    if (coreGraph !== null) {
+                        throw "More than one graph found";
+                    }
+                    coreGraph = element;
+                    this.copyCoreToDrawable(element, drawable);
                     break;
             }
             if (drawable !== null) {
                 this.addDrawable(drawable, element);
             }
         }
-        const srcDstSet = new Set(['source', 'destination']);
+        // if we weren't given a graph object, make one
+        if (coreGraph === null) {
+            this.addDrawable(this.drawable, undefined);
+        }
+
+        // now make the drawable edges
         for (const edge of coreEdges) {
-            const src = this.bridges.getB(edge.data['source']);
-            const dst = this.bridges.getB(edge.data['destination']);
-            if (src === undefined || dst === undefined) {
-                throw "Incosisitant graph given";
-            }
-            // cast is safe, we've only called `createNode` so far. 
-            const drawableEdge = this.drawable.createEdge(src.drawable as DrawableNode, dst.drawable as DrawableNode);
+            // nulls will get copied in by copyCoreToDrawable
+            const drawableEdge = this.drawable.createEdge(null as any, null as any);
             if (drawableEdge === null) {
                 throw "edge creation canceled while loading from core";
             }
 
-            copyCoreToDrawable(edge, drawableEdge, srcDstSet);
-
+            this.copyCoreToDrawable(edge, drawableEdge);
             this.addDrawable(drawableEdge, edge);
         }
 
+        // finally set up all the listeners after we copy all the elements
         this.drawable.addCreatingNodeListener((n: DrawableNodeEventArgs) => this.onCreatingNode(n));
         this.drawable.addCreatedNodeListener((n: DrawableNodeEventArgs) => this.onCreatedNode(n));
         this.drawable.addCreatingEdgeListener((e: DrawableEdgeEventArgs) => this.onCreatingEdge(e));
@@ -186,14 +192,25 @@ export class MainGraph {
         this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
     }
 
-    addDrawable(drawable: DrawableElement | DrawableGraph, core?: CoreElement) {
+    addDrawable(drawable: Drawable, core?: CoreElement) {
+        // if a core element to pair with this 
+        // drawable doesn't exist, make one
         if (!core) {
+            // this could probably be wrapped up in a function if 
+            // it was useful elsewhere
             const kind = drawable instanceof DrawableEdge ?
                 CoreElementKind.Edge : (drawable instanceof DrawableNode ?
                     CoreElementKind.Node : CoreElementKind.Graph);
-            // TODO: populate type
-            core = new CoreElement(null as any, kind);
-            copyDrawableToCore(drawable, core);
+            
+            let type = undefined;
+            if (kind === CoreElementKind.Node) {
+                type = this.activeNodeType;
+            } else if (kind === CoreElementKind.Edge) {
+                type = this.activeEdgeType;
+            }
+
+            core = this.plugin.makeElement(kind, type);
+            this.copyDrawableToCore(drawable, core);
         }
         this.bridges.set(drawable, core, new BridgingProxy(core, drawable, this.bridges));
     }
@@ -219,5 +236,37 @@ export class MainGraph {
     }
     onCreatingEdge(e: DrawableEdgeEventArgs) {
 
+    }
+
+    copyCoreToDrawable(core: CoreElement, drawable: Drawable) {
+        // TODO: use Object.getOwnPropertyNames(drawable)
+        let keys;
+        if (drawable instanceof DrawableEdge) {
+            keys = ['source', 'destination'];
+        } else if (drawable instanceof DrawableNode) {
+            keys = ['label'];
+        } else {
+            keys = [] as string[];
+        }
+
+        for (const key of keys) {
+            (drawable as any)[key] = drawableFromAny(core.data[key], this.bridges);
+        }
+    }
+
+    copyDrawableToCore(drawable: Drawable, core: CoreElement) {
+        // TODO: use Object.getOwnPropertyNames(drawable)
+        let keys;
+        if (drawable instanceof DrawableEdge) {
+            keys = ['source', 'destination'];
+        } else if (drawable instanceof DrawableNode) {
+            keys = ['label'];
+        } else {
+            keys = [] as string[];
+        }
+
+        for (const key of keys) {
+            core.data[key] = coreFromAny((drawable as any)[key], this.bridges);
+        }
     }
 }
