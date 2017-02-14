@@ -19,7 +19,11 @@ import {
     makeRect,
     point
 } from "./graph-editor-canvas";
-import { DrawableEventArgs, DrawableGraph, EdgeValidator } from "./drawable-graph";
+import {
+    DrawableEventArgs,
+    DrawableGraph,
+    EdgeValidator
+} from "./drawable-graph";
 import { DrawableElement } from "./drawable-element";
 import { DrawableEdge } from "./drawable-edge";
 import { DrawableNode, HiddenNode } from "./drawable-node";
@@ -40,7 +44,7 @@ export {
     DrawableNodeEventArgs
 } from "./drawable-graph";
 export { Drawable } from "./drawable";
-export { DrawableElement, DrawableStates } from "./drawable-element";
+export { DrawableElement } from "./drawable-element";
 export { DrawableEdge } from "./drawable-edge";
 export { DrawableNode } from "./drawable-node";
 export { LineStyles, Shapes } from "./graph-editor-canvas";
@@ -546,7 +550,6 @@ export class GraphEditorComponent implements AfterViewInit {
     = (evt: DrawableEventArgs<DrawableEdge>) => {
         evt.drawable.update(this.canvas);
         this.unregisterDrawable(evt.drawable);
-
     }
 
     /**

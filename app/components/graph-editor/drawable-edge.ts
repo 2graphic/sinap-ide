@@ -156,8 +156,10 @@ export class DrawableEdge extends DrawableElement {
     }
 
     set lineStyle(value: LineStyles) {
+        let old = this._lineStyle;
         if (this._lineStyle !== value) {
             this._lineStyle = value;
+            this.onPropertyChanged("lineStyle", old);
         }
     }
 
@@ -170,8 +172,10 @@ export class DrawableEdge extends DrawableElement {
     }
 
     set lineWidth(value: number) {
+        let old = this._lineWidth;
         if (this._lineWidth !== value) {
             this._lineWidth = value;
+            this.onPropertyChanged("lineWidth", old);
         }
     }
 

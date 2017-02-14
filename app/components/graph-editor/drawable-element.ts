@@ -104,12 +104,13 @@ export abstract class DrawableElement extends Drawable {
 
     set label(value: string) {
         let old = this.label;
-        if (value.trim() !== "") {
-            this._lines = value.split("\n");
+        if (value !== this.label) {
+            if (value.trim() !== "")
+                this._lines = value.split("\n");
+            else
+                this._lines = [];
+            this.onPropertyChanged("label", old);
         }
-        else
-            this._lines = [];
-        this.onPropertyChanged("label", old);
     }
 
     /**

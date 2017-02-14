@@ -338,9 +338,23 @@ export class DrawableGraph extends Drawable {
      *   Creates a drawable node.
      */
     createNode(): DrawableNode | null {
+        let d = new DrawableNode(this);
+        let p = new Proxy(d, {
+            ownKeys: (target) => {
+                return [
+                    "color",
+                    "label",
+                    "position",
+                    "shape",
+                    "borderColor",
+                    "borderStyle",
+                    "borderWidth"
+                ];
+            }
+        });
         return this.createItem(
             this._nodes,
-            new DrawableNode(this),
+            p,
             this._creatingNodeEmitter,
             this._createdNodeEmitter,
             "nodes"
@@ -377,9 +391,28 @@ export class DrawableGraph extends Drawable {
     ): DrawableEdge | null {
         if (like)
             this.deleteEdge(like);
+        let d = new DrawableEdge(this, src, dst, like);
+        let p = new Proxy(d, {
+            ownKeys: (target) => {
+                return [
+                    "color",
+                    "label",
+                    "sourceNode",
+                    "destinationNode",
+                    "showSourceArrow",
+                    "showDestinationArrow",
+                    "lineStyle",
+                    "lineWidth"
+                ];
+            }
+        });
+        (src as any)["_outgoingSet"].delete(d);
+        (src as any)["_outgoingSet"].add(p);
+        (dst as any)["_incomingSet"].delete(d);
+        (dst as any)["_incomingSet"].add(p);
         return this.createItem(
             this._edges,
-            new DrawableEdge(this, src, dst, like),
+            p,
             this._creatingEdgeEmitter,
             this._createdEdgeEmitter,
             "edges"
