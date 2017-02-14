@@ -99,9 +99,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         g = g ? g : [];
         let filename = f ? f : "Untitled";
         let tabNumber = this.tabBar.newTab(filename);
-        // TODO:
-        // Fix conflict
-        // this.tabs.set(tabNumber, new TabContext(new MainGraph(g, plugin), filename));
+        this.tabs.set(tabNumber, new TabContext(new MainGraph(g, plugin), filename));
 
         this.selectedTab(tabNumber);
     }

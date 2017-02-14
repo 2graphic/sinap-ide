@@ -9,11 +9,13 @@
     <!-- TODO: I'm not satisfied with the way we're including CSS here. -->
     <link rel="stylesheet" href="${require('!!file-loader!../node_modules/reset-css/reset.css')}">
     <link rel="stylesheet" href="${require('!!file-loader!./styles/styles.css')}">
-    <script src="./vendor.bundle.js"></script>
 </head>
 
 <body>
     <sinap-main></sinap-main>
+    <script src="./vendor.bundle.js"></script>
+    <script src="./polyfills.js"></script>
+    <script src="./main.js"></script>
 </body>
 
 </html>

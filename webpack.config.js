@@ -9,7 +9,6 @@
 
 const webpack = require('webpack');
 const CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpackMerge = require('webpack-merge');
 
 module.exports = (env = {}) => { // pass command line arguments like `webpack ... --env.arg=value`
@@ -129,16 +128,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
         },
 
         plugins: [
-            new HtmlWebpackPlugin({
-                template: './app/index.html',
-                chunks: ['polyfills', 'main']
-            }),
-            new HtmlWebpackPlugin({
-                template: './app/modal-windows/index.html',
-                filename: 'modal.html',
-                chunks: ['polyfills', 'modal']
-            }),
-
             // Make sure to run `npm run build:dll` everytime you update angular
             new webpack.DllReferencePlugin({
                 context: '.',
@@ -161,35 +150,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
         }
     });
 
-    /**
-     * Temporary target to build in a DFA Interpreter into the project.
-     */
-    var pluginTarget = webpackMerge(common, {
-        target: 'web',
-
-        entry: {
-            'dfa-interpreter': './plugins/dfa-interpreter'
-        },
-
-        output: {
-            path: './build/plugins',
-            library: 'module'
-        },
-
-        resolve: {
-            extensions: ['.ts']
-        },
-
-        module: {
-            loaders: [
-                {
-                    test: /\.ts$/,
-                    loaders: ['ts-loader']
-                }
-            ]
-        }
-    });
-
 
     /**
      * Our webpack configuration
@@ -197,7 +157,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
     var config = [
         electronTarget,
         webTarget,
-        pluginTarget,
     ];
 
     // Adjustments for production build.
