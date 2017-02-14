@@ -125,14 +125,8 @@ export class MainGraph {
             if (source === undefined || destination === undefined) {
                 throw "backer out of sync"
             }
-            let dt;
-            if (destination !== null) {
-                dt = destination.core.type;
-            } else {
-                dt = this.plugin.typeEnvironment.getElementType(CoreElementKind.Node, this.activeNodeType);
-            }
 
-            return validateEdge(edge, source.core.type, dt);
+            return validateEdge(edge, source.core.type, destination !== null ? destination.core.type : undefined);
         });
         let coreGraph: CoreElement | null = null;
         const coreEdges: CoreElement[] = [];
