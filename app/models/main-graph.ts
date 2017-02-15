@@ -226,9 +226,14 @@ export class MainGraph {
     }
     onPropertyChanged(a: PropertyChangedEventArgs<any>) {
         const bridge = this.bridges.getA(a.source)
-        // TODO: this check can be removed, it checks an invariant
         if (bridge !== undefined) {
-            bridge.set(a.key, a.curr, false);
+            // TODO: maybe do an interface check to see if this matches
+            // do we want the list of nodes/edges to show up in the properties panel? 
+            // probably not
+            // maybe this filtering should occur downstream? 
+            if (a.key in Object.keys(bridge.drawable)) {
+                bridge.set(a.key, a.curr, false);
+            }
         } else {
             throw "Nodes/edges list out of sync";
         }
