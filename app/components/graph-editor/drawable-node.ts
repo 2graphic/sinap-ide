@@ -416,10 +416,8 @@ export class DrawableNode extends DrawableElement {
                 if (d <= r) {
                     r = this._innerBound.w / 2;
                     let anchor: point = posn;
-                    if (d >= r) {
-                        let shift = this.getBoundaryPt({ x: v.x / d, y: v.y / d });
-                        anchor = { x: posn.x + shift.x, y: posn.y + shift.y };
-                    }
+                    if (d >= r)
+                        anchor = this.getBoundaryPt({ x: v.x / d, y: v.y / d });
                     return anchor;
                 }
 
@@ -441,8 +439,7 @@ export class DrawableNode extends DrawableElement {
                     let anchor: point = posn;
                     if ((pt.x <= rect.x || pt.x >= rect.x + rect.w) ||
                         (pt.y <= rect.y || pt.y >= rect.y + rect.w)) {
-                        let shift = this.getBoundaryPt({ x: v.x / d, y: v.y / d });
-                        anchor = { x: posn.x + shift.x, y: posn.y + shift.y };
+                        anchor = this.getBoundaryPt({ x: v.x / d, y: v.y / d });
                     }
                     return anchor;
                 }
@@ -506,6 +503,8 @@ export class DrawableNode extends DrawableElement {
                 v.y = u.y * s + border;
                 break;
         }
+        v.x += this._position.x;
+        v.y += this._position.y;
         return v;
     }
 

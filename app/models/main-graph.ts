@@ -148,7 +148,7 @@ export class MainGraph {
                     if (drawable === null) {
                         throw "node creation canceled while loading from core";
                     }
-                    this.copyCoreToDrawable(element, drawable);
+                    this.copyProperties(element, drawable);
                     break;
                 case CoreElementKind.Graph:
                     drawable = this.drawable;
@@ -157,7 +157,7 @@ export class MainGraph {
                         throw "More than one graph found";
                     }
                     coreGraph = element;
-                    this.copyCoreToDrawable(element, drawable);
+                    this.copyProperties(element, drawable);
                     break;
             }
             if (drawable !== null) {
@@ -177,7 +177,7 @@ export class MainGraph {
                 throw "edge creation canceled while loading from core";
             }
 
-            this.copyCoreToDrawable(edge, drawableEdge);
+            this.copyProperties(edge, drawableEdge);
             this.addDrawable(drawableEdge, edge);
         }
 
@@ -212,7 +212,8 @@ export class MainGraph {
             }
 
             core = this.plugin.makeElement(kind, type);
-            this.copyDrawableToCore(drawable, core);
+            this.copyProperties(drawable, core);
+            // this.copyDrawableToCore(drawable, core);
         }
         this.bridges.set(drawable, core, new BridgingProxy(core, drawable, this.bridges));
     }
@@ -234,25 +235,22 @@ export class MainGraph {
     }
 
     onCreatingNode(n: DrawableNodeEventArgs) {
-
+        console.log(Object.getOwnPropertyNames(n.drawable));
     }
     onCreatingEdge(e: DrawableEdgeEventArgs) {
-
+        console.log(Object.getOwnPropertyNames(e.drawable));
     }
 
-    copyCoreToDrawable(core: CoreElement, drawable: Drawable) {
-        // TODO: use Object.getOwnPropertyNames(drawable)
-        let keys;
-        if (drawable instanceof DrawableEdge) {
-            keys = ['source', 'destination'];
-        } else if (drawable instanceof DrawableNode) {
-            keys = ['label'];
-        } else {
-            keys = [] as string[];
+    copyProperties<S extends CoreElement | Drawable, D extends CoreElement | Drawable>(src: S, dst: D) {
+        if(src instanceof CoreElement && dst instanceof Drawable) {
+            for(const key of Object.getOwnPropertyNames(dst)) {
+                (dst as any)[key] = drawableFromAny(src.data[key], this.bridges);
+            }
         }
-
-        for (const key of keys) {
-            (drawable as any)[key] = drawableFromAny(core.data[key], this.bridges);
+        else if(src instanceof Drawable && dst instanceof CoreElement) {
+            for(const key of Object.getOwnPropertyNames(src)) {
+                dst.data[key] = coreFromAny((src as any)[key], this.bridges);
+            }
         }
     }
 
@@ -286,21 +284,5 @@ export class MainGraph {
             throw "element not found";
         }
         return val;
-    }
-
-    copyDrawableToCore(drawable: Drawable, core: CoreElement) {
-        // TODO: use Object.getOwnPropertyNames(drawable)
-        let keys;
-        if (drawable instanceof DrawableEdge) {
-            keys = ['source', 'destination'];
-        } else if (drawable instanceof DrawableNode) {
-            keys = ['label'];
-        } else {
-            keys = [] as string[];
-        }
-
-        for (const key of keys) {
-            core.data[key] = coreFromAny((drawable as any)[key], this.bridges);
-        }
     }
 }

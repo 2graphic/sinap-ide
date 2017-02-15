@@ -66,10 +66,10 @@ export class GraphEditorCanvas {
     private _scale: number = AA_SCALE;
 
     /**
-     * origin  
+     * _origin  
      *   The coordinates of the canvas origin.
      */
-    origin: point = { x: 0, y: 0 };
+    private _origin: point = { x: 0, y: 0 };
 
 
     // Constructor /////////////////////////////////////////////////////////////
@@ -382,6 +382,15 @@ export class GraphEditorCanvas {
         el.height = value.h * AA_SCALE;
         el.width = value.w * AA_SCALE;
         this.scale = this.scale;
+    }
+
+    get origin() {
+        return this._origin;
+    }
+
+    set origin(value: point) {
+        this._origin.x = value.x;
+        this._origin.y = value.y;
     }
 
     /**

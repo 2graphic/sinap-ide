@@ -983,7 +983,6 @@ export class GraphEditorComponent implements AfterViewInit {
                 like
             )) {
                 // Get the anchor point where the edge will be dropped.
-                let posn = d.position;
                 src = (src.isHidden ? n : src);
                 dst = (dst.isHidden ? n : dst);
                 let spt = (src === dst ?
@@ -999,10 +998,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 let m = MathEx.mag(u);
                 u.x /= m;
                 u.y /= m;
-                let shift = n.getBoundaryPt(u);
-                shift.x += posn.x;
-                shift.y += posn.y;
-                hit = { d: n, pt: shift };
+                hit = { d: n, pt: n.getBoundaryPt(u) };
                 break;
             }
         }
