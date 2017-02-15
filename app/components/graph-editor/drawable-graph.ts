@@ -3,6 +3,7 @@
 // Date created: January 9, 2016
 
 
+import { point } from "./graph-editor-canvas";
 import { Drawable } from "./drawable";
 import { DrawableElement } from "./drawable-element";
 import { DrawableEdge } from "./drawable-edge";
@@ -153,73 +154,151 @@ export class DrawableGraph extends Drawable {
      */
     constructor(public readonly isValidEdge: EdgeValidator) {
         super();
+        Object.defineProperties(this, {
+            _creatingNodeEmitter: {
+                enumerable: false,
+                writable: false,
+                value: new DrawableEventEmitter<DrawableNode>()
+            },
+            _createdNodeEmitter: {
+                enumerable: false,
+                writable: false,
+                value: new DrawableEventEmitter<DrawableNode>()
+            },
+            _creatingEdgeEmitter: {
+                enumerable: false,
+                writable: false,
+                value: new DrawableEventEmitter<DrawableEdge>()
+            },
+            _createdEdgeEmitter: {
+                enumerable: false,
+                writable: false,
+                value: new DrawableEventEmitter<DrawableEdge>()
+            },
+            _deletedNodeEmitter: {
+                enumerable: false,
+                writable: false,
+                value: new DrawableEventEmitter<DrawableNode>()
+            },
+            _deletedEdgeEmitter: {
+                enumerable: false,
+                writable: false,
+                value: new DrawableEventEmitter<DrawableEdge>()
+            },
+            _selectionChangedEmitter: {
+                enumerable: false,
+                writable: false,
+                value: new PropertyChangedEventEmitter<Iterable<DrawableElement>>()
+            },
+            _nodes: {
+                enumerable: false,
+                writable: false,
+                value: new Set<DrawableNode>()
+            },
+            _edges: {
+                enumerable: false,
+                writable: false,
+                value: new Set<DrawableEdge>()
+            },
+            _selected: {
+                enumerable: false,
+                writable: false,
+                value: new Set<DrawableElement>()
+            },
+            _unselected: {
+                enumerable: false,
+                writable: false,
+                value: new Set<DrawableElement>()
+            },
+            _origin: {
+                enumerable: false,
+                writable: false,
+                value: { x: 0, y: 0 }
+            },
+            _scale: {
+                enumerable: false,
+                writable: true,
+                value: 1
+            },
+            isValidEdge: { enumerable: false },
+            nodes: {
+                enumerable: false,
+                get: () => this._nodes
+            },
+            edges: {
+                enumerable: false,
+                get: () => this._edges
+            },
+            selectedItems: {
+                enumerable: false,
+                get: () => this._selected
+            },
+            selectedItemCount: {
+                enumerable: false,
+                get: () => this._selected.size
+            },
+            origin: {
+                enumerable: false,
+                get: () => this._origin,
+                set: (value: point) => {
+                    let old = this.origin;
+                    if (this._origin.x !== value.x || this._origin.y !== value.y) {
+                        this._origin.x = value.x;
+                        this._origin.y = value.y;
+                        this.onPropertyChanged("origin", old);
+                    }
+                }
+            },
+            scale: {
+                enumerable: false,
+                get: () => this._scale,
+                set: (value: number) => {
+                    let old = this._scale;
+                    if (this._scale !== value) {
+                        this._scale = value;
+                        this.onPropertyChanged("scale", old);
+                    }
+                }
+            }
+        });
+        Object.seal(this);
     }
 
     /**
      * nodes  
      *   The iterable collection of drawable nodes that are part of the graph.
      */
-    get nodes(): Iterable<DrawableNode> {
-        return this._nodes;
-    }
+    readonly nodes: Iterable<DrawableNode>;
 
     /**
      * edges  
      *   The iterable collection of drawable edges that are part of the graph.
      */
-    get edges(): Iterable<DrawableEdge> {
-        return this._edges;
-    }
+    readonly edges: Iterable<DrawableEdge>;
 
     /**
      * selectedItems  
      *   The iterable collection of selected drawable elements.
      */
-    get selectedItems(): Iterable<DrawableElement> {
-        return this._selected;
-    }
+    readonly selectedItems: Iterable<DrawableElement>;
 
     /**
      * selectedItemCount  
      *   The number of selected items.
      */
-    get selectedItemCount(): number {
-        return this._selected.size;
-    }
+    readonly selectedItemCount: number;
 
     /**
      * origin  
      *   The displacement of the origin point of the graph editor canvas.
      */
-    get origin() {
-        let pt = this._origin;
-        return { get x() { return pt.x; }, get y() { return pt.y; } };
-    }
-
-    set origin(value: { x: number, y: number }) {
-        let old = this.origin;
-        if (this._origin.x !== value.x || this._origin.y !== value.y) {
-            this._origin.x = value.x;
-            this._origin.y = value.y;
-            this.onPropertyChanged("origin", old);
-        }
-    }
+    origin: point;
 
     /**
      * scale  
      *   The zoom scale of the graph editor canvas.
      */
-    get scale() {
-        return this._scale;
-    }
-
-    set scale(value: number) {
-        let old = this._scale;
-        if (this._scale !== value) {
-            this._scale = value;
-            this.onPropertyChanged("scale", old);
-        }
-    }
+    scale: number;
 
     /**
      * addCreatingNodeListener  
@@ -338,23 +417,9 @@ export class DrawableGraph extends Drawable {
      *   Creates a drawable node.
      */
     createNode(): DrawableNode | null {
-        let d = new DrawableNode(this);
-        let p = new Proxy(d, {
-            ownKeys: (target) => {
-                return [
-                    "color",
-                    "label",
-                    "position",
-                    "shape",
-                    "borderColor",
-                    "borderStyle",
-                    "borderWidth"
-                ];
-            }
-        });
         return this.createItem(
             this._nodes,
-            p,
+            new DrawableNode(this),
             this._creatingNodeEmitter,
             this._createdNodeEmitter,
             "nodes"
@@ -391,28 +456,9 @@ export class DrawableGraph extends Drawable {
     ): DrawableEdge | null {
         if (like)
             this.deleteEdge(like);
-        let d = new DrawableEdge(this, src, dst, like);
-        let p = new Proxy(d, {
-            ownKeys: (target) => {
-                return [
-                    "color",
-                    "label",
-                    "sourceNode",
-                    "destinationNode",
-                    "showSourceArrow",
-                    "showDestinationArrow",
-                    "lineStyle",
-                    "lineWidth"
-                ];
-            }
-        });
-        (src as any)["_outgoingSet"].delete(d);
-        (src as any)["_outgoingSet"].add(p);
-        (dst as any)["_incomingSet"].delete(d);
-        (dst as any)["_incomingSet"].add(p);
         return this.createItem(
             this._edges,
-            p,
+            new DrawableEdge(this, src, dst, like),
             this._creatingEdgeEmitter,
             this._createdEdgeEmitter,
             "edges"

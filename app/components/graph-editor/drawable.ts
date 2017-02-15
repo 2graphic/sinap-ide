@@ -16,8 +16,17 @@ export class Drawable {
      * _propertyChangedEmitter  
      *   Event emitter for property changes.
      */
-    private _propertyChangedEmitter: PropertyChangedEventEmitter<any>
-    = new PropertyChangedEventEmitter<any>();
+    private _propertyChangedEmitter: PropertyChangedEventEmitter<any>;
+
+    constructor() {
+        Object.defineProperties(this, {
+            _propertyChangedEmitter: {
+                enumerable: false,
+                writable: false,
+                value: new PropertyChangedEventEmitter<any>()
+            }
+        });
+    }
 
     /**
      * addPropertyChangedListener  

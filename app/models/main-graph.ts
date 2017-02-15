@@ -235,20 +235,20 @@ export class MainGraph {
     }
 
     onCreatingNode(n: DrawableNodeEventArgs) {
-        console.log(Object.getOwnPropertyNames(n.drawable));
+
     }
     onCreatingEdge(e: DrawableEdgeEventArgs) {
-        console.log(Object.getOwnPropertyNames(e.drawable));
+
     }
 
     copyProperties<S extends CoreElement | Drawable, D extends CoreElement | Drawable>(src: S, dst: D) {
-        if(src instanceof CoreElement && dst instanceof Drawable) {
-            for(const key of Object.getOwnPropertyNames(dst)) {
+        if (src instanceof CoreElement && dst instanceof Drawable) {
+            for (const key in dst) {
                 (dst as any)[key] = drawableFromAny(src.data[key], this.bridges);
             }
         }
-        else if(src instanceof Drawable && dst instanceof CoreElement) {
-            for(const key of Object.getOwnPropertyNames(src)) {
+        else if (src instanceof Drawable && dst instanceof CoreElement) {
+            for (const key in src) {
                 dst.data[key] = coreFromAny((src as any)[key], this.bridges);
             }
         }

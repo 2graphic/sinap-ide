@@ -69,6 +69,168 @@ export class DrawableEdge extends DrawableElement {
     private _pts: point[];
 
     /**
+     * constructor  
+     */
+    constructor(
+        graph: DrawableGraph,
+        private readonly src: DrawableNode,
+        private readonly dst: DrawableNode,
+        like?: DrawableEdge
+    ) {
+        super(graph);
+        Object.defineProperties(this, {
+            src: {
+                enumerable: false,
+                writable: false
+            },
+            dst: {
+                enumerable: false,
+                writable: false
+            },
+            _srcArrow: {
+                enumerable: false,
+                writable: true,
+                value: (like ? like._srcArrow : EDGE_PROPERTIES.showSourceArrow)
+            },
+            _dstArrow: {
+                enumerable: false,
+                writable: true,
+                value: (like ? like._dstArrow : EDGE_PROPERTIES.showDestinationArrow)
+            },
+            _lineStyle: {
+                enumerable: false,
+                writable: true,
+                value: (like ? like._lineStyle : EDGE_PROPERTIES.lineStyle)
+            },
+            _lineWidth: {
+                enumerable: false,
+                writable: true,
+                value: (like ? like._lineWidth : EDGE_PROPERTIES.lineWidth)
+            },
+            _pts: {
+                enumerable: false,
+                writable: true,
+                value: [] as point[]
+            },
+            sourceNode: {
+                enumerable: true,
+                get: () => this.src
+            },
+            destinationNode: {
+                enumerable: true,
+                get: () => this.dst
+            },
+            sourcePoint: {
+                enumerable: false,
+                get: () => this._pts[0]
+            },
+            destinationPoint: {
+                enumerable: false,
+                get: () => this._pts[1]
+            },
+            showSourceArrow: {
+                enumerable: true,
+                get: () => this._srcArrow,
+                set: (value: boolean) => {
+                    let old = this._srcArrow;
+                    if (this._srcArrow !== value) {
+                        this._srcArrow = value;
+                        this.onPropertyChanged("showSourceArrow", old);
+                    }
+                }
+            },
+            showDestinationArrow: {
+                enumerable: true,
+                get: () => this._dstArrow,
+                set: (value: boolean) => {
+                    let old = this._dstArrow;
+                    if (this._dstArrow !== value) {
+                        this._dstArrow = value;
+                        this.onPropertyChanged("showDestinationArrow", old);
+                    }
+                }
+            },
+            lineStyle: {
+                enumerable: true,
+                get: () => this._lineStyle,
+                set: (value: LineStyles) => {
+                    let old = this._lineStyle;
+                    if (this._lineStyle !== value) {
+                        this._lineStyle = value;
+                        this.onPropertyChanged("lineStyle", old);
+                    }
+                }
+            },
+            lineWidth: {
+                enumerable: true,
+                get: () => this._lineWidth,
+                set: (value: number) => {
+                    let old = this._lineWidth;
+                    if (this._lineWidth !== value) {
+                        this._lineWidth = value;
+                        this.onPropertyChanged("lineWidth", old);
+                    }
+                }
+            }
+        });
+        Object.seal(this);
+        this.color = (like ? like._color : EDGE_PROPERTIES.color);
+        this.label = (like ? like.label : EDGE_PROPERTIES.label);
+        this.src.addEdge(this);
+        this.dst.addEdge(this);
+    }
+
+    /**
+     * sourceNode  
+     *   Gets the reference to the drawable source node of the edge.
+     */
+    readonly sourceNode: DrawableNode;
+
+    /**
+     * destinationNode  
+     *   Gets the reference to the drawable destination node of the edge.
+     */
+    readonly destinationNode: DrawableNode;
+
+    /**
+     * sourcePoint  
+     *   Gets the point of the edge along the boundary of its source node.
+     */
+    readonly sourcePoint: point;
+
+    /**
+     * destinationPoint  
+     *   Gets the point of the edge along the boundary of its destination node.
+     */
+    readonly destinationPoint: point;
+
+    /**
+     * showSourceArrow  
+     *   Gets or sets whether or not an arrow should be displayed towards the
+     *   source node.
+     */
+    showSourceArrow: boolean;
+
+    /**
+     * showDestinationArrow  
+     *   Gets or sets whether or not an arrow should be displayed towards the
+     *   destination node.
+     */
+    showDestinationArrow: boolean;
+
+    /**
+     * lineStyle  
+     *   Gets or sets the line style of the edge.
+     */
+    lineStyle: LineStyles;
+
+    /**
+     * lineWidth  
+     *   Gets or sets the width of the line of the edge.
+     */
+    lineWidth: number;
+
+    /**
      * points  
      *   Updates the points-of-interest related to the edge.
      */
@@ -79,135 +241,6 @@ export class DrawableEdge extends DrawableElement {
         }
         else
             this._pts = value;
-    }
-
-    /**
-     * sourceNode  
-     *   Gets the reference to the drawable source node of the edge.
-     */
-    get sourceNode() {
-        return this.src;
-    }
-
-    /**
-     * destinationNode  
-     *   Gets the reference to the drawable destination node of the edge.
-     */
-    get destinationNode() {
-        return this.dst;
-    }
-
-    /**
-     * sourcePoint  
-     *   Gets the point of the edge along the boundary of its source node.
-     */
-    get sourcePoint() {
-        return this._pts[0];
-    }
-
-    /**
-     * destinationPoint  
-     *   Gets the point of the edge along the boundary of its destination node.
-     */
-    get destinationPoint() {
-        return this._pts[1];
-    }
-
-    /**
-     * showSourceArrow  
-     *   Gets or sets whether or not an arrow should be displayed towards the
-     *   source node.
-     */
-    get showSourceArrow() {
-        return this._srcArrow;
-    }
-
-    set showSourceArrow(value: boolean) {
-        let old = this._srcArrow;
-        if (this._srcArrow !== value) {
-            this._srcArrow = value;
-            this.onPropertyChanged("showSourceArrow", old);
-        }
-    }
-
-    /**
-     * showDestinationArrow  
-     *   Gets or sets whether or not an arrow should be displayed towards the
-     *   destination node.
-     */
-    get showDestinationArrow() {
-        return this._dstArrow;
-    }
-
-    set showDestinationArrow(value: boolean) {
-        let old = this._dstArrow;
-        if (this._dstArrow !== value) {
-            this._dstArrow = value;
-            this.onPropertyChanged("showDestinationArrow", old);
-        }
-    }
-
-    /**
-     * lineStyle  
-     *   Gets or sets the line style of the edge.
-     */
-    get lineStyle() {
-        return this._lineStyle;
-    }
-
-    set lineStyle(value: LineStyles) {
-        let old = this._lineStyle;
-        if (this._lineStyle !== value) {
-            this._lineStyle = value;
-            this.onPropertyChanged("lineStyle", old);
-        }
-    }
-
-    /**
-     * lineWidth  
-     *   Gets or sets the width of the line of the edge.
-     */
-    get lineWidth() {
-        return this._lineWidth;
-    }
-
-    set lineWidth(value: number) {
-        let old = this._lineWidth;
-        if (this._lineWidth !== value) {
-            this._lineWidth = value;
-            this.onPropertyChanged("lineWidth", old);
-        }
-    }
-
-    /**
-     * constructor  
-     */
-    constructor(
-        graph: DrawableGraph,
-        private readonly src: DrawableNode,
-        private readonly dst: DrawableNode,
-        like?: DrawableEdge
-    ) {
-        super(graph);
-        if (like) {
-            this._color = like._color;
-            this._lineStyle = like._lineStyle;
-            this._lineWidth = like._lineWidth;
-            this._dstArrow = like._dstArrow;
-            this._srcArrow = like._srcArrow;
-            this.label = like.label;
-        }
-        else {
-            this._color = EDGE_PROPERTIES.color;
-            this._lineStyle = EDGE_PROPERTIES.lineStyle as LineStyles;
-            this._lineWidth = EDGE_PROPERTIES.lineWidth;
-            this._dstArrow = EDGE_PROPERTIES.showDestinationArrow;
-            this._srcArrow = EDGE_PROPERTIES.showSourceArrow;
-            this.label = EDGE_PROPERTIES.label;
-        }
-        this._pts = [];
-        this.src.addEdge(this);
-        this.dst.addEdge(this);
     }
 
     /**

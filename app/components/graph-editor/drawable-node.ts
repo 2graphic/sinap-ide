@@ -104,163 +104,225 @@ export class DrawableNode extends DrawableElement {
     private _apt: point;
 
     /**
+     * constructor
+     */
+    constructor(graph: DrawableGraph) {
+        super(graph);
+        Object.defineProperties(this, {
+            _position: {
+                enumerable: false,
+                writable: true,
+                value: {
+                    x: NODE_PROPERTIES.position.x,
+                    y: NODE_PROPERTIES.position.y
+                }
+            },
+            _shape: {
+                enumerable: false,
+                writable: true,
+                value: NODE_PROPERTIES.shape as Shapes
+            },
+            _borderColor: {
+                enumerable: false,
+                writable: true,
+                value: NODE_PROPERTIES.borderColor
+            },
+            _borderStyle: {
+                enumerable: false,
+                writable: true,
+                value: NODE_PROPERTIES.borderStyle as LineStyles
+            },
+            _borderWidth: {
+                enumerable: false,
+                writable: true,
+                value: NODE_PROPERTIES.borderWidth
+            },
+            _size: {
+                enumerable: false,
+                writable: true,
+                value: { h: 0, w: 0 }
+            },
+            _innerBound: {
+                enumerable: false,
+                writable: true,
+                value: { h: 0, w: 0 }
+            },
+            _outerBound: {
+                enumerable: false,
+                writable: true,
+                value: { h: 0, w: 0 }
+            },
+            _incomingSet: {
+                enumerable: false,
+                writable: false,
+                value: new Set<DrawableEdge>()
+            },
+            _outgoingSet: {
+                enumerable: false,
+                writable: false,
+                value: new Set<DrawableEdge>()
+            },
+            _apt: {
+                enumerable: false,
+                writable: true,
+                value: this._position
+            },
+            position: {
+                enumerable: true,
+                get: () => this._position,
+                set: (value: point) => {
+                    let old = this.position;
+                    if (this._position.x !== value.x || this._position.y !== value.y) {
+                        this._position.x = value.x;
+                        this._position.y = value.y;
+                        this.onPropertyChanged("position", old);
+                    }
+                }
+            },
+            shape: {
+                enumerable: true,
+                get: () => this._shape,
+                set: (value: Shapes) => {
+                    let old = this._shape;
+                    if (this._shape !== value) {
+                        this._shape = value;
+                        this.onPropertyChanged("shape", old);
+                    }
+                }
+            },
+            borderColor: {
+                enumerable: true,
+                get: () => this._borderColor,
+                set: (value: string) => {
+                    let old = this._borderColor;
+                    if (this._borderColor !== value) {
+                        this._borderColor = value;
+                        this.onPropertyChanged("borderColor", old);
+                    }
+                }
+            },
+            borderStyle: {
+                enumerable: true,
+                get: () => this._borderStyle,
+                set: (value: LineStyles) => {
+                    let old = this._borderStyle;
+                    if (this._borderStyle !== value) {
+                        this._borderStyle = value;
+                        this.onPropertyChanged("borderStyle", old);
+                    }
+                }
+            },
+            borderWidth: {
+                enumerable: true,
+                get: () => this._borderWidth,
+                set: (value: number) => {
+                    let old = this._borderWidth;
+                    if (this._borderWidth !== value) {
+                        this._borderWidth = value;
+                        this.onPropertyChanged("borderWidth", old);
+                    }
+                }
+            },
+            isHidden: {
+                enumerable: false,
+                get: () => this instanceof HiddenNode
+            },
+            incomingEdges: {
+                enumerable: false,
+                get: () => new Set<DrawableEdge>([...this._incomingSet])
+            },
+            outgoingEdges: {
+                enumerable: false,
+                get: () => new Set<DrawableEdge>([...this._outgoingSet])
+            },
+            edges: {
+                enumerable: false,
+                get: () => new Set<DrawableEdge>([
+                    ...this._incomingSet,
+                    ...this._outgoingSet
+                ])
+            },
+            anchorPoint: {
+                enumerable: false,
+                get: () => this._apt,
+                set: (value: point) => this._apt = value
+            },
+            isAnchorVisible: {
+                enumerable: false,
+                get: () => this._apt !== this._position
+            }
+        });
+        Object.seal(this);
+        this.color = NODE_PROPERTIES.color;
+        this.label = NODE_PROPERTIES.label;
+        this.clearAnchor();
+    }
+
+    /**
      * position  
      *   Gets or sets the position of the node.
      */
-    get position() {
-        return this._position;
-    }
-
-    set position(value: point) {
-        let old = this.position;
-        if (this._position.x !== value.x || this._position.y !== value.y) {
-            this._position.x = value.x;
-            this._position.y = value.y;
-            this.onPropertyChanged("position", old);
-        }
-    }
+    position: point;
 
     /**
      * shape  
      *   Gets or sets the shape of the node.
      */
-    get shape() {
-        return this._shape;
-    }
-
-    set shape(value: Shapes) {
-        let old = this._shape;
-        if (this._shape !== value) {
-            this._shape = value;
-            this.onPropertyChanged("shape", old);
-        }
-    }
+    shape: Shapes;
 
     /**
      * borderColor  
      *   Gets or sets the color of the node border.
      */
-    get borderColor() {
-        return this._borderColor;
-    }
-
-    set borderColor(value: string) {
-        let old = this._borderColor;
-        if (this._borderColor !== value) {
-            this._borderColor = value;
-            this.onPropertyChanged("borderColor", old);
-        }
-    }
+    borderColor: string;
 
     /**
      * borderStyle  
      *   Gets or sets the line style of the border.
      */
-    get borderStyle() {
-        return this._borderStyle;
-    }
-
-    set borderStyle(value: LineStyles) {
-        let old = this._borderStyle;
-        if (this._borderStyle !== value) {
-            this._borderStyle = value;
-            this.onPropertyChanged("borderStyle", old);
-        }
-    }
+    borderStyle: LineStyles;
 
     /**
      * borderWidth  
      *   Gets or sets the line width of the border.
      */
-    get borderWidth() {
-        return this._borderWidth;
-    }
-
-    set borderWidth(value: number) {
-        let old = this._borderWidth;
-        if (this._borderWidth !== value) {
-            this._borderWidth = value;
-            this.onPropertyChanged("borderWidth", old);
-        }
-    }
+    borderWidth: number;
 
     /**
      * isHidden  
      *   Gets whether or not this node is hidden.
      */
-    get isHidden() {
-        return this instanceof HiddenNode;
-    }
+    readonly isHidden: boolean;
 
     /**
      * incomingEdges  
-     *   Gets the set of incoming edges.
+     *   Gets a set of the incoming edges.
      */
-    get incomingEdges() {
-        return new Set<DrawableEdge>([...this._incomingSet]);
-    }
+    readonly incomingEdges: Set<DrawableEdge>;
 
     /**
      * outgoingEdges  
-     *   Gets the set of outgoing edges.
+     *   Gets a set of the outgoing edges.
      */
-    get outgoingEdges() {
-        return new Set<DrawableEdge>([...this._outgoingSet]);
-    }
+    readonly outgoingEdges: Set<DrawableEdge>;
 
     /**
      * edges  
-     *   Gets the set of incoming and outgoing edges.
+     *   Gets a set of the incoming and outgoing edges.
      */
-    get edges() {
-        return new Set<DrawableEdge>([
-            ...this._incomingSet,
-            ...this._outgoingSet
-        ]);
-    }
+    readonly edges: Set<DrawableEdge>;
 
     /**
      * anchorPoint  
      *   Gets or sets the visible anchor point.
      */
-    get anchorPoint() {
-        return this._apt;
-    }
-
-    set anchorPoint(value: point) {
-        this._apt = value;
-    }
+    anchorPoint: point;
 
     /**
      * isAnchorVisible  
      *   Gets whether or not the anchor point should be visible.
      */
-    get isAnchorVisible() {
-        return this._apt !== this._position;
-    }
-
-    /**
-     * constructor
-     */
-    constructor(graph: DrawableGraph) {
-        super(graph);
-        this._position = {
-            x: NODE_PROPERTIES.position.x,
-            y: NODE_PROPERTIES.position.y
-        };
-        this._shape = NODE_PROPERTIES.shape as Shapes;
-        this._color = NODE_PROPERTIES.color;
-        this.label = NODE_PROPERTIES.label;
-        this._borderColor = NODE_PROPERTIES.borderColor;
-        this._borderStyle = NODE_PROPERTIES.borderStyle as LineStyles;
-        this._borderWidth = NODE_PROPERTIES.borderWidth;
-        this._size = { h: 0, w: 0 };
-        this._innerBound = { h: 0, w: 0 };
-        this._outerBound = { h: 0, w: 0 };
-        this._incomingSet = new Set<DrawableEdge>();
-        this._outgoingSet = new Set<DrawableEdge>();
-        this._apt = this._position;
-    }
+    readonly isAnchorVisible: boolean;
 
     /**
      * clearAnchor  

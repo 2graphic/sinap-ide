@@ -34,29 +34,25 @@ export abstract class DrawableElement extends Drawable {
      * _state  
      *   The drawable state.
      */
-    protected _state: DrawableStates
-    = DrawableStates.Default;
+    protected _state: DrawableStates;
 
     /**
      * _selected  
      *   Whether or not the drawable is selected.
      */
-    protected _selected: boolean
-    = false;
+    protected _selected: boolean;
 
     /**
      * _textSize  
      *   The dimensions of the label text.
      */
-    protected _textSize: size
-    = { h: 0, w: 0 };
+    protected _textSize: size;
 
     /**
      * _lines  
      *   The lines of the label text.
      */
-    protected _lines: string[]
-    = [];
+    protected _lines: string[];
 
     /**
      * _color  
@@ -68,110 +64,161 @@ export abstract class DrawableElement extends Drawable {
      * _draw  
      *   The draw delegate for drawing the element.
      */
-    protected _draw: () => void
-    = () => { };
+    protected _draw: () => void;
 
     /**
      * _drawSelectionShadow  
      *   The draw delegate for drawing the selection shadow.
      */
-    protected _drawSelectionShadow: () => void
-    = () => { };
+    protected _drawSelectionShadow: () => void;
+
+    /**
+     * constructor
+     */
+    constructor(protected readonly graph: DrawableGraph) {
+        super();
+        Object.defineProperties(this, {
+            _state: {
+                enumerable: false,
+                writable: true,
+                value: DrawableStates.Default
+            },
+            _selected: {
+                enumerable: false,
+                writable: true,
+                value: false
+            },
+            _textSize: {
+                enumerable: false,
+                writable: true,
+                value: { h: 0, w: 0 }
+            },
+            _lines: {
+                enumerable: false,
+                writable: true,
+                value: []
+            },
+            _color: {
+                enumerable: false,
+                writable: true
+            },
+            _draw: {
+                enumerable: false,
+                writable: true,
+                value: () => { }
+            },
+            _drawSelectionShadow: {
+                enumerable: false,
+                writable: true,
+                value: () => { }
+            },
+            graph: {
+                enumerable: false,
+                writable: false
+            },
+            color: {
+                enumerable: true,
+                get: () => this._color,
+                set: (value: string) => {
+                    let old = this._color;
+                    if (this._color !== value) {
+                        this._color = value;
+                        this.onPropertyChanged("color", old);
+                    }
+                }
+            },
+            label: {
+                enumerable: true,
+                get: () => this._lines.join("\n"),
+                set: (value: string) => {
+                    let old = this.label;
+                    if (value !== this.label) {
+                        if (value.trim() !== "")
+                            this._lines = value.split("\n");
+                        else
+                            this._lines = [];
+                        this.onPropertyChanged("label", old);
+                    }
+                }
+            },
+            state: {
+                enumerable: false,
+                get: () => this._state,
+                set: (value: DrawableStates) => {
+                    let old = this._state;
+                    if (this._state !== value) {
+                        this._state = value;
+                        this.onPropertyChanged("state", old);
+                    }
+                }
+            },
+            isHovered: {
+                enumerable: false,
+                get: () => this._state === DrawableStates.Hovered,
+                set: (value: boolean) => this.state = (value ? DrawableStates.Hovered : DrawableStates.Default)
+            },
+            isDragging: {
+                enumerable: false,
+                get: () => this._state === DrawableStates.Dragging,
+                set: (value: boolean) => this.state = (value ? DrawableStates.Dragging : DrawableStates.Default)
+            },
+            isSelected: {
+                enumerable: false,
+                get: () => this._selected,
+                set: (value: boolean) => {
+                    let old = this._selected;
+                    if (this._selected !== value) {
+                        if (value)
+                            this.graph.selectItems(this);
+                        else
+                            this.graph.deselectItems(this);
+                        this._selected = value;
+                        this.onPropertyChanged("isSelected", old);
+                    }
+                }
+            }
+        });
+    }
 
     /**
      * color  
      *   Gets or sets the main color of the element.
+     * 
+     * <p>
+     *   Can be any valid CSS color string.
+     * </p>
      */
-    get color() {
-        return this._color;
-    }
-
-    set color(value: string) {
-        let old = this._color;
-        if (this._color !== value) {
-            this._color = value;
-            this.onPropertyChanged("color", old);
-        }
-    }
+    color: string;
 
     /**
      * label  
      *   Gets or sets the label of the element.
      */
-    get label() {
-        return this._lines.join("\n");
-    }
-
-    set label(value: string) {
-        let old = this.label;
-        if (value !== this.label) {
-            if (value.trim() !== "")
-                this._lines = value.split("\n");
-            else
-                this._lines = [];
-            this.onPropertyChanged("label", old);
-        }
-    }
+    label: string;
 
     /**
      * state  
      *   Gets or sets the drawable state.
      */
-    get state() {
-        return this._state;
-    }
-
-    set state(value: DrawableStates) {
-        let old = this._state;
-        if (this._state !== value) {
-            this._state = value;
-            this.onPropertyChanged("state", old);
-        }
-    }
+    state: DrawableStates;
 
     /**
      * isHovered  
      *   Gets or sets the hovered state of the element.
      */
-    get isHovered() {
-        return this._state === DrawableStates.Hovered;
-    }
-
-    set isHovered(value: boolean) {
-        this.state = (value ? DrawableStates.Hovered : DrawableStates.Default);
-    }
+    isHovered: boolean;
 
     /**
      * isDragging  
      *   Gets or sets the dragging state of the element.
      */
-    get isDragging() {
-        return this._state === DrawableStates.Dragging;
-    }
-
-    set isDragging(value: boolean) {
-        this.state = (value ? DrawableStates.Dragging : DrawableStates.Default);
-    }
+    isDragging: boolean;
 
     /**
      * isSelected  
      *   Gets or sets the selected state of the element.
      */
-    get isSelected() {
-        return this._selected;
-    }
-
-    set isSelected(value: boolean) {
-        let old = this._selected;
-        if (this._selected !== value) {
-            if (value)
-                this.graph.selectItems(this);
-            else
-                this.graph.deselectItems(this);
-            this._selected = value;
-            this.onPropertyChanged("isSelected", old);
-        }
-    }
+    isSelected: boolean;
 
     /**
      * draw  
@@ -187,13 +234,6 @@ export abstract class DrawableElement extends Drawable {
      */
     get drawSelectionShadow() {
         return this._drawSelectionShadow;
-    }
-
-    /**
-     * constructor
-     */
-    constructor(protected readonly graph: DrawableGraph) {
-        super();
     }
 
     /**
