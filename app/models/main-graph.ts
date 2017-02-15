@@ -240,22 +240,6 @@ export class MainGraph {
 
     }
 
-    copyCoreToDrawable(core: CoreElement, drawable: Drawable) {
-        // TODO: use Object.getOwnPropertyNames(drawable)
-        let keys;
-        if (drawable instanceof DrawableEdge) {
-            keys = ['source', 'destination'];
-        } else if (drawable instanceof DrawableNode) {
-            keys = ['label'];
-        } else {
-            keys = [] as string[];
-        }
-
-        for (const key of keys) {
-            (drawable as any)[key] = drawableFromAny(core.data[key], this.bridges);
-        }
-    }
-
     setSelectedElements(se: Iterable<Drawable | BridgingProxy | CoreElement> | undefined) {
         if (se === undefined) {
             se = [];
@@ -288,18 +272,14 @@ export class MainGraph {
         return val;
     }
 
-    copyDrawableToCore(drawable: Drawable, core: CoreElement) {
-        // TODO: use Object.getOwnPropertyNames(drawable)
-        let keys;
-        if (drawable instanceof DrawableEdge) {
-            keys = ['source', 'destination'];
-        } else if (drawable instanceof DrawableNode) {
-            keys = ['label'];
-        } else {
-            keys = [] as string[];
+    copyCoreToDrawable(core: CoreElement, drawable: Drawable) {
+        for (const key of Object.getOwnPropertyNames(drawable)) {
+            (drawable as any)[key] = drawableFromAny(core.data[key], this.bridges);
         }
+    }
 
-        for (const key of keys) {
+    copyDrawableToCore(drawable: Drawable, core: CoreElement) {
+        for (const key of Object.getOwnPropertyNames(drawable)) {
             core.data[key] = coreFromAny((drawable as any)[key], this.bridges);
         }
     }
