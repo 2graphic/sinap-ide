@@ -220,6 +220,7 @@ export class DrawableEdge extends DrawableElement {
             "error GraphEditorEdge.updatePoints: drawable edge must " +
             "have either a source or a destination"
         );
+        this.updateTextSize(g);
         // TODO:
         // Something about anchor pts for custom node images.
         if (this.src === this.dst) {
@@ -258,7 +259,7 @@ export class DrawableEdge extends DrawableElement {
                 drawLabelThunk = () => {
                     g.lineWidth = this._lineWidth;
                     g.fillStyle = SELECTION_COLOR;
-                    this.drawLabelRect(g);
+                    this.drawLabelRect(g, size);
                 };
             }
             this._drawSelectionShadow = () => {
@@ -694,9 +695,8 @@ export class DrawableEdge extends DrawableElement {
      * drawLabelRect  
      *   Draws the background rectangle for the edge label.
      */
-    private drawLabelRect(g: GraphEditorCanvas) {
+    private drawLabelRect(g: GraphEditorCanvas, sz: size) {
         let pt = this._pts[2];
-        let sz = this._textSize;
         g.traceRect(makeRect(
             { x: pt.x - sz.w / 2 - 6, y: pt.y - sz.h / 2 },
             { x: pt.x + sz.w / 2 + 6, y: pt.y + sz.h / 2 }
@@ -712,7 +712,7 @@ export class DrawableEdge extends DrawableElement {
      */
     private drawLabel(g: GraphEditorCanvas): void {
         g.fillStyle = "#fff";
-        this.drawLabelRect(g);
+        this.drawLabelRect(g, this._textSize);
         g.drawText(this._pts[2], this._textSize.h, this._lines, "#000");
     }
 
