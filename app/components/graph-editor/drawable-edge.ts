@@ -473,17 +473,14 @@ export class DrawableEdge extends DrawableElement {
         let v = { x: dpt.x - spt.x, y: dpt.y - spt.y };
         let d = MathEx.mag(v);
         let u = { x: v.x / d, y: v.y / d };
-        if (!this.src.isHidden) {
-            let shift = this.src.getBoundaryPt(u);
-            pts.push({ x: spt.x + shift.x, y: spt.y + shift.y });
-        }
+        if (!this.src.isHidden)
+            pts.push(this.src.getBoundaryPt(u));
         else
             pts.push(spt);
         if (!this.dst.isHidden) {
             u.x *= -1;
             u.y *= -1;
-            let shift = this.dst.getBoundaryPt(u);
-            pts.push({ x: dpt.x + shift.x, y: dpt.y + shift.y });
+            pts.push(this.dst.getBoundaryPt(u));
         }
         else
             pts.push(dpt);
@@ -516,13 +513,11 @@ export class DrawableEdge extends DrawableElement {
             x: v.x / 2 + v.y / d * GRID_SPACING,
             y: v.y / 2 - v.x / d * GRID_SPACING
         };
-        // Shift the source endpoint.
+        // Get the source endpoint.
         d = MathEx.mag(pt1);
-        let shiftPt: point = this.src.getBoundaryPt({ x: pt1.x / d, y: pt1.y / d });
-        let pt0: point = { x: spt.x + shiftPt.x, y: spt.y + shiftPt.y };
-        // Shift the destination endpoint.
-        shiftPt = this.dst.getBoundaryPt({ x: (pt1.x - v.x) / d, y: (pt1.y - v.y) / d });
-        let pt2: point = { x: spt.x + v.x + shiftPt.x, y: spt.y + v.y + shiftPt.y };
+        let pt0 = this.src.getBoundaryPt({ x: pt1.x / d, y: pt1.y / d });
+        // Get the destination endpoint.
+        let pt2 = this.dst.getBoundaryPt({ x: (pt1.x - v.x) / d, y: (pt1.y - v.y) / d });
         // Translate the controlpoint by the position of the source node.
         pt1.x += spt.x;
         pt1.y += spt.y;
@@ -558,9 +553,9 @@ export class DrawableEdge extends DrawableElement {
         };
         let pts: point[] = [];
         // src
-        pts.push({ x: spt.x + pt0.x, y: spt.y + pt0.y });
+        pts.push(pt0);
         // dst
-        pts.push({ x: spt.x + pt1.x, y: spt.y + pt1.y });
+        pts.push(pt1);
         // mid
         pts.push({
             x: (pts[0].x + 3 * (pt2.x + pt3.x) + pts[1].x) / 8,
