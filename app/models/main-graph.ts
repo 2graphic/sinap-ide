@@ -16,7 +16,7 @@ import {
     PropertyChangedEventArgs
 } from "../components/graph-editor/graph-editor.component";
 
-import { CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType } from "sinap-core";
+import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType } from "sinap-core";
 import { DoubleMap } from "./double-map";
 
 /**
@@ -103,7 +103,7 @@ export class MainGraph {
 
     public bridges = new DoubleMap<Drawable, CoreElement, BridgingProxy>();
 
-    constructor(coresIter: Iterable<CoreElement>, private plugin: Plugin) {
+    constructor(public core: CoreModel, private plugin: Plugin) {
         this.activeEdgeType = this.plugin.elementTypes(CoreElementKind.Edge).next().value;
         this.activeNodeType = this.plugin.elementTypes(CoreElementKind.Node).next().value;
 
@@ -135,7 +135,7 @@ export class MainGraph {
         const coreEdges: CoreElement[] = [];
 
         // each core element we iterate over needs to have a drawable equivilant made for it
-        for (const element of coresIter) {
+        for (const element of this.core.elements) {
             // placeholder for the new drawable (if we make one)
             let drawable: Drawable | null = null;
             switch (element.kind) {
@@ -211,7 +211,7 @@ export class MainGraph {
                 type = this.activeEdgeType;
             }
 
-            core = this.plugin.makeElement(kind, type);
+            core = this.core.addElement(kind, type);
             this.copyProperties(drawable, core);
             // this.copyDrawableToCore(drawable, core);
         }

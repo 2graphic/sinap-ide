@@ -20,7 +20,7 @@ import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
 import { TestPanelComponent } from "../test-panel/test-panel.component"
 import { StatusBarComponent } from "../status-bar/status-bar.component"
 import { MainGraph } from "../../models/main-graph";
-import { CoreElement, CoreElementKind } from "sinap-core";
+import { CoreElement, CoreModel, CoreElementKind } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component"
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
 import { FileService, LocalFileService, File } from "../../services/files.service";
@@ -91,12 +91,12 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         }
     };
 
-    newFile(f?: String, g?: Iterable<CoreElement>) {
+    newFile(f?: String, g?: CoreModel) {
         const kind = this.toolsPanel.activeGraphType == "Machine Learning" ?
             MagicConstants.MACHINE_LEARNING_PLUGIN_KIND : MagicConstants.DFA_PLUGIN_KIND;
 
         const plugin = this.pluginService.getPlugin(kind);
-        g = g ? g : [];
+        g = g ? g : new CoreModel(plugin);
         let filename = f ? f : "Untitled";
         let tabNumber = this.tabBar.newTab(filename);
         this.tabs.set(tabNumber, new TabContext(new MainGraph(g, plugin), filename));
@@ -130,7 +130,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             // TODO: add back
             // this.toolsPanel.manager = this.context.graph.pluginManager;
 
-            // TODO: GraphEditor needs a way to set selected elements
             this.onContextChanged();
         } else {
             // No tabs
@@ -205,14 +204,12 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                     return;
                 }
 
-                // TODO:
-                // Fix conflict.
-                // const pojo = this.serializerService.serialize(this.context.graph.core);
+                const pojo = this.context.graph.core.serialize();
 
-                // file.writeData(JSON.stringify(pojo, null, 4))
-                //     .catch((err) => {
-                //         alert(`Error occurred while saving to file ${file.name}: ${err}.`);
-                //     });
+                file.writeData(JSON.stringify(pojo, null, 4))
+                    .catch((err) => {
+                        alert(`Error occurred while saving to file ${file.name}: ${err}.`);
+                    });
             });
     }
 
