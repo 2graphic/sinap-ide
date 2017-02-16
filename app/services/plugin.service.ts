@@ -73,7 +73,6 @@ export class PluginService {
                 results: undefined,
                 graph: undefined,
             },
-            console: console
         });
 
         return script.runInContext(context).then((_) => context);

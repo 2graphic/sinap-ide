@@ -32,7 +32,6 @@ export class State {
 export function start(input: DFAGraph, data: string): State | boolean {
     for (const node of input.nodes){
         if (node.isStartState){
-            console.log("a", data);
             return new State(node, data, "starting");
         }
     }
@@ -40,11 +39,9 @@ export function start(input: DFAGraph, data: string): State | boolean {
 }
 
 export function step(current: State): State | boolean {
-    console.log("b");
     if (current.inputLeft.length === 0) {
         return current.active.isAcceptState;
     }
-    console.log("c");
     const destinations = current.active.children
         .filter(edge => edge.label === current.inputLeft[0])
         .map(edge => edge.destination);
