@@ -99,6 +99,15 @@ function coreFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingP
     return a;
 }
 
+export type UndoableEvent = UndoableChange | UndoableAdd | UndoableDelete;
+
+export class UndoableAdd {
+    constructor(public bridge: BridgingProxy) { }
+}
+
+export class UndoableDelete {
+    constructor(public bridge: BridgingProxy) { }
+}
 
 // TODO: changes can also be adds or deletes
 export class UndoableChange {
@@ -112,7 +121,7 @@ export class MainGraph {
     drawable: DrawableGraph;
     activeNodeType: string;
     activeEdgeType: string;
-    public changed = new EventEmitter<UndoableChange>();
+    public changed = new EventEmitter<UndoableEvent>();
 
     private selectedElements: Set<BridgingProxy>;
 
@@ -197,10 +206,10 @@ export class MainGraph {
         }
 
         // finally set up all the listeners after we copy all the elements
-        this.drawable.addCreatingNodeListener((n: DrawableNodeEventArgs) => this.onCreatingNode(n));
-        this.drawable.addCreatedNodeListener((n: DrawableNodeEventArgs) => this.onCreatedNode(n));
-        this.drawable.addCreatingEdgeListener((e: DrawableEdgeEventArgs) => this.onCreatingEdge(e));
-        this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs) => this.onCreatedEdge(e));
+        this.drawable.addCreatedNodeListener((n: DrawableNodeEventArgs) => this.addDrawable(n.drawable, undefined));
+        this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs) => this.addDrawable(e.drawable, undefined));
+        this.drawable.addDeletedNodeListener((n: DrawableNodeEventArgs) => this.removeDrawable(n.drawable));
+        this.drawable.addDeletedEdgeListener((e: DrawableEdgeEventArgs) => this.removeDrawable(e.drawable));
         this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
         this.drawable.addSelectionChangedListener((a: PropertyChangedEventArgs<Iterable<DrawableElement>>) => {
             this.setSelectedElements(a.curr);
@@ -209,7 +218,7 @@ export class MainGraph {
         this.setSelectedElements(undefined);
     }
 
-    addDrawable(drawable: Drawable, core?: CoreElement) {
+    private addDrawable(drawable: Drawable, core?: CoreElement) {
         // if a core element to pair with this 
         // drawable doesn't exist, make one
         if (!core) {
@@ -230,16 +239,31 @@ export class MainGraph {
             this.copyProperties(drawable, core);
             // this.copyDrawableToCore(drawable, core);
         }
-        this.bridges.set(drawable, core, new BridgingProxy(core, drawable, this));
+        const bridge = new BridgingProxy(core, drawable, this);
+        this.bridges.set(drawable, core, bridge);
+        this.changed.emit(new UndoableAdd(bridge));
     }
 
-    onCreatedNode(n: DrawableNodeEventArgs) {
-        this.addDrawable(n.drawable, undefined);
+    private removeDrawable(drawable: Drawable) {
+        const bridge = this.toBridges(drawable);
+        this.core.removeElement(bridge.core);
+        this.bridges.delete(bridge.drawable, bridge.core);
+        this.changed.emit(new UndoableDelete(bridge));
     }
-    onCreatedEdge(e: DrawableEdgeEventArgs) {
-        this.addDrawable(e.drawable, undefined);
+
+    public applyUndoableEvent(event: UndoableEvent) {
+        if (event instanceof UndoableAdd) {
+            this.removeDrawable(event.bridge.drawable);
+        } else if (event instanceof UndoableDelete) {
+            this.addDrawable(event.bridge.drawable, event.bridge.core);
+        } else if (event instanceof UndoableChange) {
+            (event.target as any)[event.key] = event.oldValue;
+        } else {
+            throw "Unrecognized event";
+        }
     }
-    onPropertyChanged(a: PropertyChangedEventArgs<any>) {
+
+    private onPropertyChanged(a: PropertyChangedEventArgs<any>) {
         const bridge = this.bridges.getA(a.source)
         if (bridge !== undefined) {
             // TODO: maybe do an interface check to see if this matches
@@ -252,13 +276,6 @@ export class MainGraph {
         } else {
             throw "Nodes/edges list out of sync";
         }
-    }
-
-    onCreatingNode(n: DrawableNodeEventArgs) {
-
-    }
-    onCreatingEdge(e: DrawableEdgeEventArgs) {
-
     }
 
     copyProperties<S extends CoreElement | Drawable, D extends CoreElement | Drawable>(src: S, dst: D) {

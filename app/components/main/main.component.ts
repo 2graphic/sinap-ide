@@ -97,9 +97,18 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
         const plugin = this.pluginService.getPlugin(kind);
         g = g ? g : new CoreModel(plugin);
+
         let filename = f ? f : "Untitled";
         let tabNumber = this.tabBar.newTab(filename);
-        this.tabs.set(tabNumber, new TabContext(new MainGraph(g, plugin), filename));
+
+        const graph = new MainGraph(g, plugin);
+        const events: any = [];
+        graph.changed.asObservable().subscribe((a)=>{
+            events.push(a);
+            console.log(a);
+            console.log(graph);
+        });
+        this.tabs.set(tabNumber, new TabContext(graph, filename));
 
         this.selectedTab(tabNumber);
     }

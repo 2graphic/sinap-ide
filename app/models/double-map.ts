@@ -41,4 +41,9 @@ export class DoubleMap<A, B, C> {
     entries() {
         return this.first.values();
     }
+
+    delete(a: A, b: B) {
+        this.first.delete(a);
+        this.second.delete(b);
+    }
 }
