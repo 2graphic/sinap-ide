@@ -4,6 +4,7 @@
 //
 //
 
+import { EventEmitter } from "@angular/core";
 import {
     DrawableElement,
     Drawable,
@@ -32,7 +33,7 @@ import { DoubleMap } from "./double-map";
 export class BridgingProxy {
     proxy: { [a: string]: any };
 
-    constructor(public core: CoreElement, public drawable: Drawable, private bridges: DoubleMap<Drawable, CoreElement, BridgingProxy>) {
+    constructor(public core: CoreElement, public drawable: Drawable, private graph: MainGraph) {
         this.proxy = new Proxy(core.data, {
             set: (data, k, v) => this.set(k, v),
             get: (data, k) => this.get(k),
@@ -51,14 +52,17 @@ export class BridgingProxy {
             drawableValue = v.drawable;
             coreValue = v.core;
         } else if (v instanceof CoreElement) {
-            drawableValue = drawableFromAny(v, this.bridges);
+            drawableValue = drawableFromAny(v, this.graph.bridges);
         } else if (v instanceof Drawable) {
-            coreValue = coreFromAny(v, this.bridges);
+            coreValue = coreFromAny(v, this.graph.bridges);
         }
 
         if (updateDrawable && Object.keys(this.drawable).indexOf(k.toString()) !== -1) {
             (this.drawable as any)[k] = drawableValue;
         }
+
+        this.graph.changed.emit(new UndoableChange(this, k, this.core.data[k], coreValue));
+
         this.core.data[k] = coreValue;
         return true;
     }
@@ -66,7 +70,7 @@ export class BridgingProxy {
     get(k: PropertyKey) {
         const coreValue = this.core.data[k];
         // if this is something that should be proxied
-        const proxiedValue = this.bridges.getB(coreValue);
+        const proxiedValue = this.graph.bridges.getB(coreValue);
         // return the proxy. That is, any changes made to the returned 
         // object should propogate to both backers
         return proxiedValue !== undefined ? proxiedValue : coreValue;
@@ -95,10 +99,21 @@ function coreFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingP
     return a;
 }
 
+
+// TODO: changes can also be adds or deletes
+export class UndoableChange {
+    constructor(public target: BridgingProxy,
+        public key: PropertyKey,
+        public oldValue: any,
+        public newValue: any) { }
+}
+
 export class MainGraph {
     drawable: DrawableGraph;
     activeNodeType: string;
     activeEdgeType: string;
+    public changed = new EventEmitter<UndoableChange>();
+
     private selectedElements: Set<BridgingProxy>;
 
     public bridges = new DoubleMap<Drawable, CoreElement, BridgingProxy>();
@@ -215,7 +230,7 @@ export class MainGraph {
             this.copyProperties(drawable, core);
             // this.copyDrawableToCore(drawable, core);
         }
-        this.bridges.set(drawable, core, new BridgingProxy(core, drawable, this.bridges));
+        this.bridges.set(drawable, core, new BridgingProxy(core, drawable, this));
     }
 
     onCreatedNode(n: DrawableNodeEventArgs) {
