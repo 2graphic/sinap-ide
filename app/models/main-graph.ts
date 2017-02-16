@@ -56,7 +56,7 @@ export class BridgingProxy {
             coreValue = coreFromAny(v, this.bridges);
         }
 
-        if (updateDrawable) {
+        if (updateDrawable && Object.keys(this.drawable).indexOf(k.toString()) !== -1) {
             (this.drawable as any)[k] = drawableValue;
         }
         this.core.data[k] = coreValue;
@@ -103,7 +103,7 @@ export class MainGraph {
 
     public bridges = new DoubleMap<Drawable, CoreElement, BridgingProxy>();
 
-    constructor(public core: CoreModel, private plugin: Plugin) {
+    constructor(public core: CoreModel, public plugin: Plugin) {
         this.activeEdgeType = this.plugin.elementTypes(CoreElementKind.Edge).next().value;
         this.activeNodeType = this.plugin.elementTypes(CoreElementKind.Node).next().value;
 
@@ -231,7 +231,7 @@ export class MainGraph {
             // do we want the list of nodes/edges to show up in the properties panel? 
             // probably not
             // maybe this filtering should occur downstream? 
-            if (a.key in Object.keys(bridge.drawable)) {
+            if (Object.keys(bridge.drawable).indexOf(a.key) !== -1) {
                 bridge.set(a.key, a.curr, false);
             }
         } else {
@@ -249,12 +249,18 @@ export class MainGraph {
     copyProperties<S extends CoreElement | Drawable, D extends CoreElement | Drawable>(src: S, dst: D) {
         if (src instanceof CoreElement && dst instanceof Drawable) {
             for (const key in dst) {
-                (dst as any)[key] = drawableFromAny(src.data[key], this.bridges);
+                let keyD = key;
+                if (key === "sourceNode") { keyD = "source" }
+                if (key === "destinationNode") { keyD = "destination" }
+                (dst as any)[key] = drawableFromAny(src.data[keyD], this.bridges);
             }
         }
         else if (src instanceof Drawable && dst instanceof CoreElement) {
             for (const key in src) {
-                dst.data[key] = coreFromAny((src as any)[key], this.bridges);
+                let keyD = key;
+                if (key === "sourceNode") { keyD = "source" }
+                if (key === "destinationNode") { keyD = "destination" }
+                dst.data[keyD] = coreFromAny((src as any)[key], this.bridges);
             }
         }
     }

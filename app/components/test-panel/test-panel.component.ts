@@ -4,7 +4,9 @@
 
 
 import { Component, Input, Output } from "@angular/core";
-import { Program } from "sinap-core";
+
+//TODO: remove
+type Program = any;
 
 @Component({
     selector: "sinap-test-panel",

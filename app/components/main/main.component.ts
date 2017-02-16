@@ -221,7 +221,9 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     run(input: string): Promise<string> {
         if (this.context) {
-            return Promise.resolve("hi, sheyne is bad");
+            return this.pluginService.runProgram(this.context.graph.plugin, this.context.graph.core, input).then(a => {
+                return a.result;
+            });
         } else {
             throw new Error("No Graph to Run");
         }
