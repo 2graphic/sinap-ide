@@ -196,7 +196,10 @@ export class MainGraph {
         // now make the drawable edges
         for (const edge of coreEdges) {
             // nulls will get copied in by copyCoreToDrawable
-            const drawableEdge = this.drawable.createEdge(null as any, null as any);
+            const source = this.bridges.getB(edge.data['source'])!.drawable as DrawableNode;
+            const destination = this.bridges.getB(edge.data['destination'])!.drawable as DrawableNode;
+
+            const drawableEdge = this.drawable.createEdge(source, destination);
             if (drawableEdge === null) {
                 throw "edge creation canceled while loading from core";
             }
@@ -282,14 +285,16 @@ export class MainGraph {
         if (src instanceof CoreElement && dst instanceof Drawable) {
             for (const key in dst) {
                 let keyD = key;
-                if (key === "sourceNode") { keyD = "source" }
-                if (key === "destinationNode") { keyD = "destination" }
+                // TODO: deal with this better
+                if (key === "sourceNode") { continue; }
+                if (key === "destinationNode") { continue; }
                 (dst as any)[key] = drawableFromAny(src.data[keyD], this.bridges);
             }
         }
         else if (src instanceof Drawable && dst instanceof CoreElement) {
             for (const key in src) {
                 let keyD = key;
+                // TODO: deal with this better
                 if (key === "sourceNode") { keyD = "source" }
                 if (key === "destinationNode") { keyD = "destination" }
                 dst.data[keyD] = coreFromAny((src as any)[key], this.bridges);
