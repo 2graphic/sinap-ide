@@ -216,6 +216,13 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     loadFile() {
         this.fileService.requestFiles()
             .then((files: File[]) => {
+                for (const file of files) {
+                    file.readData().then(f => {
+                        // TODO: use correct plugin
+                        const plugin = this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND);
+                        this.newFile(file.name, new CoreModel(plugin, JSON.parse(f)));
+                    })
+                }
             });
     }
 
