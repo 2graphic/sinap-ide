@@ -1,13 +1,19 @@
 import { Injectable, Inject } from '@angular/core';
-import { Type, ObjectType, CoreModel, loadPlugin, Plugin } from "sinap-core";
+import { Type, ObjectType, CoreModel, loadPlugin, Plugin, SerialJSO } from "sinap-core";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { LocalFileService } from "../services/files.service";
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
+declare class Program {
+    constructor(any: SerialJSO);
+    run(a: any): any;
+}
+type StubContext = { global: { "plugin-stub": { "Program": typeof Program } } };
+
 @Injectable()
 export class PluginService {
     private plugins = new Map<string, Plugin>();
-    private programs = new Map<Plugin, Promise<Context>>();
+    private programs = new Map<Plugin, Promise<StubContext>>();
     private getResults: Script;
     private addGraph: Script;
     // TODO: load from somewhere
@@ -31,50 +37,25 @@ export class PluginService {
         return plugin;
     }
 
-    public runProgram(plugin: Plugin, m: CoreModel, data: any) {
+    public getProgram(plugin: Plugin, m: CoreModel): Promise<Program> {
+        return this.getProgramContext(plugin).then(
+            context => new context.global['plugin-stub'].Program(m.serialize()));
+    }
+
+    private getProgramContext(plugin: Plugin) {
         let contextPromise = this.programs.get(plugin);
         if (contextPromise === undefined) {
             const script = this.sandboxService.compileScript(plugin.results.js);
-            contextPromise = this.getProgram(script);
+            contextPromise = this.makeProgramContext(script);
             this.programs.set(plugin, contextPromise);
         }
-
-        const addGraph = this.sandboxService.compileScript(`
-            sinap.graph = ${JSON.stringify(m.serialize())};
-            sinap.result = undefined;
-            sinap.error = undefined;
-        `);
-
-        contextPromise = contextPromise.then((context) => {
-            return addGraph.runInContext(context).then((_) => {
-                return context;
-            });
-        })
-
-        return contextPromise.then<{ result: any, states: any[] }>((context) => {
-            return this.sandboxService.compileScript(`
-            try{
-                sinap.results = global['plugin-stub'].run(global['plugin-stub'].deserialize(sinap.graph), ${JSON.stringify(data)});
-            } catch (err) {
-                sinap.error = err.toString();
-            }`).runInContext(context).then(_ => {
-                    if (context.sinap.error) {
-                        throw context.sinap.error;
-                    }
-                    return context.sinap.results as { result: any, states: any[] };
-                });
-        });
+        return contextPromise;
     }
 
-    private getProgram(script: Script): Promise<Context> {
+    private makeProgramContext(script: Script): Promise<StubContext> {
         let context: Context = this.sandboxService.createContext({
-            sinap: {
-                error: undefined,
-                results: undefined,
-                graph: undefined,
-            },
+            global: { "plugin-stub": { "Program": null } }
         });
-
         return script.runInContext(context).then((_) => context);
     }
 }
