@@ -196,8 +196,8 @@ export class MainGraph {
         // now make the drawable edges
         for (const edge of coreEdges) {
             // nulls will get copied in by copyCoreToDrawable
-            const source = this.bridges.getB(edge.data['source'])!.drawable as DrawableNode;
-            const destination = this.bridges.getB(edge.data['destination'])!.drawable as DrawableNode;
+            const source = this.bridges.getB(edge.data['source']) !.drawable as DrawableNode;
+            const destination = this.bridges.getB(edge.data['destination']) !.drawable as DrawableNode;
 
             const drawableEdge = this.drawable.createEdge(source, destination);
             if (drawableEdge === null) {

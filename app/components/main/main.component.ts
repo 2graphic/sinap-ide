@@ -103,7 +103,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
         const graph = new MainGraph(g, plugin);
         const events: any = [];
-        graph.changed.asObservable().subscribe((a)=>{
+        graph.changed.asObservable().subscribe((a) => {
             events.push(a);
             console.log(a);
             console.log(graph);
