@@ -338,9 +338,9 @@ export class DrawableNode extends DrawableElement {
      */
     addEdge(e: DrawableEdge) {
         let old = this.edges;
-        if (e.sourceNode === this)
+        if (e.source === this)
             this._outgoingSet.add(e);
-        else if (e.destinationNode === this)
+        else if (e.destination === this)
             this._incomingSet.add(e);
         this.onPropertyChanged("edges", old);
     }
@@ -373,6 +373,8 @@ export class DrawableNode extends DrawableElement {
         this._outerBound.h = s + 2 * NODE_THRESHOLD_OUT;
         this._outerBound.w = this._outerBound.h;
         this.updateDraw(g);
+        for (let e of this.edges)
+            e.update(g);
     }
 
     /**

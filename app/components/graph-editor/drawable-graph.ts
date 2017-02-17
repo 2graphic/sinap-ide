@@ -470,8 +470,8 @@ export class DrawableGraph extends Drawable {
      *   Guarantees that the given edge is not present in the graph.
      */
     deleteEdge(edge: DrawableEdge): boolean {
-        edge.sourceNode.removeEdge(edge);
-        edge.destinationNode.removeEdge(edge);
+        edge.source.removeEdge(edge);
+        edge.destination.removeEdge(edge);
         return this.deleteItem(
             this._edges,
             edge,
@@ -518,8 +518,8 @@ export class DrawableGraph extends Drawable {
         let nodes = [...this._nodes];
         let deleteEdge = (d: DrawableEdge) => {
             if (this._edges.delete(d)) {
-                d.sourceNode.removeEdge(d);
-                d.destinationNode.removeEdge(d);
+                d.source.removeEdge(d);
+                d.destination.removeEdge(d);
                 this._deletedEdgeEmitter.emit(
                     new DrawableEventArgs<DrawableEdge>(this, d)
                 );

@@ -112,11 +112,11 @@ export class DrawableEdge extends DrawableElement {
                 writable: true,
                 value: [] as point[]
             },
-            sourceNode: {
+            source: {
                 enumerable: true,
                 get: () => this.src
             },
-            destinationNode: {
+            destination: {
                 enumerable: true,
                 get: () => this.dst
             },
@@ -181,16 +181,16 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * sourceNode  
+     * source  
      *   Gets the reference to the drawable source node of the edge.
      */
-    readonly sourceNode: DrawableNode;
+    readonly source: DrawableNode;
 
     /**
-     * destinationNode  
+     * destination  
      *   Gets the reference to the drawable destination node of the edge.
      */
-    readonly destinationNode: DrawableNode;
+    readonly destination: DrawableNode;
 
     /**
      * sourcePoint  
@@ -433,17 +433,19 @@ export class DrawableEdge extends DrawableElement {
         switch (ps.length) {
             // Cubic.
             case 7: {
-                if (inside(ps[3]) || inside(ps[4]))
-                    return true;
-                return hitRectTestCubicEdge(
-                    T, L, B, R,
-                    p0, ps[5], ps[6], p1
-                );
+                return inside(ps[3]) || inside(ps[4]) ||
+                    MathEx.cubBezIntersect(p0, ps[5], ps[6], p1, { x: L, y: T }, { x: L, y: B }) ||
+                    MathEx.cubBezIntersect(p0, ps[5], ps[6], p1, { x: R, y: T }, { x: R, y: B }) ||
+                    MathEx.cubBezIntersect(p0, ps[5], ps[6], p1, { x: L, y: T }, { x: R, y: T }) ||
+                    MathEx.cubBezIntersect(p0, ps[5], ps[6], p1, { x: L, y: B }, { x: R, y: B });
             }
 
             // Quadratic.
             case 4:
-                return hitRectTestQuadraticEdge(T, L, B, R, p0, ps[3], p1);
+                return MathEx.quadBezIntersect(p0, ps[3], p1, { x: L, y: T }, { x: L, y: B }) ||
+                    MathEx.quadBezIntersect(p0, ps[3], p1, { x: R, y: T }, { x: R, y: B }) ||
+                    MathEx.quadBezIntersect(p0, ps[3], p1, { x: L, y: T }, { x: R, y: T }) ||
+                    MathEx.quadBezIntersect(p0, ps[3], p1, { x: L, y: B }, { x: R, y: B });
 
             // Straight.
             default:
@@ -456,10 +458,10 @@ export class DrawableEdge extends DrawableElement {
      */
     private updateOverlappedEdges(g: GraphEditorCanvas) {
         if (!this.src.isHidden && !this.dst.isHidden) {
-            let srcIn = this.sourceNode.incomingEdges;
-            let srcOut = this.sourceNode.outgoingEdges;
-            let dstIn = this.destinationNode.incomingEdges;
-            let dstOut = this.destinationNode.outgoingEdges;
+            let srcIn = this.source.incomingEdges;
+            let srcOut = this.source.outgoingEdges;
+            let dstIn = this.destination.incomingEdges;
+            let dstOut = this.destination.outgoingEdges;
             let opposing = new Set<DrawableEdge>(
                 [...dstOut].filter(v => srcIn.has(v))
             );
@@ -577,12 +579,12 @@ export class DrawableEdge extends DrawableElement {
         let pt0: point = this.src.getBoundaryPt(u);
         let pt1: point = this.src.getBoundaryPt(v);
         let pt2: point = {
-            x: spt.x + 2 * GRID_SPACING * u.x,
-            y: spt.y + 2 * GRID_SPACING * u.y
+            x: pt0.x + 2 * GRID_SPACING * u.x,
+            y: pt0.y + 2 * GRID_SPACING * u.y
         };
         let pt3: point = {
-            x: spt.x + 2 * GRID_SPACING * v.x,
-            y: spt.y + 2 * GRID_SPACING * v.y
+            x: pt1.x + 2 * GRID_SPACING * v.x,
+            y: pt1.y + 2 * GRID_SPACING * v.y
         };
         let pts: point[] = [];
         // src
@@ -652,6 +654,7 @@ export class DrawableEdge extends DrawableElement {
         let showSrc = this._srcArrow;
         let showDst = this._dstArrow;
         switch (pts.length) {
+            // Cubic
             case 7:
                 if (showSrc && showDst)
                     return () => {
@@ -674,6 +677,7 @@ export class DrawableEdge extends DrawableElement {
                         g.traceCubic(pts[0], pts[1], pts[5], pts[6]);
                     };
 
+            // Quadratic
             case 4:
                 if (showSrc && showDst)
                     return () => {
@@ -696,6 +700,7 @@ export class DrawableEdge extends DrawableElement {
                         g.traceQuadratic(pts[0], pts[1], pts[3]);
                     }
 
+            // Linear
             default:
                 if (showSrc && showDst)
                     return () => {
@@ -786,176 +791,6 @@ function hitPtTestLine(
     if (dotpp <= dotee && dotdep <= dotee && dotrr < margin)
         return (dotpp < dotee / 4 ? src : dst);
     return null;
-}
-
-/**
- * hitRectTestCubicEdge  
- *   Tests whether any part of a cubic Bezier curve has been captured by a
- *   rectangle.
- */
-function hitRectTestCubicEdge(
-    top: number,
-    left: number,
-    bottom: number,
-    right: number,
-    p0: point,
-    p1: point,
-    p2: point,
-    p3: point
-): boolean {
-    // Sources:
-    // https://www.particleincell.com/wp-content/uploads/2013/08/cubic-line.svg
-    // https://en.wikipedia.org/wiki/Cubic_function
-    // TODO:
-    // Figure out why horizontal lines are not intersecting with the curve.
-    // Hint: for the commented `intersect` calls, the `t` value in `checkT`
-    // is NaN. Somewhere in the intermediate steps, one of the numbers goes
-    // to infinity. The technique being used is straight line intersection
-    // with a cubic bezier curve, which involves computing the roots of a
-    // cubic function in standard form.
-    const checkT = (t: number, a: number, b: number, c: number, d: number, min: number, max: number) => {
-        if (t >= 0 && t <= 1) {
-            let x = a * t * t * t + b * t * t + c * t + d;
-            if (x >= min && x <= max)
-                return true;
-        }
-        return false;
-    };
-    let a = MathEx.cubBezAv(p0, p1, p2, p3);
-    let b = MathEx.cubBezBv(p0, p1, p2);
-    let c = MathEx.cubBezCv(p0, p1);
-    let d = { x: p0.x - left, y: p0.y - top };
-    console.log(a.y);
-
-    let A = { x: b.x / a.x, y: b.y / a.y };
-    let B = { x: c.x / a.x, y: c.y / a.y };
-    let C = { x: d.x / a.x, y: d.y / a.y };
-
-    let Q = {
-        x: (3 * B.x - Math.pow(A.x, 2)) / 9,
-        y: (3 * B.y - Math.pow(A.y, 2)) / 9
-    };
-    let Qp3 = { x: Math.pow(Q.x, 3), y: Math.pow(Q.y, 3) };
-    let R = {
-        x: (9 * A.x * B.x - 27 * C.x - 2 * Math.pow(A.x, 3)) / 54,
-        y: (9 * A.y * B.y - 27 * C.y - 2 * Math.pow(A.y, 3)) / 54
-    };
-    let D = {
-        x: Qp3.x + Math.pow(R.x, 2),
-        y: Qp3.y + Math.pow(R.y, 2)
-    };
-    let A_3 = { x: -A.x / 3, y: -A.y / 3 };
-
-    const intersect = (
-        _D: number,
-        _R: number,
-        _A_3: number,
-        _Q: number,
-        _Qp3: number,
-        _a: number,
-        _b: number,
-        _c: number,
-        _d: number,
-        min: number,
-        max: number
-    ) => {
-        if (_D >= 0) {
-            let sqrtD = Math.sqrt(_D);
-            let rsqrtd = _R + sqrtD;
-            let S = (rsqrtd < 0 ? -1 : 1) * Math.pow(Math.abs(rsqrtd), 1 / 3);
-            rsqrtd = _R - sqrtD;
-            let T = (rsqrtd < 0 ? -1 : 1) * Math.pow(Math.abs(rsqrtd), 1 / 3);
-            let ST = S + T;
-
-            if (checkT(_A_3 + ST, _a, _b, _c, _d, min, max))
-                return true;
-
-            if (Math.abs(MathEx.SQRT3 * ST / 2) == 0 &&
-                checkT(_A_3 - ST / 2, _a, _b, _c, _d, min, max))
-                return true;
-        }
-        else {
-            let sqrtQ = Math.sqrt(-_Q);
-            let th = Math.acos(_R / Math.sqrt(-_Qp3));
-
-            if (checkT(2 * sqrtQ * Math.cos(th / 3) + _A_3, _a, _b, _c, _d, min, max))
-                return true;
-            if (checkT(2 * sqrtQ * Math.cos((th + 2 * Math.PI) / 3) + _A_3, _a, _b, _c, _d, min, max))
-                return true;
-            if (checkT(2 * sqrtQ * Math.cos((th + 4 * Math.PI) / 3) + _A_3, _a, _b, _c, _d, min, max))
-                return true;
-        }
-        return false;
-    };
-
-    if (intersect(D.x, R.x, A_3.x, Q.x, Qp3.x, a.y, b.y, c.y, p0.y, top, bottom))
-        return true;
-
-    d.x = p0.x - right;
-    C.x = d.x / a.x;
-    R.x = (9 * A.x * B.x - 27 * C.x - 2 * Math.pow(A.x, 3)) / 54;
-    D.x = Qp3.x + Math.pow(R.x, 2);
-    if (intersect(D.x, R.x, A_3.x, Q.x, Qp3.x, a.y, b.y, c.y, p0.y, top, bottom)/* ||
-            intersect(D.y, R.y, A_3.y, Q.y, Qp3.y, a.x, b.x, c.x, p0.x, left, right)*/)
-        return true;
-    // d.y = p0.y - bottom;
-    // C.y = d.y / a.y;
-    // R.y = (9 * A.y * B.y - 27 * C.y - 2 * Math.pow(A.y, 3)) / 54;
-    // D.y = Qp3.y + Math.pow(R.y, 2);
-    // if (intersect(D.y, R.y, A_3.y, Q.y, Qp3.y, a.x, b.x, c.x, p0.x, left, right))
-    //     return true;
-    return false;
-}
-
-/**
- * hitRectTestQuadraticEdge  
- *   Tests whether any part of a quadratic Bezier curve has been captured by a
- *   rectangle.
- */
-function hitRectTestQuadraticEdge(
-    T: number,
-    L: number,
-    B: number,
-    R: number,
-    p0: point,
-    p1: point,
-    p2: point
-): boolean {
-    // TODO:
-    // Debug.
-    let a = MathEx.quadBezAv(p0, p1, p2);
-    let b = MathEx.quadBezBv(p0, p2);
-    let c = { x: p0.x - L, y: p0.y - T };
-    let d = MathEx.quadBezDv(a, b, c);
-    if (d.x < 0) {
-        c.x = p0.x - R;
-        d.x = MathEx.quadBezD(a.x, b.x, c.x);
-    }
-    if (d.x >= 0) {
-        d.x = Math.sqrt(d.x);
-        let t = (-b.x + d.x) / (2 * a.x);
-        let y = a.y * t * t + b.y * t + p0.y;
-        if (t >= 0 && t <= 1 && y >= T && y <= B)
-            return true;
-        t = (-b.x - d.x) / (2 * a.x);
-        y = a.y * t * t + b.y * t + p0.y;
-        if (t >= 0 && t <= 1 && y >= T && y <= B)
-            return true;
-    }
-    if (d.y < 0) {
-        c.y = p0.y - B;
-        d.y = MathEx.quadBezD(a.y, b.y, c.y);
-    }
-    if (d.y < 0)
-        return false;
-    d.y = Math.sqrt(d.y);
-    let t = (-b.y + d.y) / (2 * a.y);
-    let x = a.x * t * t + b.x * t + p0.x;
-    if (t >= 0 && t <= 1 && x >= L && x <= R)
-        return true;
-    t = (-b.y - d.y) / (2 * a.y);
-    x = a.x * t * t + b.x * t + p0.x;
-    return (t >= 0 && t <= 1 && x >= L && x <= R);
 }
 
 /**

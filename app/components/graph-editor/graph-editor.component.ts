@@ -671,9 +671,9 @@ export class GraphEditorComponent implements AfterViewInit {
             this.drawList.push(d);
         if (d instanceof DrawableEdge) {
             this.drawList = this.drawList.filter(v => {
-                return v !== d.sourceNode && v !== d.destinationNode;
+                return v !== d.source && v !== d.destination;
             });
-            this.drawList.push(d.destinationNode, d.sourceNode);
+            this.drawList.push(d.destination, d.source);
         }
         d.update(this.canvas);
         d.addPropertyChangedListener(this.onDrawablePropertyChanged);
@@ -756,10 +756,10 @@ export class GraphEditorComponent implements AfterViewInit {
         // Pick up the edge if one is being hovered.
         else if (this.hoverObject instanceof DrawableEdge) {
             let spt = this.hoverObject.sourcePoint;
-            let apt = this.hoverObject.sourceNode.anchorPoint;
+            let apt = this.hoverObject.source.anchorPoint;
             let isSrc = spt.x !== apt.x || spt.y !== apt.y;
             this.createDragEdge(
-                (isSrc ? this.hoverObject.sourceNode : this.hoverObject.destinationNode),
+                (isSrc ? this.hoverObject.source : this.hoverObject.destination),
                 isSrc,
                 this.hoverObject
             );
@@ -792,10 +792,10 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.hoverObject.updateDraw(this.canvas);
             }
             else if (this.hoverObject instanceof DrawableEdge) {
-                this.hoverObject.sourceNode.clearAnchor();
-                this.hoverObject.destinationNode.clearAnchor();
-                this.hoverObject.sourceNode.updateDraw(this.canvas);
-                this.hoverObject.destinationNode.updateDraw(this.canvas);
+                this.hoverObject.source.clearAnchor();
+                this.hoverObject.destination.clearAnchor();
+                this.hoverObject.source.updateDraw(this.canvas);
+                this.hoverObject.destination.updateDraw(this.canvas);
             }
         }
 
@@ -809,15 +809,15 @@ export class GraphEditorComponent implements AfterViewInit {
                 let spt = value.d.sourcePoint;
                 let apt = value.pt;
                 if (spt.x === apt.x && spt.y === apt.y) {
-                    value.d.destinationNode.clearAnchor();
-                    value.d.sourceNode.anchorPoint = apt;
+                    value.d.destination.clearAnchor();
+                    value.d.source.anchorPoint = apt;
                 }
                 else {
-                    value.d.sourceNode.clearAnchor();
-                    value.d.destinationNode.anchorPoint = apt;
+                    value.d.source.clearAnchor();
+                    value.d.destination.anchorPoint = apt;
                 }
-                value.d.sourceNode.updateDraw(this.canvas);
-                value.d.destinationNode.updateDraw(this.canvas);
+                value.d.source.updateDraw(this.canvas);
+                value.d.destination.updateDraw(this.canvas);
             }
 
             // Update the anchor point if the hover object is a node.
@@ -967,8 +967,8 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private checkValidEdgeDrop(e: DrawableEdge, pt: point): boolean {
         let hit: { d: DrawableNode, pt: point } | null = null;
-        let src = e.sourceNode;
-        let dst = e.destinationNode;
+        let src = e.source;
+        let dst = e.destination;
         let like = (this.moveEdge ? this.moveEdge : undefined);
         let nodes = this.drawList.filter(v => {
             return v instanceof DrawableNode;
@@ -1023,8 +1023,8 @@ export class GraphEditorComponent implements AfterViewInit {
         // Move or create the edge if it was dropped on a node.
         if (this.hoverObject instanceof DrawableNode) {
             this.suspendRedraw();
-            let srcNode = (e.sourceNode.isHidden ? this.hoverObject : e.sourceNode);
-            let dstNode = (e.destinationNode.isHidden ? this.hoverObject : e.destinationNode);
+            let srcNode = (e.source.isHidden ? this.hoverObject : e.source);
+            let dstNode = (e.destination.isHidden ? this.hoverObject : e.destination);
             let edge = this.graph.createEdge(srcNode, dstNode, like);
             if (edge)
                 this.updateSelected(edge);

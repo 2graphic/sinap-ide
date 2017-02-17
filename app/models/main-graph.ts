@@ -286,8 +286,8 @@ export class MainGraph {
             for (const key in dst) {
                 let keyD = key;
                 // TODO: deal with this better
-                if (key === "sourceNode") { continue; }
-                if (key === "destinationNode") { continue; }
+                if (key === "source") { continue; }
+                if (key === "destination") { continue; }
                 (dst as any)[key] = drawableFromAny(src.data[keyD], this.bridges);
             }
         }
@@ -295,8 +295,8 @@ export class MainGraph {
             for (const key in src) {
                 let keyD = key;
                 // TODO: deal with this better
-                if (key === "sourceNode") { keyD = "source" }
-                if (key === "destinationNode") { keyD = "destination" }
+                // if (key === "sourceNode") { keyD = "source" }
+                // if (key === "destinationNode") { keyD = "destination" }
                 dst.data[keyD] = coreFromAny((src as any)[key], this.bridges);
             }
         }
