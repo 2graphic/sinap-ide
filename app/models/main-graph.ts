@@ -33,7 +33,7 @@ import { DoubleMap } from "./double-map";
 export class BridgingProxy {
     proxy: { [a: string]: any };
 
-    constructor(public core: CoreElement, public drawable: Drawable, private graph: MainGraph) {
+    constructor(public core: CoreElement, public drawable: Drawable, public graph: MainGraph) {
         this.proxy = new Proxy(core.data, {
             set: (data, k, v) => this.set(k, v),
             get: (data, k) => this.get(k),

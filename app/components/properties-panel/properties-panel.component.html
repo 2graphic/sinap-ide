@@ -5,10 +5,10 @@
     </div>
 
     <div *ngIf="!isEmpty">
-        <table class="group-table">
-            <template [ngIf]="fields">
-                <tr><th colspan="2">General</th></tr>
-                <tr *ngFor="let pair of fields">
+        <table *ngFor="let name of fieldNames" class="group-table">
+            <template [ngIf]="fields[name]">
+                <tr><th colspan="2">{{name}}</th></tr>
+                <tr *ngFor="let pair of fields[name]">
                     <td class="label">{{pair[0]}}</td>
                     <td [ngSwitch]="pair[1].name">
                         <div *ngSwitchCase="'string'">
@@ -21,8 +21,12 @@
                             <input [ngModel]="element[pair[0]]" (ngModelChange)="element[pair[0]] = $event" type="checkbox"/>
                         </div>
                         <div *ngSwitchDefault> 
-                            <!-- default -->
-                            N/A
+                           <label *ngIf="pair[1].isAssignableTo(lookupSinapType('Color')); let did = true" class="color-label" for="property{{pair[0]}}">
+                                <span class="color-preview" [style.background-color]="element[pair[0]]"></span>
+                                {{element[pair[0]]}}
+                                <input [ngModel]="element[pair[0]]" (ngModelChange)="element[pair[0]] = $event" id="property{{pair[0]}}" type="color" class="color-input"/>
+                            </label>
+
                         </div>
                     </td>
                 </tr>

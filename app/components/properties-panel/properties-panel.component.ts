@@ -14,18 +14,29 @@ import { Type } from "sinap-core";
 })
 export class PropertiesPanelComponent {
     isEmpty = true;
-    fields: [string, Type][];
+    fieldNames: string[];
+    fields: { [a: string]: [string, Type][] };
     element: { [a: string]: any };
+    lookupSinapType: (a: string) => Type;
 
     @Input()
     set selectedElements(elements: Set<BridgingProxy> | null) {
         if (elements === null) {
             this.isEmpty = true;
-            this.fields = [];
+            this.fields = {};
+            this.fieldNames = [];
         } else {
             this.isEmpty = false;
             const bridge = elements.values().next().value;
-            this.fields = [...bridge.core.type.members.entries()];
+            const drawableFields = [...bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind) !.members.entries()];
+            const pluginFields = [...bridge.core.type.members.entries()];
+            this.lookupSinapType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupSinapType(a);
+
+            this.fields = {
+                "General": pluginFields,
+                "Drawable": drawableFields
+            };
+            this.fieldNames = Object.keys(this.fields);
             this.element = bridge.proxy;
         }
     }
