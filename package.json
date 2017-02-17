@@ -40,7 +40,7 @@
     "reflect-metadata": "^0.1.x",
     "reset-css": "2.2.x",
     "rxjs": "5.0.x",
-    "sinap-core": "^0.0.8",
+    "sinap-core": "0.0.8",
     "zone.js": "0.7.4"
   },
   "devDependencies": {
@@ -52,9 +52,9 @@
     "css-loader": "0.26.x",
     "electron": "1.4.8",
     "electron-packager": "8.4.x",
+    "extract-loader": "0.1.x",
     "file-loader": "0.9.x",
     "html-loader": "0.4.x",
-    "html-webpack-plugin": "2.16.x",
     "node-sass": "4.5.x",
     "rimraf": "2.5.x",
     "sass-loader": "6.0.x",

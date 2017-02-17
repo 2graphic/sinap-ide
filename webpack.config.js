@@ -9,7 +9,6 @@
 
 const webpack = require('webpack');
 const CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpackMerge = require('webpack-merge');
 
 module.exports = (env = {}) => { // pass command line arguments like `webpack ... --env.arg=value`
@@ -137,16 +136,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
         },
 
         plugins: [
-            new HtmlWebpackPlugin({
-                template: './app/index.html',
-                chunks: ['polyfills', 'main']
-            }),
-            new HtmlWebpackPlugin({
-                template: './app/modal-windows/index.html',
-                filename: 'modal.html',
-                chunks: ['polyfills', 'modal']
-            }),
-
             // Make sure to run `npm run build:dll` everytime you update angular
             new webpack.DllReferencePlugin({
                 context: '.',
