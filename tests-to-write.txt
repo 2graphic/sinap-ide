@@ -1,3 +1,0 @@
-A = class A {
-    
-} ---> Error cannot depend on self
