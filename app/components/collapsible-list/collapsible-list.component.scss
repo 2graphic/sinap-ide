@@ -1,11 +1,9 @@
 @import "../../styles/side-panel";
 
 .text {
-    background-color: #666;
+    background-color: #CCCCCC;
     font-size: normal;
-    font-family: sans-serif;
-    font-weight: bold;
-    color: #FFF;
+    font-weight: 500;
     padding: .25em;
 }
 
@@ -24,12 +22,10 @@
 li {
     padding: .25em .15em;
     padding-left: 1.75em;
-    color: #EEE;
-    font-family: sans-serif;
     font-weight: normal;
     font-size: small;
 }
 
 li:hover, .active {
-    background-color: #5c5c5c;
+    background-color: #D3D3D3;
 }

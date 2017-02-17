@@ -65,20 +65,14 @@
 /********************************************************/
 
 #empty-background {
-  background-color: #f3f3f3;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-}
 
-#empty-background>a {
-  color: #909090;
-  font-family: sans-serif;
-  font-size: larger;
-  font-weight: bold;
-}
-
-[hidden] {
-  display: none !important;
+  a {
+    color: #909090;
+    font-size: larger;
+    font-weight: bold;
+  }
 }

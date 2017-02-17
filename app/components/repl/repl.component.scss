@@ -8,10 +8,9 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    font-family: sans-serif;
     /* Make space for the title bar */
-    padding-top: 35px;
-    margin-top: -35px;
+    padding-top: $TOOLBAR_HEIGHT;
+    margin-top: -$TOOLBAR_HEIGHT;
 }
 
 #repl-cl {
