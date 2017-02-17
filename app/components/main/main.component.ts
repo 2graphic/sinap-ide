@@ -19,7 +19,7 @@ import { PropertiesPanelComponent } from "../properties-panel/properties-panel.c
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
 import { TestPanelComponent } from "../test-panel/test-panel.component"
 import { StatusBarComponent } from "../status-bar/status-bar.component"
-import { MainGraph } from "../../models/main-graph";
+import { MainGraph, UndoableAdd, UndoableChange, UndoableDelete, UndoableEvent } from "../../models/main-graph";
 import { CoreElement, CoreModel, CoreElementKind } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component"
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
@@ -81,7 +81,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     @ViewChild(StatusBarComponent)
     private statusBar: StatusBarComponent;
 
-    onContextChanged = () => { // arrow syntax to bind correct "this"
+    private onContextChanged() {
         if (this.context) {
             if (this.graphEditor) {
                 this.graphEditor.redraw();
@@ -90,6 +90,16 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             }
         }
     };
+
+    private makeChangeNotifier(context: TabContext) {
+        return (change: UndoableEvent) => {
+            // Something like this.changes.get(context).add(change)
+            console.log(context.graph, change);
+            this.pluginService.getProgram(context.graph.plugin, context.graph.core).then(program => {
+                this.testComponent.program = program;
+            })
+        }
+    }
 
     newFile(f?: String, g?: CoreModel) {
         const kind = this.toolsPanel.activeGraphType == "Machine Learning" ?
@@ -102,14 +112,11 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         let tabNumber = this.tabBar.newTab(filename);
 
         const graph = new MainGraph(g, plugin);
-        const events: any = [];
-        graph.changed.asObservable().subscribe((a) => {
-            events.push(a);
-            console.log(a);
-            console.log(graph);
-        });
-        this.tabs.set(tabNumber, new TabContext(graph, filename));
+        const context = new TabContext(graph, filename);
 
+        graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
+
+        this.tabs.set(tabNumber, context);
         this.selectedTab(tabNumber);
     }
 

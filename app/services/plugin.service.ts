@@ -4,7 +4,7 @@ import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { LocalFileService } from "../services/files.service";
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
-declare class Program {
+export declare class Program {
     constructor(any: SerialJSO);
     run(a: any): any;
 }
