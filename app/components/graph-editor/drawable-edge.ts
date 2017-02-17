@@ -535,27 +535,32 @@ export class DrawableEdge extends DrawableElement {
         let dpt = this.dst.position;
         // Get a vector from the source node to the destination node.
         let v: point = { x: dpt.x - spt.x, y: dpt.y - spt.y, };
-        // Get the normal to the vector.
+        // Get the magitude of the vector.
         let d = MathEx.mag(v);
-        let n: point = {
-            x: v.y / d,
-            y: -v.x / d
-        };
+
+        spt = this.src.getBoundaryPt({ x: v.x / d, y: v.y / d });
+        dpt = this.dst.getBoundaryPt({ x: -v.x / d, y: -v.y / d });
+        v.x = dpt.x - spt.x;
+        v.y = dpt.y - spt.y;
+        d = MathEx.mag(v);
 
         // Set the control point to the midpoint of the vector plus the scaled
         // normal.
         let pt1: point = {
-            x: v.x / 2 + v.y / d * GRID_SPACING,
-            y: v.y / 2 - v.x / d * GRID_SPACING
+            x: spt.x + v.x / 2 + v.y / d * GRID_SPACING,
+            y: spt.y + v.y / 2 - v.x / d * GRID_SPACING
         };
         // Get the source endpoint.
-        d = MathEx.mag(pt1);
-        let pt0 = this.src.getBoundaryPt({ x: pt1.x / d, y: pt1.y / d });
+        v.x = pt1.x - this.src.position.x;
+        v.y = pt1.y - this.src.position.y;
+        d = MathEx.mag(v);
+        let pt0 = this.src.getBoundaryPt({ x: v.x / d, y: v.y / d });
         // Get the destination endpoint.
-        let pt2 = this.dst.getBoundaryPt({ x: (pt1.x - v.x) / d, y: (pt1.y - v.y) / d });
+        v.x = pt1.x - this.dst.position.x;
+        v.y = pt1.y - this.dst.position.y;
+        d = MathEx.mag(v);
+        let pt2 = this.dst.getBoundaryPt({ x: v.x / d, y: v.y / d });
         // Translate the controlpoint by the position of the source node.
-        pt1.x += spt.x;
-        pt1.y += spt.y;
         let pts: point[] = [];
         pts.push(pt0);
         pts.push(pt2);
