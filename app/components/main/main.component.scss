@@ -1,3 +1,5 @@
+@import '../../styles/constants';
+
 .flex-container-row {
   display: flex;
   flex-direction: row;
@@ -13,12 +15,12 @@
 
 .panel-bar-vertical {
   flex: none;
-  width: 45px;
+  width: $TOOLBAR_WIDTH;
 }
 
 .panel-bar-horizontal {
   flex: none;
-  height: 35px;
+  height: $TOOLBAR_HEIGHT;
 }
 
 #bottom-panels {
@@ -41,13 +43,13 @@
 
 #tab-bar {
   flex: none;
-  height: 35px;
+  height: $TOOLBAR_HEIGHT;
 }
 
 #graph-editor-container {
   flex: none;
   width: 100%;
-  height: calc(100% - 1.25em - 35px);
+  height: calc(100% - 1.25em - #{$TOOLBAR_HEIGHT});
 }
 
 #content, #left-panels, #editor-panel, #bottom-panel {

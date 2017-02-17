@@ -122,8 +122,16 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
                     loader: "html-loader?interpolate&attrs[]=img:src&attrs[]=link:href"
                 },
                 {
-                    test: /\.css$/,
+                    test: /\.component.css$/,
                     loaders: ["to-string-loader", "css-loader"]
+                },
+                {
+                    test: /\.component\.scss$/,
+                    loaders: ["to-string-loader", "css-loader", "sass-loader"]
+                },
+                {
+                    test: /^[^\.]+\.scss$/,
+                    loaders: ["file-loader?name=[name]-[hash].css", "extract-loader", "css-loader", "sass-loader"]
                 }
             ]
         },

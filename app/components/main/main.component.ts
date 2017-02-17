@@ -32,7 +32,7 @@ import * as MagicConstants from "../../models/constants-not-to-be-included-in-be
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
-    styleUrls: ["./main.component.css"],
+    styleUrls: ["./main.component.scss"],
     providers: [MenuService, PluginService, WindowService, LocalFileService, SerializerService, SandboxService]
 })
 
