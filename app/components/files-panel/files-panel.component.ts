@@ -14,7 +14,7 @@ import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.c
 @Component({
     selector: "sinap-files-panel",
     templateUrl: "./files-panel.component.html",
-    styleUrls: ["../../styles/side-panel.component.css"],
+    styleUrls: ["./files-panel.component.scss"],
     providers: [LocalFileService]
 })
 export class FilesPanelComponent {

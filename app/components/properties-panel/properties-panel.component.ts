@@ -9,7 +9,7 @@ import { Type, MetaType } from "sinap-core";
 @Component({
     selector: "sinap-properties-panel",
     templateUrl: "./properties-panel.component.html",
-    styleUrls: ["../../styles/side-panel.component.css", "./properties-panel.component.css"],
+    styleUrls: ["./properties-panel.component.scss"],
 })
 export class PropertiesPanelComponent {
     public selectedEntity: PropertiedEntity | null = null;

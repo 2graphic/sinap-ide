@@ -9,7 +9,7 @@ import { Component, Input } from "@angular/core";
 @Component({
     selector: "sinap-tab-bar",
     templateUrl: "./tab-bar.component.html",
-    styleUrls: ["./tab-bar.component.css"]
+    styleUrls: ["./tab-bar.component.scss"]
 })
 export class TabBarComponent {
     public delegate: TabDelegate;

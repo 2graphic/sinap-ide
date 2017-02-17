@@ -13,7 +13,7 @@ export interface PluginManagement {
 @Component({
     selector: "sinap-tools-panel",
     templateUrl: "./tools-panel.component.html",
-    styleUrls: ["../../styles/side-panel.component.css"]
+    styleUrls: ["./tools-panel.component.scss"]
 })
 
 export class ToolsPanelComponent {
