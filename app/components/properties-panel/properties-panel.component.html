@@ -18,16 +18,24 @@
                             <input [(ngModel)]="element[triple[0]]" type="number" class="number-input"/>
                         </div>
                         <div *ngSwitchCase="'boolean'">
-                            <!-- Needs `ngModelChange` for checkboxes for some reason. Maybe angular will fix? -->
                             <input [ngModel]="element[triple[0]]" (ngModelChange)="element[triple[0]] = $event" type="checkbox"/>
                         </div>
                         <div *ngSwitchDefault> 
-                           <label *ngIf="triple[2].isAssignableTo(lookupSinapType('Color')); let did = true" class="color-label" for="property{{triple[0]}}">
+                           <label *ngIf="triple[2].isAssignableTo(lookupSinapType('Color'))" class="color-label" for="property{{triple[0]}}">
                                 <span class="color-preview" [style.background-color]="element[triple[0]]"></span>
                                 {{element[triple[0]]}}
                                 <input [(ngModel)]="element[triple[0]]" id="property{{triple[0]}}" type="color" class="color-input"/>
                             </label>
 
+                           <label *ngIf="triple[2].isAssignableTo(lookupPluginType('Nodes'))" class="color-label" for="property{{triple[0]}}">
+                                Node
+                            </label>
+                           <label *ngIf="triple[2].isAssignableTo(lookupPluginType('Edges'))" class="color-label" for="property{{triple[0]}}">
+                                Edge
+                            </label>
+                           <label *ngIf="triple[2].isAssignableTo(lookupPluginType('Graph'))" class="color-label" for="property{{triple[0]}}">
+                                Graph
+                            </label>
                         </div>
                     </td>
                 </tr>

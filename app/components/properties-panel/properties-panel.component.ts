@@ -18,6 +18,7 @@ export class PropertiesPanelComponent {
     fields: { [a: string]: [string, string, Type][] };
     element: { [a: string]: any };
     lookupSinapType: (a: string) => Type;
+    lookupPluginType: (a: string) => Type;
 
     @Input()
     set selectedElements(elements: Set<BridgingProxy> | null) {
@@ -35,7 +36,6 @@ export class PropertiesPanelComponent {
             const drawableFields = [...drawableType.members.entries()]
                 .filter(([n, _]) => !pluginType.members.has(n))
                 .map(([n, t]) => [n, drawableType.prettyNames.get(n), t] as [string, string, Type]);
-            this.lookupSinapType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupSinapType(a);
 
             this.fields = {
                 "General": pluginFields,
@@ -43,6 +43,9 @@ export class PropertiesPanelComponent {
             };
             this.fieldNames = Object.keys(this.fields);
             this.element = bridge.proxy;
+
+            this.lookupSinapType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupSinapType(a);
+            this.lookupPluginType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupPluginType(a);
         }
     }
 }
