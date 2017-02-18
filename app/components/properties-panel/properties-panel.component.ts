@@ -15,7 +15,7 @@ import { Type } from "sinap-core";
 export class PropertiesPanelComponent {
     isEmpty = true;
     fieldNames: string[];
-    fields: { [a: string]: [string, Type][] };
+    fields: { [a: string]: [string, string, Type][] };
     element: { [a: string]: any };
     lookupSinapType: (a: string) => Type;
 
@@ -28,8 +28,11 @@ export class PropertiesPanelComponent {
         } else {
             this.isEmpty = false;
             const bridge = elements.values().next().value;
-            const drawableFields = [...bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind) !.members.entries()];
-            const pluginFields = [...bridge.core.type.members.entries()];
+            const drawableType = bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind) !;
+            const pluginType = bridge.core.type;
+            // TODO: move this to function
+            const drawableFields = [...drawableType.members.entries()].map(([n, t]) => [n, drawableType.prettyNames.get(n), t] as [string, string, Type]);
+            const pluginFields = [...pluginType.members.entries()].map(([n, t]) => [n, pluginType.prettyNames.get(n), t] as [string, string, Type]);
             this.lookupSinapType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupSinapType(a);
 
             this.fields = {
