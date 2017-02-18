@@ -31,8 +31,10 @@ export class PropertiesPanelComponent {
             const drawableType = bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind) !;
             const pluginType = bridge.core.type;
             // TODO: move this to function
-            const drawableFields = [...drawableType.members.entries()].map(([n, t]) => [n, drawableType.prettyNames.get(n), t] as [string, string, Type]);
             const pluginFields = [...pluginType.members.entries()].map(([n, t]) => [n, pluginType.prettyNames.get(n), t] as [string, string, Type]);
+            const drawableFields = [...drawableType.members.entries()]
+                .filter(([n, _]) => !pluginType.members.has(n))
+                .map(([n, t]) => [n, drawableType.prettyNames.get(n), t] as [string, string, Type]);
             this.lookupSinapType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupSinapType(a);
 
             this.fields = {
