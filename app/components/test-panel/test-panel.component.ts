@@ -3,7 +3,7 @@
 // Date created: December 8, 2016
 
 
-import { Component, Input, Output } from "@angular/core";
+import { Component, Input } from "@angular/core";
 import { Program } from "./../../services/plugin.service"
 
 @Component({

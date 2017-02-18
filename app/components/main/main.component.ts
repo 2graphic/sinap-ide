@@ -11,7 +11,7 @@ import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from "@an
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
 import { MenuEventAction } from "../../models/menu";
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
-import { PluginService } from "../../services/plugin.service";
+import { PluginService, Program, Output } from "../../services/plugin.service";
 import { WindowService } from "../../modal-windows/services/window.service"
 import { ModalInfo, ModalType } from './../../models/modal-window'
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
@@ -45,7 +45,10 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     ngAfterViewInit() {
-        this.changeDetectorRef.detectChanges(); //http://stackoverflow.com/a/35243106 sowwwwwy...
+        if (process.env.ENV !== 'production') {
+            this.newFile();
+            this.changeDetectorRef.detectChanges();
+        }
     }
 
     @ViewChild(GraphEditorComponent)
@@ -73,7 +76,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     private tabBar: TabBarComponent;
 
     public package = "Finite Automata";
-    public barMessages = ["DFA", ""]
+    public barMessages: string[] = []
 
     private tabs: Map<Number, TabContext> = new Map<Number, TabContext>();
     private context: TabContext | null;
@@ -95,10 +98,21 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         return (change: UndoableEvent) => {
             // Something like this.changes.get(context).add(change)
             console.log(context.graph, change);
-            this.pluginService.getProgram(context.graph.plugin, context.graph.core).then(program => {
+            this.getProgram(context).then(program => {
+                this.updateStatusBar(program);
                 this.testComponent.program = program;
-            })
+            });
         }
+    }
+
+    private updateStatusBar(program: Program) {
+        let validation = program.validate();
+        validation.unshift("DFA");
+        this.barMessages = validation;
+    }
+
+    private getProgram(context: TabContext) {
+        return this.pluginService.getProgram(context.graph.plugin, context.graph.core);
     }
 
     newFile(f?: String, g?: CoreModel) {
@@ -113,6 +127,10 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
         const graph = new MainGraph(g, plugin);
         const context = new TabContext(graph, filename);
+
+        this.getProgram(context).then(program => {
+            this.updateStatusBar(program);
+        });
 
         graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
 
@@ -242,10 +260,10 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             });
     }
 
-    run(input: string): Promise<string> {
+    run(input: string): Promise<Output> {
         if (this.context) {
-            return this.pluginService.getProgram(this.context.graph.plugin, this.context.graph.core).then(a => {
-                return a.run(input).result;
+            return this.getProgram(this.context).then(a => {
+                return a.run(input);
             });
         } else {
             throw new Error("No Graph to Run");

@@ -4,11 +4,51 @@ import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { LocalFileService } from "../services/files.service";
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
-export declare class Program {
-    constructor(any: SerialJSO);
+declare class IProgram {
+    constructor(graph: SerialJSO);
     run(a: any): any;
 }
-type StubContext = { global: { "plugin-stub": { "Program": typeof Program } } };
+
+declare class IOutput {
+    states?: any;
+    result?: any;
+    error?: any
+}
+
+export declare class Output {
+    states: any;
+    result: any;
+};
+
+export interface Program {
+    validate(): string[];
+    run(a: any): Output;
+}
+
+class WrappedProgram implements Program {
+    constructor(private program: IProgram) { };
+
+    validate(): string[] {
+        try {
+            this.run("");
+            return [];
+        } catch (e) {
+            return [e]
+        }
+    }
+
+    run(a: any): Output {
+        const output = this.program.run(a) as IOutput;
+
+        if (output.error) {
+            throw output.error;
+        }
+
+        return output as Output;
+    }
+}
+
+type StubContext = { global: { "plugin-stub": { "Program": typeof IProgram } } };
 
 @Injectable()
 export class PluginService {
@@ -39,7 +79,7 @@ export class PluginService {
 
     public getProgram(plugin: Plugin, m: CoreModel): Promise<Program> {
         return this.getProgramContext(plugin).then(
-            context => new context.global['plugin-stub'].Program(m.serialize()));
+            context => new WrappedProgram(new context.global['plugin-stub'].Program(m.serialize())));
     }
 
     private getProgramContext(plugin: Plugin) {

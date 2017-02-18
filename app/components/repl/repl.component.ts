@@ -1,4 +1,5 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
+import { Output } from "../../services/plugin.service";
 
 @Component({
     selector: "repl",
@@ -12,6 +13,9 @@ export class REPLComponent {
     @ViewChild('input') input: ElementRef;
 
     private onSubmit(input: String) {
+        if (!input) {
+            input = "";
+        }
         if (!this.delegate) {
             throw new Error("REPLDelegate not set.");
         }
@@ -23,12 +27,16 @@ export class REPLComponent {
             });
         };
 
-        this.delegate.run(input).then(handleResult).catch(handleResult);
+        this.delegate.run(input).then((output) => {
+            handleResult(output.result);
+        }).catch((e) => {
+            handleResult(e.toString());
+        });
     }
 }
 
 export interface REPLDelegate {
-    run(input: String): Promise<String>;
+    run(input: String): Promise<Output>;
 }
 
 interface Command {
