@@ -20,12 +20,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
     let common = {
         devtool: 'cheap-module-eval-source-map', // There's faster/slower options depending on the quality of source map you want.
 
-        node: {
-            __dirname: false,
-            __filename: false,
-            fs: false,
-        },
-
         output: {
             path: './build',
             filename: '[name].js',
@@ -101,7 +95,7 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
      * Target for the main sinap-ide project
      */
     var webTarget = webpackMerge(common, {
-        target: 'web',
+        target: 'electron-renderer',
 
         entry: {
             'polyfills': "./app/polyfills.ts",
@@ -142,20 +136,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
                 manifest: require('./dll/vendor-manifest.json'),
             }),
         ],
-
-        externals: {
-            // Electron has its own syntax for requiring that conflicts with Webpack
-            'electron': 'require("electron")',
-            'net': 'require("net")',
-            'remote': 'require("remote")',
-            'shell': 'require("shell")',
-            'app': 'require("app")',
-            'ipc': 'require("ipc")',
-            'fs': 'require("fs")',
-            'buffer': 'require("buffer")',
-            'system': '{}',
-            'file': '{}'
-        }
     });
 
 
