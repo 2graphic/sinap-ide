@@ -89,6 +89,8 @@ export class MenuService {
                 return makeAction("copy");
             case MenuEventAction.PASTE:
                 return makeAction("paste");
+            case MenuEventAction.CLOSE:
+                return remote.BrowserWindow.getFocusedWindow().close;
         }
 
         return () => { };
