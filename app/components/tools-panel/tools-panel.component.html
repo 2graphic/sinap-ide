@@ -1,5 +1,4 @@
 <div id="wrapper">
-    <h2>Tools</h2>
     <div *ngIf="manager">
     Active Node Type: <select [(ngModel)]="manager.activeNodeType">
         <option *ngFor="let t of manager.nodeTypes" [ngValue]="t">{{t}}</option>

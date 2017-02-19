@@ -14,13 +14,13 @@ import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.c
 @Component({
     selector: "sinap-files-panel",
     templateUrl: "./files-panel.component.html",
-    styleUrls: ["../../styles/side-panel.component.css"],
+    styleUrls: ["./files-panel.component.scss"],
     providers: [LocalFileService]
 })
 export class FilesPanelComponent {
     private directory?: Directory;
-    private files: File[] = [];
-    private openFiles: File[] = [];
+    private files: string[] = [];
+    private openFiles: string[] = [];
 
     @Input("directory")
     setDirectory(value: string | null) {
@@ -28,7 +28,11 @@ export class FilesPanelComponent {
             this.fileService.directoryByName(value)
                 .then((directory: Directory) => {
                     this.directory = directory;
-                    directory.getFiles().then((files: File[]) => this.files = files)
+                    directory.getFiles().then((files: File[]) => {
+                        this.files = files.map((file) => {
+                            return file.name;
+                        });
+                    })
                 });
         }
         else {

@@ -12,6 +12,8 @@ import { BrowserModule } from "@angular/platform-browser";
 
 import { FormsModule } from '@angular/forms';
 
+import { InlineSVGModule } from 'ng-inline-svg';
+
 import { MainComponent } from "./components/main/main.component";
 import { CollapsibleListComponent } from "./components/collapsible-list/collapsible-list.component";
 import { SideBarComponent } from "./components/side-bar/side-bar.component";
@@ -20,7 +22,6 @@ import { ToolsPanelComponent } from "./components/tools-panel/tools-panel.compon
 import { FilesPanelComponent } from "./components/files-panel/files-panel.component";
 import { REPLComponent } from "./components/repl/repl.component";
 import { TestPanelComponent } from "./components/test-panel/test-panel.component";
-import { DebugPanelComponent } from "./components/debug-panel/debug-panel.component";
 import { GraphEditorComponent } from "./components/graph-editor/graph-editor.component";
 import { StatusBarComponent } from "./components/status-bar/status-bar.component";
 import { TabBarComponent } from "./components/tab-bar/tab-bar.component";
@@ -28,7 +29,8 @@ import { TabBarComponent } from "./components/tab-bar/tab-bar.component";
 @NgModule({
     imports: [
         BrowserModule,
-        FormsModule
+        FormsModule,
+        InlineSVGModule
     ],
     declarations: [
         MainComponent,
@@ -39,7 +41,6 @@ import { TabBarComponent } from "./components/tab-bar/tab-bar.component";
         FilesPanelComponent,
         REPLComponent,
         TestPanelComponent,
-        DebugPanelComponent,
         GraphEditorComponent,
         StatusBarComponent,
         TabBarComponent,
