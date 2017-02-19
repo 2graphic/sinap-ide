@@ -21,5 +21,5 @@ To build and package the apps inside of electron use: `npm run package`
 ## Starting Points
 `app/index.ts` = Starting point for Electron application.  
 `app/main.ts` = Starting point for Angular 2 application.  
-`app/main.module.t` = Our module for the Sinap IDE  
+`app/main.module.ts` = Our module for the Sinap IDE  
 `app/vendors.ts` = Import all libraries we're using. These are built into a Webpack DLL with `npm run build:dll`
