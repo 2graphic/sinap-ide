@@ -10,22 +10,20 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
 import { MenuEventAction } from "../../models/menu";
-import { GraphEditorComponent, Drawable as DrawableInterface } from "../graph-editor/graph-editor.component";
-import { PluginService } from "../../services/plugin.service";
-import { Program } from "../../models/plugin";
+import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
+import { PluginService, Program, Output } from "../../services/plugin.service";
 import { WindowService } from "../../modal-windows/services/window.service"
 import { ModalInfo, ModalType } from './../../models/modal-window'
 import { REPLComponent, REPLDelegate } from "../repl/repl.component"
-import { PropertiesPanelComponent, PropertiedEntity, PropertiedEntityLists } from "../properties-panel/properties-panel.component"
+import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component"
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
 import { TestPanelComponent } from "../test-panel/test-panel.component"
 import { StatusBarComponent } from "../status-bar/status-bar.component"
-import * as Drawable from "../../models/drawable"
-import * as Core from "../../models/core"
+import { GraphController, UndoableAdd, UndoableChange, UndoableDelete, UndoableEvent } from "../../models/graph-controller";
+import { CoreElement, CoreModel, CoreElementKind } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component"
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
 import { FileService, LocalFileService, File } from "../../services/files.service";
-import { SerializerService } from "../../services/serializer.service";
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
 
@@ -33,11 +31,11 @@ import * as MagicConstants from "../../models/constants-not-to-be-included-in-be
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.css"],
-    providers: [MenuService, PluginService, WindowService, LocalFileService, SerializerService, SandboxService]
+    providers: [MenuService, PluginService, WindowService, LocalFileService, SandboxService]
 })
 
 export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private serializerService: SerializerService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
     }
 
     ngOnInit(): void {
@@ -47,7 +45,10 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     ngAfterViewInit() {
-        this.changeDetectorRef.detectChanges(); //http://stackoverflow.com/a/35243106 sowwwwwy...
+        if (process.env.ENV !== 'production') {
+            this.newFile();
+            this.changeDetectorRef.detectChanges();
+        }
     }
 
     @ViewChild(GraphEditorComponent)
@@ -75,7 +76,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     private tabBar: TabBarComponent;
 
     public package = "Finite Automata";
-    public barMessages = ["DFA", ""]
+    public barMessages: string[] = []
 
     private tabs: Map<Number, TabContext> = new Map<Number, TabContext>();
     private context: TabContext | null;
@@ -83,61 +84,58 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     @ViewChild(StatusBarComponent)
     private statusBar: StatusBarComponent;
 
-
-    private getInterpreter(): Promise<Program> {
-        const context = this.context;
-        if (context) {
-            const graph = this.serializerService.serialize(context.graph.core);
-            return this.pluginService.getInterpreter(graph);
-        } else {
-            return Promise.reject("No graph context available");
-        }
-    }
-
     private onContextChanged() {
-        this.barMessages = []
-
         if (this.context) {
-            this.context.graph.activeEdgeType = "DFAEdge";
-            this.context.graph.activeNodeType = "DFANode";
             if (this.graphEditor) {
                 this.graphEditor.redraw();
             }
             if (this.pluginService) {
-                if (this.context.graph.core.plugin.kind == MagicConstants.MACHINE_LEARNING_PLUGIN_KIND) {
-                    this.package = "Machine Learning"
-                } else {
-                    this.package = "Finite Automata";
-                    this.onChanges();
-                }
             }
         }
     };
 
-    private onChanges() {
-        if (this.context && this.context.graph.core.plugin.kind == MagicConstants.DFA_PLUGIN_KIND) {
-            let interp = this.getInterpreter();
-            interp.then((program) => {
-                this.barMessages = program.compilationMessages;
+    private makeChangeNotifier(context: TabContext) {
+        return (change: UndoableEvent) => {
+            // Something like this.changes.get(context).add(change)
+            console.log(context.graph, change);
+            this.getProgram(context).then(program => {
+                this.updateStatusBar(program);
                 this.testComponent.program = program;
-            }).catch((err) => {
-                this.barMessages = ["Compilation Error:", err];
             });
         }
     }
 
-    newFile(f?: String, g?: Core.Graph) {
+    private updateStatusBar(program: Program) {
+        let validation = program.validate();
+        validation.unshift("DFA");
+        this.barMessages = validation;
+    }
+
+    private getProgram(context: TabContext) {
+        return this.pluginService.getProgram(context.graph.plugin, context.graph.core);
+    }
+
+    newFile(f?: String, g?: CoreModel) {
         const kind = this.toolsPanel.activeGraphType == "Machine Learning" ?
             MagicConstants.MACHINE_LEARNING_PLUGIN_KIND : MagicConstants.DFA_PLUGIN_KIND;
 
-        this.pluginService.getPlugin(kind).then((plugin) => {
-            g = g ? g : new Core.Graph(plugin);
-            let filename = f ? f : "Untitled";
-            let tabNumber = this.tabBar.newTab(filename);
+        const plugin = this.pluginService.getPlugin(kind);
+        g = g ? g : new CoreModel(plugin);
 
-            this.tabs.set(tabNumber, new TabContext(new Drawable.ConcreteGraph(g), filename));
-            this.selectedTab(tabNumber);
+        let filename = f ? f : "Untitled";
+        let tabNumber = this.tabBar.newTab(filename);
+
+        const graph = new GraphController(g, plugin);
+        const context = new TabContext(graph, filename);
+
+        this.getProgram(context).then(program => {
+            this.updateStatusBar(program);
         });
+
+        graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
+
+        this.tabs.set(tabNumber, context);
+        this.selectedTab(tabNumber);
     }
 
     ngAfterViewChecked() {
@@ -166,7 +164,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             // TODO: add back
             // this.toolsPanel.manager = this.context.graph.pluginManager;
 
-            // TODO: GraphEditor needs a way to set selected elements
             this.onContextChanged();
         } else {
             // No tabs
@@ -241,7 +238,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                     return;
                 }
 
-                const pojo = this.serializerService.serialize(this.context.graph.core);
+                const pojo = this.context.graph.core.serialize();
 
                 file.writeData(JSON.stringify(pojo, null, 4))
                     .catch((err) => {
@@ -254,67 +251,26 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         this.fileService.requestFiles()
             .then((files: File[]) => {
                 for (const file of files) {
-                    file.readData().then((data) => {
-                        const pojo = JSON.parse(data);
-                        return this.serializerService.deserialize(pojo)
-                            .then((graph) => this.newFile(file.name, graph));
+                    file.readData().then(f => {
+                        // TODO: use correct plugin
+                        const plugin = this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND);
+                        this.newFile(file.name, new CoreModel(plugin, JSON.parse(f)));
                     })
-                        .catch((err: any) => alert(`Error reading file ${file.name}: ${err}`));
                 }
             });
     }
 
-    run(input: string): Promise<string> {
-        let interpreter = this.getInterpreter()
-            .catch((err) => {
-                this.barMessages = ['Compilation error', err];
-                return Promise.reject(err);
+    run(input: string): Promise<Output> {
+        if (this.context) {
+            return this.getProgram(this.context).then(a => {
+                return a.run(input);
             });
-        return interpreter.then((program) => {
-            this.barMessages = program.compilationMessages;
-            return program.run(input).then((obj: any): string => obj.toString());
-        });
-    }
-
-    propertyChanged(event: [PropertiedEntity, keyof PropertiedEntityLists, string, string[]]) {
-        this.onChanges();
-
-        // THIS IS SUPER DIRTY AND CJ SHOULD REALLY HOOK THE CHANGE DETECTOR
-        // TODO: KILL THIS WITH FIRE
-        let [entity, group, key, keyPath] = event;
-        if (group == "drawableProperties") {
-            const lst = entity.drawableProperties as Core.MappedPropertyList;
-            const drawableKey = lst.key(key);
-            this.graphEditor.update(entity as any, drawableKey);
-        }
-    }
-
-    graphSelectionChanged(selected: Set<PropertiedEntity>) {
-        let newSelectedEntity: PropertiedEntity | null = null;
-        if (selected.size > 0) {
-            for (let x of selected) {
-                // this cast is safe because we know that the only Drawables that we
-                // ever give the `graphEditor` are `Element`s
-                newSelectedEntity = x;
-                break;
-            }
         } else {
-            if (this.context) {
-                newSelectedEntity = this.context.graph.core;
-            } else {
-                throw "How did graph selection change, there's no context? ";
-
-            }
-        }
-        // ugly trick to silence the fact that things seem to get emitted too often
-        // TODO, reduce the frequency things are emitted
-        if (this.propertiesPanel.selectedEntity != newSelectedEntity) {
-            this.propertiesPanel.selectedEntity = newSelectedEntity;
+            throw new Error("No Graph to Run");
         }
     }
 }
 
 class TabContext {
-    selectedDrawables = new Set<DrawableInterface>();
-    constructor(public graph: Drawable.ConcreteGraph, public filename?: String) { };
+    constructor(public graph: GraphController, public filename?: String) { };
 }

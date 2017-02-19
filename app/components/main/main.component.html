@@ -16,7 +16,7 @@
           }]">
       </sinap-side-bar>
       <div id="side-panel">
-        <sinap-properties-panel [hidden]="!(leftSideBar.active == 'Properties')" (propertyChanged)="propertyChanged($event)">
+        <sinap-properties-panel [hidden]="!(leftSideBar.active == 'Properties')" [selectedElements]="context ? context.graph.selectedElements : null">
         </sinap-properties-panel>
         <sinap-tools-panel [hidden]="!(leftSideBar.active == 'Tools')">
         </sinap-tools-panel>
@@ -26,7 +26,7 @@
       <div id="editor-panel" class="flex-container-column">
         <div [hidden]="(this.tabs.size == 0)" class="full-size flex-container-column">
           <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
-          <sinap-graph-editor [graph]="context ? context.graph : null" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor"></sinap-graph-editor>
+          <sinap-graph-editor [graph]="context ? context.graph.drawable : null" id="graph-editor"></sinap-graph-editor>
           <sinap-status-bar id="status-bar" [title]="package" [items]="barMessages"></sinap-status-bar>
         </div>
         <div [hidden]="(this.tabs.size > 0)" class="full-size">

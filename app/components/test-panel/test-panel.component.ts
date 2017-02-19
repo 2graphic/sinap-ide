@@ -3,8 +3,8 @@
 // Date created: December 8, 2016
 
 
-import { Component, Input, Output } from "@angular/core";
-import { Program } from "../../models/plugin";
+import { Component, Input } from "@angular/core";
+import { Program } from "./../../services/plugin.service"
 
 @Component({
     selector: "sinap-test-panel",
@@ -44,12 +44,13 @@ export class TestPanelComponent {
 
     private runTest(test: Test) {
         if (this.program) {
-            this.program.run(test.input).then((output) => {
-                console.log(test, output);
-                test.output = output as boolean;
-            }).catch((error) => {
+            try {
+                let out = this.program.run(test.input);
+                console.log(test, out);
+                test.output = out.result as boolean;
+            } catch (e) {
                 test.output = null;
-            });
+            }
         }
     }
 

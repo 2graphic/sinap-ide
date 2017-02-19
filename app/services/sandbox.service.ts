@@ -1,7 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Program } from "../models/plugin"
-
-
 import { remote } from 'electron';
 const vm = remote.require('vm');
 

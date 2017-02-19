@@ -2,15 +2,13 @@
 // Created by: CJ Dimaano
 // Date created: January 9, 2016
 //
-// THIS FILE IS INTENDED TO BE IMPORTED ONLY INTO graph-editor.component.ts
-//
 // Note:
 // These values should probably be defined in some user/workspace preferences
 // file.
 //
 
 
-import { DrawableEdge, DrawableNode, LineStyles } from "./drawable-interfaces";
+import { LineStyles } from "./graph-editor-canvas";
 
 
 /**
@@ -23,7 +21,7 @@ export const FONT_FAMILY: string = "monospace";
  * FONT_SIZE  
  *   Default font size.
  */
-export const FONT_SIZE: number = 10;
+export const FONT_SIZE: number = 12;
 
 /**
  * GRID_SPACING  
@@ -99,20 +97,17 @@ export const NUDGE: number = 3;
 export const STICKY_DELAY: number = 500;
 
 /**
- * NODE_DEFAULTS  
+ * NODE_PROPERTIES  
  *   Default property values for drawable nodes.
- * 
- *   Only `DrawableNode` properties should be in this object and nothing else.
- *   This object is used as the template for `isDrawableNode`.
  */
-export const NODE_DEFAULTS: DrawableNode = {
-    position: { x: 0, y: 0 },
-    label: "",
-    shape: "circle",
-    color: "#fff200",
-    borderColor: "#000",
-    borderStyle: "solid",
-    borderWidth: 1
+export const NODE_PROPERTIES = {
+    get position() { return { get x() { return 0; }, get y() { return 0; } }; },
+    get label() { return ""; },
+    get shape() { return "circle"; },
+    get color() { return "#fff200"; },
+    get borderColor() { return "#000"; },
+    get borderStyle() { return "solid"; },
+    get borderWidth() { return 2; }
 };
 
 /**
@@ -148,21 +143,16 @@ export const EDGE_HIT_MARGIN: number = 20;
 export const EDGE_DRAG_LINESTYLE: LineStyles = "dotted";
 
 /**
- * EDGE_DEFAULTS  
+ * EDGE_PROPERTIES  
  *   Default property values for drawable edges.
- * 
- *   Only `DrawableEdge` properties should be in this object and nothing else.
- *   This object is used as the template for `isDrawableEdge`.
  */
-export const EDGE_DEFAULTS: DrawableEdge = {
-    source: null,
-    destination: null,
-    label: "",
-    color: "#000",
-    lineStyle: "solid",
-    lineWidth: 2,
-    showDestinationArrow: false,
-    showSourceArrow: false
+export const EDGE_PROPERTIES = {
+    get label() { return ""; },
+    get color() { return "#000"; },
+    get lineStyle() { return "solid"; },
+    get lineWidth() { return 2; },
+    get showDestinationArrow() { return true; },
+    get showSourceArrow() { return false; }
 };
 
 /**
