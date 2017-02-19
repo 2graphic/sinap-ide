@@ -9,10 +9,13 @@ import { Component, Input } from "@angular/core";
 @Component({
     selector: "sinap-side-bar",
     templateUrl: "./side-bar.component.html",
-    styleUrls: ["./side-bar.component.css"]
+    styleUrls: ["./side-bar.component.scss"]
 })
 export class SideBarComponent {
     @Input() icons: SideBarIcon[];
+    @Input() vertical: boolean;
+    @Input() title: boolean;
+
     private _active: String;
 
     get active() {
@@ -29,6 +32,14 @@ export class SideBarComponent {
 
     setActive(icon: SideBarIcon) {
         this._active = icon.name;
+    }
+
+    private getSortedIcons() {
+        if (!this.vertical) {
+            return this.icons.slice().reverse();
+        } else {
+            return this.icons;
+        }
     }
 }
 

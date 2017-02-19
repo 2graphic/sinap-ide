@@ -16,11 +16,8 @@ import { Component, Input, Output, EventEmitter } from "@angular/core";
 
 @Component({
     selector: "sinap-collapsible-list",
-    templateUrl: "collapsible-list.component.html",
-    styleUrls: [
-        "collapsible-list.component.css",
-        "../../styles/side-panel.component.css"
-    ]
+    templateUrl: "./collapsible-list.component.html",
+    styleUrls: ["./collapsible-list.component.scss"]
 })
 export class CollapsibleListComponent {
 

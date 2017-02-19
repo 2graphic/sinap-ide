@@ -30,7 +30,7 @@ import * as MagicConstants from "../../models/constants-not-to-be-included-in-be
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
-    styleUrls: ["./main.component.css"],
+    styleUrls: ["./main.component.scss"],
     providers: [MenuService, PluginService, WindowService, LocalFileService, SandboxService]
 })
 
@@ -63,11 +63,11 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     @ViewChild(ToolsPanelComponent)
     private toolsPanel: ToolsPanelComponent;
 
-    @ViewChild("leftSideBar")
-    private leftSideBar: SideBarComponent;
+    @ViewChild("leftPanelBar")
+    private leftPanelBar: SideBarComponent;
 
-    @ViewChild("bottomSideBar")
-    private bottomSideBar: SideBarComponent;
+    @ViewChild("bottomPanelBar")
+    private bottomPanelBar: SideBarComponent;
 
     @ViewChild(TestPanelComponent)
     private testComponent: TestPanelComponent;

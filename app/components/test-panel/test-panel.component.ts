@@ -9,7 +9,7 @@ import { Program } from "./../../services/plugin.service"
 @Component({
     selector: "sinap-test-panel",
     templateUrl: "./test-panel.component.html",
-    styleUrls: ["./test-panel.component.css", "../../styles/bottom-panel.component.css"]
+    styleUrls: ["./test-panel.component.scss"]
 })
 export class TestPanelComponent {
     private _program: Program | null = null;
