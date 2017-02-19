@@ -126,7 +126,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         let tabNumber = this.tabBar.newTab(filename);
 
         const graph = new GraphController(g, plugin);
-        const context = new TabContext(graph, filename);
+        const context = new TabContext(tabNumber, graph, filename);
 
         this.getProgram(context).then(program => {
             this.updateStatusBar(program);
@@ -208,6 +208,18 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                     e.preventDefault();
                 }
                 break;
+            case MenuEventAction.CLOSE:
+                if (this.context) {
+                    this.tabBar.deleteTab(this.context.index);
+                    e.preventDefault();
+                }
+                break;
+            case MenuEventAction.PREVIOUS_TAB:
+                this.tabBar.selectPreviousTab();
+                break;
+            case MenuEventAction.NEXT_TAB:
+                this.tabBar.selectNextTab();
+                break;
         }
     }
 
@@ -272,5 +284,5 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 }
 
 class TabContext {
-    constructor(public graph: GraphController, public filename?: String) { };
+    constructor(public readonly index: number, public graph: GraphController, public filename?: String) { };
 }
