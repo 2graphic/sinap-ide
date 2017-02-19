@@ -10,6 +10,9 @@ export enum MenuEventAction {
     PASTE,
     SAVE_FILE,
     LOAD_FILE,
+    CLOSE,
+    PREVIOUS_TAB,
+    NEXT_TAB,
 }
 
 function clickHandlerMake(event: MenuEventAction) {
@@ -132,7 +135,24 @@ var windowMenu: Electron.MenuItemOptions = {
         {
             label: 'Close',
             accelerator: 'CmdOrCtrl+W',
-            role: 'close'
+            click: clickHandlerMake(MenuEventAction.CLOSE)
+        },
+        {
+            label: 'Zoom',
+            role: 'zoom'
+        },
+        {
+            type: 'separator'
+        },
+        {
+            label: 'Show Previous Tab',
+            accelerator: 'CmdOrCtrl+Shift+Left',
+            click: clickHandlerMake(MenuEventAction.PREVIOUS_TAB)
+        },
+        {
+            label: 'Show Next Tab',
+            accelerator: 'CmdOrCtrl+Shift+Right',
+            click: clickHandlerMake(MenuEventAction.NEXT_TAB)
         },
     ]
 };
@@ -204,21 +224,8 @@ if (process.platform === 'darwin') {
         ]
     });
 
-    windowMenu.submenu = [
-        {
-            label: 'Minimize',
-            accelerator: 'CmdOrCtrl+M',
-            role: 'minimize'
-        },
-        {
-            label: 'Close',
-            accelerator: 'CmdOrCtrl+W',
-            role: 'close'
-        },
-        {
-            label: 'Zoom',
-            role: 'zoom'
-        },
+    (windowMenu.submenu as Electron.MenuItemOptions[]).concat([
+
         {
             type: 'separator'
         },
@@ -226,7 +233,7 @@ if (process.platform === 'darwin') {
             label: 'Bring All to Front',
             role: 'front'
         }
-    ]
+    ]);
 }
 
 /**

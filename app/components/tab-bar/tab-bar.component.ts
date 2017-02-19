@@ -14,7 +14,7 @@ import { Component, Input } from "@angular/core";
 export class TabBarComponent {
     public delegate: TabDelegate;
     public tabs: Tab[] = [];
-    private _active: Number;
+    private _active: number;
     private index = 0;
 
     get active() {
@@ -27,7 +27,7 @@ export class TabBarComponent {
         }
     }
 
-    set active(v: Number) {
+    set active(v: number) {
         var tab = this.findTab(v);
         if (!tab) {
             return;
@@ -39,7 +39,7 @@ export class TabBarComponent {
         }
     }
 
-    private findTab(index: Number): Tab | null {
+    private findTab(index: number): Tab | null {
         for (let tab of this.tabs) {
             if (tab.index == index) {
                 return tab;
@@ -50,7 +50,7 @@ export class TabBarComponent {
     }
 
     // If the current tab is selected, delegate.selectedTab() is called with the new selected tab before delegate.deletedTab()
-    deleteTab(index: Number) {
+    deleteTab(index: number) {
         var tab = this.findTab(index);
         if (!tab) {
             return;
@@ -83,7 +83,7 @@ export class TabBarComponent {
     }
 
     // This will give you the number to identify this tab with.
-    newTab(name: String): Number {
+    newTab(name: String): number {
         let tab = {
             'name': name,
             'index': this.index++,
@@ -99,15 +99,39 @@ export class TabBarComponent {
             this.delegate.createNewTab();
         }
     }
+
+    private findPosition(index: number) {
+        for (let i = 0; i < this.tabs.length; i++) {
+            if (this.tabs[i].index == index) {
+                return i;
+            }
+        }
+
+        return undefined;
+    }
+
+    selectPreviousTab() {
+        const i = this.findPosition(this.active);
+        if (i != undefined && i > 0) {
+            this.active = this.tabs[i - 1].index;
+        }
+    }
+
+    selectNextTab() {
+        const i = this.findPosition(this.active);
+        if (i != undefined && i < this.tabs.length - 1) {
+            this.active = this.tabs[i + 1].index;
+        }
+    }
 }
 
 export interface TabDelegate {
-    deletedTab: (i: Number) => void;
-    selectedTab: (i: Number) => void; // -1 = no tabs
+    deletedTab: (i: number) => void;
+    selectedTab: (i: number) => void; // -1 = no tabs
     createNewTab: () => void;
 }
 
 interface Tab {
     name: String;
-    index: Number; // tabs can have the same name, so you must reference them by number
+    index: number; // tabs can have the same name, so you must reference them by number
 }
