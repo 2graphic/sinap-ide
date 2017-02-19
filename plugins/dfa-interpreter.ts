@@ -17,9 +17,9 @@ export class DFAGraph {
     // startState: DFANode;
 }
 
-export type Nodes = DFANode
-export type Edges = DFAEdge
-export type Graph = DFAGraph
+export type Nodes = DFANode;
+export type Edges = DFAEdge;
+export type Graph = DFAGraph;
 
 export class State {
     constructor(public active: DFANode,

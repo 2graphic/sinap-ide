@@ -4,7 +4,7 @@
 
 
 import { Component, Input } from "@angular/core";
-import { BridgingProxy } from "../../models/main-graph"
+import { BridgingProxy } from "../../models/graph-controller"
 import { Type } from "sinap-core";
 
 @Component({
@@ -13,12 +13,12 @@ import { Type } from "sinap-core";
     styleUrls: ["../../styles/side-panel.component.css", "./properties-panel.component.css"],
 })
 export class PropertiesPanelComponent {
-    isEmpty = true;
-    fieldNames: string[];
-    fields: { [a: string]: [string, string, Type][] };
-    element: { [a: string]: any };
-    lookupSinapType: (a: string) => Type;
-    lookupPluginType: (a: string) => Type;
+    private isEmpty = true;
+    private fieldNames: string[];
+    private fields: { [a: string]: [string, string, Type][] };
+    private element: { [a: string]: any };
+    private lookupSinapType: (a: string) => Type;
+    private lookupPluginType: (a: string) => Type;
 
     @Input()
     set selectedElements(elements: Set<BridgingProxy> | null) {

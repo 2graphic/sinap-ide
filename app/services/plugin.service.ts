@@ -70,7 +70,7 @@ export class PluginService {
         }
         const fileName = this.pluginKinds.get(kind);
         if (!fileName) {
-            throw "Plugin not installed";
+            throw new Error("No plugin installed that can open: " + kind);
         }
         plugin = loadPlugin(fileName);
         this.plugins.set(kind, plugin);

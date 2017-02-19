@@ -1,4 +1,4 @@
-// File: main-graph.ts
+// File: graph-controller.ts
 // Created by: Sheyne Anderson
 // Date created: January 22, 2017
 //
@@ -23,17 +23,17 @@ import { DoubleMap } from "./double-map";
 /**
  * Contains a reference to a `CoreElement` and a `Drawable`.
  * 
- * Calls to get/set will update both. It also conatins a 
+ * Calls to get/set will update both. It also contains a 
  * `proxy` field. Reads and writes to this will intelligently update 
  * the core element and the drawable. For any of these uses, if 
  * the backer object (core/drawable) references another core or drawable
- * this will return a `BridgingProxy` in its place. Sets will intellegently
+ * this will return a `BridgingProxy` in its place. Sets will intelligently
  * sync the backends even if the set `v` is a `BridgingProxy`
  */
 export class BridgingProxy {
     proxy: { [a: string]: any };
 
-    constructor(public core: CoreElement, public drawable: Drawable, public graph: MainGraph) {
+    constructor(public core: CoreElement, public drawable: Drawable, public graph: GraphController) {
         this.proxy = new Proxy(core.data, {
             set: (data, k, v) => this.set(k, v),
             get: (data, k) => this.get(k),
@@ -72,7 +72,7 @@ export class BridgingProxy {
         // if this is something that should be proxied
         const proxiedValue = this.graph.bridges.getB(coreValue);
         // return the proxy. That is, any changes made to the returned 
-        // object should propogate to both backers
+        // object should propagate to both backers
         return proxiedValue !== undefined ? proxiedValue : coreValue;
     }
 }
@@ -117,7 +117,7 @@ export class UndoableChange {
         public newValue: any) { }
 }
 
-export class MainGraph {
+export class GraphController {
     drawable: DrawableGraph;
     activeNodeType: string;
     activeEdgeType: string;

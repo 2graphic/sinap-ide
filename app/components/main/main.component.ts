@@ -19,7 +19,7 @@ import { PropertiesPanelComponent } from "../properties-panel/properties-panel.c
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
 import { TestPanelComponent } from "../test-panel/test-panel.component"
 import { StatusBarComponent } from "../status-bar/status-bar.component"
-import { MainGraph, UndoableAdd, UndoableChange, UndoableDelete, UndoableEvent } from "../../models/main-graph";
+import { GraphController, UndoableAdd, UndoableChange, UndoableDelete, UndoableEvent } from "../../models/graph-controller";
 import { CoreElement, CoreModel, CoreElementKind } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component"
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
@@ -125,7 +125,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         let filename = f ? f : "Untitled";
         let tabNumber = this.tabBar.newTab(filename);
 
-        const graph = new MainGraph(g, plugin);
+        const graph = new GraphController(g, plugin);
         const context = new TabContext(graph, filename);
 
         this.getProgram(context).then(program => {
@@ -272,5 +272,5 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 }
 
 class TabContext {
-    constructor(public graph: MainGraph, public filename?: String) { };
+    constructor(public graph: GraphController, public filename?: String) { };
 }
