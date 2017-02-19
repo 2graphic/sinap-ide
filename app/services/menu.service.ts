@@ -90,7 +90,12 @@ export class MenuService {
             case MenuEventAction.PASTE:
                 return makeAction("paste");
             case MenuEventAction.CLOSE:
-                return remote.BrowserWindow.getFocusedWindow().close;
+                if (process.platform === 'darwin') {
+                    return remote.BrowserWindow.getFocusedWindow().close;
+                } else {
+                    break;
+                }
+
         }
 
         return () => { };
