@@ -1,15 +1,18 @@
 language: nodejs
 node_js:
-    - "6.1.x"
+- 6.1.x
 before_install:
-  - curl -s -o $HOME/.nvm/nvm.sh https://raw.githubusercontent.com/creationix/nvm/v0.31.0/nvm.sh
-  - source $HOME/.nvm/nvm.sh
-  - nvm install stable
-  - node --version
+- curl -s -o $HOME/.nvm/nvm.sh https://raw.githubusercontent.com/creationix/nvm/v0.31.0/nvm.sh
+- source $HOME/.nvm/nvm.sh
+- nvm install stable
+- node --version
 install:
-    - npm install
+- npm install
 script:
-    - npm run build:dll
-    - npm run build 
-    - npm run build:prod
-    - git diff --quiet HEAD
+- npm run build:dll
+- npm run build
+- npm run build:prod
+- git diff --quiet HEAD
+notifications:
+  slack:
+    secure: 0wvXCIspBiqdfOejpRa2fZ7h9YsQ6U51FeIvBgx1YzPKtX/wer4raXGTpd6OCXpcLXH60MPtE8GiTQWBZck+yy7LZ1FsChivmWYmH43gHpOC6zkPVPCMz4cZWjQYw8OB4F7KE4QRb8EkLBzj26S5nqhXuvR+vY9iwA+sqe+2SSyd58f+hS7AlDp1HCCvXA015nf83l3/enCFaIOL7BpFPuJLazsQSXf37uVkQLr2aDxE+divJhe0NDHrcUuZSmYJua8wyfLHQVFj/5HL9Jesc7dfMKbE8W+00K1mbBO4BQxPTfoQOcQwdSaxHbRm321OemihMuYzZfnLbP7UGWXsIGwYycbhSsptxJ+9yeIdIztJP4c1V6g0Zh2Zj1fOijFI/ByD4myB2BmTVUAD+itRSbo8SqtqVqtFRxLb5oo7ss252sMB4JnabTjDAjP0HWlQ4PHMwTMTHd/diUMtIMI84KlxlI7YGMLAh3BKboe6r9Fqgff9x4verI9lQ+pi/tPAL1oRg4TSVqlairhg8sEE9rL3tz1+mWX69xK+jLsVAnrgLk7i8Fx95+1MWpKv+n9JzcDZxOBZ3U9j9t22KxufXrPlrrDF3yHxxWVPWDwc32wOZrLCOYYeieKQhL4gRznh3AiBa7jzANfg2gD9ig7XESLzaOO0/qul2Ky/jcpEMus=

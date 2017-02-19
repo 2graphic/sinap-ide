@@ -158,35 +158,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
         }
     });
 
-    /**
-     * Temporary target to build in a DFA Interpreter into the project.
-     */
-    var pluginTarget = webpackMerge(common, {
-        target: 'web',
-
-        entry: {
-            'dfa-interpreter': './plugins/dfa-interpreter'
-        },
-
-        output: {
-            path: './build/plugins',
-            library: 'module'
-        },
-
-        resolve: {
-            extensions: ['.ts']
-        },
-
-        module: {
-            loaders: [
-                {
-                    test: /\.ts$/,
-                    loaders: ['ts-loader']
-                }
-            ]
-        }
-    });
-
 
     /**
      * Our webpack configuration
@@ -194,7 +165,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
     var config = [
         electronTarget,
         webTarget,
-        pluginTarget,
     ];
 
     // Adjustments for production build.

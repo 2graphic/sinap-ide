@@ -14,9 +14,8 @@
             name: 'Files'
           }]">
       </sinap-side-bar>
-
       <div id="left-panels">
-        <sinap-properties-panel [hidden]="!(leftPanelBar.active == 'Properties')" (propertyChanged)="propertyChanged($event)">
+        <sinap-properties-panel [hidden]="!(leftPanelBar.active == 'Properties')" [selectedElements]="context ? context.graph.selectedElements : null">
         </sinap-properties-panel>
         <sinap-tools-panel [hidden]="!(leftPanelBar.active == 'Tools')">
         </sinap-tools-panel>
@@ -31,8 +30,7 @@
       <div [hidden]="(this.tabs.size == 0)" class="full-size flex-container-column">
         <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
         <div id="graph-editor-container">
-          <sinap-graph-editor [graph]="context ? context.graph : null" (selectionChanged)="graphSelectionChanged($event)" id="graph-editor"
-            class="full-size"></sinap-graph-editor>
+          <sinap-graph-editor [graph]="context ? context.graph.drawable : null" id="graph-editor"></sinap-graph-editor>
         </div>
         <sinap-status-bar id="status-bar" [title]="package" [items]="barMessages"></sinap-status-bar>
       </div>

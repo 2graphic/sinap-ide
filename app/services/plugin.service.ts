@@ -1,236 +1,101 @@
 import { Injectable, Inject } from '@angular/core';
-import { PropertiedEntity, PropertyList } from "../components/properties-panel/properties-panel.component";
-
-import { Type, MetaType, ClassMetaType, parseScope } from "sinap-core";
-import * as Core from '../models/core';
-import { Object as SinapObject } from "../models/object";
-import { Program, ProgramInput, ProgramOutput } from "../models/plugin";
+import { Type, ObjectType, CoreModel, loadPlugin, Plugin, SerialJSO } from "sinap-core";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
-import { FileService, File, LocalFileService } from "../services/files.service";
-import { SerializerService } from "../services/serializer.service"
+import { LocalFileService } from "../services/files.service";
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
-export class PluginPropertyData implements Core.PluginData {
-    backer: any = {};
-    object: SinapObject;
-    constructor(public kind: string, t: ClassMetaType) {
-        this.object = new SinapObject(t, this.backer);
-    }
+declare class IProgram {
+    constructor(graph: SerialJSO);
+    run(a: any): any;
 }
 
-type Definitions = {
-    all: Map<string, MetaType>,
-    nodes: Map<string, ClassMetaType>,
-    edges: Map<string, ClassMetaType>,
-    graphs: Map<string, ClassMetaType>,
+declare class IOutput {
+    states?: any;
+    result?: any;
+    error?: any
+}
+
+export declare class Output {
+    states: any;
+    result: any;
 };
 
-class Validator {
-    plugin: ConcretePlugin;
-    nodes = new Map<string, ClassMetaType>();
-    edges = new Map<string, [ClassMetaType, ClassMetaType]>();
+export interface Program {
+    validate(): string[];
+    run(a: any): Output;
+}
 
-    constructor(definitions: Definitions) {
-        this.nodes = definitions.nodes;
+class WrappedProgram implements Program {
+    constructor(private program: IProgram) { };
 
-        for (const [edgeType, values] of definitions.edges.entries()) {
-            const [st, dt] = [values.typeOf("source"), values.typeOf("destination")];
-            if (!((st instanceof ClassMetaType) && (dt instanceof ClassMetaType))) {
-                throw "Validator.constructor: inconsistancy error";
-            }
-            this.edges.set(edgeType, [st, dt]);
+    validate(): string[] {
+        try {
+            this.run("");
+            return [];
+        } catch (e) {
+            return [e]
         }
     }
 
-    isValidEdge(t: string, src: string, dst: string): boolean {
-        const edgets = this.edges.get(t);
-        const srct = this.nodes.get(src);
-        const dstt = this.nodes.get(dst);
-        if (!edgets || !srct || !dstt) {
-            throw "validator state error";
+    run(a: any): Output {
+        const output = this.program.run(a) as IOutput;
+
+        if (output.error) {
+            throw output.error;
         }
-        const [srce, dste] = edgets;
-        return srct.subtype(srce) && dstt.subtype(dste);
+
+        return output as Output;
     }
 }
 
-class ConcretePlugin implements Core.Plugin {
-    kind = MagicConstants.DFA_PLUGIN_KIND;
-
-    get nodeTypes() {
-        return this.definitions.nodes.keys();
-    }
-    get edgeTypes() {
-        return this.definitions.nodes.keys();
-    }
-
-    validator: Validator;
-
-    constructor(private definitions: Definitions, public script: Script) {
-        this.validator = new Validator(definitions);
-    }
-
-    graphPluginData(kind: string) {
-        const type = this.definitions.graphs.get(kind);
-        if (!type) {
-            throw "type not found";
-        }
-        return new PluginPropertyData(kind, type);
-    }
-    nodePluginData(kind: string) {
-        const type = this.definitions.nodes.get(kind);
-        if (!type) {
-            throw "type not found";
-        }
-        return new PluginPropertyData(kind, type);
-    }
-    edgePluginData(kind: string) {
-        const type = this.definitions.edges.get(kind);
-        if (!type) {
-            throw "type not found";
-        }
-        return new PluginPropertyData(kind, type);
-    };
-}
+type StubContext = { global: { "plugin-stub": { "Program": typeof IProgram } } };
 
 @Injectable()
 export class PluginService {
-    private plugins = new Map<string, Promise<ConcretePlugin>>();
-    private interpretCode: Script;
-    private runInputCode: Script;
+    private plugins = new Map<string, Plugin>();
+    private programs = new Map<Plugin, Promise<StubContext>>();
+    private getResults: Script;
+    private addGraph: Script;
     // TODO: load from somewhere
-    private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, { definitions: "./dfa-definition.sinapdef", interpreter: "./build/plugins/dfa-interpreter.js" }]])
+    private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, "./plugins/dfa-interpreter.ts"]])
 
-    constructor( @Inject(LocalFileService) private fileService: FileService,
+    constructor( @Inject(LocalFileService) private fileService: LocalFileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
-        this.interpretCode = sandboxService.compileScript(`
-            try{
-                sinap.__program = module.interpret(new module.Graph(sinap.__graph));
-            } catch (err) {
-                sinap.__err = err.toString();
-            }`);
-        // TODO: Make sure that there is nothing weird about the output returned from the plugin
-        // (such as an infinite loop for toString). Maybe make sure that it is JSON only?
-        this.runInputCode = sandboxService.compileScript(`
-            try {
-                sinap.__result = sinap.__program.run(sinap.__input)
-            } catch (err) {
-                sinap.__err = err.toString();
-            }
-        `);
     }
 
-    // graph should be a serialized graph.
-    public getInterpreter(graph: any): Promise<Program> {
-        let context = this.getPlugin(graph.plugin).then((plugin) => {
-            return this.getContext(plugin.script);
-        });
-
-        return context.then((context: Context): Promise<Program> => {
-            context.sinap.__graph = graph;
-            return this.interpretCode.runInContext(context)
-                .then((_): Program => {
-                    if (!context.sinap.__program) {
-                        return Promise.reject(context.sinap.__err) as any;
-                    } else {
-                        return {
-                            run: (input: ProgramInput): Promise<ProgramOutput> => {
-                                context.sinap.__input = input;
-                                context.sinap.__err = null;
-                                return this.runInputCode.runInContext(context)
-                                    .then((_) => {
-                                        if (context.sinap.__err) {
-                                            return Promise.reject(context.sinap.__err) as any;
-                                        } else {
-                                            return context.sinap.__result;
-                                        }
-                                    });
-                            },
-                            compilationMessages: context.sinap.__program.compilationMessages
-                        };
-                    }
-                });
-        })
-    }
-
-    public getPlugin(kind: string): Promise<ConcretePlugin> {
-        const loadedPlugin = this.plugins.get(kind);
-        if (loadedPlugin) {
-            return loadedPlugin;
+    public getPlugin(kind: string) {
+        let plugin = this.plugins.get(kind);
+        if (plugin) {
+            return plugin;
         }
-        const plugin = this.makePlugin(kind);
+        const fileName = this.pluginKinds.get(kind);
+        if (!fileName) {
+            throw new Error("No plugin installed that can open: " + kind);
+        }
+        plugin = loadPlugin(fileName);
         this.plugins.set(kind, plugin);
         return plugin;
     }
 
-    public makePlugin(kind: string): Promise<ConcretePlugin> {
-        const val = this.pluginKinds.get(kind);
-
-        if (!val) {
-            return Promise.reject(`Unsupported plugin kind: ${kind}`);
-        }
-
-        const {definitions, interpreter} = val;
-
-        const definitionsData = this.fileService.fileByName(definitions)
-            .then((defFile: File) => defFile.readData())
-            .then((s) => {
-                return this.loadPluginTypeDefinitions(s);
-            });
-
-        const script = this.fileService.fileByName(interpreter)
-            .then((file: File) => file.readData())
-            .then((code) => this.sandboxService.compileScript(code));
-        return Promise.all([definitionsData, script])
-            .then(([def, scr]) => new ConcretePlugin(def, scr));
+    public getProgram(plugin: Plugin, m: CoreModel): Promise<Program> {
+        return this.getProgramContext(plugin).then(
+            context => new WrappedProgram(new context.global['plugin-stub'].Program(m.serialize())));
     }
 
-    public loadPluginTypeDefinitions(src: string): Definitions {
-        const scope = parseScope(src);
-        scope.validate();
-
-        const nodes: [string, ClassMetaType][] = [];
-        const edges: [string, ClassMetaType][] = [];
-        const graphs: [string, ClassMetaType][] = [];
-
-        for (const [name, value] of scope.definitions.entries()) {
-            if (value.subtype(Type.Node)) {
-                nodes.push([name, value as ClassMetaType]);
-            }
-            if (value.subtype(Type.Edge)) {
-                edges.push([name, value as ClassMetaType]);
-            }
-            if (value.subtype(Type.Graph)) {
-                graphs.push([name, value as ClassMetaType]);
-            }
+    private getProgramContext(plugin: Plugin) {
+        let contextPromise = this.programs.get(plugin);
+        if (contextPromise === undefined) {
+            const script = this.sandboxService.compileScript(plugin.results.js);
+            contextPromise = this.makeProgramContext(script);
+            this.programs.set(plugin, contextPromise);
         }
-
-        if (nodes.length < 1) {
-            nodes.push(["Default", Type.Node]);
-        }
-
-        if (edges.length < 1) {
-            edges.push(["Default", Type.Edge]);
-        }
-
-        if (graphs.length < 1) {
-            graphs.push(["Default", Type.Graph]);
-        }
-
-        return { all: scope.definitions, nodes: new Map(nodes), edges: new Map(edges), graphs: new Map(graphs) };
+        return contextPromise;
     }
 
-    private getContext(script: Script): Promise<Context> {
+    private makeProgramContext(script: Script): Promise<StubContext> {
         let context: Context = this.sandboxService.createContext({
-            sinap: {
-                __program: null,
-                __graph: null,
-                __input: null,
-                __err: null,
-                __result: null
-            },
+            global: { "plugin-stub": { "Program": null } }
         });
-
         return script.runInContext(context).then((_) => context);
     }
 }

@@ -25,7 +25,6 @@ import { TestPanelComponent } from "./components/test-panel/test-panel.component
 import { GraphEditorComponent } from "./components/graph-editor/graph-editor.component";
 import { StatusBarComponent } from "./components/status-bar/status-bar.component";
 import { TabBarComponent } from "./components/tab-bar/tab-bar.component";
-import { BindingDirective } from "./directives/bind.directive";
 
 @NgModule({
     imports: [
@@ -45,7 +44,6 @@ import { BindingDirective } from "./directives/bind.directive";
         GraphEditorComponent,
         StatusBarComponent,
         TabBarComponent,
-        BindingDirective
     ],
     bootstrap: [MainComponent]
 })
