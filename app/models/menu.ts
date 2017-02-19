@@ -225,7 +225,7 @@ if (process.platform === 'darwin') {
     });
 
     (windowMenu.submenu as Electron.MenuItemOptions[]).concat([
-        
+
         {
             type: 'separator'
         },

@@ -113,14 +113,14 @@ export class TabBarComponent {
     selectPreviousTab() {
         const i = this.findPosition(this.active);
         if (i != undefined && i > 0) {
-            this.active = this.tabs[i-1].index;
+            this.active = this.tabs[i - 1].index;
         }
     }
 
     selectNextTab() {
         const i = this.findPosition(this.active);
         if (i != undefined && i < this.tabs.length - 1) {
-            this.active = this.tabs[i+1].index;
+            this.active = this.tabs[i + 1].index;
         }
     }
 }
