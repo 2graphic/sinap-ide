@@ -1,12 +1,16 @@
 <div id="wrapper">
     <div id="toolbar">
         <h2>Input</h2>
+        <span class="toolbar-spacer"></span>
+        <span class="toolbar-spacer"></span>
+        <img src="${require('../../images/play.svg')}" (click)="step()" class="toolbar-button" title="Step" />
+        <img src="${require('../../images/play-all.svg')}" (click)="stepToCompletion()" class="toolbar-button" title="Step to Completion" />
     </div>
 
     <div class="flex-container-row">
         <div id="repl">
             <div id="repl-output">
-                <div class="repl-item clickable" *ngFor="let command of results" (click)="selected = command" [class.selected]="selected == command">
+                <div class="repl-item clickable" *ngFor="let command of results" (click)="selectCommand(command)" [class.selected]="selected == command">
                     <table *ngIf="selected">
                         <tr>
                             <td>
@@ -33,7 +37,7 @@
                 </form>
             </div>
         </div>
-        <div id="log">
+        <div id="log" #log>
             <table *ngIf="selected">
                 <tr>
                     <td>
@@ -43,7 +47,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr *ngFor="let state of selected.output.states; let i = index;">
+                <tr *ngFor="let state of getStates(selected); let i = index;">
                     <td class="clickable" (click)="selectState(state)">
                         {{state.message}}
                         <div *ngIf="selectedState == state">
@@ -54,7 +58,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr>
+                <tr *ngIf="selected.steps == selected.output.states.length">
                     <td class="last">
                         <div class="result">
                             <span class="chevron">&lt;</span>

@@ -13,10 +13,58 @@ export class REPLComponent {
     private selectedState: any;
 
     @ViewChild('input') input: ElementRef;
+    @ViewChild('log') log: ElementRef;
 
     private selectState(a: any) {
         this.selectedState = a;
         this.delegate.selectNode(a.active);
+    }
+
+    private selectCommand(c: Command) {
+        this.selected = c;
+        setTimeout(() => {
+            let el: Element = this.log.nativeElement;
+            el.scrollTop = el.scrollHeight;
+        }, 0);
+    }
+
+    private step(): boolean {
+        if (this.selected && !this.selected.error) {
+            if (this.selected.steps < this.selected.output.states.length) {
+                this.selectState(this.selected.output.states[this.selected.steps]);
+                this.selected.steps++;
+                setTimeout(() => {
+                    let el: Element = this.log.nativeElement;
+                    el.scrollTop = el.scrollHeight;
+                }, 0);
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    private stepToCompletion() {
+        let g: () => void;
+        let f = () => {
+            setTimeout(() => {
+                g();
+            }, 750)
+        };
+
+        g = () => {
+            if (this.step()) {
+                f();
+            }
+        }
+
+        g();
+    }
+
+    private getStates(selected: Command) {
+        return selected.output.states.slice(0, selected.steps);
     }
 
     private onSubmit(input: String) {
@@ -38,12 +86,14 @@ export class REPLComponent {
                         states: [],
                         result: output.message
                     },
-                    error: output
+                    error: output,
+                    steps: 0
                 };
             } else {
                 command = {
                     input: input,
-                    output: output
+                    output: output,
+                    steps: 0
                 };
             }
 
@@ -75,4 +125,5 @@ interface Command {
     input: String;
     output: Output;
     error?: Error;
+    steps: number;
 }
