@@ -106,36 +106,36 @@ export class DrawableNode extends DrawableElement {
     /**
      * constructor
      */
-    constructor(graph: DrawableGraph) {
+    constructor(graph: DrawableGraph, like?: DrawableNode) {
         super(graph);
         Object.defineProperties(this, {
             _position: {
                 enumerable: false,
                 writable: true,
                 value: {
-                    x: NODE_PROPERTIES.position.x,
-                    y: NODE_PROPERTIES.position.y
+                    x: (like ? like._position.x + GRID_SPACING : NODE_PROPERTIES.position.x),
+                    y: (like ? like._position.y + GRID_SPACING : NODE_PROPERTIES.position.y),
                 }
             },
             _shape: {
                 enumerable: false,
                 writable: true,
-                value: NODE_PROPERTIES.shape as Shapes
+                value: (like ? like._shape : NODE_PROPERTIES.shape as Shapes)
             },
             _borderColor: {
                 enumerable: false,
                 writable: true,
-                value: NODE_PROPERTIES.borderColor
+                value: (like ? like._borderColor : NODE_PROPERTIES.borderColor)
             },
             _borderStyle: {
                 enumerable: false,
                 writable: true,
-                value: NODE_PROPERTIES.borderStyle as LineStyles
+                value: (like ? like._borderStyle : NODE_PROPERTIES.borderStyle as LineStyles)
             },
             _borderWidth: {
                 enumerable: false,
                 writable: true,
-                value: NODE_PROPERTIES.borderWidth
+                value: (like ? like._borderWidth : NODE_PROPERTIES.borderWidth)
             },
             _size: {
                 enumerable: false,
@@ -253,8 +253,8 @@ export class DrawableNode extends DrawableElement {
             }
         });
         Object.seal(this);
-        this.color = NODE_PROPERTIES.color;
-        this.label = NODE_PROPERTIES.label;
+        this.color = (like ? like._color : NODE_PROPERTIES.color);
+        this.label = (like ? like.label : NODE_PROPERTIES.label);
         this.clearAnchor();
     }
 
