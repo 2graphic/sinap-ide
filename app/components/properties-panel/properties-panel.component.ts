@@ -5,7 +5,7 @@
 
 import { Component, Input } from "@angular/core";
 import { BridgingProxy } from "../../models/graph-controller"
-import { Type } from "sinap-core";
+import { Type, UnionType } from "sinap-core";
 
 @Component({
     selector: "sinap-properties-panel",
@@ -19,6 +19,16 @@ export class PropertiesPanelComponent {
     private element: { [a: string]: any };
     private lookupSinapType: (a: string) => Type;
     private lookupPluginType: (a: string) => Type;
+
+    isUnionType(t: Type){
+        return t instanceof UnionType;
+    }
+
+    unionValues(t: UnionType) {
+        // substring necessary to strip the quote marks off the types
+        // that is, the union.types looks like ['"option a"', '"option b"', ...]
+        return t.types.map(t=>t.name.substring(1, t.name.length-1));
+    }
 
     @Input()
     set selectedElements(elements: Set<BridgingProxy> | null) {
