@@ -232,7 +232,6 @@ methods.
 
 
 # TODO
-- Debug hit detection.
 - Make sure to handle hit testing of custom shapes.
 - Reorder drawable elements on `addSelectedItem`.
 - Zoom and Pan need to be mapped to two-touch gestures.

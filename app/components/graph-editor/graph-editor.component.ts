@@ -314,8 +314,20 @@ export class GraphEditorComponent implements AfterViewInit {
 
     private onCopy
     = (e: ClipboardEvent) => {
+        const dt = e.clipboardData;
+        dt.clearData();
+        dt.dropEffect = "copy";
+        dt.effectAllowed = "copy";
+
         // TODO:
-        // Deal with this.
+        // Needs discussion: In order to get this to work according to the
+        // example in this blog post:
+        // https://www.lucidchart.com/techblog/2014/12/02/definitive-guide-copying-pasting-javascript/
+        // the graph editor needs access to a serializer and deserializer for
+        // the graph elements.
+        
+        // dt.setData("application/sinapObjects", )
+        e.preventDefault();
     }
 
     private onCut
