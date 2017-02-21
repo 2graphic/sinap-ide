@@ -191,22 +191,13 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 this.saveFile();
                 break;
             case MenuEventAction.CUT:
-                if (this.focusIsChildOf("editor-panel")) {
-                    this.graphEditor.cut();
-                    e.preventDefault();
-                }
+                document.execCommand("cut");
                 break;
             case MenuEventAction.COPY:
-                if (this.focusIsChildOf("editor-panel")) {
-                    this.graphEditor.copy();
-                    e.preventDefault();
-                }
+                document.execCommand("copy");
                 break;
             case MenuEventAction.PASTE:
-                if (this.focusIsChildOf("editor-panel")) {
-                    this.graphEditor.paste();
-                    e.preventDefault();
-                }
+                document.execCommand("paste");
                 break;
             case MenuEventAction.CLOSE:
                 if (this.context) {
@@ -225,6 +216,13 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     /**
      * Return true if the focused element is a child of an element with an `id` of `childOf`
+     * 
+     * Dear @RighteousRaichu,
+     * 
+     * I just made this useless.
+     * 
+     * With love,
+     * @ilargierdi
      */
     private focusIsChildOf(childOf: string) {
         function elementIsChildOf(element: Element, id: string): boolean {
