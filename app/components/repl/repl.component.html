@@ -3,23 +3,71 @@
         <h2>Input</h2>
     </div>
 
-    <div id="repl">
-        <div id="repl-output">
-            <div class="repl-item" *ngFor="let comm of results; let i = index;"
-            (click)="commandText = comm.input; input.focus()">
-                <div class="input">
-                <!-- <span class="repl-line-number">[{{results.length - i}}]:</span> -->
-                <div class="repl-left-padding">&gt;</div>
-                {{comm.input}}
+    <div class="flex-container-row">
+        <div id="repl">
+            <div id="repl-output">
+                <div class="repl-item clickable" *ngFor="let command of results" (click)="selected = command" [class.selected]="selected == command">
+                    <table *ngIf="selected">
+                        <tr>
+                            <td>
+                                <div class="input">
+                                    <span class="chevron">&gt;</span>
+                                    {{command.input}}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="last">
+                                <div class="result">
+                                    <span class="chevron">&lt;</span>
+                                    <span [class.error]="command.error">{{command.output.result}}</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
-                <div class="repl-left-padding">&lt;</div>
-                {{comm.result}}
+            </div>
+            <div id="repl-cl">
+                <form (ngSubmit)="onSubmit(commandText); commandText = ''">
+                    <input [(ngModel)]="commandText" name="commandText" type="text" #input />
+                </form>
             </div>
         </div>
-        <div id="repl-cl">
-            <form (ngSubmit)="onSubmit(commandText); commandText = ''">
-                <input [(ngModel)]="commandText" name="commandText" type="text" #input />
-            </form>
+        <div id="log">
+            <table *ngIf="selected">
+                <tr>
+                    <td>
+                        <div class="input">
+                            <span class="chevron">&gt;</span>
+                            {{selected.input}}
+                        </div>
+                    </td>
+                </tr>
+                <tr *ngFor="let state of selected.output.states; let i = index;">
+                    <td class="clickable" (click)="selectState(state)">
+                        {{state.message}}
+                        <div *ngIf="selectedState == state">
+                            <br>
+                            active: {{state.active.label}}
+                            <br>
+                            inputLeft: {{state.inputLeft}}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="last">
+                        <div class="result">
+                            <span class="chevron">&lt;</span>
+                            <span [class.error]="selected.error">{{selected.output.result}}</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr *ngIf="selected.error">
+                    <td>
+                        {{selected.error.stack}}
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 </div>

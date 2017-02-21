@@ -1,0 +1,182 @@
+{
+    "format": "sinap-file-format",
+    "kind": "TODO: implement this",
+    "version": "0.0.6",
+    "elements": [
+        {
+            "kind": "Graph",
+            "type": "DFAGraph",
+            "data": {}
+        },
+        {
+            "kind": "Node",
+            "type": "DFANode",
+            "data": {
+                "color": "#fff200",
+                "label": "q0",
+                "position": {
+                    "x": 91,
+                    "y": 233
+                },
+                "shape": "circle",
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2,
+                "isStartState": true,
+                "isAcceptState": true
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "DFANode",
+            "data": {
+                "color": "#fff200",
+                "label": "q1",
+                "position": {
+                    "x": 270,
+                    "y": 225
+                },
+                "shape": "circle",
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "DFANode",
+            "data": {
+                "color": "#fff200",
+                "label": "q2",
+                "position": {
+                    "x": 477,
+                    "y": 237.99999999999997
+                },
+                "shape": "circle",
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "DFAEdge",
+            "data": {
+                "color": "#000",
+                "label": "1",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "DFAEdge",
+            "data": {
+                "color": "#000",
+                "label": "1",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "DFAEdge",
+            "data": {
+                "color": "#000",
+                "label": "0",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 3
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "DFAEdge",
+            "data": {
+                "color": "#000",
+                "label": "0",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 3
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "DFAEdge",
+            "data": {
+                "color": "#000",
+                "label": "0",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "DFAEdge",
+            "data": {
+                "color": "#000",
+                "label": "1",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 3
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 3
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        }
+    ]
+}
