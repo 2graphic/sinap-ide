@@ -20,14 +20,14 @@ export class PropertiesPanelComponent {
     private lookupSinapType: (a: string) => Type;
     private lookupPluginType: (a: string) => Type;
 
-    isUnionType(t: Type){
+    isUnionType(t: Type) {
         return t instanceof UnionType;
     }
 
     unionValues(t: UnionType) {
         // substring necessary to strip the quote marks off the types
         // that is, the union.types looks like ['"option a"', '"option b"', ...]
-        return t.types.map(t=>t.name.substring(1, t.name.length-1));
+        return t.types.map(t => t.name.substring(1, t.name.length - 1));
     }
 
     @Input()
