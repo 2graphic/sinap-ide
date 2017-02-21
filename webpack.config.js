@@ -77,6 +77,10 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
     var electronTarget = webpackMerge(common, {
         target: 'electron',
 
+        node: {
+            __dirname: false,
+        },
+
         entry: {
             'index': './app/index',
         },
