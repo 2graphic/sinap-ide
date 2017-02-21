@@ -51,14 +51,14 @@ export class REPLComponent {
         let f = () => {
             setTimeout(() => {
                 g();
-            }, 750)
+            }, 750);
         };
 
         g = () => {
             if (this.step()) {
                 f();
             }
-        }
+        };
 
         g();
     }

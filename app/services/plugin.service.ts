@@ -9,11 +9,7 @@ declare class IProgram {
     run(a: any): any;
 }
 
-declare class IOutput {
-    states?: any;
-    result?: any;
-    error?: any;
-}
+declare type IOutput = Output | { error: any };
 
 export declare class Output {
     states: any;
@@ -40,11 +36,11 @@ class WrappedProgram implements Program {
     run(a: any): Output {
         const output = this.program.run(a) as IOutput;
 
-        if (output.error) {
+        if (!(output instanceof Output)) {
             throw output.error;
         }
 
-        return output as Output;
+        return output;
     }
 }
 
