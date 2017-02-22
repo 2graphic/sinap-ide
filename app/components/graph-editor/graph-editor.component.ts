@@ -161,8 +161,14 @@ export class GraphEditorComponent implements AfterViewInit {
      * redrawDelegate  
      *   For suspending and resuming draw calls.
      */
-    private redrawDelegate: () => void
-    = () => { };
+    private redrawDelegate: callback
+    = NOOP;
+
+    private deleteSelectedDelegate: callback
+    = NOOP;
+
+    private selectAllDelegate: callback
+    = NOOP;
 
 
     // Public Fields ///////////////////////////////////////////////////////////
@@ -206,7 +212,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Suspends updates to the canvas.
      */
     suspendRedraw() {
-        this.redrawDelegate = () => { };
+        this.redrawDelegate = NOOP;
     }
 
     /**
@@ -294,10 +300,12 @@ export class GraphEditorComponent implements AfterViewInit {
         }
     }
 
-    deleteSelected(): void {
-        this.suspendRedraw();
-        this.graph.deleteSelected();
-        this.resumeRedraw();
+    get deleteSelected() {
+        return this.deleteSelectedDelegate;
+    }
+
+    get selectAll() {
+        return this.selectAllDelegate;
     }
 
     /**
@@ -320,40 +328,41 @@ export class GraphEditorComponent implements AfterViewInit {
         dt.effectAllowed = "copy";
 
         // TODO:
-        // Needs discussion: In order to get this to work according to the
-        // example in this blog post:
-        // https://www.lucidchart.com/techblog/2014/12/02/definitive-guide-copying-pasting-javascript/
-        // the graph editor needs access to a serializer and deserializer for
-        // the graph elements.
-        
+        // - Serialize selection into dt.
         // dt.setData("application/sinapObjects", )
+        console.log("copy")
+
         e.preventDefault();
     }
 
     private onCut
     = (e: ClipboardEvent) => {
+        const dt = e.clipboardData;
+        dt.clearData();
+        dt.dropEffect = "move";
+        dt.effectAllowed = "move";
+
         // TODO:
-        // Deal with this.
+        // - Serialize selection into dt.
+        // - Delete selection.
+        // dt.setData("application/sinapObjects", )
+        console.log("cut")
+
+        e.preventDefault();
     }
 
     private onPaste
     = (e: ClipboardEvent) => {
-        // TODO:
-        // Deal with this.
-    }
+        const dt = e.clipboardData;
+        if (dt.effectAllowed === "copy" || dt.effectAllowed === "move") {
+            // TODO:
+            // - Deserialize selection from dt.
+            // dt.getData("application/sinapObjects")
+            console.log("paste")
 
-    /**
-     * onKeyDown  
-     *   Handles the delete key.
-     * 
-     * TODO:
-     * - Remove this from the editor.
-     */
-    private onKeyDown
-    = (e: KeyboardEvent): void => {
-        // Delete keyCode is 46; backspace is 8.
-        if (e.keyCode == 46 || e.keyCode == 8) {
-            this.deleteSelected();
+            if (dt.effectAllowed === "move")
+                dt.clearData();
+            e.preventDefault();
         }
     }
 
@@ -409,7 +418,6 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private onMouseMove
     = (e: MouseEvent): void => {
-        this.focusHiddenArea();
         let ePt = this.canvas.getPt(e);
 
         // Capture the down event if the drag object has been set.
@@ -418,6 +426,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
         // Make sure the down event was previously captured.
         if (this.downEvt) {
+            this.focusHiddenArea();
 
             // Get the change in x and y locations of the cursor.
             let downPt = this.canvas.getPt(this.downEvt);
@@ -651,7 +660,6 @@ export class GraphEditorComponent implements AfterViewInit {
         hidden.addEventListener("copy", this.onCopy);
         hidden.addEventListener("cut", this.onCut);
         hidden.addEventListener("paste", this.onPaste);
-        el.addEventListener("keydown", this.onKeyDown);
     }
 
     /**
@@ -670,7 +678,6 @@ export class GraphEditorComponent implements AfterViewInit {
         hidden.removeEventListener("copy", this.onCopy);
         hidden.removeEventListener("cut", this.onCut);
         hidden.removeEventListener("paste", this.onPaste);
-        el.removeEventListener("keydown", this.onKeyDown);
     }
 
     /**
@@ -689,6 +696,16 @@ export class GraphEditorComponent implements AfterViewInit {
         this.drawList = [];
         for (const d of [...g.edges, ...g.nodes])
             this.registerDrawable(d);
+        this.deleteSelectedDelegate = () => {
+            this.suspendRedraw();
+            g.deleteSelected();
+            this.resumeRedraw();
+        };
+        this.selectAllDelegate = () => {
+            this.suspendRedraw();
+            g.selectItems(...g.nodes, ...g.edges);
+            this.resumeRedraw();
+        };
     }
 
     /**
@@ -696,6 +713,8 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Unregisters event listeners for the previously bound graph.
      */
     private unregisterGraph(g: DrawableGraph) {
+        this.deleteSelectedDelegate = NOOP;
+        this.selectAllDelegate = NOOP;
         g.removeCreatedEdgeListener(this.onCreatedEdge);
         g.removeCreatedNodeListener(this.onCreatedNode);
         g.removeDeletedEdgeListener(this.onDeletedEdge);
@@ -1104,3 +1123,10 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+const NOOP: callback
+    = () => { }

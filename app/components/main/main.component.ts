@@ -199,6 +199,20 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             case MenuEventAction.PASTE:
                 document.execCommand("paste");
                 break;
+            case MenuEventAction.DELETE:
+                if (this.focusIsChildOf("editor-panel"))
+                    this.graphEditor.deleteSelected();
+                else
+                    document.execCommand("delete");
+                break;
+            case MenuEventAction.SELECT_ALL:
+                // TODO:
+                // This isn't working on Windows.
+                if (this.focusIsChildOf("editor-panel"))
+                    this.graphEditor.selectAll();
+                else
+                    document.execCommand("selectAll");
+                break;
             case MenuEventAction.CLOSE:
                 if (this.context) {
                     this.tabBar.deleteTab(this.context.index);
@@ -216,28 +230,17 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     /**
      * Return true if the focused element is a child of an element with an `id` of `childOf`
-     * 
-     * Dear @RighteousRaichu,
-     * 
-     * I just made this useless.
-     * 
-     * With love,
-     * @ilargierdi
      */
     private focusIsChildOf(childOf: string) {
-        function elementIsChildOf(element: Element, id: string): boolean {
-            while (element.parentElement) {
-                if (element.parentElement.id == id) {
-                    return true;
-                } else {
-                    return elementIsChildOf(element.parentElement, id);
-                }
-            }
-
-            return false;
+        console.log(childOf)
+        let el: Element | null = document.activeElement;
+        while (el && document.hasFocus()) {
+            console.log(el)
+            if (el.id == childOf)
+                return true;
+            el = el.parentElement;
         }
-
-        return document.hasFocus() && elementIsChildOf(document.activeElement, childOf);
+        return false;
     }
 
     saveFile() {
