@@ -27,6 +27,8 @@ import { FileService, LocalFileService, File } from "../../services/files.servic
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
 
+import { ResizeEvent } from 'angular-resizable-element';
+
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
@@ -279,6 +281,25 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             });
         } else {
             throw new Error("No Graph to Run");
+        }
+    }
+
+
+
+    /* ---------- Resizable Panels ---------- */
+
+    private leftPanelWidth = 300;
+    private bottomPanelHeight = 225;
+
+    private resizing(element: Element, event: ResizeEvent) {
+        if (element.id == "left-panels-group") {
+            if (event.rectangle.width != undefined) {
+                this.leftPanelWidth = Math.max(event.rectangle.width, 250);
+            }
+        } else if (element.id == "bottom-panels") {
+            if (event.rectangle.height != undefined) {
+                this.bottomPanelHeight = Math.max(event.rectangle.height, 175);
+            }
         }
     }
 }

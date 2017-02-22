@@ -35,6 +35,7 @@
     "@angular/platform-browser": "2.4.x",
     "@angular/platform-browser-dynamic": "2.4.x",
     "@angular/upgrade": "2.4.x",
+    "angular-resizable-element": "0.6.1",
     "core-js": "2.4.x",
     "ng-inline-svg": "2.2.x",
     "reflect-metadata": "^0.1.x",
