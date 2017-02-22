@@ -190,28 +190,17 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             case MenuEventAction.SAVE_FILE:
                 this.saveFile();
                 break;
-            case MenuEventAction.CUT:
-                document.execCommand("cut");
-                break;
-            case MenuEventAction.COPY:
-                document.execCommand("copy");
-                break;
-            case MenuEventAction.PASTE:
-                document.execCommand("paste");
-                break;
             case MenuEventAction.DELETE:
-                if (this.focusIsChildOf("editor-panel"))
+                if (this.focusIsChildOf("editor-panel")) {
                     this.graphEditor.deleteSelected();
-                else
-                    document.execCommand("delete");
+                    e.preventDefault();
+                }
                 break;
             case MenuEventAction.SELECT_ALL:
-                // TODO:
-                // This isn't working on Windows.
-                if (this.focusIsChildOf("editor-panel"))
+                if (this.focusIsChildOf("editor-panel")) {
                     this.graphEditor.selectAll();
-                else
-                    document.execCommand("selectAll");
+                    e.preventDefault();
+                }
                 break;
             case MenuEventAction.CLOSE:
                 if (this.context) {
@@ -232,10 +221,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
      * Return true if the focused element is a child of an element with an `id` of `childOf`
      */
     private focusIsChildOf(childOf: string) {
-        console.log(childOf)
         let el: Element | null = document.activeElement;
         while (el && document.hasFocus()) {
-            console.log(el)
             if (el.id == childOf)
                 return true;
             el = el.parentElement;
