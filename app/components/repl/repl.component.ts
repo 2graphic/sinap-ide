@@ -1,5 +1,5 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
-import { Output } from "../../services/plugin.service";
+import { Output, isOutput } from "../../services/plugin.service";
 
 @Component({
     selector: "repl",
@@ -75,11 +75,16 @@ export class REPLComponent {
             throw new Error("REPLDelegate not set.");
         }
 
-        let handleResult = (output: any) => {
+        let handleResult = (output: Output | Error) => {
             let command: Command;
 
-            // Better way of figuring out type of Proxy
-            if (output.stack) {
+            if (isOutput(output)) {
+                command = {
+                    input: input,
+                    output: output,
+                    steps: 0
+                };
+            } else {
                 command = {
                     input: input,
                     output: {
@@ -87,12 +92,6 @@ export class REPLComponent {
                         result: output.message
                     },
                     error: output,
-                    steps: 0
-                };
-            } else {
-                command = {
-                    input: input,
-                    output: output,
                     steps: 0
                 };
             }
@@ -108,7 +107,6 @@ export class REPLComponent {
         };
 
         this.delegate.run(input).then((output) => {
-            console.log(output);
             handleResult(output);
         }).catch((e) => {
             handleResult(e);

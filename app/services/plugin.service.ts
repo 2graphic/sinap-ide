@@ -4,6 +4,11 @@ import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { LocalFileService } from "../services/files.service";
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
+
+/**
+ * The format of the program we get from core,
+ * eventually we'll get this from core.
+ */
 declare class IProgram {
     constructor(graph: SerialJSO);
     run(a: any): any;
@@ -11,10 +16,20 @@ declare class IProgram {
 
 declare type IOutput = Output | { error: any };
 
-export declare class Output {
+
+
+
+export interface Output {
     states: any;
     result: any;
 };
+
+export function isOutput(a: any): a is Output {
+    return a !== undefined && a.states !== undefined && a.result !== undefined;
+}
+
+
+
 
 export interface Program {
     validate(): string[];
@@ -36,13 +51,16 @@ class WrappedProgram implements Program {
     run(a: any): Output {
         const output = this.program.run(a) as IOutput;
 
-        if (!(output instanceof Output)) {
+        if (!(isOutput(output))) {
             throw output.error;
         }
 
         return output;
     }
 }
+
+
+
 
 type StubContext = { global: { "plugin-stub": { "Program": typeof IProgram } } };
 

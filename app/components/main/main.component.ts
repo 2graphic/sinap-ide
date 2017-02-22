@@ -105,7 +105,6 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     private makeChangeNotifier(context: TabContext) {
         return (change: UndoableEvent) => {
             // Something like this.changes.get(context).add(change)
-            console.log(context.graph, change);
             this.getProgram(context).then(program => {
                 this.updateStatusBar(program);
                 this.testComponent.program = program;
