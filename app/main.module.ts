@@ -13,6 +13,7 @@ import { BrowserModule } from "@angular/platform-browser";
 import { FormsModule } from '@angular/forms';
 
 import { InlineSVGModule } from 'ng-inline-svg';
+import { ResizableModule } from 'angular-resizable-element';
 
 import { MainComponent } from "./components/main/main.component";
 import { CollapsibleListComponent } from "./components/collapsible-list/collapsible-list.component";
@@ -30,7 +31,8 @@ import { TabBarComponent } from "./components/tab-bar/tab-bar.component";
     imports: [
         BrowserModule,
         FormsModule,
-        InlineSVGModule
+        InlineSVGModule,
+        ResizableModule,
     ],
     declarations: [
         MainComponent,

@@ -25,12 +25,11 @@
 
 #bottom-panels {
   flex: none;
-  height: 15em;
+  border-top: thin solid lightgrey;
 }
 
 #left-panels-group {
   flex: none;
-  width: 18em;
   height: 100%;
   box-sizing: border-box;
   border-right: thin solid lightgrey;
