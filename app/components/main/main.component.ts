@@ -27,6 +27,8 @@ import { FileService, LocalFileService, File } from "../../services/files.servic
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
 
+import { ResizeEvent } from 'angular-resizable-element';
+
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
@@ -49,6 +51,9 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             this.newFile();
             this.changeDetectorRef.detectChanges();
         }
+
+        this.leftPanelsGroup.nativeElement.style.width = "300px";
+        this.bottomPanels.nativeElement.style.height = "225px";
     }
 
     @ViewChild(GraphEditorComponent)
@@ -74,6 +79,10 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     @ViewChild(TabBarComponent)
     private tabBar: TabBarComponent;
+
+    @ViewChild('editorPanel') editorPanel: ElementRef;
+    @ViewChild('leftPanelsGroup') leftPanelsGroup: ElementRef;
+    @ViewChild('bottomPanels') bottomPanels: ElementRef;
 
     public package = "Finite Automata";
     public barMessages: string[] = []
@@ -267,6 +276,27 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             });
         } else {
             throw new Error("No Graph to Run");
+        }
+    }
+
+
+
+    /* ---------- Resizable Panels ---------- */
+
+    private resizing(element: Element, event: ResizeEvent) {
+        if (element.id == "left-panels-group") {
+            if (event.rectangle.width != undefined) {
+                this.leftPanelsGroup.nativeElement.style.width = Math.max(event.rectangle.width, 250) + "px";
+
+                if (this.leftPanelsGroup.nativeElement.clientWidth + this.editorPanel.nativeElement.clientWidth >= window.innerWidth) {
+                    this.leftPanelsGroup.nativeElement.style.width = (window.innerWidth - this.editorPanel.nativeElement.clientWidth - 1) + "px";
+                }
+            }
+        } else if (element.id == "bottom-panels") {
+            if (event.rectangle.height != undefined) {
+                // 55 = height of tab bar plus height of status bar
+                this.bottomPanels.nativeElement.style.height = Math.min(Math.max(event.rectangle.height, 175), window.innerHeight - 55) + "px";
+            }
         }
     }
 }
