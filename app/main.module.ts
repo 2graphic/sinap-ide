@@ -27,6 +27,12 @@ import { GraphEditorComponent } from "./components/graph-editor/graph-editor.com
 import { StatusBarComponent } from "./components/status-bar/status-bar.component";
 import { TabBarComponent } from "./components/tab-bar/tab-bar.component";
 
+import { TypeInjectorComponent } from "./components/types/type-injector/type-injector.component";
+import { StringTypeComponent } from "./components/types/string-type/string-type.component";
+import { BooleanTypeComponent } from "./components/types/boolean-type/boolean-type.component";
+import { ObjectTypeComponent } from "./components/types/object-type/object-type.component";
+import { NodeTypeComponent } from "./components/types/node-type/node-type.component";
+
 @NgModule({
     imports: [
         BrowserModule,
@@ -46,6 +52,11 @@ import { TabBarComponent } from "./components/tab-bar/tab-bar.component";
         GraphEditorComponent,
         StatusBarComponent,
         TabBarComponent,
+        TypeInjectorComponent,
+        StringTypeComponent,
+        BooleanTypeComponent,
+        ObjectTypeComponent,
+        NodeTypeComponent,
     ],
     bootstrap: [MainComponent]
 })

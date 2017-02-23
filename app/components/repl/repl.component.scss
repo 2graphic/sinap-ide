@@ -20,12 +20,12 @@
 #repl {
     height: 100%;
     box-sizing: border-box;
-    padding: .75em;
+    padding: .25em;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     /* Make space for the title bar */
-    padding-top: $TOOLBAR_HEIGHT;
+    padding-top: calc(#{$TOOLBAR_HEIGHT} + .25em);
     margin-top: -$TOOLBAR_HEIGHT;
 }
 
@@ -43,19 +43,16 @@
     cursor: pointer;
 }
 
+.error {
+    color: darkred;
+}
+
 .clickable {
    cursor: pointer;
 }
 
 .repl-item.selected {
     filter: opacity(100%);
-}
-
-#repl-cl input {
-    box-sizing: border-box;
-    font-size: 1em;
-    width: 100%;
-    padding: 0px;
 }
 
 #repl-output {
@@ -66,15 +63,13 @@
     flex-direction: column-reverse;
 }
 
-.error {
-    color: darkred;
-}
-
 .chevron {
     display: inline-block;
     width: 1em;
     font-weight: bold;
     text-align: center;
+    vertical-align: bottom;
+    color: grey;
 }
 
 #log {

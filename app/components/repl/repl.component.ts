@@ -1,5 +1,9 @@
+// File: repl.component.ts
+//
+
 import { Component, ElementRef, ViewChild } from "@angular/core";
-import { Output, isOutput } from "../../services/plugin.service";
+import { Output, Value } from "../../services/plugin.service";
+import { Type } from "sinap-core";
 
 @Component({
     selector: "repl",
@@ -12,40 +16,61 @@ export class REPLComponent {
     private selected: Command;
     private selectedState: any;
 
-    @ViewChild('input') input: ElementRef;
+    private inputForPlugin = new Value("string", "");
+
     @ViewChild('log') log: ElementRef;
 
-    private selectState(a: any) {
-        this.selectedState = a;
-        this.delegate.selectNode(a.active);
+    private selectState(state: Value) {
+        this.selectedState = state;
+        if (state.type == "object" && state.value.active) {
+            this.delegate.selectNode(state.value.active.value);
+        }
     }
 
-    private selectCommand(c: Command) {
-        this.selected = c;
+    private scrollToBottom() {
         setTimeout(() => {
             let el: Element = this.log.nativeElement;
             el.scrollTop = el.scrollHeight;
         }, 0);
     }
 
+    /**
+     * Returns a new object value that doesn't have a message property.
+     */
+    private stripMessage(state: Value) {
+        if (state.type == "object") {
+            let r = new Value("object", {});
+            Object.keys(state.value).forEach((key) => {
+                if (key != "message") {
+                    r.value[key] = state.value[key];
+                }
+            });
+
+            return r;
+        }
+
+        return state;
+    }
+
+    private selectCommand(c: Command) {
+        this.selected = c;
+        this.scrollToBottom();
+    }
+
     private step(): boolean {
-        if (this.selected && !this.selected.error) {
-            if (this.selected.steps < this.selected.output.states.length) {
-                this.selectState(this.selected.output.states[this.selected.steps]);
-                this.selected.steps++;
-                setTimeout(() => {
-                    let el: Element = this.log.nativeElement;
-                    el.scrollTop = el.scrollHeight;
-                }, 0);
-                return true;
-            } else {
-                return false;
-            }
+        if (this.selected && (this.selected.steps < this.selected.output.states.length)) {
+            this.selectState(this.selected.output.states[this.selected.steps]);
+            this.selected.steps++;
+            this.scrollToBottom();
+            return true;
         }
 
         return false;
     }
 
+    /**
+     * Calls this.step() every 750 milliseconds as long as this.step() returns true.
+     */
     private stepToCompletion() {
         let g: () => void;
         let f = () => {
@@ -67,10 +92,7 @@ export class REPLComponent {
         return selected.output.states.slice(0, selected.steps);
     }
 
-    private onSubmit(input: String) {
-        if (!input) {
-            input = "";
-        }
+    private onSubmit(input: Value) {
         if (!this.delegate) {
             throw new Error("REPLDelegate not set.");
         }
@@ -78,22 +100,20 @@ export class REPLComponent {
         let handleResult = (output: Output | Error) => {
             let command: Command;
 
-            if (isOutput(output)) {
-                command = {
-                    input: input,
-                    output: output,
-                    steps: 0
-                };
+            if (output instanceof Output) {
+                command = new Command(input, output);
             } else {
-                command = {
-                    input: input,
-                    output: {
-                        states: [],
-                        result: output.message
-                    },
-                    error: output,
-                    steps: 0
-                };
+                let states = <Value[]>[];
+
+                if (output.stack) {
+                    states = output.stack.split("\n").map((frame) => {
+                        return new Value("string", frame);
+                    });
+                    states.shift();
+                    states.reverse();
+                }
+                command = new Command(input, new Output(states, new Value("error", output.message)));
+                command.steps = states.length;
             }
 
             this.selected = command;
@@ -102,15 +122,16 @@ export class REPLComponent {
             if (command.output.states.length > 0) {
                 this.selectedState = command.output.states[command.output.states.length - 1];
             }
-
-            console.log(command);
         };
 
-        this.delegate.run(input).then((output) => {
+        this.delegate.run(input.value).then((output) => {
             handleResult(output);
         }).catch((e) => {
             handleResult(e);
         });
+
+        this.inputForPlugin = new Value("string", "");
+        this.scrollToBottom();
     }
 }
 
@@ -118,10 +139,7 @@ export interface REPLDelegate {
     run(input: String): Promise<Output>;
     selectNode(n: any): void;
 }
-
-interface Command {
-    input: String;
-    output: Output;
-    error?: Error;
-    steps: number;
+class Command {
+    constructor(public readonly input: Value, public readonly output: Output) { };
+    public steps = 0;
 }

@@ -5,6 +5,7 @@
 
 import { Component, Input } from "@angular/core";
 import { Program } from "./../../services/plugin.service";
+import { Value } from "../../services/plugin.service";
 
 @Component({
     selector: "sinap-test-panel",
@@ -45,11 +46,10 @@ export class TestPanelComponent {
     private runTest(test: Test) {
         if (this.program) {
             try {
-                let out = this.program.run(test.input);
-                console.log(test, out);
-                test.output = out.result as boolean;
+                let out = this.program.run(test.input.value);
+                test.output = out.result;
             } catch (e) {
-                test.output = null;
+                test.output = new Value("string", "Error");
             }
         }
     }
@@ -67,11 +67,16 @@ export class TestPanelComponent {
     }
 
     private newTest() {
-        this.tests.push({
-            input: "",
-            expected: true,
-            output: null
-        });
+        const test = {
+            input: new Value("string", ""),
+            expected: new Value("boolean", true),
+            output: new Value("string", "Not ran")
+        }
+
+        test.input.changed.asObservable().subscribe(this.testChanged.bind(this, test));
+
+        this.tests.push(test);
+        this.runTest(test);
     }
 
     private select(test: Test) {
@@ -103,7 +108,7 @@ export class TestPanelComponent {
 }
 
 interface Test {
-    input: string;
-    expected: boolean;
-    output: boolean | null;
+    input: Value;
+    expected: Value;
+    output: Value;
 }

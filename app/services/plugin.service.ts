@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { Type, ObjectType, CoreModel, loadPlugin, Plugin, SerialJSO } from "sinap-core";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { LocalFileService } from "../services/files.service";
@@ -14,22 +14,33 @@ declare class IProgram {
     run(a: any): any;
 }
 
-declare type IOutput = Output | { error: any };
+declare type IOutput = { states: any, result: any, error?: any }
 
+/**
+ * Preferably each dynamically typed value from a plugin would come as a
+ * [Type, any] pair, which could then be wrapped up with an EventEmitter here.
+ */
+export class Value {
+    private _value: any;
+    public changed = new EventEmitter<any>();
 
+    constructor(public readonly type: string, value: any) {
+        this._value = value;
+    };
 
+    set value(v: any) {
+        this._value = v;
+        this.changed.emit(v);
+    }
 
-export interface Output {
-    states: any;
-    result: any;
-};
-
-export function isOutput(a: any): a is Output {
-    return a !== undefined && a.states !== undefined && a.result !== undefined;
+    get value() {
+        return this._value;
+    }
 }
 
-
-
+export class Output {
+    constructor(public readonly states: Value[], public readonly result: Value) { };
+};
 
 export interface Program {
     validate(): string[];
@@ -51,11 +62,19 @@ class WrappedProgram implements Program {
     run(a: any): Output {
         const output = this.program.run(a) as IOutput;
 
-        if (!(isOutput(output))) {
+        if (output.error) {
             throw output.error;
         }
 
-        return output;
+        let states = output.states.map((state: any) => {
+            return new Value("object", {
+                active: new Value("node", state.active),
+                inputLeft: new Value("string", state.inputLeft),
+                message: new Value("string", state.message),
+            });
+        });
+
+        return new Output(states, new Value("boolean", output.result));
     }
 }
 
