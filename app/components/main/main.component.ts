@@ -199,21 +199,15 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             case MenuEventAction.SAVE_FILE:
                 this.saveFile();
                 break;
-            case MenuEventAction.CUT:
+            case MenuEventAction.DELETE:
                 if (this.focusIsChildOf("editor-panel")) {
-                    this.graphEditor.cut();
+                    this.graphEditor.deleteSelected();
                     e.preventDefault();
                 }
                 break;
-            case MenuEventAction.COPY:
+            case MenuEventAction.SELECT_ALL:
                 if (this.focusIsChildOf("editor-panel")) {
-                    this.graphEditor.copy();
-                    e.preventDefault();
-                }
-                break;
-            case MenuEventAction.PASTE:
-                if (this.focusIsChildOf("editor-panel")) {
-                    this.graphEditor.paste();
+                    this.graphEditor.selectAll();
                     e.preventDefault();
                 }
                 break;
@@ -236,19 +230,13 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
      * Return true if the focused element is a child of an element with an `id` of `childOf`
      */
     private focusIsChildOf(childOf: string) {
-        function elementIsChildOf(element: Element, id: string): boolean {
-            while (element.parentElement) {
-                if (element.parentElement.id == id) {
-                    return true;
-                } else {
-                    return elementIsChildOf(element.parentElement, id);
-                }
-            }
-
-            return false;
+        let el: Element | null = document.activeElement;
+        while (el && document.hasFocus()) {
+            if (el.id == childOf)
+                return true;
+            el = el.parentElement;
         }
-
-        return document.hasFocus() && elementIsChildOf(document.activeElement, childOf);
+        return false;
     }
 
     saveFile() {

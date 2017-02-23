@@ -54,6 +54,12 @@ export type rect = point & size;
  *   Object that handles all of the drawing logic of the graph editor.
  */
 export class GraphEditorCanvas {
+    constructor(private g: CanvasRenderingContext2D) {
+        // These probably don't do anything.
+        this.g.mozImageSmoothingEnabled = true;
+        this.g.msImageSmoothingEnabled = true;
+        this.g.oImageSmoothingEnabled = true;
+    }
 
 
     // Fields //////////////////////////////////////////////////////////////////
@@ -70,17 +76,6 @@ export class GraphEditorCanvas {
      *   The coordinates of the canvas origin.
      */
     private _origin: point = { x: 0, y: 0 };
-
-
-    // Constructor /////////////////////////////////////////////////////////////
-
-
-    constructor(private g: CanvasRenderingContext2D) {
-        // These probably don't do anything.
-        this.g.mozImageSmoothingEnabled = true;
-        this.g.msImageSmoothingEnabled = true;
-        this.g.oImageSmoothingEnabled = true;
-    }
 
 
     // Trace methods ///////////////////////////////////////////////////////////

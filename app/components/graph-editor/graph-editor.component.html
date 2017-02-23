@@ -1,7 +1,5 @@
 <div>
-  <canvas
-    #sinapGraphEditorCanvas
-    tabindex="1"
-    (window:resize)="resize()">
+  <canvas #sinapGraphEditorCanvas tabindex="0" (window:resize)="resize()">
+    <input #hiddenInput type="text" value="" />
   </canvas>
 </div>

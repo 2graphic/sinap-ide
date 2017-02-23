@@ -80,6 +80,9 @@ export class GraphEditorComponent implements AfterViewInit {
     // Private Fields //////////////////////////////////////////////////////////
 
 
+    @ViewChild("hiddenInput")
+    private hiddenInputElementRef: ElementRef;
+
     /**
      * canvasElementRef  
      *   Reference to the canvas child element.
@@ -158,8 +161,14 @@ export class GraphEditorComponent implements AfterViewInit {
      * redrawDelegate  
      *   For suspending and resuming draw calls.
      */
-    private redrawDelegate: () => void
-    = () => { };
+    private redrawDelegate: callback
+    = NOOP;
+
+    private deleteSelectedDelegate: callback
+    = NOOP;
+
+    private selectAllDelegate: callback
+    = NOOP;
 
 
     // Public Fields ///////////////////////////////////////////////////////////
@@ -178,12 +187,12 @@ export class GraphEditorComponent implements AfterViewInit {
             this.oldGraph = this.graph;
             this.suspendRedraw();
             this.registerGraph(value);
-            this.registerEventListeners(this.el.nativeElement);
+            this.registerEventListeners();
             this.resumeRedraw();
         }
         else {
             this.oldGraph = null;
-            this.unregisterEventListeners(this.el.nativeElement);
+            this.unregisterEventListeners();
             this.suspendRedraw();
             this.panPt = null;
             this.downEvt = null;
@@ -203,7 +212,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Suspends updates to the canvas.
      */
     suspendRedraw() {
-        this.redrawDelegate = () => { };
+        this.redrawDelegate = NOOP;
     }
 
     /**
@@ -231,6 +240,9 @@ export class GraphEditorComponent implements AfterViewInit {
      * Note:
      * The intent of this function is to be able to set the drag node from the
      * components panel.
+     * 
+     * TODO:
+     * Maybe we can use the standard drop event for this instead.
      */
     // @Input()
     // dragNode(value: DrawableNode) {
@@ -288,6 +300,14 @@ export class GraphEditorComponent implements AfterViewInit {
         }
     }
 
+    get deleteSelected() {
+        return this.deleteSelectedDelegate;
+    }
+
+    get selectAll() {
+        return this.selectAllDelegate;
+    }
+
     /**
      * redraw  
      *   Redraws the graph.
@@ -296,36 +316,53 @@ export class GraphEditorComponent implements AfterViewInit {
         return this.redrawDelegate;
     }
 
-    copy(): void {
-        console.log("Editor copy");
-    }
-
-    cut(): void {
-        console.log("Editor cut");
-    }
-
-    paste(): void {
-        console.log("Editor paste");
-    }
-
 
     // Event handlers //////////////////////////////////////////////////////////
 
 
-    /**
-     * onKeyDown  
-     *   Handles the delete key.
-     * 
-     * TODO:
-     * - Remove this from the editor.
-     */
-    private onKeyDown
-    = (e: KeyboardEvent): void => {
-        // Delete keyCode is 46; backspace is 8.
-        if (e.keyCode == 46 || e.keyCode == 8) {
-            this.suspendRedraw();
-            this.graph.deleteSelected();
-            this.resumeRedraw();
+    private onCopy
+    = (e: ClipboardEvent) => {
+        const dt = e.clipboardData;
+        dt.clearData();
+        dt.dropEffect = "copy";
+        dt.effectAllowed = "copy";
+
+        // TODO:
+        // - Serialize selection into dt.
+        // dt.setData("application/sinapObjects", )
+        console.log("copy")
+
+        e.preventDefault();
+    }
+
+    private onCut
+    = (e: ClipboardEvent) => {
+        const dt = e.clipboardData;
+        dt.clearData();
+        dt.dropEffect = "move";
+        dt.effectAllowed = "move";
+
+        // TODO:
+        // - Serialize selection into dt.
+        // - Delete selection.
+        // dt.setData("application/sinapObjects", )
+        console.log("cut")
+
+        e.preventDefault();
+    }
+
+    private onPaste
+    = (e: ClipboardEvent) => {
+        const dt = e.clipboardData;
+        if (dt.effectAllowed === "copy" || dt.effectAllowed === "move") {
+            // TODO:
+            // - Deserialize selection from dt.
+            // dt.getData("application/sinapObjects")
+            console.log("paste")
+
+            if (dt.effectAllowed === "move")
+                dt.clearData();
+            e.preventDefault();
         }
     }
 
@@ -335,6 +372,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private onMouseDown
     = (e: MouseEvent): void => {
+        this.focusHiddenArea();
         switch (e.buttons) {
 
             // Handle the left mouse button event.
@@ -388,6 +426,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
         // Make sure the down event was previously captured.
         if (this.downEvt) {
+            this.focusHiddenArea();
 
             // Get the change in x and y locations of the cursor.
             let downPt = this.canvas.getPt(this.downEvt);
@@ -446,6 +485,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private onMouseUp
     = (e: MouseEvent): void => {
+        this.focusHiddenArea();
 
         // Make sure a down event was previously captured.
         if (this.downEvt) {
@@ -606,7 +646,9 @@ export class GraphEditorComponent implements AfterViewInit {
      * registerEventListeners  
      *   Registers input event listeners.
      */
-    private registerEventListeners(el: any) {
+    private registerEventListeners() {
+        const el = this.el.nativeElement as EventTarget;
+        const hidden = this.hiddenInputElementRef.nativeElement as EventTarget;
         el.addEventListener("mousedown", this.onMouseDown);
         el.addEventListener("mousemove", this.onMouseMove);
         el.addEventListener("wheel", this.onWheel);
@@ -615,19 +657,27 @@ export class GraphEditorComponent implements AfterViewInit {
         // https://developer.mozilla.org/en-US/docs/Web/API/Touch_events
         el.addEventListener("touchstart", (e: TouchEvent) => console.log(e));
         el.addEventListener("touchend", (e: TouchEvent) => console.log(e));
-        el.addEventListener("keydown", this.onKeyDown);
+        hidden.addEventListener("copy", this.onCopy);
+        hidden.addEventListener("cut", this.onCut);
+        hidden.addEventListener("paste", this.onPaste);
     }
 
     /**
      * unregisterEventListeners  
      *   Unregisters event listeners.
      */
-    private unregisterEventListeners(el: any) {
+    private unregisterEventListeners() {
+        const el = this.el.nativeElement as EventTarget;
+        const hidden = this.hiddenInputElementRef.nativeElement as EventTarget;
         el.removeEventListener("mousedown", this.onMouseDown);
         el.removeEventListener("mouseup", this.onMouseUp);
         el.removeEventListener("mousemove", this.onMouseMove);
         el.removeEventListener("wheel", this.onWheel);
-        el.removeEventListener("keydown", this.onKeyDown);
+        // TODO:
+        // remove touch event listeners.
+        hidden.removeEventListener("copy", this.onCopy);
+        hidden.removeEventListener("cut", this.onCut);
+        hidden.removeEventListener("paste", this.onPaste);
     }
 
     /**
@@ -646,6 +696,16 @@ export class GraphEditorComponent implements AfterViewInit {
         this.drawList = [];
         for (const d of [...g.edges, ...g.nodes])
             this.registerDrawable(d);
+        this.deleteSelectedDelegate = () => {
+            this.suspendRedraw();
+            g.deleteSelected();
+            this.resumeRedraw();
+        };
+        this.selectAllDelegate = () => {
+            this.suspendRedraw();
+            g.selectItems(...g.nodes, ...g.edges);
+            this.resumeRedraw();
+        };
     }
 
     /**
@@ -653,6 +713,8 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Unregisters event listeners for the previously bound graph.
      */
     private unregisterGraph(g: DrawableGraph) {
+        this.deleteSelectedDelegate = NOOP;
+        this.selectAllDelegate = NOOP;
         g.removeCreatedEdgeListener(this.onCreatedEdge);
         g.removeCreatedNodeListener(this.onCreatedNode);
         g.removeDeletedEdgeListener(this.onDeletedEdge);
@@ -905,23 +967,9 @@ export class GraphEditorComponent implements AfterViewInit {
         this.redraw();
     }
 
-    /**
-     * createDragEdge  
-     *   Creates a ghost edge to be dragged.
-     */
-    private createDragEdge(
-        n: DrawableNode,
-        isSrc: boolean,
-        like?: DrawableEdge
-    ) {
-        let h = new HiddenNode(this.graph);
-        h.position = this.canvas.getPt(this.downEvt as point);
-        let src = (isSrc ? n : h);
-        let dst = (isSrc ? h : n);
-        let d = new DrawableEdge(this.graph, src, dst, like);
-        d.isDragging = true;
-        this.dragObject = h;
-        this.drawList.push(d);
+    private focusHiddenArea() {
+        this.hiddenInputElementRef.nativeElement.value = " ";
+        this.hiddenInputElementRef.nativeElement.focus();
     }
 
     /**
@@ -1010,6 +1058,25 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
+     * createDragEdge  
+     *   Creates a ghost edge to be dragged.
+     */
+    private createDragEdge(
+        n: DrawableNode,
+        isSrc: boolean,
+        like?: DrawableEdge
+    ) {
+        let h = new HiddenNode(this.graph);
+        h.position = this.canvas.getPt(this.downEvt as point);
+        let src = (isSrc ? n : h);
+        let dst = (isSrc ? h : n);
+        let d = new DrawableEdge(this.graph, src, dst, like);
+        d.isDragging = true;
+        this.dragObject = h;
+        this.drawList.push(d);
+    }
+
+    /**
      * dropEdge  
      *   Drops the dragged edge when the mouse is released.
      */
@@ -1056,3 +1123,10 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+const NOOP: callback
+    = () => { }

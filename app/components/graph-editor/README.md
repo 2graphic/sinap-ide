@@ -1,4 +1,4 @@
-_Last updated: February 11, 2017_
+_Last updated: February 20, 2017_
 
 # Remarks
 The graph editor component is a custom Angular2 component that is intended to be
@@ -117,7 +117,7 @@ are captured, then the first drawable edge is captured. Drawable elements handle
 their own hit detection logic for both point hit detection and rectangle hit
 detection.
 
-### Input Behavior
+### Input Handling
 Input to the graph editor is handled through mouse events. The `mousedown` event
 starts a timer to determine whether or not a node should be created. The
 `mousemove` event either activates hovering on graph elements, creates a
@@ -129,6 +129,10 @@ being dragged.
 In order to avoid having to check if the graph object has been set in the
 editor, event handler methods and public methods that depend on the graph are
 set to be delegates. Events are just registered and unregistered as needed.
+
+### Clipboard Events
+Handling clipboard events uses some techniques outlined in this blog post:
+https://www.lucidchart.com/techblog/2014/12/02/definitive-guide-copying-pasting-javascript/
 
 ## graph-editor-canvas.ts
 The `GraphEditorCanvas` class separates the majority of the drawing logic from
@@ -228,7 +232,6 @@ methods.
 
 
 # TODO
-- Debug hit detection.
 - Make sure to handle hit testing of custom shapes.
 - Reorder drawable elements on `addSelectedItem`.
 - Zoom and Pan need to be mapped to two-touch gestures.

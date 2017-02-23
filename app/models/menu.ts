@@ -8,6 +8,8 @@ export enum MenuEventAction {
     CUT,
     COPY,
     PASTE,
+    DELETE,
+    SELECT_ALL,
     SAVE_FILE,
     LOAD_FILE,
     CLOSE,
@@ -76,10 +78,14 @@ var editMenu: Electron.MenuItemOptions = {
             click: clickHandlerMake(MenuEventAction.PASTE)
         },
         {
-            role: 'delete'
+            label: 'Delete',
+            accelerator: (process.platform === 'darwin' ? 'Backspace' : 'Delete'),
+            click: clickHandlerMake(MenuEventAction.DELETE)
         },
         {
-            role: 'selectall'
+            label: 'Select All',
+            accelerator: 'CmdOrCtrl+a',
+            click: clickHandlerMake(MenuEventAction.SELECT_ALL)
         },
     ]
 };

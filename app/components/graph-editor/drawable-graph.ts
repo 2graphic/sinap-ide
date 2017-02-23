@@ -416,13 +416,14 @@ export class DrawableGraph extends Drawable {
      * createNode  
      *   Creates a drawable node.
      */
-    createNode(): DrawableNode | null {
+    createNode(like?: DrawableNode): DrawableNode | null {
         return this.createItem(
-            this._nodes,
-            new DrawableNode(this),
             this._creatingNodeEmitter,
             this._createdNodeEmitter,
-            "nodes"
+            "nodes",
+            this._nodes,
+            new DrawableNode(this, like),
+            like
         );
     }
 
@@ -457,11 +458,12 @@ export class DrawableGraph extends Drawable {
         if (like)
             this.deleteEdge(like);
         return this.createItem(
-            this._edges,
-            new DrawableEdge(this, src, dst, like),
             this._creatingEdgeEmitter,
             this._createdEdgeEmitter,
-            "edges"
+            "edges",
+            this._edges,
+            new DrawableEdge(this, src, dst, like),
+            like
         );
     }
 
@@ -549,14 +551,15 @@ export class DrawableGraph extends Drawable {
      *   Creates a drawable element.
      */
     private createItem<D extends DrawableElement>(
-        items: Set<D>,
-        item: D,
         creatingEmitter: DrawableEventEmitter<D>,
         createdEmitter: DrawableEventEmitter<D>,
-        key: keyof this
+        key: keyof this,
+        items: Set<D>,
+        item: D,
+        like?: D
     ) {
         let old = [...items];
-        let args = new DrawableEventArgs<D>(this, item);
+        let args = new DrawableEventArgs<D>(this, item, like);
         creatingEmitter.emit(args)
         if (args.isCancelled)
             return null;
@@ -622,7 +625,7 @@ export class DrawableGraph extends Drawable {
  *   Event arguments for a drawable event.
  */
 export class DrawableEventArgs<D extends DrawableElement> extends CancellableEventArgs {
-    constructor(source: any, public readonly drawable: D) {
+    constructor(source: any, public readonly drawable: D, public readonly like?: D) {
         super(source);
     }
 }
