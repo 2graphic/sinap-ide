@@ -1,6 +1,5 @@
 <div class="flex-container-row full-size">
   <div id="left-panels-group" #leftPanelsGroup class="flex-container-column"
-      [style.width.px]="leftPanelWidth"
       mwlResizable [resizeEdges]="{right: true}" (resizing)="resizing(leftPanelsGroup, $event)">
     <sinap-side-bar #leftPanelBar class="panel-bar-horizontal" [vertical]="false" [title]="true" [icons]="
           [{
@@ -28,7 +27,7 @@
 
 
   <div id="content" class="flex-container-column">
-    <div id="editor-panel" class="flex-container-column">
+    <div id="editor-panel" #editorPanel class="flex-container-column">
       <div [hidden]="(this.tabs.size == 0)" class="full-size flex-container-column">
         <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
         <div id="graph-editor-container">
@@ -44,7 +43,6 @@
     </div>
 
     <div id="bottom-panels" #bottomPanels class="flex-container-row"
-        [style.height.px]="bottomPanelHeight"
         mwlResizable [resizeEdges]="{top: true}" (resizing)="resizing(bottomPanels, $event)">
       <sinap-side-bar #bottomSideBar class="panel-bar-vertical" [vertical]="true" [icons]="
           [{
