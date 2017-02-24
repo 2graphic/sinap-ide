@@ -315,6 +315,7 @@ class TabContext {
     private readonly redoHistory = <UndoableEvent[]>[];
 
     private stack = this.undoHistory;
+    private isRedoing = false;
 
     constructor(public readonly index: number, public graph: GraphController, public filename?: String) { };
 
@@ -331,11 +332,16 @@ class TabContext {
     public redo() {
         const change = this.redoHistory.pop();
         if (change) {
+            this.isRedoing = true;
             this.graph.applyUndoableEvent(change);
+            this.isRedoing = false;
         }
     }
 
     public change(change: UndoableEvent) {
         this.stack.push(change);
+        if (this.stack == this.undoHistory && !this.isRedoing) {
+            this.redoHistory.length = 0;
+        }
     }
 }
