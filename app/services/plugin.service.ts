@@ -121,7 +121,7 @@ export class PluginService {
     public getProgram(plugin: Plugin, m: CoreModel): Promise<Program> {
         return this.getProgramContext(plugin).then((context) => {
             const programStub = new context.global['plugin-stub'].Program(m.serialize());
-            return new context.global['plugin-stub'].Program(programStub, plugin);
+            return new Program(programStub, plugin);
         });
     }
 

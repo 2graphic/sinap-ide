@@ -18,6 +18,10 @@ export class InputPanelComponent {
         this.inputForPlugin = new CoreValue(this.getInputType(), "");
     }
 
+    get program() {
+        return this._program;
+    }
+
     public delegate: InputPanelDelegate;
 
     private results: ProgramResult[] = [];

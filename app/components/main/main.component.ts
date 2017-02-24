@@ -113,7 +113,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         validation.unshift("DFA");
         this.barMessages = validation;
 
-        // this.testComponent.program = program;
+        //this.testComponent.program = program;
         this.inputPanel.program = program;
     }
 
@@ -134,7 +134,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
             const graph = new GraphController(g, plugin);
             const context = new TabContext(tabNumber, graph, filename);
 
-            // this.getProgram(context).then(this.gotNewProgram);
+            this.getProgram(context).then(this.gotNewProgram);
 
             graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
 

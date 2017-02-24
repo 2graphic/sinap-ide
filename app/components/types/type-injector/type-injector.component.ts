@@ -49,8 +49,8 @@ export class TypeInjectorComponent {
             ["getStringType", StringTypeComponent],
             // ["error", StringTypeComponent],
             ["getBooleanType", BooleanTypeComponent],
-            ["null", ObjectTypeComponent],
-            ["node", NodeTypeComponent],
+            ["getNullType", ObjectTypeComponent],
+            // ["node", NodeTypeComponent],
         ]
     );
 
@@ -69,8 +69,10 @@ export class TypeInjectorComponent {
     }
 
     private inject(value: CoreValue, readonly: boolean, disabled: boolean) {
+        console.log(value);
         if (value) {
             let componentType = this.getComponentType(value);
+            console.log(componentType);
             if (componentType) {
                 let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
                 let factory = this.resolver.resolveComponentFactory(componentType);
