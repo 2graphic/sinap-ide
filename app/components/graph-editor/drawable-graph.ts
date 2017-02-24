@@ -565,10 +565,10 @@ export class DrawableGraph extends Drawable {
 
         // Delete edges first
         selected.sort((a, b) => {
-            let af = (a instanceof DrawableEdge)?-1:1;
-            let bf = (b instanceof DrawableEdge)?-1:1;
+            let af = (a instanceof DrawableEdge) ? -1 : 1;
+            let bf = (b instanceof DrawableEdge) ? -1 : 1;
 
-            return af-bf;
+            return af - bf;
         });
 
         this.clearSelection();
