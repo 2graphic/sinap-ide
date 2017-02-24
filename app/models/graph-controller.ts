@@ -261,10 +261,10 @@ export class GraphController {
             }
         } else if (event instanceof UndoableDelete) {
             if (event.bridge.drawable instanceof DrawableElement) {
-                this.drawable.createElement(event.bridge.drawable);
+                this.drawable.insertElement(event.bridge.drawable);
             }
         } else if (event instanceof UndoableChange) {
-            (event.target as any)[event.key] = event.oldValue;
+            event.target.set(event.key, event.oldValue, true);
         } else {
             throw "Unrecognized event";
         }

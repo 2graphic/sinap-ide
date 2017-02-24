@@ -223,13 +223,15 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 this.tabBar.selectNextTab();
                 break;
             case MenuEventAction.UNDO:
-                if (this.context) {
+                if (!this.focusIsChildOf("bottom-panels") && this.context) {
                     this.context.undo();
+                    e.preventDefault();
                 }
                 break;
             case MenuEventAction.REDO:
-                if (this.context) {
+                if (!this.focusIsChildOf("bottom-panels") && this.context) {
                     this.context.redo();
+                    e.preventDefault();
                 }
                 break;
         }

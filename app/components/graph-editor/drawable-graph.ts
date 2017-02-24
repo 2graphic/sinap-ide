@@ -424,16 +424,26 @@ export class DrawableGraph extends Drawable {
         return false;
     }
 
-    createElement(element: DrawableElement): DrawableElement | null {
+    insertElement(element: DrawableElement): DrawableElement | null {
+        // TODO, cleanup
         if (element instanceof DrawableNode) {
-            return this.createNode(element);
+            let old = [...this._nodes];
+            let args = new DrawableEventArgs<DrawableNode>(this, element);
+            this._nodes.add(element);
+            this._createdNodeEmitter.emit(args);
+            this.onPropertyChanged("nodes", old);
+            return element;
         } else if (element instanceof DrawableEdge) {
-            return this.createEdge(element.source, element.destination, element);
+            let old = [...this._edges];
+            let args = new DrawableEventArgs<DrawableEdge>(this, element);
+            this._edges.add(element);
+            this._createdEdgeEmitter.emit(args);
+            this.onPropertyChanged("edges", old);
+            return element;
         }
 
         return null;
     }
-
 
 
     /**
@@ -552,6 +562,15 @@ export class DrawableGraph extends Drawable {
                 );
             }
         }
+
+        // Delete edges first
+        selected.sort((a, b) => {
+            let af = (a instanceof DrawableEdge)?-1:1;
+            let bf = (b instanceof DrawableEdge)?-1:1;
+
+            return af-bf;
+        });
+
         this.clearSelection();
         selected.forEach(v => {
             if (v instanceof DrawableEdge) {
