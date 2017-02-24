@@ -21,7 +21,7 @@ import { SideBarComponent } from "./components/side-bar/side-bar.component";
 import { PropertiesPanelComponent } from "./components/properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "./components/tools-panel/tools-panel.component";
 import { FilesPanelComponent } from "./components/files-panel/files-panel.component";
-import { REPLComponent } from "./components/repl/repl.component";
+import { InputPanelComponent } from "./components/input-panel/input-panel.component";
 import { TestPanelComponent } from "./components/test-panel/test-panel.component";
 import { GraphEditorComponent } from "./components/graph-editor/graph-editor.component";
 import { StatusBarComponent } from "./components/status-bar/status-bar.component";
@@ -47,7 +47,7 @@ import { NodeTypeComponent } from "./components/types/node-type/node-type.compon
         PropertiesPanelComponent,
         ToolsPanelComponent,
         FilesPanelComponent,
-        REPLComponent,
+        InputPanelComponent,
         TestPanelComponent,
         GraphEditorComponent,
         StatusBarComponent,

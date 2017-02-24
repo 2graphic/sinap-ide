@@ -15,6 +15,7 @@ import { Value } from "./../../../services/plugin.service";
 export class StringTypeComponent {
     @Input() value: Value;
     @Input() readonly: boolean = true;
+    @Input() disabled: boolean = false;
 
     @ViewChild('input') input: ElementRef;
 

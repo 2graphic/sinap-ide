@@ -13,9 +13,9 @@ import { Value } from "../../services/plugin.service";
     styleUrls: ["./test-panel.component.scss"]
 })
 export class TestPanelComponent {
-    private _program: Program | null = null;
+    private _program?: Program;
 
-    set program(program: Program | null) {
+    set program(program: Program | undefined) {
         this._program = program;
 
         if (program && this.autoplay) {
@@ -71,7 +71,7 @@ export class TestPanelComponent {
             input: new Value("string", ""),
             expected: new Value("boolean", true),
             output: new Value("string", "Not ran")
-        }
+        };
 
         test.input.changed.asObservable().subscribe(this.testChanged.bind(this, test));
 

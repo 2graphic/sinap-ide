@@ -13,11 +13,11 @@
   max-width: 100%;
 }
 
-#repl, #log {
+#left-panel, #log {
     flex: 1;
 }
 
-#repl {
+#left-panel {
     height: 100%;
     box-sizing: border-box;
     padding: .25em;
@@ -33,11 +33,11 @@
     border-left: thin solid lightgrey;
 }
 
-#repl-cl {
+#left-panel-input {
     flex: none;
 }
 
-.repl-item {
+.program-result {
     filter: opacity(60%);
     margin-bottom: .25em;
     cursor: pointer;
@@ -51,11 +51,11 @@
    cursor: pointer;
 }
 
-.repl-item.selected {
+.program-result.selected {
     filter: opacity(100%);
 }
 
-#repl-output {
+#left-panel-output {
     flex: auto;
     display: flex;
     font-size: 1em;

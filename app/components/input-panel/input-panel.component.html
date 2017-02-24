@@ -8,15 +8,15 @@
     </div>
 
     <div class="flex-container-row">
-        <div id="repl">
-            <div id="repl-output">
-                <div class="repl-item clickable" *ngFor="let command of results" (click)="selectCommand(command)" [class.selected]="selected == command">
+        <div id="left-panel">
+            <div id="left-panel-output">
+                <div class="program-result clickable" *ngFor="let result of results" (click)="selectResult(result)" [class.selected]="selected == result">
                     <table *ngIf="selected">
                         <tr>
                             <td>
                                 <div class="input">
                                     <span class="chevron">&gt;</span>
-                                    <sinap-type [value]="command.input"></sinap-type>
+                                    <sinap-type [value]="result.input"></sinap-type>
                                 </div>
                             </td>
                         </tr>
@@ -25,8 +25,8 @@
                                 <div class="result">
                                     <span class="chevron">&lt;</span>
                                     <span>
-                                        <span [class.error]="command.output.result.type == 'error'">
-                                            <sinap-type [value]="command.output.result"></sinap-type>
+                                        <span [class.error]="result.output.result.type == 'error'">
+                                            <sinap-type [value]="result.output.result"></sinap-type>
                                         </span>
                                     </span>
                                 </div>
@@ -35,9 +35,9 @@
                     </table>
                 </div>
             </div>
-            <div id="repl-cl">
+            <div id="left-panel-input">
                 <form (ngSubmit)="onSubmit(inputForPlugin)">
-                    <sinap-type [value]="inputForPlugin" [readonly]="false" [focus]="true"></sinap-type>
+                    <sinap-type [value]="inputForPlugin" [readonly]="false" [focus]="true" [disabled]="!this.program"></sinap-type>
                 </form>
             </div>
         </div>

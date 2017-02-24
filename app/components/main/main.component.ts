@@ -14,7 +14,7 @@ import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
 import { PluginService, Program, Output } from "../../services/plugin.service";
 import { WindowService } from "../../modal-windows/services/window.service";
 import { ModalInfo, ModalType } from './../../models/modal-window';
-import { REPLComponent, REPLDelegate } from "../repl/repl.component";
+import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
 import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
@@ -36,12 +36,12 @@ import { ResizeEvent } from 'angular-resizable-element';
     providers: [MenuService, PluginService, WindowService, LocalFileService, SandboxService]
 })
 
-export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
+export class MainComponent implements OnInit, MenuEventListener, InputPanelDelegate, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
     }
 
     ngOnInit(): void {
-        this.repl.delegate = this;
+        this.inputPanel.delegate = this;
         this.tabBar.delegate = this;
         this.menu.addEventListener(this);
     }
@@ -59,8 +59,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     @ViewChild(GraphEditorComponent)
     private graphEditor: GraphEditorComponent;
 
-    @ViewChild(REPLComponent)
-    private repl: REPLComponent;
+    @ViewChild(InputPanelComponent)
+    private inputPanel: InputPanelComponent;
 
     @ViewChild(PropertiesPanelComponent)
     private propertiesPanel: PropertiesPanelComponent;
@@ -98,25 +98,23 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             if (this.graphEditor) {
                 this.graphEditor.redraw();
             }
-            if (this.pluginService) {
-            }
         }
     };
 
     private makeChangeNotifier(context: TabContext) {
         return (change: UndoableEvent) => {
             // Something like this.changes.get(context).add(change)
-            this.getProgram(context).then(program => {
-                this.updateStatusBar(program);
-                this.testComponent.program = program;
-            });
+            this.getProgram(context).then(this.gotNewProgram);
         };
     }
 
-    private updateStatusBar(program: Program) {
+    private gotNewProgram = (program: Program) => {
         let validation = program.validate();
         validation.unshift("DFA");
         this.barMessages = validation;
+
+        this.testComponent.program = program;
+        this.inputPanel.program = program;
     }
 
     private getProgram(context: TabContext) {
@@ -136,9 +134,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
         const graph = new GraphController(g, plugin);
         const context = new TabContext(tabNumber, graph, filename);
 
-        this.getProgram(context).then(program => {
-            this.updateStatusBar(program);
-        });
+        this.getProgram(context).then(this.gotNewProgram);
 
         graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
 
@@ -268,13 +264,16 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             });
     }
 
-    run(input: string): Promise<Output> {
+
+    selectNode(a: any) {
+        // TODO: Fix everything
         if (this.context) {
-            return this.getProgram(this.context).then(a => {
-                return a.run(input);
-            });
-        } else {
-            throw new Error("No Graph to Run");
+            for (let n of this.context.graph.drawable.nodes) {
+                if (n.label === a.label) {
+                    this.context.graph.drawable.clearSelection();
+                    this.context.graph.drawable.selectItems(n);
+                }
+            }
         }
     }
 

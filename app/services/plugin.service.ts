@@ -14,7 +14,7 @@ declare class IProgram {
     run(a: any): any;
 }
 
-declare type IOutput = { states: any, result: any, error?: any }
+declare type IOutput = { states: any, result: any, error?: any };
 
 /**
  * Preferably each dynamically typed value from a plugin would come as a

@@ -15,7 +15,7 @@ import { Value } from "./../../../services/plugin.service";
 export class ObjectTypeComponent {
     @Input() readonly: boolean = true;
 
-    private values = <[string, Value][]>[];
+    private values = <[string, Value][]> [];
 
     @Input()
     set value(v: Value) {

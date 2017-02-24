@@ -13,10 +13,10 @@ import { NodeTypeComponent } from "./../node-type/node-type.component";
 
 
 /**
- * 
+ *
  * This class injects a component that knows how to display various core.Type.
  * value can be changed to a new core.Value and a new component will be injected.
- * 
+ *
  */
 @Component({
     selector: "sinap-type",
@@ -27,8 +27,10 @@ export class TypeInjectorComponent {
     constructor(private resolver: ComponentFactoryResolver) { }
 
     @ViewChild('container', { read: ViewContainerRef }) private container: ViewContainerRef;
+    private component?: ComponentRef<any>;
 
     private _value: Value;
+    private _disabled: boolean = false;
 
     /**
      * Whether the component should be readonly.
@@ -41,6 +43,7 @@ export class TypeInjectorComponent {
      */
     @Input() focus: boolean = false;
 
+
     private componentMap = new Map<string, Type<any>>(
         [
             ["string", StringTypeComponent],
@@ -52,29 +55,38 @@ export class TypeInjectorComponent {
     );
 
     @Input()
-    set value(v: Value) {
-        this._value = v;
-        this.inject(v, this.readonly);
+    set disabled(disabled: boolean) {
+        this._disabled = disabled;
+        if (this.component) {
+            this.component.instance.disabled = disabled;
+        }
     }
 
-    private inject(value: Value, readonly: boolean) {
+    @Input()
+    set value(v: Value) {
+        this._value = v;
+        this.inject(v, this.readonly, this._disabled);
+    }
+
+    private inject(value: Value, readonly: boolean, disabled: boolean) {
         if (value) {
             let componentType = this.componentMap.get(value.type);
             if (componentType) {
                 let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
                 let factory = this.resolver.resolveComponentFactory(componentType);
 
-                let component = factory.create(injector);
-                component.instance.value = value;
-                component.instance.readonly = readonly;
+                this.component = factory.create(injector);
+                this.component.instance.value = value;
+                this.component.instance.readonly = readonly;
+                this.component.instance.disabled = disabled;
 
                 this.container.clear();
-                this.container.insert(component.hostView);
+                this.container.insert(this.component.hostView);
 
-                component.changeDetectorRef.detectChanges();
+                this.component.changeDetectorRef.detectChanges();
 
-                if (this.focus && component.instance.focus) {
-                    component.instance.focus();
+                if (this.focus && this.component.instance.focus) {
+                    this.component.instance.focus();
                 }
             }
         }
