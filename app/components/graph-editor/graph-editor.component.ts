@@ -15,6 +15,7 @@ import {
 } from "@angular/core";
 
 import {
+    IMAGES,
     GraphEditorCanvas,
     makeRect,
     point
@@ -222,12 +223,18 @@ export class GraphEditorComponent implements AfterViewInit {
     resumeRedraw() {
         if (this.canvas) {
             this.redrawDelegate = () => {
-                this.canvas.clear("#fff");
-                this.canvas.drawGrid();
+                this.canvas.clear();
                 for (const d of this.graph.selectedItems)
                     d.drawSelectionShadow();
+                this.canvas.globalCompositeOperation = "source-in";
+                this.canvas.clear(DEFAULT.SELECTION_COLOR);
+                this.canvas.globalCompositeOperation = "source-over";
                 for (const d of this.drawList)
                     d.draw();
+                this.canvas.globalCompositeOperation = "destination-over";
+                this.canvas.drawGrid();
+                this.canvas.clear("#fff");
+                this.canvas.globalCompositeOperation = "source-over";
             };
             this.redrawDelegate();
         }
@@ -246,7 +253,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     // @Input()
     // dragNode(value: DrawableNode) {
-    //     let n = new DrawableNode(value, this.canvas);
+    //     const n = new DrawableNode(value, this.canvas);
     //     this.drawList.push(n);
     //     this.hoverObject = n;
     //     this.updateDragObject();
@@ -290,10 +297,10 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Resizes the canvas.
      */
     resize(): void {
-        let el = this.canvasElementRef.nativeElement;
-        let pel = (el.parentNode as HTMLElement);
-        let h = pel.offsetHeight;
-        let w = pel.offsetWidth;
+        const el = this.canvasElementRef.nativeElement;
+        const pel = (el.parentNode as HTMLElement);
+        const h = pel.offsetHeight;
+        const w = pel.offsetWidth;
         if (this.canvas.size.h != h || this.canvas.size.w != w) {
             this.canvas.size = { h: h, w: w };
             this.redraw();
@@ -429,8 +436,8 @@ export class GraphEditorComponent implements AfterViewInit {
             this.focusHiddenArea();
 
             // Get the change in x and y locations of the cursor.
-            let downPt = this.canvas.getPt(this.downEvt);
-            let dPt = { x: downPt.x - ePt.x, y: downPt.y - ePt.y };
+            const downPt = this.canvas.getPt(this.downEvt);
+            const dPt = { x: downPt.x - ePt.x, y: downPt.y - ePt.y };
 
             // Update the canvas if waiting is not set.
             if (!this.stickyTimeout) {
@@ -501,12 +508,12 @@ export class GraphEditorComponent implements AfterViewInit {
             );
 
             // Get the canvas coordinates of the event.
-            let ePt = this.canvas.getPt(e);
+            const ePt = this.canvas.getPt(e);
 
             // Set the selected graph component if waiting.
             if (this.stickyTimeout) {
                 this.graph.clearSelection();
-                let hit = this.hitPtTest(ePt);
+                const hit = this.hitPtTest(ePt);
                 if (hit)
                     this.graph.selectItems(hit.d);
             }
@@ -558,7 +565,7 @@ export class GraphEditorComponent implements AfterViewInit {
         // Create a new node and reset sticky.
         if (this.downEvt) {
             this.suspendRedraw();
-            let downPt = this.canvas.getPt(this.downEvt);
+            const downPt = this.canvas.getPt(this.downEvt);
             clearTimeout(this.stickyTimeout as NodeJS.Timer);
             this.stickyTimeout = null;
 
@@ -622,9 +629,17 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private onDrawablePropertyChanged
     = (evt: PropertyChangedEventArgs<any>) => {
-        if (evt.source instanceof DrawableElement) {
+        if (evt.source instanceof DrawableEdge) {
             evt.source.update(this.canvas);
             this.redraw();
+        }
+        else if (evt.source instanceof DrawableNode) {
+            if (evt.key === "shape" && evt.curr === "image")
+                this.loadImage(evt.source);
+            else {
+                evt.source.update(this.canvas);
+                this.redraw();
+            }
         }
         else if (evt.source instanceof DrawableGraph) {
             switch (evt.key) {
@@ -737,7 +752,10 @@ export class GraphEditorComponent implements AfterViewInit {
             });
             this.drawList.push(d.destination, d.source);
         }
-        d.update(this.canvas);
+        if (d instanceof DrawableNode && d.shape === "image")
+            this.loadImage(d);
+        else
+            d.update(this.canvas);
         d.addPropertyChangedListener(this.onDrawablePropertyChanged);
         this.redraw();
     }
@@ -762,11 +780,11 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Updates the selection box.
      */
     private updateSelectionBox(downPt: pt, ePt: pt): void {
-        let rect = makeRect(downPt, ePt);
+        const rect = makeRect(downPt, ePt);
 
         // Update the selected components.
-        let deselect = [];
-        let select = []
+        const deselect = [];
+        const select = []
         for (const i of [...this.graph.edges, ...this.graph.nodes]) {
             if (i.hitRect(rect))
                 select.push(i);
@@ -817,9 +835,9 @@ export class GraphEditorComponent implements AfterViewInit {
 
         // Pick up the edge if one is being hovered.
         else if (this.hoverObject instanceof DrawableEdge) {
-            let spt = this.hoverObject.sourcePoint;
-            let apt = this.hoverObject.source.anchorPoint;
-            let isSrc = spt.x !== apt.x || spt.y !== apt.y;
+            const spt = this.hoverObject.sourcePoint;
+            const apt = this.hoverObject.source.anchorPoint;
+            const isSrc = spt.x !== apt.x || spt.y !== apt.y;
             this.createDragEdge(
                 (isSrc ? this.hoverObject.source : this.hoverObject.destination),
                 isSrc,
@@ -868,8 +886,8 @@ export class GraphEditorComponent implements AfterViewInit {
 
             // Display the anchor point if the hover object is an edge.
             if (value.d instanceof DrawableEdge) {
-                let spt = value.d.sourcePoint;
-                let apt = value.pt;
+                const spt = value.d.sourcePoint;
+                const apt = value.pt;
                 if (spt.x === apt.x && spt.y === apt.y) {
                     value.d.destination.clearAnchor();
                     value.d.source.anchorPoint = apt;
@@ -905,7 +923,7 @@ export class GraphEditorComponent implements AfterViewInit {
     private updateDragNodes(dragNode: DrawableNode, dPt: pt) {
         this.suspendRedraw();
         if (dragNode.isSelected && this.graph.selectedItemCount > 0) {
-            for (let d of this.graph.selectedItems)
+            for (const d of this.graph.selectedItems)
                 if (d instanceof DrawableNode)
                     this.updateDragNode(d, dPt);
         }
@@ -920,7 +938,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private updateDragNode(n: DrawableNode, dPt: pt): void {
         n.position = { x: n.position.x + dPt.x, y: n.position.y + dPt.y };
-        for (let e of n.edges)
+        for (const e of n.edges)
             e.update(this.canvas);
     }
 
@@ -933,10 +951,10 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Repositions the origin point of the canvas.
      */
     private pan(p: pt) {
-        let prev = this.panPt;
-        let curr: pt = p;
+        const prev = this.panPt;
+        const curr: pt = p;
         if (prev) {
-            let dp = { x: curr.x - prev.x, y: curr.y - prev.y };
+            const dp = { x: curr.x - prev.x, y: curr.y - prev.y };
             this.canvas.origin.x += dp.x / this.canvas.scale;
             this.canvas.origin.y += dp.y / this.canvas.scale;
         }
@@ -949,13 +967,13 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private zoom(p: pt, s: number) {
         // Get the canvas coordinates before zoom.
-        let pt1 = this.canvas.getPt(p);
+        const pt1 = this.canvas.getPt(p);
         // Apply zoom.
         this.scale = this.canvas.scale * s;
         // Get the canvas coordinates after zoom.
-        let pt2 = this.canvas.getPt(p);
+        const pt2 = this.canvas.getPt(p);
         // Get the delta between pre- and post-zoom canvas pts.
-        let dpt = {
+        const dpt = {
             x: pt2.x - pt1.x,
             y: pt2.y - pt1.y
         };
@@ -1010,6 +1028,24 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
+     * loadImage  
+     *   Loads a node image.
+     */
+    private loadImage(n: DrawableNode) {
+        // TODO:
+        // Something about n.image === ""
+        if (!IMAGES.has(n.image)) {
+            const img = new Image();
+            IMAGES.set(n.image, img);
+            img.onload = () => {
+                n.update(this.canvas);
+                this.redraw();
+            };
+            img.src = n.image;
+        }
+    }
+
+    /**
      * checkValidEdgeDrop  
      *   Checks if dropping an edge will be successfull.
      */
@@ -1017,14 +1053,14 @@ export class GraphEditorComponent implements AfterViewInit {
         let hit: { d: DrawableNode, pt: point } | null = null;
         let src = e.source;
         let dst = e.destination;
-        let like = (this.moveEdge ? this.moveEdge : undefined);
-        let nodes = this.drawList.filter(v => {
+        const like = (this.moveEdge ? this.moveEdge : undefined);
+        const nodes = this.drawList.filter(v => {
             return v instanceof DrawableNode;
         }) as DrawableNode[];
 
         // Find the first node on which the edge can be dropped.
-        for (let n of nodes) {
-            let d = n;
+        for (const n of nodes) {
+            const d = n;
             if (n.hitPoint(pt) && this.graph.isValidEdge(
                 (src === this.dragObject ? d : src),
                 (dst === this.dragObject ? d : dst),
@@ -1033,17 +1069,21 @@ export class GraphEditorComponent implements AfterViewInit {
                 // Get the anchor point where the edge will be dropped.
                 src = (src.isHidden ? n : src);
                 dst = (dst.isHidden ? n : dst);
-                let spt = (src === dst ?
+                const spt = (src === dst ?
                     { x: src.position.x, y: src.position.y - 1 } :
                     src.position);
                 src.position;
-                let dpt = dst.position;
-                let u = { x: 0, y: 0 };
-                if (dst === n)
-                    u = { x: spt.x - dpt.x, y: spt.y - dpt.y };
-                else
-                    u = { x: dpt.x - spt.x, y: dpt.y - spt.y };
-                let m = MathEx.mag(u);
+                const dpt = dst.position;
+                const u = { x: 0, y: 0 };
+                if (dst === n) {
+                    u.x = spt.x - dpt.x;
+                    u.y = spt.y - dpt.y;
+                }
+                else {
+                    u.x = dpt.x - spt.x;
+                    u.y = dpt.y - spt.y;
+                }
+                const m = MathEx.mag(u);
                 u.x /= m;
                 u.y /= m;
                 hit = { d: n, pt: n.getBoundaryPt(u) };
@@ -1066,11 +1106,11 @@ export class GraphEditorComponent implements AfterViewInit {
         isSrc: boolean,
         like?: DrawableEdge
     ) {
-        let h = new HiddenNode(this.graph);
+        const h = new HiddenNode(this.graph);
         h.position = this.canvas.getPt(this.downEvt as point);
-        let src = (isSrc ? n : h);
-        let dst = (isSrc ? h : n);
-        let d = new DrawableEdge(this.graph, src, dst, like);
+        const src = (isSrc ? n : h);
+        const dst = (isSrc ? h : n);
+        const d = new DrawableEdge(this.graph, src, dst, like);
         d.isDragging = true;
         this.dragObject = h;
         this.drawList.push(d);
@@ -1084,15 +1124,15 @@ export class GraphEditorComponent implements AfterViewInit {
         graph: DrawableGraph,
         pt: pt
     ): void {
-        let e = this.drawList.pop() as DrawableEdge;
-        let like = (this.moveEdge ? this.moveEdge : undefined);
+        const e = this.drawList.pop() as DrawableEdge;
+        const like = (this.moveEdge ? this.moveEdge : undefined);
         this.moveEdge = null;
         // Move or create the edge if it was dropped on a node.
         if (this.hoverObject instanceof DrawableNode) {
             this.suspendRedraw();
-            let srcNode = (e.source.isHidden ? this.hoverObject : e.source);
-            let dstNode = (e.destination.isHidden ? this.hoverObject : e.destination);
-            let edge = this.graph.createEdge(srcNode, dstNode, like);
+            const srcNode = (e.source.isHidden ? this.hoverObject : e.source);
+            const dstNode = (e.destination.isHidden ? this.hoverObject : e.destination);
+            const edge = this.graph.createEdge(srcNode, dstNode, like);
             if (edge)
                 this.updateSelected(edge);
             this.resumeRedraw();
@@ -1110,7 +1150,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   when the mouse is released.
      */
     private dropNodes(dragNode: DrawableNode, pt: pt): void {
-        let posn = dragNode.position;
+        const posn = dragNode.position;
         this.updateDragNodes(
             dragNode,
             { x: pt.x - posn.x, y: pt.y - posn.y }

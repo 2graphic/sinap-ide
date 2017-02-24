@@ -132,7 +132,7 @@ export class DrawableEdge extends DrawableElement {
                 enumerable: true,
                 get: () => this._srcArrow,
                 set: (value: boolean) => {
-                    let old = this._srcArrow;
+                    const old = this._srcArrow;
                     if (this._srcArrow !== value) {
                         this._srcArrow = value;
                         this.onPropertyChanged("showSourceArrow", old);
@@ -143,7 +143,7 @@ export class DrawableEdge extends DrawableElement {
                 enumerable: true,
                 get: () => this._dstArrow,
                 set: (value: boolean) => {
-                    let old = this._dstArrow;
+                    const old = this._dstArrow;
                     if (this._dstArrow !== value) {
                         this._dstArrow = value;
                         this.onPropertyChanged("showDestinationArrow", old);
@@ -154,7 +154,7 @@ export class DrawableEdge extends DrawableElement {
                 enumerable: true,
                 get: () => this._lineStyle,
                 set: (value: LineStyles) => {
-                    let old = this._lineStyle;
+                    const old = this._lineStyle;
                     if (this._lineStyle !== value) {
                         this._lineStyle = value;
                         this.onPropertyChanged("lineStyle", old);
@@ -165,7 +165,7 @@ export class DrawableEdge extends DrawableElement {
                 enumerable: true,
                 get: () => this._lineWidth,
                 set: (value: number) => {
-                    let old = this._lineWidth;
+                    const old = this._lineWidth;
                     if (this._lineWidth !== value) {
                         this._lineWidth = value;
                         this.onPropertyChanged("lineWidth", old);
@@ -274,7 +274,7 @@ export class DrawableEdge extends DrawableElement {
         // Set selected shadow //
         /////////////////////////
         if (this.isSelected) {
-            let preDrawThunk = this.makePreDrawEdge(
+            const preDrawThunk = this.makePreDrawEdge(
                 g,
                 SELECTION_COLOR,
                 this._lineWidth + 4,
@@ -282,10 +282,10 @@ export class DrawableEdge extends DrawableElement {
                 false,
                 this.isHovered
             );
-            let traceThunk = this.makeTraceEdge(g);
+            const traceThunk = this.makeTraceEdge(g);
             let drawLabelThunk = () => { };
             if (this._lines.length > 0) {
-                let size = {
+                const size = {
                     h: this._textSize.h + 4,
                     w: this._textSize.w + 4
                 }
@@ -312,7 +312,7 @@ export class DrawableEdge extends DrawableElement {
         //////////////
         // Set edge //
         //////////////
-        let preDrawThunk = this.makePreDrawEdge(
+        const preDrawThunk = this.makePreDrawEdge(
             g,
             this._color,
             this._lineWidth,
@@ -320,7 +320,7 @@ export class DrawableEdge extends DrawableElement {
             this.isDragging,
             hovered
         );
-        let traceThunk = this.makeTraceEdge(g);
+        const traceThunk = this.makeTraceEdge(g);
         let drawLabelThunk = () => { };
         if (this._lines.length > 0) {
             drawLabelThunk = () => {
@@ -348,16 +348,16 @@ export class DrawableEdge extends DrawableElement {
      */
     hitPoint(pt: point): point | null {
         if (!(this.src.isHidden || this.dst.isHidden)) {
-            let src = this._pts[0];
-            let dst = this._pts[1];
-            let mid = this._pts[2];
-            let margin = this._lineWidth * this._lineWidth + EDGE_HIT_MARGIN * EDGE_HIT_MARGIN;
+            const src = this._pts[0];
+            const dst = this._pts[1];
+            const mid = this._pts[2];
+            const margin = this._lineWidth * this._lineWidth + EDGE_HIT_MARGIN * EDGE_HIT_MARGIN;
 
-            let tl = {
+            const tl = {
                 x: Math.min(src.x, dst.x, mid.x) - margin,
                 y: Math.min(src.y, dst.y, mid.y) - margin
             };
-            let br = {
+            const br = {
                 x: Math.max(src.x, dst.x, mid.x) + margin,
                 y: Math.max(src.y, dst.y, mid.y) + margin
             };
@@ -365,21 +365,21 @@ export class DrawableEdge extends DrawableElement {
                 switch (this._pts.length) {
                     // Cubic Bezier.
                     case 7: {
-                        let pt1 = this._pts[3];
-                        let pt2 = this._pts[4];
+                        const pt1 = this._pts[3];
+                        const pt2 = this._pts[4];
                         let hitPt1 = hitPtTestLine(src, pt1, pt, margin);
-                        let hitPt2 = hitPtTestLine(pt1, pt2, pt, margin);
+                        const hitPt2 = hitPtTestLine(pt1, pt2, pt, margin);
                         let hitPt3 = hitPtTestLine(pt2, dst, pt, margin);
                         if (hitPt2 === pt1 || hitPt1 === pt1)
                             hitPt1 = src;
                         else if (hitPt2 === pt2 || hitPt3 === pt2)
                             hitPt3 = dst;
                         if (hitPt1 && hitPt3) {
-                            let v = { x: pt.x - src.x, y: pt.y - src.y };
-                            let d1 = MathEx.dot(v, v);
+                            const v = { x: pt.x - src.x, y: pt.y - src.y };
+                            const d1 = MathEx.dot(v, v);
                             v.x = pt.x - dst.x;
                             v.y = pt.y - dst.y;
-                            let d2 = MathEx.dot(v, v);
+                            const d2 = MathEx.dot(v, v);
                             return (d2 < d1 ? dst : src);
                         }
                         else if (hitPt1)
@@ -401,7 +401,7 @@ export class DrawableEdge extends DrawableElement {
 
                     // Straight Line.
                     default: {
-                        let hitPt = hitPtTestLine(src, dst, pt, margin);
+                        const hitPt = hitPtTestLine(src, dst, pt, margin);
                         if (hitPt)
                             return hitPt;
                     } break;
@@ -420,10 +420,10 @@ export class DrawableEdge extends DrawableElement {
         const R = r.x + r.w;
         const T = r.y;
         const B = r.y + r.h;
-        let ps = this._pts;
-        let p0 = ps[0];
-        let p1 = ps[1];
-        let p2 = ps[2];
+        const ps = this._pts;
+        const p0 = ps[0];
+        const p1 = ps[1];
+        const p2 = ps[2];
         const inside = (p: point) => {
             return (p.x <= R && p.x >= L && p.y <= B && p.y >= T);
         };
@@ -458,14 +458,14 @@ export class DrawableEdge extends DrawableElement {
      */
     private updateOverlappedEdges(g: GraphEditorCanvas) {
         if (!this.src.isHidden && !this.dst.isHidden) {
-            let srcIn = this.source.incomingEdges;
-            let srcOut = this.source.outgoingEdges;
-            let dstIn = this.destination.incomingEdges;
-            let dstOut = this.destination.outgoingEdges;
-            let opposing = new Set<DrawableEdge>(
+            const srcIn = this.source.incomingEdges;
+            const srcOut = this.source.outgoingEdges;
+            const dstIn = this.destination.incomingEdges;
+            const dstOut = this.destination.outgoingEdges;
+            const opposing = new Set<DrawableEdge>(
                 [...dstOut].filter(v => srcIn.has(v))
             );
-            let adjacent = new Set<DrawableEdge>(
+            const adjacent = new Set<DrawableEdge>(
                 [...srcOut].filter(v => dstIn.has(v))
             );
             if (opposing.size > 0) {
@@ -502,12 +502,12 @@ export class DrawableEdge extends DrawableElement {
      *   Sets the end points and midpoint of a straight line.
      */
     private setStraightPoints(): void {
-        let pts: point[] = [];
-        let spt = this.src.position;
-        let dpt = this.dst.position;
-        let v = { x: dpt.x - spt.x, y: dpt.y - spt.y };
-        let d = MathEx.mag(v);
-        let u = { x: v.x / d, y: v.y / d };
+        const pts: point[] = [];
+        const spt = this.src.position;
+        const dpt = this.dst.position;
+        const v = { x: dpt.x - spt.x, y: dpt.y - spt.y };
+        const d = MathEx.mag(v);
+        const u = { x: v.x / d, y: v.y / d };
         if (!this.src.isHidden)
             pts.push(this.src.getBoundaryPt(u));
         else
@@ -534,7 +534,7 @@ export class DrawableEdge extends DrawableElement {
         let spt = this.src.position;
         let dpt = this.dst.position;
         // Get a vector from the source node to the destination node.
-        let v: point = { x: dpt.x - spt.x, y: dpt.y - spt.y, };
+        const v: point = { x: dpt.x - spt.x, y: dpt.y - spt.y, };
         // Get the magitude of the vector.
         let d = MathEx.mag(v);
 
@@ -546,7 +546,7 @@ export class DrawableEdge extends DrawableElement {
 
         // Set the control point to the midpoint of the vector plus the scaled
         // normal.
-        let pt1: point = {
+        const pt1: point = {
             x: spt.x + v.x / 2 + v.y / d * GRID_SPACING,
             y: spt.y + v.y / 2 - v.x / d * GRID_SPACING
         };
@@ -554,14 +554,14 @@ export class DrawableEdge extends DrawableElement {
         v.x = pt1.x - this.src.position.x;
         v.y = pt1.y - this.src.position.y;
         d = MathEx.mag(v);
-        let pt0 = this.src.getBoundaryPt({ x: v.x / d, y: v.y / d });
+        const pt0 = this.src.getBoundaryPt({ x: v.x / d, y: v.y / d });
         // Get the destination endpoint.
         v.x = pt1.x - this.dst.position.x;
         v.y = pt1.y - this.dst.position.y;
         d = MathEx.mag(v);
-        let pt2 = this.dst.getBoundaryPt({ x: v.x / d, y: v.y / d });
+        const pt2 = this.dst.getBoundaryPt({ x: v.x / d, y: v.y / d });
         // Translate the controlpoint by the position of the source node.
-        let pts: point[] = [];
+        const pts: point[] = [];
         pts.push(pt0);
         pts.push(pt2);
         // Midpoint.
@@ -578,20 +578,20 @@ export class DrawableEdge extends DrawableElement {
      *   Sets the edge points and midpoint of a self-referencing node.
      */
     private setLoopPoints(): void {
-        let spt = this.src.position;
-        let u: point = { x: MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
-        let v: point = { x: -MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
-        let pt0: point = this.src.getBoundaryPt(u);
-        let pt1: point = this.src.getBoundaryPt(v);
-        let pt2: point = {
+        const spt = this.src.position;
+        const u: point = { x: MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
+        const v: point = { x: -MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
+        const pt0: point = this.src.getBoundaryPt(u);
+        const pt1: point = this.src.getBoundaryPt(v);
+        const pt2: point = {
             x: pt0.x + 2 * GRID_SPACING * u.x,
             y: pt0.y + 2 * GRID_SPACING * u.y
         };
-        let pt3: point = {
+        const pt3: point = {
             x: pt1.x + 2 * GRID_SPACING * v.x,
             y: pt1.y + 2 * GRID_SPACING * v.y
         };
-        let pts: point[] = [];
+        const pts: point[] = [];
         // src
         pts.push(pt0);
         // dst
@@ -655,9 +655,9 @@ export class DrawableEdge extends DrawableElement {
      *   Makes a function that traces the geometry of an edge.
      */
     private makeTraceEdge(g: GraphEditorCanvas): () => void {
-        let pts = this._pts;
-        let showSrc = this._srcArrow;
-        let showDst = this._dstArrow;
+        const pts = this._pts;
+        const showSrc = this._srcArrow;
+        const showDst = this._dstArrow;
         switch (pts.length) {
             // Cubic
             case 7:
@@ -734,7 +734,7 @@ export class DrawableEdge extends DrawableElement {
      *   Draws the background rectangle for the edge label.
      */
     private drawLabelRect(g: GraphEditorCanvas, sz: size) {
-        let pt = this._pts[2];
+        const pt = this._pts[2];
         g.traceRect(makeRect(
             { x: pt.x - sz.w / 2 - 6, y: pt.y - sz.h / 2 },
             { x: pt.x + sz.w / 2 + 6, y: pt.y + sz.h / 2 }
@@ -768,30 +768,30 @@ function hitPtTestLine(
     margin: number
 ): point | null {
     // Edge vector src -> dst
-    let ve = {
+    const ve = {
         x: dst.x - src.x,
         y: dst.y - src.y,
     };
     // Cursor vector e.src -> cursor
-    let vm = {
+    const vm = {
         x: pt.x - src.x,
         y: pt.y - src.y
     };
-    let dotee = MathEx.dot(ve, ve); // edge dot edge
-    let dotem = MathEx.dot(ve, vm); // edge dot cursor
+    const dotee = MathEx.dot(ve, ve); // edge dot edge
+    const dotem = MathEx.dot(ve, vm); // edge dot cursor
     // Projection vector cursor -> edge
-    let p = {
+    const p = {
         x: ve.x * dotem / dotee,
         y: ve.y * dotem / dotee
     };
     // Rejection vector cursor -^ edge
-    let r = { x: vm.x - p.x, y: vm.y - p.y };
+    const r = { x: vm.x - p.x, y: vm.y - p.y };
 
-    let dotpp = MathEx.dot(p, p); // proj dot proj
-    let dotrr = MathEx.dot(r, r); // rej dot rej
+    const dotpp = MathEx.dot(p, p); // proj dot proj
+    const dotrr = MathEx.dot(r, r); // rej dot rej
 
-    let dep = { x: ve.x - p.x, y: ve.y - p.y };
-    let dotdep = MathEx.dot(dep, dep);
+    const dep = { x: ve.x - p.x, y: ve.y - p.y };
+    const dotdep = MathEx.dot(dep, dep);
 
     if (dotpp <= dotee && dotdep <= dotee && dotrr < margin)
         return (dotpp < dotee / 4 ? src : dst);
@@ -810,7 +810,7 @@ function hitRectTestStraighEdge(
     p0: point,
     p1: point
 ): boolean {
-    let intersect = (
+    const intersect = (
         i: number,      // Intersect line.
         px: number,     // p0 "x"-coordinate
         py: number,     // p0 "y"-coordinate
@@ -826,8 +826,8 @@ function hitRectTestStraighEdge(
             (y = py + pdy * t) >= bt && y <= bb
         );
     };
-    let Dx = p1.x - p0.x;
-    let Dy = p1.y - p0.y;
+    const Dx = p1.x - p0.x;
+    const Dy = p1.y - p0.y;
     return (
         // Line intersects left boundary.
         intersect(L, p0.x, p0.y, Dx, Dy, T, B) ||

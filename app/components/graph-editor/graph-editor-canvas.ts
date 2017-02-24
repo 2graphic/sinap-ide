@@ -18,6 +18,38 @@ const AA_SCALE: number = 2;
 
 
 /**
+ * CompositeOperations  
+ *   @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
+ */
+export type CompositeOperations =
+    "source-over" |
+    "source-in" |
+    "source-out" |
+    "source-atop" |
+    "destination-over" |
+    "destination-in" |
+    "destination-out" |
+    "destination-atop" |
+    "lighter" |
+    "copy" |
+    "xor" |
+    "multiply" |
+    "screen" |
+    "overlay" |
+    "darken" |
+    "lighten" |
+    "color-dodge" |
+    "color-burn" |
+    "hard-light" |
+    "soft-light" |
+    "difference" |
+    "exclusion" |
+    "hue" |
+    "saturation" |
+    "color" |
+    "luminosity";
+
+/**
  * LineStyles
  */
 export type LineStyles = "solid" | "dotted" | "dashed";
@@ -28,7 +60,7 @@ export type LineStyles = "solid" | "dotted" | "dashed";
  * TODO:  
  * -For now this only supports circles and squares.
  */
-export type Shapes = "circle" | "square";
+export type Shapes = "circle" | "square" | "image";
 
 /**
  * point  
@@ -47,6 +79,19 @@ export type size = { h: number, w: number };
  *   Represents a rectangle with the top-left coordinate and height and width.
  */
 export type rect = point & size;
+
+
+// Cached images ///////////////////////////////////////////////////////////////
+
+
+/**
+ * IMAGES  
+ *   Contains a map of cached images.
+ */
+export const IMAGES = new Map<string, HTMLImageElement>();
+
+
+// GraphEditorCanvas ///////////////////////////////////////////////////////////
 
 
 /**
@@ -157,12 +202,12 @@ export class GraphEditorCanvas {
         dst: point
     ): void {
         // Get the unit vector from the source point to the destination point.
-        let v: point = {
+        const v: point = {
             x: dst.x - src.x,
             y: dst.y - src.y
         };
-        let d = MathEx.mag(v);
-        let u = { x: v.x / d, y: v.y / d };
+        const d = MathEx.mag(v);
+        const u = { x: v.x / d, y: v.y / d };
 
         // Trace arrow.
         this.tracePath(
@@ -188,7 +233,7 @@ export class GraphEditorCanvas {
      *   Clears the canvas.
      */
     clear(bgColor?: string): void {
-        let canvas = this.g.canvas;
+        const canvas = this.g.canvas;
         if (bgColor) {
             this.g.fillStyle = bgColor;
             this.g.fillRect(0, 0, canvas.width / this._scale, canvas.height / this._scale);
@@ -273,15 +318,28 @@ export class GraphEditorCanvas {
     }
 
     /**
+     * drawImage  
+     *   Draws an image.
+     */
+    drawImage(p: point, img: HTMLImageElement, shadowColor?: string) {
+        if (shadowColor) {
+            this.shadowBlur = 20;
+            this.g.shadowColor = shadowColor;
+        }
+        this.g.drawImage(img, p.x, p.y);
+        this.shadowBlur = 0;
+    }
+
+    /**
      * drawGrid  
      *   Draws the editor grid.
      */
     drawGrid() {
 
-        let w = this.g.canvas.width / this._scale;
-        let h = this.g.canvas.height / this._scale;
+        const w = this.g.canvas.width / this._scale;
+        const h = this.g.canvas.height / this._scale;
 
-        let o = {
+        const o = {
             x: this.origin.x % DEFAULT.GRID_SPACING - DEFAULT.GRID_SPACING,
             y: this.origin.y % DEFAULT.GRID_SPACING - DEFAULT.GRID_SPACING
         };
@@ -333,7 +391,7 @@ export class GraphEditorCanvas {
         borderWidth?: number,
         borderColor?: string
     ) {
-        let x = p.x + this.origin.x;
+        const x = p.x + this.origin.x;
         let y = p.y + this.origin.y - (height - 1.5 * DEFAULT.FONT_SIZE) / 2;
         this.g.font = DEFAULT.FONT_SIZE + "pt " + DEFAULT.FONT_FAMILY;
         this.g.textAlign = "center";
@@ -360,12 +418,13 @@ export class GraphEditorCanvas {
 
     // Get and Set methods /////////////////////////////////////////////////////
 
+
     /**
      * size  
      *   Gets or sets the size dimensions of the canvas.
      */
     get size() {
-        let el = this.g.canvas;
+        const el = this.g.canvas;
         return {
             h: el.height / AA_SCALE,
             w: el.width / AA_SCALE
@@ -373,7 +432,7 @@ export class GraphEditorCanvas {
     }
 
     set size(value: { h: number, w: number }) {
-        let el = this.g.canvas;
+        const el = this.g.canvas;
         el.height = value.h * AA_SCALE;
         el.width = value.w * AA_SCALE;
         this.scale = this.scale;
@@ -447,6 +506,10 @@ export class GraphEditorCanvas {
         this.g.globalAlpha = value;
     }
 
+    set globalCompositeOperation(value: CompositeOperations) {
+        this.g.globalCompositeOperation = value;
+    }
+
     /**
      * strokeStyle  
      *   Sets the stroke color.
@@ -485,8 +548,8 @@ export class GraphEditorCanvas {
      *   Gets the canvas coordinates from a DOM event.
      */
     getPt(pt: point): point {
-        let canvas = this.g.canvas;
-        let r = canvas.getBoundingClientRect();
+        const canvas = this.g.canvas;
+        const r = canvas.getBoundingClientRect();
         return {
             x: (pt.x - r.left) / (r.right - r.left) * canvas.width / this._scale - this.origin.x,
             y: (pt.y - r.top) / (r.bottom - r.top) * canvas.height / this._scale - this.origin.y
