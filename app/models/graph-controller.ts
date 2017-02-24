@@ -158,7 +158,7 @@ export class GraphController {
         let coreGraph: CoreElement | null = null;
         const coreEdges: CoreElement[] = [];
 
-        // each core element we iterate over needs to have a drawable equivilant made for it
+        // each core element we iterate over needs to have a drawable equivalent made for it
         for (const element of this.core.elements) {
             // placeholder for the new drawable (if we make one)
             let drawable: Drawable | null = null;
@@ -256,9 +256,13 @@ export class GraphController {
 
     public applyUndoableEvent(event: UndoableEvent) {
         if (event instanceof UndoableAdd) {
-            this.removeDrawable(event.bridge.drawable);
+            if (event.bridge.drawable instanceof DrawableElement) {
+                this.drawable.deleteElement(event.bridge.drawable);
+            }
         } else if (event instanceof UndoableDelete) {
-            this.addDrawable(event.bridge.drawable, event.bridge.core);
+            if (event.bridge.drawable instanceof DrawableElement) {
+                this.drawable.createElement(event.bridge.drawable);
+            }
         } else if (event instanceof UndoableChange) {
             (event.target as any)[event.key] = event.oldValue;
         } else {

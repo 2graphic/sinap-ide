@@ -412,6 +412,30 @@ export class DrawableGraph extends Drawable {
         this._selectionChangedEmitter.removeListener(listener);
     }
 
+
+
+    deleteElement(element: DrawableElement): boolean {
+        if (element instanceof DrawableNode) {
+            return this.deleteNode(element);
+        } else if (element instanceof DrawableEdge) {
+            return this.deleteEdge(element);
+        }
+
+        return false;
+    }
+
+    createElement(element: DrawableElement): DrawableElement | null {
+        if (element instanceof DrawableNode) {
+            return this.createNode(element);
+        } else if (element instanceof DrawableEdge) {
+            return this.createEdge(element.source, element.destination, element);
+        }
+
+        return null;
+    }
+
+
+
     /**
      * createNode  
      *   Creates a drawable node.
@@ -439,6 +463,7 @@ export class DrawableGraph extends Drawable {
             "nodes"
         );
     }
+
 
     /**
      * createEdge  

@@ -105,8 +105,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     private makeChangeNotifier(context: TabContext) {
         return (change: UndoableEvent) => {
-            // Something like this.changes.get(context).add(change)
-            console.log(context.graph, change);
+            context.change(change);
             this.getProgram(context).then(program => {
                 this.updateStatusBar(program);
                 this.testComponent.program = program;
@@ -223,6 +222,16 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             case MenuEventAction.NEXT_TAB:
                 this.tabBar.selectNextTab();
                 break;
+            case MenuEventAction.UNDO:
+                if (this.context) {
+                    this.context.undo();
+                }
+                break;
+            case MenuEventAction.REDO:
+                if (this.context) {
+                    this.context.redo();
+                }
+                break;
         }
     }
 
@@ -302,5 +311,31 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 }
 
 class TabContext {
+    private readonly undoHistory = <UndoableEvent[]>[];
+    private readonly redoHistory = <UndoableEvent[]>[];
+
+    private stack = this.undoHistory;
+
     constructor(public readonly index: number, public graph: GraphController, public filename?: String) { };
+
+    public undo() {
+        const change = this.undoHistory.pop();
+        if (change) {
+            // If undoing causes a change, push it to the redoHistory stack.
+            this.stack = this.redoHistory;
+            this.graph.applyUndoableEvent(change);
+            this.stack = this.undoHistory;
+        }
+    }
+
+    public redo() {
+        const change = this.redoHistory.pop();
+        if (change) {
+            this.graph.applyUndoableEvent(change);
+        }
+    }
+
+    public change(change: UndoableEvent) {
+        this.stack.push(change);
+    }
 }
