@@ -1,2 +1,2 @@
-<label *ngIf="!readonly"><input id="input" [ngModel]="value.value" (ngModelChange)="value.value = $event" type="checkbox" /> {{value.value}}</label>
-<span *ngIf="readonly">{{value.value}}</span>
+<label *ngIf="!readonly"><input id="input" [ngModel]="value.data" (ngModelChange)="value.data = $event" type="checkbox" /> {{value.data}}</label>
+<span *ngIf="readonly">{{value.data}}</span>

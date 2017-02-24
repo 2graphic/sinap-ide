@@ -7,7 +7,8 @@
 // Resources:
 // https://nodejs.org/api/fs.html
 
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { FileService, AppLocations } from 'sinap-core';
 
 // TODO: Add in a service that does not use electron for static website.
 import { remote } from 'electron';
@@ -31,14 +32,6 @@ export interface Directory extends NamedEntity {
     getFiles(): Promise<File[]>;
 }
 
-export interface FileService {
-    getCurrentDirectory(): Promise<Directory>;
-    fileByName(fullName: string): Promise<File>;
-    directoryByName(fullName: string): Promise<Directory>;
-    requestSaveFile(): Promise<File>;
-    requestFiles(): Promise<File[]>;
-}
-
 function surroundSync<T>(func: () => T): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         try {
@@ -50,7 +43,25 @@ function surroundSync<T>(func: () => T): Promise<T> {
 }
 
 @Injectable()
-export class LocalFileService {
+export class LocalFileService implements FileService {
+    getAppLocations(): Promise<AppLocations> {
+        const pluginPath = path.join('.', 'plugins');
+        const result: AppLocations = {
+            currentDirectory: new LocalDirectory('.'),
+            pluginDirectory: new LocalDirectory(pluginPath)
+        };
+
+        return Promise.resolve(result);
+    }
+
+    joinPath(...paths: string[]): string {
+        return path.join(...paths);
+    }
+
+    getModuleFile(file: string): string {
+        return fs.readFileSync(path.join('node_modules', file), "utf-8") as any;
+    }
+
     getCurrentDirectory(): Promise<Directory> {
         return surroundSync(() => process.cwd());
     }
@@ -86,7 +97,7 @@ class LocalFile implements File {
 
     readData(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            fs.readFile(this.fullName, (err: any, data: string) => {
+            fs.readFile(this.fullName, "utf-8", (err: any, data: string) => {
                 if (err) {
                     reject(err);
                 } else {

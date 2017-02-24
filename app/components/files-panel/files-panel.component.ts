@@ -7,7 +7,7 @@
 
 
 import { Component, Input } from "@angular/core";
-import { FileService, LocalFileService, Directory, File } from "../../services/files.service";
+import { LocalFileService, Directory, File } from "../../services/files.service";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
 
 

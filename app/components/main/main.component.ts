@@ -11,19 +11,19 @@ import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from "@an
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
 import { MenuEventAction } from "../../models/menu";
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
-import { PluginService, Program, Output } from "../../services/plugin.service";
+import { PluginService } from "../../services/plugin.service";
 import { WindowService } from "../../modal-windows/services/window.service";
 import { ModalInfo, ModalType } from './../../models/modal-window';
 import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
 import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
-import { TestPanelComponent } from "../test-panel/test-panel.component";
+// import { TestPanelComponent } from "../test-panel/test-panel.component"
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { GraphController, UndoableAdd, UndoableChange, UndoableDelete, UndoableEvent } from "../../models/graph-controller";
-import { CoreElement, CoreModel, CoreElementKind } from "sinap-core";
+import { CoreElement, CoreModel, CoreElementKind, Program } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
-import { FileService, LocalFileService, File } from "../../services/files.service";
+import { LocalFileService, File } from "../../services/files.service";
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
 import { ResizeEvent } from 'angular-resizable-element';
@@ -74,8 +74,8 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     @ViewChild("bottomPanelBar")
     private bottomPanelBar: SideBarComponent;
 
-    @ViewChild(TestPanelComponent)
-    private testComponent: TestPanelComponent;
+    // @ViewChild(TestPanelComponent)
+    // private testComponent: TestPanelComponent;
 
     @ViewChild(TabBarComponent)
     private tabBar: TabBarComponent;
@@ -113,7 +113,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         validation.unshift("DFA");
         this.barMessages = validation;
 
-        this.testComponent.program = program;
+        // this.testComponent.program = program;
         this.inputPanel.program = program;
     }
 
@@ -124,22 +124,23 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     newFile(f?: String, g?: CoreModel) {
         const kind = this.toolsPanel.activeGraphType === "Machine Learning" ?
             MagicConstants.MACHINE_LEARNING_PLUGIN_KIND : MagicConstants.DFA_PLUGIN_KIND;
+        console.log(kind);
+        this.pluginService.getPlugin(kind).then((plugin) => {
+            g = g ? g : new CoreModel(plugin);
 
-        const plugin = this.pluginService.getPlugin(kind);
-        g = g ? g : new CoreModel(plugin);
+            let filename = f ? f : "Untitled";
+            let tabNumber = this.tabBar.newTab(filename);
 
-        let filename = f ? f : "Untitled";
-        let tabNumber = this.tabBar.newTab(filename);
+            const graph = new GraphController(g, plugin);
+            const context = new TabContext(tabNumber, graph, filename);
 
-        const graph = new GraphController(g, plugin);
-        const context = new TabContext(tabNumber, graph, filename);
+            // this.getProgram(context).then(this.gotNewProgram);
 
-        this.getProgram(context).then(this.gotNewProgram);
+            graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
 
-        graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
-
-        this.tabs.set(tabNumber, context);
-        this.selectedTab(tabNumber);
+            this.tabs.set(tabNumber, context);
+            this.selectedTab(tabNumber);
+        });
     }
 
     ngAfterViewChecked() {
@@ -257,8 +258,9 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
                 for (const file of files) {
                     file.readData().then(f => {
                         // TODO: use correct plugin
-                        const plugin = this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND);
-                        this.newFile(file.name, new CoreModel(plugin, JSON.parse(f)));
+                        this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND).then((plugin) => {
+                            this.newFile(file.name, new CoreModel(plugin, JSON.parse(f)));
+                        });
                     });
                 }
             });

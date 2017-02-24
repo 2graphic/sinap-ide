@@ -4,7 +4,7 @@
 //
 
 import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type } from "@angular/core";
-import { Value } from "./../../../services/plugin.service";
+import { CoreValue, Type as CoreType, ObjectType } from "sinap-core";
 
 import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
@@ -29,7 +29,7 @@ export class TypeInjectorComponent {
     @ViewChild('container', { read: ViewContainerRef }) private container: ViewContainerRef;
     private component?: ComponentRef<any>;
 
-    private _value: Value;
+    private _value: CoreValue;
     private _disabled: boolean = false;
 
     /**
@@ -46,10 +46,10 @@ export class TypeInjectorComponent {
 
     private componentMap = new Map<string, Type<any>>(
         [
-            ["string", StringTypeComponent],
-            ["error", StringTypeComponent],
-            ["boolean", BooleanTypeComponent],
-            ["object", ObjectTypeComponent],
+            ["getStringType", StringTypeComponent],
+            // ["error", StringTypeComponent],
+            ["getBooleanType", BooleanTypeComponent],
+            ["null", ObjectTypeComponent],
             ["node", NodeTypeComponent],
         ]
     );
@@ -63,14 +63,14 @@ export class TypeInjectorComponent {
     }
 
     @Input()
-    set value(v: Value) {
+    set value(v: CoreValue) {
         this._value = v;
         this.inject(v, this.readonly, this._disabled);
     }
 
-    private inject(value: Value, readonly: boolean, disabled: boolean) {
+    private inject(value: CoreValue, readonly: boolean, disabled: boolean) {
         if (value) {
-            let componentType = this.componentMap.get(value.type);
+            let componentType = this.getComponentType(value);
             if (componentType) {
                 let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
                 let factory = this.resolver.resolveComponentFactory(componentType);
@@ -90,5 +90,26 @@ export class TypeInjectorComponent {
                 }
             }
         }
+    }
+
+    private getComponentType(value: CoreValue) {
+        const type = (value.type as CoreType);
+        const env = type.env;
+
+        for (let [func, componentType] of this.componentMap) {
+            if (type.isAssignableTo(((env as any)[func])() as CoreType)) {
+                return componentType;
+            }
+        }
+
+        if (type.isAssignableTo((env as any).lookupPluginType("Nodes"))) {
+            return NodeTypeComponent;
+        }
+
+        if (type instanceof ObjectType) {
+            return ObjectTypeComponent;
+        }
+
+        return StringTypeComponent;
     }
 }

@@ -1,5 +1,5 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { Type, ObjectType, CoreModel, loadPlugin, Plugin, SerialJSO } from "sinap-core";
+import { Type, ObjectType, CoreModel, Plugin, SerialJSO, loadPluginDir, Program, CoreValue } from "sinap-core";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { LocalFileService } from "../services/files.service";
 import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
@@ -9,79 +9,83 @@ import * as MagicConstants from "../models/constants-not-to-be-included-in-beta"
  * The format of the program we get from core,
  * eventually we'll get this from core.
  */
-declare class IProgram {
-    constructor(graph: SerialJSO);
-    run(a: any): any;
-}
+// declare class IProgram {
+//     constructor(graph: SerialJSO);
+//     run(a: any): any;
+// }
 
-declare type IOutput = { states: any, result: any, error?: any };
+// declare type IOutput = { states: any, result: any, error?: any }
 
-/**
- * Preferably each dynamically typed value from a plugin would come as a
- * [Type, any] pair, which could then be wrapped up with an EventEmitter here.
- */
-export class Value {
-    private _value: any;
-    public changed = new EventEmitter<any>();
+// /**
+//  * Preferably each dynamically typed value from a plugin would come as a
+//  * [Type, any] pair, which could then be wrapped up with an EventEmitter here.
+//  */
+// export class Value {
+//     private _value: any;
+//     public changed = new EventEmitter<any>();
 
-    constructor(public readonly type: string, value: any) {
-        this._value = value;
-    };
+//     constructor(public readonly type: string, value: any) {
+//         this._value = value;
+//     };
 
-    set value(v: any) {
-        this._value = v;
-        this.changed.emit(v);
-    }
+//     set value(v: any) {
+//         this._value = v;
+//         this.changed.emit(v);
+//     }
 
-    get value() {
-        return this._value;
-    }
-}
+//     get value() {
+//         return this._value;
+//     }
+// }
 
 export class Output {
-    constructor(public readonly states: Value[], public readonly result: Value) { };
+    constructor(public readonly states: CoreValue[], public readonly result: CoreValue) { };
 };
 
-export interface Program {
-    validate(): string[];
-    run(a: any): Output;
+export function isOutput(o: any): o is Output {
+    return o && o.states && o.result;
 }
 
-class WrappedProgram implements Program {
-    constructor(private program: IProgram) { };
+// export interface Program {
+//     validate(): string[];
+//     run(a: any): Output;
+// }
 
-    validate(): string[] {
-        try {
-            this.run("");
-            return [];
-        } catch (e) {
-            return [e];
-        }
-    }
+// class WrappedProgram implements Program {
+//     constructor(private program: IProgram) { };
 
-    run(a: any): Output {
-        const output = this.program.run(a) as IOutput;
+//     validate(): string[] {
+//         try {
+//             this.run("");
+//             return [];
+//         } catch (e) {
+//             return [e]
+//         }
+//     }
 
-        if (output.error) {
-            throw output.error;
-        }
+//     run(a: any): Output {
+//         const output = this.program.run(a) as IOutput;
 
-        let states = output.states.map((state: any) => {
-            return new Value("object", {
-                active: new Value("node", state.active),
-                inputLeft: new Value("string", state.inputLeft),
-                message: new Value("string", state.message),
-            });
-        });
+//         if (output.error) {
+//             throw output.error;
+//         }
 
-        return new Output(states, new Value("boolean", output.result));
-    }
-}
+//         let states = output.states.map((state: any) => {
+//             return new Value("object", {
+//                 active: new Value("node", state.active),
+//                 inputLeft: new Value("string", state.inputLeft),
+//                 message: new Value("string", state.message),
+//             });
+//         });
+
+//         return new Output(states, new Value("boolean", output.result));
+//     }
+// }
 
 
 
 
-type StubContext = { global: { "plugin-stub": { "Program": typeof IProgram } } };
+type StubContext = { global: { "plugin-stub": { "Program": any } } };
 
 @Injectable()
 export class PluginService {
@@ -90,29 +94,35 @@ export class PluginService {
     private getResults: Script;
     private addGraph: Script;
     // TODO: load from somewhere
-    private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, "./plugins/dfa-interpreter.ts"]]);
+    private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, "./plugins/dfa"]]);
 
     constructor( @Inject(LocalFileService) private fileService: LocalFileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
     }
 
-    public getPlugin(kind: string) {
+    public getPlugin(kind: string): Promise<Plugin> {
         let plugin = this.plugins.get(kind);
         if (plugin) {
-            return plugin;
+            return Promise.resolve(plugin);
         }
-        const fileName = this.pluginKinds.get(kind);
-        if (!fileName) {
+        const directoryName = this.pluginKinds.get(kind);
+        if (!directoryName) {
             throw new Error("No plugin installed that can open: " + kind);
         }
-        plugin = loadPlugin(fileName);
-        this.plugins.set(kind, plugin);
-        return plugin;
+
+        return this.fileService.directoryByName(directoryName).then((directory) => {
+            return loadPluginDir(directory, this.fileService).then((plugin) => {
+                this.plugins.set(kind, plugin);
+                return plugin;
+            });
+        });
     }
 
     public getProgram(plugin: Plugin, m: CoreModel): Promise<Program> {
-        return this.getProgramContext(plugin).then(
-            context => new WrappedProgram(new context.global['plugin-stub'].Program(m.serialize())));
+        return this.getProgramContext(plugin).then((context) => {
+            const programStub = new context.global['plugin-stub'].Program(m.serialize());
+            return new context.global['plugin-stub'].Program(programStub, plugin);
+        });
     }
 
     private getProgramContext(plugin: Plugin) {

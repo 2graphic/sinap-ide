@@ -2,9 +2,8 @@
 //
 
 import { Component, ElementRef, ViewChild } from "@angular/core";
-import { Output, Value } from "../../services/plugin.service";
-import { Program } from "./../../services/plugin.service";
-import { Type } from "sinap-core";
+import { Type, Program, CoreValue, ObjectType, Plugin } from "sinap-core";
+import { Output, isOutput } from "./../../services/plugin.service";
 
 @Component({
     selector: "sinap-input-panel",
@@ -12,21 +11,27 @@ import { Type } from "sinap-core";
     styleUrls: ["./input-panel.component.scss"]
 })
 export class InputPanelComponent {
-    public program?: Program;
+    public _program?: Program;
+
+    set program(program: Program | undefined) {
+        this._program = program;
+        this.inputForPlugin = new CoreValue(this.getInputType(), "");
+    }
+
     public delegate: InputPanelDelegate;
 
     private results: ProgramResult[] = [];
     private selected: ProgramResult;
     private selectedState: any;
 
-    private inputForPlugin = new Value("string", "");
+    private inputForPlugin?: CoreValue;
 
     @ViewChild('log') log: ElementRef;
 
-    private selectState(state: Value) {
+    private selectState(state: CoreValue) {
         this.selectedState = state;
-        if (state.type === "object" && state.value.active) {
-            this.delegate.selectNode(state.value.active.value);
+        if (state.type instanceof ObjectType && state.data.active) {
+            this.delegate.selectNode(state.data.active.value);
         }
     }
 
@@ -37,15 +42,31 @@ export class InputPanelComponent {
         }, 0);
     }
 
+    private getObjectType() {
+        return ((this.program as any).plugin as Plugin).typeEnvironment.getNullType();
+    }
+
+    private getStringType() {
+        return ((this.program as any).plugin as Plugin).typeEnvironment.getStringType();
+    }
+
+    private getInputType() {
+        if (this.program) {
+            return ((this.program as any).plugin as Plugin).typeEnvironment.startTypes[0][0][0];
+        }
+
+        throw "No program";
+    }
+
     /**
      * Returns a new object value that doesn't have a message property.
      */
-    private stripMessage(state: Value) {
-        if (state.type === "object") {
-            let r = new Value("object", {});
-            Object.keys(state.value).forEach((key) => {
+    private stripMessage(state: CoreValue) {
+        if (this.program && state.type instanceof ObjectType) {
+            let r = new CoreValue(this.getObjectType(), {});
+            state.data.members.forEach((value: any, key: any) => {
                 if (key !== "message") {
-                    r.value[key] = state.value[key];
+                    r.data[key] = value;
                 }
             });
 
@@ -95,23 +116,23 @@ export class InputPanelComponent {
         return selected.output.states.slice(0, selected.steps);
     }
 
-    private onSubmit(input: Value) {
+    private onSubmit(input: CoreValue) {
         let handleOutput = (output: Output | Error) => {
             let result: ProgramResult;
 
-            if (output instanceof Output) {
+            if (isOutput(output)) {
                 result = new ProgramResult(input, output);
             } else {
-                let states = <Value[]> [];
+                let states = <CoreValue[]> [];
 
                 if (output.stack) {
                     states = output.stack.split("\n").map((frame) => {
-                        return new Value("string", frame);
+                        return new CoreValue(this.getStringType(), frame);
                     });
                     states.shift();
                     states.reverse();
                 }
-                result = new ProgramResult(input, new Output(states, new Value("error", output.message)));
+                result = new ProgramResult(input, new Output(states, new CoreValue(this.getStringType(), output.message)));
                 result.steps = states.length;
             }
 
@@ -124,13 +145,13 @@ export class InputPanelComponent {
         };
 
         try {
-            let r = this.run(input.value);
+            let r = this.run(input.data);
             handleOutput(r);
         } catch (e) {
             handleOutput(e);
         }
 
-        this.inputForPlugin = new Value("string", "");
+        this.inputForPlugin = new CoreValue(this.getInputType(), "");
         this.scrollToBottom();
     }
 
@@ -148,6 +169,6 @@ export interface InputPanelDelegate {
 }
 
 class ProgramResult {
-    constructor(public readonly input: Value, public readonly output: Output) { };
+    constructor(public readonly input: CoreValue, public readonly output: Output) { };
     public steps = 0;
 }

@@ -4,8 +4,7 @@
 //
 
 import { Component, Input, ViewChild, ElementRef } from "@angular/core";
-import { Type } from "sinap-core";
-import { Value } from "./../../../services/plugin.service";
+import { CoreValue } from "sinap-core";
 
 @Component({
     selector: "sinap-string-type",
@@ -13,7 +12,7 @@ import { Value } from "./../../../services/plugin.service";
     styleUrls: ["./string-type.component.scss"]
 })
 export class StringTypeComponent {
-    @Input() value: Value;
+    @Input() value: CoreValue;
     @Input() readonly: boolean = true;
     @Input() disabled: boolean = false;
 

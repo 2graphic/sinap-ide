@@ -4,8 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { Type } from "sinap-core";
-import { Value } from "./../../../services/plugin.service";
+import { CoreValue } from "sinap-core";
 
 @Component({
     selector: "sinap-node-type",
@@ -13,12 +12,12 @@ import { Value } from "./../../../services/plugin.service";
     styleUrls: ["./node-type.component.scss"]
 })
 export class NodeTypeComponent {
-    @Input() value: Value;
+    @Input() value: CoreValue;
     @Input() readonly: boolean = true;
 
     private getLabel() {
-        if (this.value.value.label && this.value.value.label !== "") {
-            return this.value.value.label;
+        if (this.value.data.label && this.value.data.label !== "") {
+            return this.value.data.label;
         } else {
             return "<NO LABEL>";
         }

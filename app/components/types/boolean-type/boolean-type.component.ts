@@ -4,8 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { Type } from "sinap-core";
-import { Value } from "./../../../services/plugin.service";
+import { CoreValue } from "sinap-core";
 
 @Component({
     selector: "sinap-boolean-type",
@@ -13,6 +12,6 @@ import { Value } from "./../../../services/plugin.service";
     styleUrls: ["./boolean-type.component.scss"]
 })
 export class BooleanTypeComponent {
-    @Input() value: Value;
+    @Input() value: CoreValue;
     @Input() readonly: boolean = true;
 }

@@ -7,7 +7,7 @@
         <img src="${require('../../images/play-all.svg')}" (click)="stepToCompletion()" class="toolbar-button" title="Step to Completion" />
     </div>
 
-    <div class="flex-container-row">
+    <div *ngIf="inputForPlugin" class="flex-container-row">
         <div id="left-panel">
             <div id="left-panel-output">
                 <div class="program-result clickable" *ngFor="let result of results" (click)="selectResult(result)" [class.selected]="selected == result">

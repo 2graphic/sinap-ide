@@ -4,8 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { Type } from "sinap-core";
-import { Value } from "./../../../services/plugin.service";
+import { CoreValue } from "sinap-core";
 
 @Component({
     selector: "sinap-object-type",
@@ -15,12 +14,12 @@ import { Value } from "./../../../services/plugin.service";
 export class ObjectTypeComponent {
     @Input() readonly: boolean = true;
 
-    private values = <[string, Value][]> [];
+    private values = <[string, CoreValue][]> [];
 
     @Input()
-    set value(v: Value) {
-        Object.keys(v.value).forEach((key) => {
-            this.values.push([key, v.value[key]]);
+    set value(v: CoreValue) {
+        Object.keys(v.data).forEach((key) => {
+            this.values.push([key, v.data[key]]);
         });
     }
 }
