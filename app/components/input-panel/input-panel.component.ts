@@ -15,7 +15,7 @@ export class InputPanelComponent {
 
     set program(program: Program | undefined) {
         this._program = program;
-        this.inputForPlugin = new CoreValue(this.getInputType(), "");
+        this.setupInput();
     }
 
     get program() {
@@ -35,7 +35,7 @@ export class InputPanelComponent {
     private selectState(state: CoreValue) {
         this.selectedState = state;
         if (state.type instanceof ObjectType && state.data.active) {
-            this.delegate.selectNode(state.data.active.value);
+            this.delegate.selectNode(state.data.active);
         }
     }
 
@@ -46,38 +46,39 @@ export class InputPanelComponent {
         }, 0);
     }
 
-    private getObjectType() {
-        return ((this.program as any).plugin as Plugin).typeEnvironment.getNullType();
-    }
-
     private getStringType() {
         return ((this.program as any).plugin as Plugin).typeEnvironment.getStringType();
     }
 
     private getInputType() {
         if (this.program) {
-            return ((this.program as any).plugin as Plugin).typeEnvironment.getStringType();
+            return this.getStringType();
         }
 
         throw "No program";
+    }
+
+    private setupInput() {
+        this.inputForPlugin = new CoreValue(this.getInputType(), "");
     }
 
     /**
      * Returns a new object value that doesn't have a message property.
      */
     private stripMessage(state: CoreValue) {
-        if (this.program && state.type instanceof ObjectType) {
-            let r = new CoreValue(this.getObjectType(), {});
-            state.data.members.forEach((value: any, key: any) => {
-                if (key !== "message") {
-                    r.data[key] = value;
-                }
-            });
+        return state;
+    }
 
-            return r;
+    getMessage(state: CoreValue) {
+        if (this.program && state.type instanceof ObjectType) {
+            return new CoreValue(state.type.members.get("message") as Type, state.data.message);
         }
 
-        return state;
+        return new CoreValue(this.getStringType(), "");
+    }
+
+    isObjectType(state: CoreValue) {
+        return (state.type instanceof ObjectType);
     }
 
     private selectResult(c: ProgramResult) {
@@ -149,19 +150,19 @@ export class InputPanelComponent {
         };
 
         try {
-            let r = this.run(input.data);
+            let r = this.run(input);
             handleOutput(r);
         } catch (e) {
             handleOutput(e);
         }
 
-        this.inputForPlugin = new CoreValue(this.getInputType(), "");
+        this.setupInput();
         this.scrollToBottom();
     }
 
-    private run(input: any): Output {
+    private run(input: CoreValue): Output {
         if (this.program) {
-            return this.program.run(input);
+            return this.program.run([input]);
         } else {
             throw new Error("No Graph to Run");
         }

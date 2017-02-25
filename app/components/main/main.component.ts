@@ -20,9 +20,15 @@ import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 // import { TestPanelComponent } from "../test-panel/test-panel.component"
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { GraphController, UndoableAdd, UndoableChange, UndoableDelete, UndoableEvent } from "../../models/graph-controller";
+<<<<<<< HEAD
 import { CoreElement, CoreModel, CoreElementKind, Program } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
+=======
+import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program } from "sinap-core";
+import { SideBarComponent } from "../side-bar/side-bar.component"
+import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
+>>>>>>> Somewhat funcitonal
 import { LocalFileService, File } from "../../services/files.service";
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";

@@ -56,16 +56,16 @@
                 </tr>
                 <tr *ngFor="let state of getStates(selected)">
                     <td class="clickable" (click)="selectState(state)">
-                        <div *ngIf="state.type == 'object'">
-                            <div *ngIf="state.value.message">
-                                <sinap-type [value]="state.value.message"></sinap-type>
+                        <div *ngIf="(isObjectType(state) && state.data.message)">
+                            <div>
+                                <sinap-type [value]="getMessage(state)"></sinap-type>
                             </div>
                             <div *ngIf="selectedState == state">
                                 <sinap-type [value]="stripMessage(state)"></sinap-type>
                             </div>
                         </div>
 
-                        <div *ngIf="state.type != 'object'">
+                        <div *ngIf="!(isObjectType(state) && state.data.message)">
                             <sinap-type [value]="state"></sinap-type>
                         </div>
                     </td>

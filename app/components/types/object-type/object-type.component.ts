@@ -4,7 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue } from "sinap-core";
+import { CoreValue, ObjectType } from "sinap-core";
 
 @Component({
     selector: "sinap-object-type",
@@ -18,8 +18,13 @@ export class ObjectTypeComponent {
 
     @Input()
     set value(v: CoreValue) {
-        Object.keys(v.data).forEach((key) => {
-            this.values.push([key, v.data[key]]);
-        });
+        const type = v.type;
+        if (type instanceof ObjectType) {
+            type.members.forEach((type, key) => {
+                if (key != "__constructor") {
+                    this.values.push([key, new CoreValue(type, v.data[key])]);
+                }
+            });
+        }
     }
 }

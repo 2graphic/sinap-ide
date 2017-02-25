@@ -47,10 +47,7 @@ export class TypeInjectorComponent {
     private componentMap = new Map<string, Type<any>>(
         [
             ["getStringType", StringTypeComponent],
-            // ["error", StringTypeComponent],
             ["getBooleanType", BooleanTypeComponent],
-            ["getNullType", ObjectTypeComponent],
-            // ["node", NodeTypeComponent],
         ]
     );
 
@@ -83,11 +80,12 @@ export class TypeInjectorComponent {
                 this.container.clear();
                 this.container.insert(this.component.hostView);
 
-                if (this.focus && this.component.instance.focus) {
+                this.component.changeDetectorRef.detectChanges();
+
+                if (this.focus && this.component.instance.focus && document.activeElement.tagName.toLocaleLowerCase() == "body") {
+                    // Make sure we're not yanking the focus away from something important
                     this.component.instance.focus();
                 }
-
-                this.component.changeDetectorRef.detectChanges();
             }
         }
     }
@@ -96,20 +94,28 @@ export class TypeInjectorComponent {
         const type = (value.type as CoreType);
         const env = type.env;
 
-        for (let [func, componentType] of this.componentMap) {
-            if (type.isAssignableTo(((env as any)[func])() as CoreType)) {
-                return componentType;
+        if (env == undefined) {
+            if (type.name == "true | false") {
+                return BooleanTypeComponent;
             }
+            console.log(value, type, env);
         }
 
         if (type.isAssignableTo((env as any).lookupPluginType("Nodes"))) {
             return NodeTypeComponent;
         }
 
-        if (type instanceof ObjectType) {
+        if (type.name == "null" || type instanceof ObjectType) {
             return ObjectTypeComponent;
         }
 
+        for (let [func, componentType] of this.componentMap) {
+            if (type.isAssignableTo(((env as any)[func])() as CoreType)) {
+                return componentType;
+            }
+        }
+
+        console.log("IDK");
         return StringTypeComponent;
     }
 }
