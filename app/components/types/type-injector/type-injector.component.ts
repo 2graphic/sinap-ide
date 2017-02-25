@@ -61,8 +61,18 @@ export class TypeInjectorComponent {
 
     @Input()
     set value(v: CoreValue) {
-        this._value = v;
-        this.inject(v, this.readonly, this._disabled);
+        if (!v) {
+            this.container.clear();
+        } else {
+            if (!this._value || !this.areEqual(this._value, v)) {
+                this._value = v;
+                this.inject(v, this.readonly, this._disabled);
+            }
+        }
+    }
+
+    private areEqual(a: CoreValue, b: CoreValue) {
+        return (a.type.isAssignableTo(b.type) && b.type.isAssignableTo(a.type) && a.data === b.data);
     }
 
     private inject(value: CoreValue, readonly: boolean, disabled: boolean) {
@@ -82,7 +92,7 @@ export class TypeInjectorComponent {
 
                 this.component.changeDetectorRef.detectChanges();
 
-                if (this.focus && this.component.instance.focus && document.activeElement.tagName.toLocaleLowerCase() == "body") {
+                if (this.focus && this.component.instance.focus && document.activeElement.tagName.toLocaleLowerCase() === "body") {
                     // Make sure we're not yanking the focus away from something important
                     this.component.instance.focus();
                 }
@@ -94,8 +104,8 @@ export class TypeInjectorComponent {
         const type = (value.type as CoreType);
         const env = type.env;
 
-        if (env == undefined) {
-            if (type.name == "true | false") {
+        if (env === undefined) {
+            if (type.name === "true | false") {
                 return BooleanTypeComponent;
             }
             console.log(value, type, env);
@@ -105,7 +115,7 @@ export class TypeInjectorComponent {
             return NodeTypeComponent;
         }
 
-        if (type.name == "null" || type instanceof ObjectType) {
+        if (type.name === "null" || type instanceof ObjectType) {
             return ObjectTypeComponent;
         }
 

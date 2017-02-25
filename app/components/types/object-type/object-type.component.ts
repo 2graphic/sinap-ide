@@ -14,14 +14,14 @@ import { CoreValue, ObjectType } from "sinap-core";
 export class ObjectTypeComponent {
     @Input() readonly: boolean = true;
 
-    private values = <[string, CoreValue][]> [];
+    private values: [string, CoreValue][] = [];
 
     @Input()
     set value(v: CoreValue) {
         const type = v.type;
         if (type instanceof ObjectType) {
             type.members.forEach((type, key) => {
-                if (key != "__constructor") {
+                if (key !== "__constructor") {
                     this.values.push([key, new CoreValue(type, v.data[key])]);
                 }
             });

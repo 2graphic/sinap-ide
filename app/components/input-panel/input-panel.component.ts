@@ -128,7 +128,7 @@ export class InputPanelComponent {
             if (isOutput(output)) {
                 result = new ProgramResult(input, output);
             } else {
-                let states = <CoreValue[]> [];
+                let states: CoreValue[] = [];
 
                 if (output.stack) {
                     states = output.stack.split("\n").map((frame) => {
