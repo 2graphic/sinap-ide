@@ -12,7 +12,7 @@
     "clean": "rimraf ./build && rimraf ./dist && rimraf ./dll",
     "webpack": "webpack --progress --profile --colors --display-error-details --display-cached",
     "format": "tsfmt -r && tslint --project . --fix",
-    "lint": "tsfmt -r && git diff HEAD --exit-code && tslint --project .",
+    "lint": "tsfmt --verify && tslint --project .",
     "build": "npm run format && npm run webpack",
     "build:dll": "npm run webpack -- --config webpack.dll.config.js",
     "build:prod": "npm run format && npm run webpack -- --env.ENV=production",
