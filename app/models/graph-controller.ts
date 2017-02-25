@@ -209,10 +209,18 @@ export class GraphController {
         }
 
         // finally set up all the listeners after we copy all the elements
-        this.drawable.addCreatedNodeListener((n: DrawableNodeEventArgs) => this.addDrawable(n.drawable, undefined));
-        this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs) => this.addDrawable(e.drawable, undefined));
-        this.drawable.addDeletedNodeListener((n: DrawableNodeEventArgs) => this.removeDrawable(n.drawable));
-        this.drawable.addDeletedEdgeListener((e: DrawableEdgeEventArgs) => this.removeDrawable(e.drawable));
+        const addDrawables = (drawables: Iterable<DrawableElement>) => {
+            for (const d of drawables)
+                this.addDrawable(d);
+        }
+        const removeDrawables = (drawables: Iterable<DrawableElement>) => {
+            for (const d of drawables)
+                this.removeDrawable(d);
+        }
+        this.drawable.addCreatedNodeListener((n: DrawableNodeEventArgs) => addDrawables(n.drawables));
+        this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs) => addDrawables(e.drawables));
+        this.drawable.addDeletedNodeListener((n: DrawableNodeEventArgs) => removeDrawables(n.drawables));
+        this.drawable.addDeletedEdgeListener((e: DrawableEdgeEventArgs) => removeDrawables(e.drawables));
         this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
         this.drawable.addSelectionChangedListener((a: PropertyChangedEventArgs<Iterable<DrawableElement>>) => {
             this.setSelectedElements(a.curr);
@@ -257,11 +265,13 @@ export class GraphController {
     public applyUndoableEvent(event: UndoableEvent) {
         if (event instanceof UndoableAdd) {
             if (event.bridge.drawable instanceof DrawableElement) {
-                this.drawable.deleteElement(event.bridge.drawable);
+                // this.drawable.deleteElement(event.bridge.drawable);
+                this.drawable.delete(event.bridge.drawable);
             }
         } else if (event instanceof UndoableDelete) {
             if (event.bridge.drawable instanceof DrawableElement) {
-                this.drawable.insertElement(event.bridge.drawable);
+                // this.drawable.insertElement(event.bridge.drawable);
+                this.drawable.undelete(event.bridge.drawable);
             }
         } else if (event instanceof UndoableChange) {
             event.target.set(event.key, event.oldValue, true);
