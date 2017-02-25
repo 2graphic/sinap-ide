@@ -4,7 +4,7 @@
 
 
 import { Component, Input } from "@angular/core";
-import { Program } from "./../../services/plugin.service"
+import { Program } from "./../../services/plugin.service";
 
 @Component({
     selector: "sinap-test-panel",
