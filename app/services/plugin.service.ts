@@ -6,35 +6,39 @@ import * as MagicConstants from "../models/constants-not-to-be-included-in-beta"
 
 type StubContext = { global: { "plugin-stub": { "Program": any } } };
 
+// Similar to Promise.all. However, this will always resolve and ignore rejected promises.
+function somePromises<T>(promises: Iterable<Promise<T>>): Promise<T[]> {
+    let result: Promise<T[]> = Promise.resolve([]);
+
+    for (const promise of promises) {
+        result = result.then((arr) => {
+            return promise.then((ele) => {
+                arr.push(ele);
+                return arr;
+            }).catch((_) => {
+                return arr;
+            });
+        });
+    }
+
+    return result;
+}
+
 @Injectable()
 export class PluginService {
-    private plugins = new Map<string, Plugin>();
+    readonly plugins: Promise<Plugin[]>;
     private programs = new Map<Plugin, Promise<StubContext>>();
     private getResults: Script;
     private addGraph: Script;
-    // TODO: load from somewhere
-    private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, "./plugins/dfa"]]);
 
     constructor( @Inject(LocalFileService) private fileService: LocalFileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {
-    }
-
-    public getPlugin(kind: string): Promise<Plugin> {
-        let plugin = this.plugins.get(kind);
-        if (plugin) {
-            return Promise.resolve(plugin);
-        }
-        const directoryName = this.pluginKinds.get(kind);
-        if (!directoryName) {
-            throw new Error("No plugin installed that can open: " + kind);
-        }
-
-        return this.fileService.directoryByName(directoryName).then((directory) => {
-            return loadPluginDir(directory, this.fileService).then((plugin) => {
-                this.plugins.set(kind, plugin);
-                return plugin;
+        this.plugins = this.fileService.getAppLocations()
+            .then((appLocations) => appLocations.pluginDirectory.getSubDirectories())
+            .then((pluginDirectories) => {
+                const pluginProms = pluginDirectories.map((pluginDir) => loadPluginDir(pluginDir, this.fileService));
+                return somePromises(pluginProms);
             });
-        });
     }
 
     public getProgram(plugin: Plugin, m: CoreModel): Promise<Program> {

@@ -14,7 +14,7 @@ import { FileService, AppLocations, Directory, File } from 'sinap-core';
 import { remote } from 'electron';
 const fs = remote.require('fs');
 const path = remote.require("path");
-const {dialog} = remote;
+const { dialog, app } = remote;
 const process = remote.require('process');
 
 function surroundSync<T>(func: () => T): Promise<T> {
@@ -32,8 +32,8 @@ export class LocalFileService implements FileService {
     getAppLocations(): Promise<AppLocations> {
         const pluginPath = path.join('.', 'plugins');
         const result: AppLocations = {
-            currentDirectory: new LocalDirectory('.'),
-            pluginDirectory: new LocalDirectory(pluginPath)
+            currentDirectory: new LocalDirectory(app.getAppPath()),
+            pluginDirectory: new LocalDirectory(path.join(app.getPath("userData"), 'plugins'))
         };
 
         return Promise.resolve(result);
