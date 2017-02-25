@@ -56,7 +56,7 @@ export class InputPanelComponent {
 
     private getInputType() {
         if (this.program) {
-            return ((this.program as any).plugin as Plugin).typeEnvironment.startTypes[0][0][0];
+            return ((this.program as any).plugin as Plugin).typeEnvironment.getStringType();
         }
 
         throw "No program";

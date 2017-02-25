@@ -61,9 +61,14 @@ export class BridgingProxy {
             (this.drawable as any)[k] = drawableValue;
         }
 
-        this.graph.changed.emit(new UndoableChange(this, k, this.core.data[k], coreValue));
-
+        const oldValue = this.core.data[k];
         this.core.data[k] = coreValue;
+
+        // Probably wanna do as little work as possible in the setter, and the changer causes a lot of work.
+        setTimeout(() => {
+            this.graph.changed.emit(new UndoableChange(this, k, oldValue, coreValue));
+        }, 0);
+
         return true;
     }
 

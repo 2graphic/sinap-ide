@@ -69,10 +69,8 @@ export class TypeInjectorComponent {
     }
 
     private inject(value: CoreValue, readonly: boolean, disabled: boolean) {
-        console.log(value);
         if (value) {
             let componentType = this.getComponentType(value);
-            console.log(componentType);
             if (componentType) {
                 let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
                 let factory = this.resolver.resolveComponentFactory(componentType);
@@ -85,11 +83,11 @@ export class TypeInjectorComponent {
                 this.container.clear();
                 this.container.insert(this.component.hostView);
 
-                this.component.changeDetectorRef.detectChanges();
-
                 if (this.focus && this.component.instance.focus) {
                     this.component.instance.focus();
                 }
+
+                this.component.changeDetectorRef.detectChanges();
             }
         }
     }
