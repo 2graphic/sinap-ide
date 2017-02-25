@@ -8,7 +8,7 @@
 // https://nodejs.org/api/fs.html
 
 import { Injectable } from '@angular/core';
-import { FileService, AppLocations } from 'sinap-core';
+import { FileService, AppLocations, Directory, File } from 'sinap-core';
 
 // TODO: Add in a service that does not use electron for static website.
 import { remote } from 'electron';
@@ -16,21 +16,6 @@ const fs = remote.require('fs');
 const path = remote.require("path");
 const {dialog} = remote;
 const process = remote.require('process');
-
-export interface NamedEntity {
-    name: string;
-    fullName: string;
-}
-
-export interface File extends NamedEntity {
-    readData(): Promise<string>;
-    writeData(data: string): Promise<{}>;
-}
-
-export interface Directory extends NamedEntity {
-    getSubDirectories(): Promise<Directory[]>;
-    getFiles(): Promise<File[]>;
-}
 
 function surroundSync<T>(func: () => T): Promise<T> {
     return new Promise<T>((resolve, reject) => {
