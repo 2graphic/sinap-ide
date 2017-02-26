@@ -10,7 +10,7 @@
 export interface ModalInfo {
     readonly id: number;
     readonly selector: string;
-    readonly type: ModalType
+    readonly type: ModalType;
     data: any;
 }
 

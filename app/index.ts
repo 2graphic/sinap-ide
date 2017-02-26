@@ -15,7 +15,7 @@
 // application.
 //
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
-import { ModalInfo, ModalType } from './models/modal-window'
+import { ModalInfo, ModalType } from './models/modal-window';
 
 
 /**
@@ -40,7 +40,7 @@ function createWindow() {
     win.loadURL(`file://${__dirname}/index.html`);
 
     win.on("closed", () => {
-        win = null
+        win = null;
     });
 
     win.maximize();
@@ -72,7 +72,7 @@ app.on("window-all-closed", () => {
 /** Managing Additional Windows **/
 // TODO: probs should split this into it's own file.
 
-var childWindows = new Map<Number, [Electron.BrowserWindow, ModalInfo]>();
+let childWindows = new Map<Number, [Electron.BrowserWindow, ModalInfo]>();
 
 ipcMain.on('createWindow', (event, selector, type) => {
     if (win) {
@@ -85,22 +85,22 @@ ipcMain.on('windowResult', (event, arg: ModalInfo) => {
         win.webContents.send('windowResult', arg);
     }
 
-    var window = childWindows.get(arg.id);
+    let window = childWindows.get(arg.id);
     if (window) {
         window[0].close();
     }
 });
 
 ipcMain.on('getWindowInfo', (event, arg: Number) => {
-    var window = childWindows.get(arg);
+    let window = childWindows.get(arg);
     event.returnValue = window ? window[1] : null;
 });
 
 function createNewWindow(selector: string, type: ModalType): ModalInfo {
     if (win) {
-        var newWindow = new BrowserWindow({
+        let newWindow = new BrowserWindow({
             parent: win,
-            modal: (type == ModalType.MODAL),
+            modal: (type === ModalType.MODAL),
             width: 600,
             height: 450,
             center: true,
@@ -108,12 +108,12 @@ function createNewWindow(selector: string, type: ModalType): ModalInfo {
         });
         newWindow.setMenu(null as any);
 
-        var info: ModalInfo = {
+        let info: ModalInfo = {
             id: newWindow.id,
             selector: selector,
             type: type,
             data: null
-        }
+        };
         childWindows.set(info.id, [newWindow, info]);
 
         newWindow.loadURL(`file://${__dirname}/modal.html`);
@@ -124,7 +124,7 @@ function createNewWindow(selector: string, type: ModalType): ModalInfo {
 
         newWindow.once("ready-to-show", () => {
             newWindow.show();
-        })
+        });
 
         return info;
     }

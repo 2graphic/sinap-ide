@@ -6,7 +6,7 @@
 import { Injectable, NgZone } from '@angular/core';
 
 import { remote, ipcRenderer } from 'electron';
-import { ModalInfo, ModalService, ModalType } from './../../models/modal-window'
+import { ModalInfo, ModalService, ModalType } from './../../models/modal-window';
 
 @Injectable()
 export class WindowService implements ModalService {
@@ -21,7 +21,7 @@ export class WindowService implements ModalService {
     }
 
     public createModal(selector: string, type: ModalType): [ModalInfo, Promise<any>] {
-        var modal: ModalInfo = ipcRenderer.sendSync('createWindow', selector, type);
+        let modal: ModalInfo = ipcRenderer.sendSync('createWindow', selector, type);
 
         return [modal, new Promise((resolve, reject) => {
             this.callbacks.set(modal.id, resolve);
@@ -52,15 +52,15 @@ export class WindowService implements ModalService {
      * A helper function for resolving the promises.
      */
     private callback(arg: ModalInfo) {
-        var callback = this.callbacks.get(arg.id);
+        let callback = this.callbacks.get(arg.id);
         if (callback) {
             this.callbacks.delete(arg.id);
 
-            var c = callback; // hack
+            let c = callback; // hack
             this._ngZone.run(() => {
                 if (arg.data) {
                     c(arg.data);
-                } // else cancel or error?   
+                } // else cancel or error?
             });
         }
     }

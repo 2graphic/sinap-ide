@@ -4,7 +4,7 @@
 
 
 import { Component, Input } from "@angular/core";
-import { BridgingProxy } from "../../models/graph-controller"
+import { BridgingProxy } from "../../models/graph-controller";
 import { Type, UnionType } from "sinap-core";
 
 @Component({

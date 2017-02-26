@@ -28,7 +28,7 @@ export class TabBarComponent {
     }
 
     set active(v: number) {
-        var tab = this.findTab(v);
+        let tab = this.findTab(v);
         if (!tab) {
             return;
         }
@@ -41,7 +41,7 @@ export class TabBarComponent {
 
     private findTab(index: number): Tab | null {
         for (let tab of this.tabs) {
-            if (tab.index == index) {
+            if (tab.index === index) {
                 return tab;
             }
         }
@@ -51,18 +51,18 @@ export class TabBarComponent {
 
     // If the current tab is selected, delegate.selectedTab() is called with the new selected tab before delegate.deletedTab()
     deleteTab(index: number) {
-        var tab = this.findTab(index);
+        let tab = this.findTab(index);
         if (!tab) {
             return;
         }
 
-        var reselect = false;
+        let reselect = false;
 
-        if (this.active == tab.index) {
+        if (this.active === tab.index) {
             reselect = true;
         }
 
-        var location = this.tabs.indexOf(tab);
+        let location = this.tabs.indexOf(tab);
         if (location >= 0) {
             this.tabs.splice(location, 1);
 
@@ -87,7 +87,7 @@ export class TabBarComponent {
         let tab = {
             'name': name,
             'index': this.index++,
-        }
+        };
 
         this.tabs.push(tab);
         this._active = tab.index; // bypass the getter to avoid triggering the delegate
@@ -102,7 +102,7 @@ export class TabBarComponent {
 
     private findPosition(index: number) {
         for (let i = 0; i < this.tabs.length; i++) {
-            if (this.tabs[i].index == index) {
+            if (this.tabs[i].index === index) {
                 return i;
             }
         }
@@ -112,14 +112,14 @@ export class TabBarComponent {
 
     selectPreviousTab() {
         const i = this.findPosition(this.active);
-        if (i != undefined && i > 0) {
+        if (i !== undefined && i > 0) {
             this.active = this.tabs[i - 1].index;
         }
     }
 
     selectNextTab() {
         const i = this.findPosition(this.active);
-        if (i != undefined && i < this.tabs.length - 1) {
+        if (i !== undefined && i < this.tabs.length - 1) {
             this.active = this.tabs[i + 1].index;
         }
     }

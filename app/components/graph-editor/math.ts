@@ -15,25 +15,25 @@ import { point } from "./graph-editor-canvas";
 
 
 /**
- * COS_150  
+ * COS_150
  *   Used in the rotation matrix for drawing edge arrows.
  */
 export const COS_150: number = Math.cos(5 * Math.PI / 6);
 
 /**
- * SIN_150  
+ * SIN_150
  *   Used in the rotation matrix for drawing edge arrows.
  */
 export const SIN_150: number = Math.sin(5 * Math.PI / 6);
 
 /**
- * COS_22_5  
+ * COS_22_5
  *   Used in the rotation matrix for calculating edge loopback points.
  */
 export const COS_22_5: number = Math.cos(Math.PI / 8);
 
 /**
- * SIN_22_5  
+ * SIN_22_5
  *   Used in the rotation matrix for calculating edge loopback points.
  */
 export const SIN_22_5: number = Math.sin(Math.PI / 8);
@@ -45,7 +45,7 @@ export const SQRT3 = Math.sqrt(3);
 
 
 /**
- * dot  
+ * dot
  *   Calculates the dot product of two points.
  */
 export function dot(a: point, b: point): number {
@@ -53,7 +53,7 @@ export function dot(a: point, b: point): number {
 }
 
 /**
- * mag  
+ * mag
  *   Calculates the magnitude of a point.
  */
 export function mag(v: point): number {
@@ -82,7 +82,7 @@ export function quadBezIntersect(
             x: coefs[0].x * t * t + coefs[1].x * t + coefs[2].x,
             y: coefs[0].y * t * t + coefs[1].y * t + coefs[2].y
         };
-        let s = (B == 0 ? (ipt.y - lp0.y) / A : (lp0.x - ipt.x) / B);
+        let s = (B === 0 ? (ipt.y - lp0.y) / A : (lp0.x - ipt.x) / B);
         if (s >= 0 && s <= 1)
             return true;
     }
@@ -110,13 +110,13 @@ export function cubBezIntersect(
     let c = A * coefs[2].x + B * coefs[2].y;
     let d = A * coefs[3].x + B * coefs[3].y + C;
 
-    let rts = (a == 0 ? getQuadraticRoots(b, c, d) : getCubicRoots(a, b, c, d));
+    let rts = (a === 0 ? getQuadraticRoots(b, c, d) : getCubicRoots(a, b, c, d));
     for (let t of rts) {
         let ip = {
             x: coefs[0].x * t * t * t + coefs[1].x * t * t + coefs[2].x * t + coefs[3].x,
             y: coefs[0].y * t * t * t + coefs[1].y * t * t + coefs[2].y * t + coefs[3].y
         };
-        let s = (B == 0 ? (ip.y - lp0.y) / A : (lp0.x - ip.x) / B);
+        let s = (B === 0 ? (ip.y - lp0.y) / A : (lp0.x - ip.x) / B);
         if (s >= 0 && s <= 1)
             return true;
     }
@@ -136,7 +136,7 @@ function getQuadraticRoots(a: number, b: number, c: number) {
         if (r >= 0 && r <= 1)
             t.push(r);
     }
-    else if (d == 0) {
+    else if (d === 0) {
         let r = -b / (2 * a);
         if (r >= 0 && r <= 1)
             t.push(r);
@@ -172,7 +172,7 @@ function getCubicRoots(a: number, b: number, c: number, d: number) {
         if (r >= 0 && r <= 1)
             t.push(r);
 
-        if (S - T == 0) {
+        if (S - T === 0) {
             r = _A3 - ST / 2;
             if (r >= 0 && r <= 1)
                 t.push(r);
@@ -211,7 +211,7 @@ function quadBezCoefs(p0: point, p1: point, p2: point) {
 }
 
 /**
- * cubBezCoefs  
+ * cubBezCoefs
  *   Gets the cubic bezier curve coefficients.
  */
 function cubBezCoefs(p0: point, p1: point, p2: point, p3: point) {

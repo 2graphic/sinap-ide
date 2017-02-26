@@ -22,10 +22,10 @@ import { DoubleMap } from "./double-map";
 
 /**
  * Contains a reference to a `CoreElement` and a `Drawable`.
- * 
- * Calls to get/set will update both. It also contains a 
- * `proxy` field. Reads and writes to this will intelligently update 
- * the core element and the drawable. For any of these uses, if 
+ *
+ * Calls to get/set will update both. It also contains a
+ * `proxy` field. Reads and writes to this will intelligently update
+ * the core element and the drawable. For any of these uses, if
  * the backer object (core/drawable) references another core or drawable
  * this will return a `BridgingProxy` in its place. Sets will intelligently
  * sync the backends even if the set `v` is a `BridgingProxy`
@@ -46,7 +46,7 @@ export class BridgingProxy {
 
         // If v is a drawable element or a core element,
         // then when it gets set in the various proxied data
-        // structures, set it differently. 
+        // structures, set it differently.
 
         if (v instanceof BridgingProxy) {
             drawableValue = v.drawable;
@@ -71,7 +71,7 @@ export class BridgingProxy {
         const coreValue = this.core.data[k];
         // if this is something that should be proxied
         const proxiedValue = this.graph.bridges.getB(coreValue);
-        // return the proxy. That is, any changes made to the returned 
+        // return the proxy. That is, any changes made to the returned
         // object should propagate to both backers
         return proxiedValue !== undefined ? proxiedValue : coreValue;
     }
@@ -134,7 +134,7 @@ export class GraphController {
         this.drawable = new DrawableGraph((src: DrawableNode,
             dst?: DrawableNode,
             like?: DrawableEdge) => {
-            // TODO: maybe define this validation routine elsewhere? 
+            // TODO: maybe define this validation routine elsewhere?
             const source = this.bridges.getA(src);
             const destination = dst !== undefined ? this.bridges.getA(dst) : null;
 
@@ -150,7 +150,7 @@ export class GraphController {
             }
 
             if (source === undefined || destination === undefined) {
-                throw "backer out of sync"
+                throw "backer out of sync";
             }
 
             return validateEdge(edge, source.core.type, destination !== null ? destination.core.type : undefined);
@@ -222,10 +222,10 @@ export class GraphController {
     }
 
     private addDrawable(drawable: Drawable, core?: CoreElement) {
-        // if a core element to pair with this 
+        // if a core element to pair with this
         // drawable doesn't exist, make one
         if (!core) {
-            // this could probably be wrapped up in a function if 
+            // this could probably be wrapped up in a function if
             // it was useful elsewhere
             const kind = drawable instanceof DrawableEdge ?
                 CoreElementKind.Edge : (drawable instanceof DrawableNode ?
@@ -267,12 +267,12 @@ export class GraphController {
     }
 
     private onPropertyChanged(a: PropertyChangedEventArgs<any>) {
-        const bridge = this.bridges.getA(a.source)
+        const bridge = this.bridges.getA(a.source);
         if (bridge !== undefined) {
             // TODO: maybe do an interface check to see if this matches
-            // do we want the list of nodes/edges to show up in the properties panel? 
+            // do we want the list of nodes/edges to show up in the properties panel?
             // probably not
-            // maybe this filtering should occur downstream? 
+            // maybe this filtering should occur downstream?
             if (Object.keys(bridge.drawable).indexOf(a.key) !== -1) {
                 bridge.set(a.key, a.curr, false);
             }

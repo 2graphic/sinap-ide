@@ -25,39 +25,39 @@ import * as MathEx from "./math";
 
 
 /**
- * DrawableEdge  
+ * DrawableEdge
  *   Represents an edge that is drawn on the graph editor canvas.
  */
 export class DrawableEdge extends DrawableElement {
 
     /**
-     * _srcArrow  
+     * _srcArrow
      *   Keeps track of whether or not the source arrow is displayed.
      */
     private _srcArrow: boolean;
 
     /**
-     * _dstArrow  
+     * _dstArrow
      *   Keeps track of whether or not the destination arrow is displayed.
      */
     private _dstArrow: boolean;
 
     /**
-     * _lineStyle  
+     * _lineStyle
      *   Keeps track of the line style of the edge.
      */
     private _lineStyle: LineStyles;
 
     /**
-     * _lineWidth  
+     * _lineWidth
      *   Keeps track of the line width of the edge.
      */
     private _lineWidth: number;
 
     /**
-     * _pts  
+     * _pts
      *   Keeps track of points-of-interest related to the edge.
-     * 
+     *
      * <p>
      *   The first two points represent the boundary points along the source and
      *   destination nodes respectively. The third point is the midpoint along
@@ -69,7 +69,7 @@ export class DrawableEdge extends DrawableElement {
     private _pts: point[];
 
     /**
-     * constructor  
+     * constructor
      */
     constructor(
         graph: DrawableGraph,
@@ -181,61 +181,61 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * source  
+     * source
      *   Gets the reference to the drawable source node of the edge.
      */
     readonly source: DrawableNode;
 
     /**
-     * destination  
+     * destination
      *   Gets the reference to the drawable destination node of the edge.
      */
     readonly destination: DrawableNode;
 
     /**
-     * sourcePoint  
+     * sourcePoint
      *   Gets the point of the edge along the boundary of its source node.
      */
     readonly sourcePoint: point;
 
     /**
-     * destinationPoint  
+     * destinationPoint
      *   Gets the point of the edge along the boundary of its destination node.
      */
     readonly destinationPoint: point;
 
     /**
-     * showSourceArrow  
+     * showSourceArrow
      *   Gets or sets whether or not an arrow should be displayed towards the
      *   source node.
      */
     showSourceArrow: boolean;
 
     /**
-     * showDestinationArrow  
+     * showDestinationArrow
      *   Gets or sets whether or not an arrow should be displayed towards the
      *   destination node.
      */
     showDestinationArrow: boolean;
 
     /**
-     * lineStyle  
+     * lineStyle
      *   Gets or sets the line style of the edge.
      */
     lineStyle: LineStyles;
 
     /**
-     * lineWidth  
+     * lineWidth
      *   Gets or sets the width of the line of the edge.
      */
     lineWidth: number;
 
     /**
-     * points  
+     * points
      *   Updates the points-of-interest related to the edge.
      */
     private set points(value: point[]) {
-        if (this._pts.length == value.length) {
+        if (this._pts.length === value.length) {
             for (let i = 0; i < value.length; i++)
                 this._pts[i] = value[i];
         }
@@ -244,7 +244,7 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * update  
+     * update
      *   Updates the geometry and draw logic of the edge.
      */
     update(g: GraphEditorCanvas): void {
@@ -265,7 +265,7 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * updateDraw  
+     * updateDraw
      *   Updates the draw logic of the edge.
      */
     updateDraw(g: GraphEditorCanvas) {
@@ -288,7 +288,7 @@ export class DrawableEdge extends DrawableElement {
                 let size = {
                     h: this._textSize.h + 4,
                     w: this._textSize.w + 4
-                }
+                };
                 drawLabelThunk = () => {
                     g.lineWidth = this._lineWidth;
                     g.fillStyle = SELECTION_COLOR;
@@ -303,7 +303,7 @@ export class DrawableEdge extends DrawableElement {
                 drawLabelThunk();
                 g.shadowBlur = 0;
                 g.globalAlpha = 1;
-            }
+            };
             hovered = false;
         }
         else {
@@ -339,9 +339,9 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * hitPoint  
+     * hitPoint
      *   Tests whether or not a point is within the hit threshold of the edge.
-     * 
+     *
      * @returns
      *   An anchor point if the given point is within the threshold of the edge;
      *   otherwise, null.
@@ -412,7 +412,7 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * hitRect  
+     * hitRect
      *   Tests if any part of the edge is captured by a rectangle.
      */
     hitRect(r: rect): boolean {
@@ -454,7 +454,7 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * updateOverlappedEdges  
+     * updateOverlappedEdges
      */
     private updateOverlappedEdges(g: GraphEditorCanvas) {
         if (!this.src.isHidden && !this.dst.isHidden) {
@@ -498,7 +498,7 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * setStraightPoints  
+     * setStraightPoints
      *   Sets the end points and midpoint of a straight line.
      */
     private setStraightPoints(): void {
@@ -527,7 +527,7 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * setQuadraticPoints  
+     * setQuadraticPoints
      *   Sets the edge points and midpoint of an overlapping edge.
      */
     private setQuadraticPoints(): void {
@@ -574,7 +574,7 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * setLoopPoints  
+     * setLoopPoints
      *   Sets the edge points and midpoint of a self-referencing node.
      */
     private setLoopPoints(): void {
@@ -617,7 +617,7 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * makePreDrawEdge  
+     * makePreDrawEdge
      *   Makes a function that sets up the canvas for drawing an edge.
      */
     private makePreDrawEdge(
@@ -647,11 +647,11 @@ export class DrawableEdge extends DrawableElement {
             g.strokeStyle = color;
             g.lineWidth = lineWidth;
             g.lineStyle = { style: lineStyle };
-        }
+        };
     }
 
     /**
-     * makeTraceEdge  
+     * makeTraceEdge
      *   Makes a function that traces the geometry of an edge.
      */
     private makeTraceEdge(g: GraphEditorCanvas): () => void {
@@ -703,7 +703,7 @@ export class DrawableEdge extends DrawableElement {
                 else
                     return () => {
                         g.traceQuadratic(pts[0], pts[1], pts[3]);
-                    }
+                    };
 
             // Linear
             default:
@@ -730,7 +730,7 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * drawLabelRect  
+     * drawLabelRect
      *   Draws the background rectangle for the edge label.
      */
     private drawLabelRect(g: GraphEditorCanvas, sz: size) {
@@ -745,7 +745,7 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * drawEdgeLabel  
+     * drawEdgeLabel
      *   Draws the edge label.
      */
     private drawLabel(g: GraphEditorCanvas): void {
@@ -758,7 +758,7 @@ export class DrawableEdge extends DrawableElement {
 
 
 /**
- * hitPtTestLine  
+ * hitPtTestLine
  *   Tests if a point is within the threshold of a straight line segment.
  */
 function hitPtTestLine(
@@ -799,7 +799,7 @@ function hitPtTestLine(
 }
 
 /**
- * hitRectTestStraighEdge  
+ * hitRectTestStraighEdge
  *   Test whether any part of a straight line has been captured by a rectangle.
  */
 function hitRectTestStraighEdge(

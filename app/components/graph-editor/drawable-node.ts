@@ -29,76 +29,76 @@ import * as MathEx from "./math";
 
 
 /**
- * DrawableNode  
+ * DrawableNode
  *   Represents a node that is drawn on a graph editor canvas.
  */
 export class DrawableNode extends DrawableElement {
 
     /**
-     * _position  
+     * _position
      *   The coordinates of the center of the node.
      */
     private _position: point;
 
     /**
-     * _shape  
+     * _shape
      *   The shape of the node.
      */
     private _shape: Shapes;
 
     /**
-     * _borderColor  
+     * _borderColor
      *   The border color of the node.  Can be any valid `CSS` color string.
      */
     private _borderColor: string;
 
     /**
-     * _borderStyle  
+     * _borderStyle
      *   The line style of the border. Can be `solid`, `dotted`, or `dashed`.
      */
     private _borderStyle: LineStyles;
 
     /**
-     * _borderWidth  
+     * _borderWidth
      *   The line width of the border. Set to 0 to draw no border; value must be
      *   non-negative.
      */
     private _borderWidth: number;
 
     /**
-     * _size  
+     * _size
      *   The dimensions of the node.
      */
     private _size: size;
 
     /**
-     * _innerBound  
+     * _innerBound
      *   The inner dimensions of the node for hit detecting the edge creation
      *   region.
      */
     private _innerBound: size;
 
     /**
-     * _outerBound  
+     * _outerBound
      *   The outer dimensions of the noed for hit detecting the edge creation
      *   region.
      */
     private _outerBound: size;
 
     /**
-     * _incomingSet  
+     * _incomingSet
      *   The set of incoming edges.
      */
     private _incomingSet: Set<DrawableEdge>;
 
     /**
-     * _outgoingSet  
+     * _outgoingSet
      *   The set of outgoing edges.
      */
     private _outgoingSet: Set<DrawableEdge>;
 
     /**
-     * _apt  
+     * _apt
      *   The anchor point.
      */
     private _apt: point;
@@ -259,73 +259,73 @@ export class DrawableNode extends DrawableElement {
     }
 
     /**
-     * position  
+     * position
      *   Gets or sets the position of the node.
      */
     position: point;
 
     /**
-     * shape  
+     * shape
      *   Gets or sets the shape of the node.
      */
     shape: Shapes;
 
     /**
-     * borderColor  
+     * borderColor
      *   Gets or sets the color of the node border.
      */
     borderColor: string;
 
     /**
-     * borderStyle  
+     * borderStyle
      *   Gets or sets the line style of the border.
      */
     borderStyle: LineStyles;
 
     /**
-     * borderWidth  
+     * borderWidth
      *   Gets or sets the line width of the border.
      */
     borderWidth: number;
 
     /**
-     * isHidden  
+     * isHidden
      *   Gets whether or not this node is hidden.
      */
     readonly isHidden: boolean;
 
     /**
-     * incomingEdges  
+     * incomingEdges
      *   Gets a set of the incoming edges.
      */
     readonly incomingEdges: Set<DrawableEdge>;
 
     /**
-     * outgoingEdges  
+     * outgoingEdges
      *   Gets a set of the outgoing edges.
      */
     readonly outgoingEdges: Set<DrawableEdge>;
 
     /**
-     * edges  
+     * edges
      *   Gets a set of the incoming and outgoing edges.
      */
     readonly edges: Set<DrawableEdge>;
 
     /**
-     * anchorPoint  
+     * anchorPoint
      *   Gets or sets the visible anchor point.
      */
     anchorPoint: point;
 
     /**
-     * isAnchorVisible  
+     * isAnchorVisible
      *   Gets whether or not the anchor point should be visible.
      */
     readonly isAnchorVisible: boolean;
 
     /**
-     * clearAnchor  
+     * clearAnchor
      *   Clears the anchor visibility.
      */
     clearAnchor() {
@@ -333,7 +333,7 @@ export class DrawableNode extends DrawableElement {
     }
 
     /**
-     * addEdge  
+     * addEdge
      *   Adds an edge to this node.
      */
     addEdge(e: DrawableEdge) {
@@ -346,7 +346,7 @@ export class DrawableNode extends DrawableElement {
     }
 
     /**
-     * removeEdge  
+     * removeEdge
      *   Removes an edge from this node.
      */
     removeEdge(e: DrawableEdge) {
@@ -357,7 +357,7 @@ export class DrawableNode extends DrawableElement {
     }
 
     /**
-     * update  
+     * update
      *   Updates the node geometry and draw logic.
      */
     update(g: GraphEditorCanvas) {
@@ -378,7 +378,7 @@ export class DrawableNode extends DrawableElement {
     }
 
     /**
-     * updateDraw  
+     * updateDraw
      *   Updates the draw logic of the node.
      */
     updateDraw(g: GraphEditorCanvas) {
@@ -421,7 +421,7 @@ export class DrawableNode extends DrawableElement {
                     g.drawSquare(pt, sz.w, bs, bw, bc, cl, sc);
                     break;
             }
-        }
+        };
         if (this._lines.length > 0) {
             ///////////////////////////
             // Labelled, With Anchor //
@@ -463,9 +463,9 @@ export class DrawableNode extends DrawableElement {
     }
 
     /**
-     * hitPoint  
+     * hitPoint
      *   Tests whether or not a point is within the hit threshold of the node.
-     * 
+     *
      * @returns
      *   An anchor point if the given point is within the threshold of the node;
      *   otherwise, null.
@@ -512,7 +512,7 @@ export class DrawableNode extends DrawableElement {
     }
 
     /**
-     * hitRect  
+     * hitRect
      *   Tests whether or not the node is captured by a rectangle.
      */
     hitRect(r: rect): boolean {
@@ -527,7 +527,7 @@ export class DrawableNode extends DrawableElement {
     }
 
     /**
-     * getBoundaryPt  
+     * getBoundaryPt
      *   Gets the vector in the direction of `u` that is on the boundary of a
      *   node based on its geometry.
      */
@@ -576,7 +576,7 @@ export class DrawableNode extends DrawableElement {
 
 
 /**
- * HiddenNode  
+ * HiddenNode
  *   Creates an invisible drawable node.
  */
 export class HiddenNode extends DrawableNode {

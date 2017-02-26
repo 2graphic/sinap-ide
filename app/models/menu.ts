@@ -25,7 +25,7 @@ function clickHandlerMake(event: MenuEventAction) {
     };
 }
 
-var fileMenu: Electron.MenuItemOptions = {
+let fileMenu: Electron.MenuItemOptions = {
     label: 'File',
     submenu: [
         {
@@ -46,7 +46,7 @@ var fileMenu: Electron.MenuItemOptions = {
     ]
 };
 
-var editMenu: Electron.MenuItemOptions = {
+let editMenu: Electron.MenuItemOptions = {
     label: 'Edit',
     submenu: [
         {
@@ -90,7 +90,7 @@ var editMenu: Electron.MenuItemOptions = {
     ]
 };
 
-var viewMenu: Electron.MenuItemOptions = {
+let viewMenu: Electron.MenuItemOptions = {
     label: 'View',
     submenu: [
         {
@@ -104,7 +104,7 @@ var viewMenu: Electron.MenuItemOptions = {
         {
             label: 'Toggle Full Screen',
             accelerator: (function() {
-                if (process.platform == 'darwin')
+                if (process.platform === 'darwin')
                     return 'Ctrl+Command+F';
                 else
                     return 'F11';
@@ -129,7 +129,7 @@ var viewMenu: Electron.MenuItemOptions = {
     ]
 };
 
-var windowMenu: Electron.MenuItemOptions = {
+let windowMenu: Electron.MenuItemOptions = {
     label: 'Window',
     role: 'window',
     submenu: [
@@ -163,19 +163,19 @@ var windowMenu: Electron.MenuItemOptions = {
     ]
 };
 
-var helpMenu: Electron.MenuItemOptions = {
+let helpMenu: Electron.MenuItemOptions = {
     label: 'Help',
     role: 'help',
     submenu: [
         {
             label: 'Learn More',
-            click: function() { require('electron').shell.openExternal('https://github.com/2graphic/2graphic.github.io') }
+            click: function() { require('electron').shell.openExternal('https://github.com/2graphic/2graphic.github.io'); }
         },
     ]
 };
 
 
-var menu: [Electron.MenuItemOptions] = [
+let menu: [Electron.MenuItemOptions] = [
     fileMenu,
     editMenu,
     viewMenu,
