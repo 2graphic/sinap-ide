@@ -434,6 +434,7 @@ export class GraphEditorComponent implements AfterViewInit {
         // Make sure the down event was previously captured.
         if (this.downEvt) {
             this.focusHiddenArea();
+            this.el.nativeElement.style.cursor = "default";
 
             // Get the change in x and y locations of the cursor.
             const downPt = this.canvas.getPt(this.downEvt);
@@ -634,7 +635,9 @@ export class GraphEditorComponent implements AfterViewInit {
             this.redraw();
         }
         else if (evt.source instanceof DrawableNode) {
-            if (evt.key === "shape" && evt.curr === "image")
+            if ((evt.key === "shape" && evt.curr === "image") ||
+                (evt.key === "image" && evt.curr !== "" &&
+                    evt.source.shape === "image"))
                 this.loadImage(evt.source);
             else {
                 evt.source.update(this.canvas);
@@ -821,8 +824,12 @@ export class GraphEditorComponent implements AfterViewInit {
         // Create an edge or pick up the node if one is bing hovered.
         if (this.hoverObject instanceof DrawableNode) {
             // Create a new edge if an anchor pt is being displayed on the node.
-            if (this.hoverObject.isAnchorVisible)
-                this.createDragEdge(this.hoverObject, true);
+            if (this.hoverObject.isAnchorVisible) {
+                const n = this.hoverObject;
+                const edge = this.createDragEdge(n, true);
+                if (n.anchorPoints.length > 0)
+                    edge.bindAnchor(n, n.getNearestAnchor(n.anchorPoint));
+            }
 
             // Set the drag object to the node if no anchor pt is being displayed.
             else {
@@ -838,11 +845,15 @@ export class GraphEditorComponent implements AfterViewInit {
             const spt = this.hoverObject.sourcePoint;
             const apt = this.hoverObject.source.anchorPoint;
             const isSrc = spt.x !== apt.x || spt.y !== apt.y;
-            this.createDragEdge(
+            const edge = this.createDragEdge(
                 (isSrc ? this.hoverObject.source : this.hoverObject.destination),
                 isSrc,
                 this.hoverObject
             );
+            const n = (isSrc ? this.hoverObject.destination : this.hoverObject.source);
+            const pt = (isSrc ? this.hoverObject.destinationPoint : this.hoverObject.sourcePoint);
+            if (n.anchorPoints.length > 0)
+                edge.bindAnchor(n, n.getNearestAnchor(pt));
             this.hoverObject.isDragging = true;
             this.moveEdge = this.hoverObject;
             this.updateHoverObject(null);
@@ -1032,9 +1043,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Loads a node image.
      */
     private loadImage(n: DrawableNode) {
-        // TODO:
-        // Something about n.image === ""
-        if (!IMAGES.has(n.image)) {
+        if (n.image !== "" && !IMAGES.has(n.image)) {
             const img = new Image();
             IMAGES.set(n.image, img);
             img.onload = () => {
@@ -1061,32 +1070,37 @@ export class GraphEditorComponent implements AfterViewInit {
         // Find the first node on which the edge can be dropped.
         for (const n of nodes) {
             const d = n;
-            if (n.hitPoint(pt) && this.graph.isValidEdge(
+            const hitPt = n.hitPoint(pt);
+            if (hitPt && this.graph.isValidEdge(
                 (src === this.dragObject ? d : src),
                 (dst === this.dragObject ? d : dst),
                 like
             )) {
                 // Get the anchor point where the edge will be dropped.
-                src = (src.isHidden ? n : src);
-                dst = (dst.isHidden ? n : dst);
-                const spt = (src === dst ?
-                    { x: src.position.x, y: src.position.y - 1 } :
-                    src.position);
-                src.position;
-                const dpt = dst.position;
-                const u = { x: 0, y: 0 };
-                if (dst === n) {
-                    u.x = spt.x - dpt.x;
-                    u.y = spt.y - dpt.y;
-                }
+                if (n.anchorPoints.length > 0)
+                    hit = { d: n, pt: hitPt };
                 else {
-                    u.x = dpt.x - spt.x;
-                    u.y = dpt.y - spt.y;
+                    src = (src.isHidden ? n : src);
+                    dst = (dst.isHidden ? n : dst);
+                    const spt = (src === dst ?
+                        { x: src.position.x, y: src.position.y - 1 } :
+                        src.position);
+                    src.position;
+                    const dpt = dst.position;
+                    const u = { x: 0, y: 0 };
+                    if (dst === n) {
+                        u.x = spt.x - dpt.x;
+                        u.y = spt.y - dpt.y;
+                    }
+                    else {
+                        u.x = dpt.x - spt.x;
+                        u.y = dpt.y - spt.y;
+                    }
+                    const m = MathEx.mag(u);
+                    u.x /= m;
+                    u.y /= m;
+                    hit = { d: n, pt: n.getBoundaryPt(u) };
                 }
-                const m = MathEx.mag(u);
-                u.x /= m;
-                u.y /= m;
-                hit = { d: n, pt: n.getBoundaryPt(u) };
                 break;
             }
         }
@@ -1110,10 +1124,12 @@ export class GraphEditorComponent implements AfterViewInit {
         h.position = this.canvas.getPt(this.downEvt as point);
         const src = (isSrc ? n : h);
         const dst = (isSrc ? h : n);
+        const bnd = (isSrc ? src : dst);
         const d = new DrawableEdge(this.graph, src, dst, like);
         d.isDragging = true;
         this.dragObject = h;
         this.drawList.push(d);
+        return d;
     }
 
     /**
@@ -1133,8 +1149,13 @@ export class GraphEditorComponent implements AfterViewInit {
             const srcNode = (e.source.isHidden ? this.hoverObject : e.source);
             const dstNode = (e.destination.isHidden ? this.hoverObject : e.destination);
             const edge = this.graph.createEdge(srcNode, dstNode, like);
-            if (edge)
+            if (edge) {
+                if (srcNode.anchorPoints.length > 0)
+                    edge.bindAnchor(srcNode, srcNode.getNearestAnchor(e.sourcePoint));
+                if (dstNode.anchorPoints.length > 0)
+                    edge.bindAnchor(dstNode, dstNode.getNearestAnchor(e.destinationPoint));
                 this.updateSelected(edge);
+            }
             this.resumeRedraw();
         }
         // Update the original edge if one was being moved.

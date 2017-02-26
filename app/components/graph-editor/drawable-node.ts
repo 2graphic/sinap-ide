@@ -53,9 +53,12 @@ export class DrawableNode extends DrawableElement {
             _img: {
                 enumerable: false,
                 writable: true,
-                // TODO:
-                // Remove this.
-                value: require('../../../plugins/and_gate.svg')
+                value: (like ? like._img : NODE_PROPERTIES.image)
+            },
+            _apts: {
+                enumerable: false,
+                writable: true,
+                value: (like ? like._apts : NODE_PROPERTIES.anchorPoints)
             },
             _borderColor: {
                 enumerable: false,
@@ -138,8 +141,18 @@ export class DrawableNode extends DrawableElement {
             },
             anchorPoints: {
                 enumerable: true,
-                writable: true,
-                value: (like ? like.anchorPoints : [])
+                get: () => [...this._apts],
+                set: (value: point[]) => {
+                    this._apts = [];
+                    value.forEach(v => {
+                        const pt = {
+                            x: v.x - this._size.w / 2,
+                            y: v.y - this._size.h / 2
+                        };
+                        if (this._apts.filter(a => a.x === pt.x && a.y === pt.y).length == 0)
+                            this._apts.push(pt);
+                    });
+                }
             },
             borderColor: {
                 enumerable: true,
@@ -228,6 +241,13 @@ export class DrawableNode extends DrawableElement {
      *   Path to the custom image.
      */
     private _img: string;
+
+    /**
+     * _apts
+     * 
+     *   The collection of anchor points.
+     */
+    private _apts: point[];
 
     /**
      * _borderColor  
@@ -381,7 +401,8 @@ export class DrawableNode extends DrawableElement {
     }
 
     /**
-     * addEdge  
+     * addEdge
+     * 
      *   Adds an edge to this node.
      */
     addEdge(e: DrawableEdge) {
@@ -437,19 +458,13 @@ export class DrawableNode extends DrawableElement {
      *   Updates the draw logic of the node.
      */
     updateDraw(g: GraphEditorCanvas) {
-        let pt = this._pt;
+        const pt = this._pt;
         const sz = this._size;
         const bc = this._borderColor;
         const bs = this._borderStyle;
         const bw = this._borderWidth;
         const cl = this._color;
         let sc = (this.isDragging ? NODE_DRAG_SHADOW_COLOR : (this.isHovered ? SELECTION_COLOR : undefined));
-        if (this._shape === "image") {
-            pt = {
-                x: pt.x - sz.w / 2,
-                y: pt.y - sz.h / 2
-            }
-        }
         /////////////////////////
         // Set selected shadow //
         /////////////////////////
@@ -543,40 +558,25 @@ export class DrawableNode extends DrawableElement {
      *   otherwise, null.
      */
     hitPoint(pt: point): point | null {
-        let apt = this._pt;
-        const posn = { x: apt.x, y: apt.y };
+        const posn = { x: this._pt.x, y: this._pt.y };
         const size = this._size;
         const v = { x: pt.x - posn.x, y: pt.y - posn.y };
         const ib = this._innerBound;
         const ob = this._outerBound;
-        const apts = this.anchorPoints;
+        const apts = this._apts;
         if (apts.length > 0) {
-            let d = NODE_THRESHOLD_OUT - NODE_THRESHOLD_IN;
-            d = d * d / 4;
-            let min = d;
-            for (const a of apts) {
-                let p = {
-                    x: posn.x - size.w / 2 + a.x,
-                    y: posn.y - size.h / 2 + a.y
-                }
-                let u = {
-                    x: pt.x - p.x,
-                    y: pt.y - p.y
-                }
-                let dot = MathEx.dot(u, u);
-                if (dot <= min) {
-                    min = dot;
-                    apt = p;
-                }
+            const d = NODE_THRESHOLD_OUT - NODE_THRESHOLD_IN;
+            const apt = this.getNearestAnchor(pt);
+            const u = { x: v.x - apt.x, y: v.y - apt.y };
+            if (MathEx.dot(u, u) <= d * d) {
+                return { x: apt.x + this._pt.x, y: apt.y + this._pt.y };
             }
-            if (apt !== this._pt)
-                return apt;
         }
         switch (this._shape) {
             case "circle": {
                 const dot = MathEx.dot(v, v);
                 if (dot < ib.w * ib.w / 4)
-                    return apt;
+                    return this._pt;
                 if (apts.length == 0 && dot <= ob.w * ob.w / 4) {
                     const d = Math.sqrt(dot);
                     return this.getBoundaryPt({ x: v.x / d, y: v.y / d });
@@ -588,7 +588,7 @@ export class DrawableNode extends DrawableElement {
                 const ax = Math.abs(v.x);
                 const ay = Math.abs(v.y);
                 if (ax < ib.w / 2 && ay < ib.h / 2)
-                    return apt;
+                    return this._pt;
                 if (apts.length == 0 && ax <= ob.w / 2 && ay <= ob.h / 2) {
                     const d = MathEx.mag(v);
                     return this.getBoundaryPt({ x: v.x / d, y: v.y / d });
@@ -611,6 +611,30 @@ export class DrawableNode extends DrawableElement {
         const D = this._size.w / 2;
         return (posn.x >= L - D && posn.x <= R + D &&
             posn.y >= T - D && posn.y <= B + D);
+    }
+
+    /**
+     * getNearestAnchor  
+     * 
+     *   Gets the nearest anchor point or the origin of the node if there are no
+     *   predefined anchor points.
+     */
+    getNearestAnchor(pt: point) {
+        const p = { x: pt.x - this._pt.x, y: pt.y - this._pt.y };
+        let apt = this._pt;
+        let min = Infinity;
+        this._apts.forEach(a => {
+            let v = {
+                x: p.x - a.x,
+                y: p.y - a.y
+            }
+            let dot = MathEx.dot(v, v);
+            if (dot <= min) {
+                min = dot;
+                apt = a;
+            }
+        });
+        return apt;
     }
 
     /**
@@ -675,5 +699,9 @@ export class HiddenNode extends DrawableNode {
 
     updateDraw(g: GraphEditorCanvas) {
         this._draw = () => { };
+    }
+
+    getBoundaryPt(u: point) {
+        return this.position;
     }
 }

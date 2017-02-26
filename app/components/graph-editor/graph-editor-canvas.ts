@@ -55,10 +55,7 @@ export type CompositeOperations =
 export type LineStyles = "solid" | "dotted" | "dashed";
 
 /**
- * Shapes  
- * 
- * TODO:  
- * -For now this only supports circles and squares.
+ * Shapes
  */
 export type Shapes = "circle" | "square" | "image";
 
@@ -100,7 +97,7 @@ export const IMAGES = new Map<string, HTMLImageElement>();
  */
 export class GraphEditorCanvas {
     constructor(private g: CanvasRenderingContext2D) {
-        // These probably don't do anything.
+        // These probably do nothing.
         this.g.mozImageSmoothingEnabled = true;
         this.g.msImageSmoothingEnabled = true;
         this.g.oImageSmoothingEnabled = true;
@@ -326,7 +323,11 @@ export class GraphEditorCanvas {
             this.shadowBlur = 20;
             this.g.shadowColor = shadowColor;
         }
-        this.g.drawImage(img, p.x, p.y);
+        this.g.drawImage(
+            img,
+            this._origin.x + p.x - img.width / 2,
+            this._origin.y + p.y - img.height / 2
+        );
         this.shadowBlur = 0;
     }
 
