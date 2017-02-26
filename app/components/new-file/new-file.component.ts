@@ -3,8 +3,9 @@
 // Date created: January 17, 2017
 
 
-import { Component } from "@angular/core";
+import { Component, Input } from "@angular/core";
 import { WindowService } from "./../../modal-windows/services/window.service";
+import { ModalInfo, ModalComponent } from "./../../models/modal-window";
 
 
 @Component({
@@ -14,7 +15,14 @@ import { WindowService } from "./../../modal-windows/services/window.service";
     providers: [WindowService]
 })
 
-export class NewFileComponent {
+export class NewFileComponent implements ModalComponent {
+    set modalInfo(modalInfo: ModalInfo) {
+        this.plugins = modalInfo.data;
+    }
+
+    private plugins: any;
+
+
     constructor(private windowService: WindowService) {
         // TODO: if we want to use a different ModalService then
         // when this component is created it needs to be passed a ModalInfo so
@@ -28,6 +36,6 @@ export class NewFileComponent {
     }
 
     public cancel() {
-        this.windowService.closeWindow(null);
+        this.windowService.closeWindow();
     }
 }

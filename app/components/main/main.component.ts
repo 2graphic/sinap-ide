@@ -176,7 +176,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     }
 
     promptNewFile() {
-        let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL);
+        let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, ["Finite Machine", "Mealy Machine", "..."]);
 
         result.then((result: string) => {
             this.newFile(new UntitledFile(result));
