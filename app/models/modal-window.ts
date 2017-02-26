@@ -11,7 +11,7 @@ export interface ModalInfo {
     readonly id: number;
     readonly selector: string;
     readonly type: ModalType;
-    data: any;
+    data?: any;
 }
 
 export enum ModalType {
@@ -20,6 +20,10 @@ export enum ModalType {
 }
 
 export interface ModalService {
-    createModal(selector: string, type: ModalType): [ModalInfo, Promise<any>];
-    closeModal(modal: ModalInfo, data: any | null): void;
+    createModal(selector: string, type: ModalType, data?: any): [ModalInfo, Promise<any>];
+    closeModal(modal: ModalInfo, data?: any): void;
+}
+
+export interface ModalComponent {
+    modalInfo: ModalInfo;
 }
