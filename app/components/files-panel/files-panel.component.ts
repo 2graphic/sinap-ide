@@ -32,7 +32,7 @@ export class FilesPanelComponent {
                         this.files = files.map((file) => {
                             return file.name;
                         });
-                    })
+                    });
                 });
         }
         else {

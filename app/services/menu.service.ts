@@ -3,7 +3,7 @@ import { Injectable, NgZone } from '@angular/core';
 import { remote, ipcRenderer, webFrame } from 'electron';
 let { Menu, MenuItem, app } = remote;
 
-import { MENU_TEMPLATE, MenuEventAction } from '../models/menu'
+import { MENU_TEMPLATE, MenuEventAction } from '../models/menu';
 
 @Injectable()
 export class MenuService {
@@ -17,10 +17,10 @@ export class MenuService {
         // Prevent users from incrementing the visual zoom (only regular zoom.)
         webFrame.setVisualZoomLevelLimits(1, 1);
 
-        let id = remote.getCurrentWindow().id;;
+        let id = remote.getCurrentWindow().id; ;
 
         ipcRenderer.on("MenuEvent", (event, action: MenuEventAction) => {
-            if (remote.BrowserWindow.getFocusedWindow().id == id) {
+            if (remote.BrowserWindow.getFocusedWindow().id === id) {
                 this.callEvent(action);
             } else {
                 this.getDefaultAction(action)();
@@ -49,7 +49,7 @@ export class MenuService {
     }
 
     public removeEventListener(obj: MenuEventListener) {
-        var index = this.eventListeners.indexOf(obj);
+        let index = this.eventListeners.indexOf(obj);
         if (index >= 0) {
             this.eventListeners.splice(index, 1);
         }
@@ -72,7 +72,7 @@ export class MenuService {
                 return () => {
                     // this function expects a ObjC method selector ie 'copy:' not 'copy'
                     Menu.sendActionToFirstResponder(selector + ":");
-                }
+                };
             } else {
                 return (getWebContents() as any)[selector];
             }

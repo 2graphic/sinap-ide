@@ -22,15 +22,15 @@ import {
 
 
 /**
- * EdgeValidator  
+ * EdgeValidator
  *   Determines whether or not an edge is valid for a given source and
  *   destination node.
- * 
+ *
  * <p>
  *   If `dst` is not specified, the validator should check if an edge can be
  *   created from the source node.
  * </p>
- * 
+ *
  * <p>
  *   If `like` is specified, a drawable edge with a matching type of `like`
  *   should be checked against the given source and destination nodes.
@@ -59,7 +59,7 @@ type DrawableNodeEventEmitter = DrawableEventEmitter<DrawableNode>;
 
 
 /**
- * DrawableGraph  
+ * DrawableGraph
  *   Exposes drawable graph properties and methods.
  */
 export class DrawableGraph extends Drawable {
@@ -185,85 +185,85 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * _creatingNodeEmitter  
+     * _creatingNodeEmitter
      *   The event emitter for creating nodes.
      */
     private _creatingNodeEmitter: DrawableNodeEventEmitter;
 
     /**
-     * _createdNodeEmitter  
+     * _createdNodeEmitter
      *   The event emitter for created nodes.
      */
     private _createdNodeEmitter: DrawableNodeEventEmitter;
 
     /**
-     * _creatingEdgeEmitter  
+     * _creatingEdgeEmitter
      *   The event emitter for creating edges.
      */
     private _creatingEdgeEmitter: DrawableEdgeEventEmitter;
 
     /**
-     * _createdEdgeEmitter  
+     * _createdEdgeEmitter
      *   The event emitter for created edges.
      */
     private _createdEdgeEmitter: DrawableEdgeEventEmitter;
 
     /**
-     * _deletedNodeEmitter  
+     * _deletedNodeEmitter
      *   The event emitter for deleted nodes.
      */
     private _deletedNodeEmitter: DrawableNodeEventEmitter;
 
     /**
-     * _deletedEdgeEmitter  
+     * _deletedEdgeEmitter
      *   The event emitter for deleted edges.
      */
     private _deletedEdgeEmitter: DrawableEdgeEventEmitter;
 
     /**
-     * _selectionChangedEmitter  
+     * _selectionChangedEmitter
      *   The event emitter for selection changes.
      */
-    private _selectionChangedEmitter: PropertyChangedEventEmitter<Iterable<DrawableElement>>
+    private _selectionChangedEmitter: PropertyChangedEventEmitter<Iterable<DrawableElement>>;
 
     /**
-     * _nodes  
+     * _nodes
      *   The set of nodes.
      */
     private _nodes: Set<DrawableNode>;
 
     /**
-     * _edges  
+     * _edges
      *   The set of edges.
      */
     private _edges: Set<DrawableEdge>;
 
     /**
-     * _deleted  
+     * _deleted
      *   The set of deleted elements.
      */
     private _deleted: Set<DrawableElement>;
 
     /**
-     * _selected  
+     * _selected
      *   The set of selected elements.
      */
     private _selected: Set<DrawableElement>;
 
     /**
-     * _unselected  
+     * _unselected
      *   The set of unselected elements.
      */
     private _unselected: Set<DrawableElement>;
 
     /**
-     * _origin  
+     * _origin
      *   The origin point of the graph.
      */
     private _origin: { x: number, y: number };
 
     /**
-     * _scale  
+     * _scale
      *   The zoom scale of the graph.
      */
     private _scale: number;
@@ -273,37 +273,37 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * nodes  
+     * nodes
      *   The iterable collection of drawable nodes that are part of the graph.
      */
     readonly nodes: Iterable<DrawableNode>;
 
     /**
-     * edges  
+     * edges
      *   The iterable collection of drawable edges that are part of the graph.
      */
     readonly edges: Iterable<DrawableEdge>;
 
     /**
-     * selectedItems  
+     * selectedItems
      *   The iterable collection of selected drawable elements.
      */
     readonly selectedItems: Iterable<DrawableElement>;
 
     /**
-     * selectedItemCount  
+     * selectedItemCount
      *   The number of selected items.
      */
     readonly selectedItemCount: number;
 
     /**
-     * origin  
+     * origin
      *   The displacement of the origin point of the graph editor canvas.
      */
     origin: point;
 
     /**
-     * scale  
+     * scale
      *   The zoom scale of the graph editor canvas.
      */
     scale: number;
@@ -313,9 +313,9 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * createNode  
+     * createNode
      *   Creates a drawable node.
-     * 
+     *
      *   If `like` is specified, a `DrawableNode` with a matching type of `like`
      *   is created.
      */
@@ -331,12 +331,12 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * createEdge  
+     * createEdge
      *   Creates a drawable edge with a source and destination node.
-     * 
+     *
      *   If `like` is specified, a `DrawableEdge` with a matching type of `like`
      *   is created.
-     * 
+     *
      *   The `isValidEdge` method must be called to check if creating the edge
      *   is valid.
      */
@@ -356,7 +356,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * createItem  
+     * createItem
      *   Creates a drawable element.
      */
     private createItem<D extends DrawableElement>(
@@ -369,7 +369,7 @@ export class DrawableGraph extends Drawable {
     ) {
         let old = [...items];
         let args = new DrawableEventArgs<D>(this, [item], like);
-        creatingEmitter.emit(args)
+        creatingEmitter.emit(args);
         if (args.isCancelled)
             return null;
         items.add(item);
@@ -383,7 +383,7 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * delete  
+     * delete
      *   Deletes elements from the graph.
      */
     delete<D extends DrawableElement>(...items: D[]): boolean {
@@ -399,7 +399,7 @@ export class DrawableGraph extends Drawable {
                 // d.source.removeEdge(d);
                 // d.destination.removeEdge(d);
             }
-        }
+        };
 
         // Sorting should never be necessary.
         //
@@ -444,7 +444,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * undelete  
+     * undelete
      *   Undoes the deletion of elements.
      */
     undelete<D extends DrawableElement>(...items: D[]) {
@@ -504,7 +504,7 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * deleteNode  
+     * deleteNode
      *   Guarantees that the given node is not present in the graph.
      */
     // deleteNode(node: DrawableNode): boolean {
@@ -518,7 +518,7 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * deleteEdge  
+     * deleteEdge
      *   Guarantees that the given edge is not present in the graph.
      */
     // deleteEdge(edge: DrawableEdge): boolean {
@@ -533,7 +533,7 @@ export class DrawableGraph extends Drawable {
     // }
 
     /**
-     * deleteItem  
+     * deleteItem
      *   Deletes a drawable element.
      */
     // private deleteItem<D extends DrawableElement>(
@@ -559,7 +559,7 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * select  
+     * select
      *   Adds items to the selection.
      */
     select<D extends DrawableElement>(...items: D[]) {
@@ -567,7 +567,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * deselect  
+     * deselect
      *   Removes items from the selection.
      */
     deselect<D extends DrawableElement>(...items: D[]) {
@@ -575,7 +575,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * clearSelection  
+     * clearSelection
      *   Clears the selection.
      */
     clearSelection() {
@@ -587,7 +587,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * move  
+     * move
      *   Moves items from one set to the other.
      */
     private move<D extends DrawableElement>(
@@ -620,7 +620,7 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * addCreatingNodeListener  
+     * addCreatingNodeListener
      *   Adds a listener to the creating node event.
      */
     addCreatingNodeListener(listener: DrawableNodeEventListener) {
@@ -628,7 +628,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * removeCreatingNodeListener  
+     * removeCreatingNodeListener
      *   Removes a listener from the creating node event.
      */
     removeCreatingNodeListener(listener: DrawableNodeEventListener) {
@@ -636,7 +636,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * addCreatedNodeListener  
+     * addCreatedNodeListener
      *   Adds a listener to the created node event.
      */
     addCreatedNodeListener(listener: DrawableNodeEventListener) {
@@ -644,7 +644,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * removeCreatedNodeListener  
+     * removeCreatedNodeListener
      *   Removes a listener from the created node event.
      */
     removeCreatedNodeListener(listener: DrawableNodeEventListener) {
@@ -652,7 +652,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * addCreatingEdgeListener  
+     * addCreatingEdgeListener
      *   Adds a listener to the creating edge event.
      */
     addCreatingEdgeListener(listener: DrawableEdgeEventListener) {
@@ -660,7 +660,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * removeCreatingEdgeListener  
+     * removeCreatingEdgeListener
      *   Removes a listener from the creating edge event.
      */
     removeCreatingEdgeListener(listener: DrawableEdgeEventListener) {
@@ -668,7 +668,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * addCreatedEdgeListener  
+     * addCreatedEdgeListener
      *   Adds a listener to the created edge event.
      */
     addCreatedEdgeListener(listener: DrawableEdgeEventListener) {
@@ -676,7 +676,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * removeCreatedEdgeListener  
+     * removeCreatedEdgeListener
      *   Removes a listener from the created event event.
      */
     removeCreatedEdgeListener(listener: DrawableEdgeEventListener) {
@@ -684,7 +684,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * addDeletedNodeListener  
+     * addDeletedNodeListener
      *   Adds a listener for the deleted node event.
      */
     addDeletedNodeListener(listener: DrawableNodeEventListener) {
@@ -692,7 +692,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * removeDeletedNodeListener  
+     * removeDeletedNodeListener
      *   Removes a listener from the deleted node event.
      */
     removeDeletedNodeListener(listener: DrawableNodeEventListener) {
@@ -700,7 +700,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * addDeletedEdgeListener  
+     * addDeletedEdgeListener
      *   Adds a listener to the deleted edge event.
      */
     addDeletedEdgeListener(listener: DrawableEdgeEventListener) {
@@ -708,7 +708,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * removeDeletedEdgeListener  
+     * removeDeletedEdgeListener
      *   Removes a listener from the deleted edge event.
      */
     removeDeletedEdgeListener(listener: DrawableEdgeEventListener) {
@@ -716,7 +716,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * addSelectionChangedListener  
+     * addSelectionChangedListener
      *   Adds a listener to the selection changed event.
      */
     addSelectionChangedListener(listener: PropertyChangedEventListener<Iterable<DrawableElement>>) {
@@ -724,7 +724,7 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * removeSelectionChangedListener  
+     * removeSelectionChangedListener
      *   Removes a listener from the selection changed event.
      */
     removeSelectionChangedListener(listener: PropertyChangedEventListener<Iterable<DrawableElement>>) {
@@ -734,7 +734,7 @@ export class DrawableGraph extends Drawable {
 }
 
 /**
- * DrawableEventArgs  
+ * DrawableEventArgs
  *   Event arguments for a drawable event.
  */
 export class DrawableEventArgs<D extends DrawableElement> extends CancellableEventArgs {
@@ -744,7 +744,7 @@ export class DrawableEventArgs<D extends DrawableElement> extends CancellableEve
 }
 
 /**
- * DrawableEventEmitter  
+ * DrawableEventEmitter
  *   Event emitter for drawable events.
  */
 class DrawableEventEmitter<D extends DrawableElement>

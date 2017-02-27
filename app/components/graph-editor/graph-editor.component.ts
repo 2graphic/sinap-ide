@@ -70,7 +70,7 @@ type callback = () => void;
     ]
 })
 /**
- * GraphEditorComponent  
+ * GraphEditorComponent
  *   Angular2 component that provides a canvas for drawing nodes and edges.
  */
 export class GraphEditorComponent implements AfterViewInit {
@@ -84,81 +84,81 @@ export class GraphEditorComponent implements AfterViewInit {
     private hiddenInputElementRef: ElementRef;
 
     /**
-     * canvasElementRef  
+     * canvasElementRef
      *   Reference to the canvas child element.
      */
     @ViewChild("sinapGraphEditorCanvas")
     private canvasElementRef: ElementRef;
 
     /**
-     * canvas  
+     * canvas
      *   The graph editor canvas.
      */
     private canvas: GraphEditorCanvas;
 
     /**
-     * graph  
+     * graph
      *   The graph object.
      */
     private graph: DrawableGraph;
 
     /**
-     * oldGraph  
+     * oldGraph
      *   The previous graph for unhooking events.
      */
     private oldGraph: DrawableGraph | null;
 
     /**
-     * panPt  
+     * panPt
      *   The previous pt from panning the canvas.
      */
     private panPt: pt | null
     = null;
 
     /**
-     * downEvt  
+     * downEvt
      *   The previous down event payload.
      */
     private downEvt: MouseEvent | null
     = null;
 
     /**
-     * stickyTimeout  
+     * stickyTimeout
      *   Timer reference for the sticky delay.
      */
     private stickyTimeout: NodeJS.Timer | num | null
     = null;
 
     /**
-     * dragObect  
+     * dragObect
      *   The node being dragged by the cursor.
      */
     private dragObject: DrawableNode | null
     = null;
 
     /**
-     * hoverObject  
+     * hoverObject
      *   The graph component over which the cursor is hovering.
      */
     private hoverObject: DrawableElement | null
     = null;
 
     /**
-     * moveEdge  
+     * moveEdge
      *   The edge to be replaced once the new edge has been created.
      */
     private moveEdge: DrawableEdge | null
     = null;
 
     /**
-     * drawList  
+     * drawList
      *   Maintains the draw order of drawable elements.
      */
     private drawList: DrawableElement[]
     = [];
 
     /**
-     * redrawDelegate  
+     * redrawDelegate
      *   For suspending and resuming draw calls.
      */
     private redrawDelegate: callback
@@ -175,7 +175,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
     /**
-     * setGraph  
+     * setGraph
      *   Input property for the graph.
      */
     @Input("graph")
@@ -208,7 +208,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * suspendRedraw  
+     * suspendRedraw
      *   Suspends updates to the canvas.
      */
     suspendRedraw() {
@@ -216,7 +216,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * resumeRedraw  
+     * resumeRedraw
      *   Resumes updates to the canvas and forces a redraw.
      */
     resumeRedraw() {
@@ -234,13 +234,13 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * dragNode  
+     * dragNode
      *   Sets the node being dragged by the cursor.
-     * 
+     *
      * Note:
      * The intent of this function is to be able to set the drag node from the
      * components panel.
-     * 
+     *
      * TODO:
      * Maybe we can use the standard drop event for this instead.
      */
@@ -253,7 +253,7 @@ export class GraphEditorComponent implements AfterViewInit {
     // }
 
     /**
-     * scale  
+     * scale
      *   Sets the scaling factor of the canvas.
      */
     set scale(value: num) {
@@ -262,7 +262,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * origin  
+     * origin
      *   Sets the origin pt of the canvas.
      */
     set origin(value: pt) {
@@ -275,7 +275,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
     /**
-     * ngAfterViewInit  
+     * ngAfterViewInit
      *   Gets the canvas rendering context and resizes the canvas element.
      */
     ngAfterViewInit() {
@@ -286,7 +286,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * resize  
+     * resize
      *   Resizes the canvas.
      */
     resize(): void {
@@ -294,7 +294,7 @@ export class GraphEditorComponent implements AfterViewInit {
         let pel = (el.parentNode as HTMLElement);
         let h = pel.offsetHeight;
         let w = pel.offsetWidth;
-        if (this.canvas.size.h != h || this.canvas.size.w != w) {
+        if (this.canvas.size.h !== h || this.canvas.size.w !== w) {
             this.canvas.size = { h: h, w: w };
             this.redraw();
         }
@@ -309,7 +309,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * redraw  
+     * redraw
      *   Redraws the graph.
      */
     get redraw() {
@@ -330,7 +330,7 @@ export class GraphEditorComponent implements AfterViewInit {
         // TODO:
         // - Serialize selection into dt.
         // dt.setData("application/sinapObjects", )
-        console.log("copy")
+        console.log("copy");
 
         e.preventDefault();
     }
@@ -346,7 +346,7 @@ export class GraphEditorComponent implements AfterViewInit {
         // - Serialize selection into dt.
         // - Delete selection.
         // dt.setData("application/sinapObjects", )
-        console.log("cut")
+        console.log("cut");
 
         e.preventDefault();
     }
@@ -358,7 +358,7 @@ export class GraphEditorComponent implements AfterViewInit {
             // TODO:
             // - Deserialize selection from dt.
             // dt.getData("application/sinapObjects")
-            console.log("paste")
+            console.log("paste");
 
             if (dt.effectAllowed === "move")
                 dt.clearData();
@@ -367,7 +367,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onMouseDown  
+     * onMouseDown
      *   Handles the mousedown event.
      */
     private onMouseDown
@@ -413,7 +413,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onMouseMove  
+     * onMouseMove
      *   Handles the mousemove event.
      */
     private onMouseMove
@@ -421,7 +421,7 @@ export class GraphEditorComponent implements AfterViewInit {
         let ePt = this.canvas.getPt(e);
 
         // Capture the down event if the drag object has been set.
-        if (this.dragObject && e.buttons == 1 && !this.downEvt)
+        if (this.dragObject && e.buttons === 1 && !this.downEvt)
             this.downEvt = e;
 
         // Make sure the down event was previously captured.
@@ -468,19 +468,19 @@ export class GraphEditorComponent implements AfterViewInit {
         }
 
         // Panning.
-        else if (e.buttons == 2) {
+        else if (e.buttons === 2) {
             this.pan(e);
             this.panPt = e;
         }
 
         // Hover.
-        else if (e.buttons == 0) {
+        else if (e.buttons === 0) {
             this.updateHoverObject(this.hitPtTest(ePt));
         }
     }
 
     /**
-     * onMouseUp  
+     * onMouseUp
      *   Handles the mouseup event.
      */
     private onMouseUp
@@ -529,14 +529,14 @@ export class GraphEditorComponent implements AfterViewInit {
         }
 
         // Panning.
-        else if (e.buttons == 2) {
+        else if (e.buttons === 2) {
             this.pan(e);
             this.panPt = null;
         }
     }
 
     /**
-     * onWheel  
+     * onWheel
      *   Handles the mouse wheel event for devices that do not register touch
      *   events for zooming.
      */
@@ -550,7 +550,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onStickey  
+     * onStickey
      *   Delayed mousedown event for creating nodes.
      */
     private onStickey
@@ -574,7 +574,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onCreatedEdges  
+     * onCreatedEdges
      *   Registers the edges for drawing and listening for property changed
      *   events.
      */
@@ -585,7 +585,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onCreatedNode  
+     * onCreatedNode
      *   Registers the nodes for drawing and listening for property changed
      *   events.
      */
@@ -608,7 +608,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onDeletedEdges  
+     * onDeletedEdges
      *   Unregisters the edges from drawing and removes the event listener for
      *   property changed events.
      */
@@ -620,7 +620,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onDeletedNodes  
+     * onDeletedNodes
      *   Unregisters the nodes from drawing and removes the event listener for
      *   property changed events.
      */
@@ -643,7 +643,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onDrawablePropertyChanged  
+     * onDrawablePropertyChanged
      *   Updates the drawable and refreshes the canvas if the event source is
      *   a drawable element; otherwise, updates the scale or origin of the
      *   drawable graph.
@@ -671,7 +671,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
     /**
-     * registerEventListeners  
+     * registerEventListeners
      *   Registers input event listeners.
      */
     private registerEventListeners() {
@@ -691,7 +691,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * unregisterEventListeners  
+     * unregisterEventListeners
      *   Unregisters event listeners.
      */
     private unregisterEventListeners() {
@@ -709,7 +709,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * registerGraph  
+     * registerGraph
      *   Registers event listeners for the newly bound graph.
      */
     private registerGraph(g: DrawableGraph) {
@@ -738,7 +738,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * unregisterGraph  
+     * unregisterGraph
      *   Unregisters event listeners for the previously bound graph.
      */
     private unregisterGraph(g: DrawableGraph) {
@@ -754,7 +754,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * registerDrawable  
+     * registerDrawable
      *   Registers event listeners for a drawable and adds it to the draw list.
      */
     private registerDrawable(d: DrawableElement) {
@@ -772,7 +772,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * unregisterDrawable  
+     * unregisterDrawable
      *   Unregisters event listeners for a drawable and removes it from the draw
      *   list.
      */
@@ -787,7 +787,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
     /**
-     * updateSelectionBox  
+     * updateSelectionBox
      *   Updates the selection box.
      */
     private updateSelectionBox(downPt: pt, ePt: pt): void {
@@ -795,7 +795,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
         // Update the selected components.
         let deselect = [];
-        let select = []
+        let select = [];
         for (const i of [...this.graph.edges, ...this.graph.nodes]) {
             if (i.hitRect(rect))
                 select.push(i);
@@ -813,7 +813,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * updateSelected  
+     * updateSelected
      *   Updates the selected graph element.
      */
     private updateSelected(dragObject: DrawableEdge | DrawableNode) {
@@ -825,7 +825,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * updateDragObject  
+     * updateDragObject
      *   Updates the object being dragged depending on the hovered object.
      */
     private updateDragObject() {
@@ -870,7 +870,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * updateHoverObject  
+     * updateHoverObject
      *   Updates the hovered object and hover anchor.
      */
     private updateHoverObject(value: { d: DrawableElement, pt: point } | null): void {
@@ -928,7 +928,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * updateDragNodes  
+     * updateDragNodes
      *   Updates the collection of nodes being dragged.
      */
     private updateDragNodes(dragNode: DrawableNode, dPt: pt) {
@@ -944,7 +944,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * updateDragNode  
+     * updateDragNode
      *   Updates a single node being dragged.
      */
     private updateDragNode(n: DrawableNode, dPt: pt): void {
@@ -958,7 +958,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
     /**
-     * pan  
+     * pan
      *   Repositions the origin point of the canvas.
      */
     private pan(p: pt) {
@@ -973,7 +973,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * zoom  
+     * zoom
      *   Updates the scale of the canvas.
      */
     private zoom(p: pt, s: number) {
@@ -1002,9 +1002,9 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * hitPtTest  
+     * hitPtTest
      *   Gets the first graph component that is hit by a pt.
-     * 
+     *
      * TODO:
      *   Should this return the entity closest to the given point?
      */
@@ -1024,7 +1024,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * resetState  
+     * resetState
      *   Resets input states.
      */
     private resetState() {
@@ -1039,7 +1039,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * checkValidEdgeDrop  
+     * checkValidEdgeDrop
      *   Checks if dropping an edge will be successfull.
      */
     private checkValidEdgeDrop(e: DrawableEdge, pt: point): boolean {
@@ -1087,7 +1087,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * createDragEdge  
+     * createDragEdge
      *   Creates a ghost edge to be dragged.
      */
     private createDragEdge(
@@ -1106,7 +1106,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * dropEdge  
+     * dropEdge
      *   Drops the dragged edge when the mouse is released.
      */
     private dropEdge(
@@ -1136,7 +1136,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * dropNodes  
+     * dropNodes
      *   Drops the collection of nodes or single node that is being dragged
      *   when the mouse is released.
      */
@@ -1160,4 +1160,4 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
 const NOOP: callback
-    = () => { }
+    = () => { };

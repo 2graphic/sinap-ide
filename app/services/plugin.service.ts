@@ -12,7 +12,7 @@ declare class IProgram {
 declare class IOutput {
     states?: any;
     result?: any;
-    error?: any
+    error?: any;
 }
 
 export declare class Output {
@@ -33,7 +33,7 @@ class WrappedProgram implements Program {
             this.run("");
             return [];
         } catch (e) {
-            return [e]
+            return [e];
         }
     }
 
@@ -57,7 +57,7 @@ export class PluginService {
     private getResults: Script;
     private addGraph: Script;
     // TODO: load from somewhere
-    private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, "./plugins/dfa-interpreter.ts"]])
+    private pluginKinds = new Map([[MagicConstants.DFA_PLUGIN_KIND, "./plugins/dfa-interpreter.ts"]]);
 
     constructor( @Inject(LocalFileService) private fileService: LocalFileService,
         @Inject(SandboxService) private sandboxService: SandboxService) {

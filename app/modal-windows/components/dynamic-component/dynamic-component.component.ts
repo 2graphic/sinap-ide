@@ -8,7 +8,7 @@ import { Component, ViewContainerRef, ViewChild, ComponentFactoryResolver, Compo
 import { Title } from '@angular/platform-browser';
 import { WindowService } from './../../services/window.service';
 
-import { NewFileComponent } from './../../../components/new-file/new-file.component'; //TODO, shorter way to do this...?
+import { NewFileComponent } from './../../../components/new-file/new-file.component'; // TODO, shorter way to do this...?
 
 /**
  * This component loads one of the components specified in componentMap depending on ModalInfo.kind for this window.

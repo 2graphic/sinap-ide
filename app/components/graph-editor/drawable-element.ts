@@ -15,7 +15,7 @@ import {
 
 
 /**
- * DrawableStates  
+ * DrawableStates
  *   The states in which a drawable can be.
  */
 export enum DrawableStates {
@@ -25,49 +25,49 @@ export enum DrawableStates {
 };
 
 /**
- * DrawableElement  
+ * DrawableElement
  *   Common properties shared between drawable edges and nodes.
  */
 export abstract class DrawableElement extends Drawable {
 
     /**
-     * _state  
+     * _state
      *   The drawable state.
      */
     protected _state: DrawableStates;
 
     /**
-     * _selected  
+     * _selected
      *   Whether or not the drawable is selected.
      */
     protected _selected: boolean;
 
     /**
-     * _textSize  
+     * _textSize
      *   The dimensions of the label text.
      */
     protected _textSize: size;
 
     /**
-     * _lines  
+     * _lines
      *   The lines of the label text.
      */
     protected _lines: string[];
 
     /**
-     * _color  
+     * _color
      *   The main color of the drawable.
      */
     protected _color: string;
 
     /**
-     * _draw  
+     * _draw
      *   The draw delegate for drawing the element.
      */
     protected _draw: () => void;
 
     /**
-     * _drawSelectionShadow  
+     * _drawSelectionShadow
      *   The draw delegate for drawing the selection shadow.
      */
     protected _drawSelectionShadow: () => void;
@@ -181,9 +181,9 @@ export abstract class DrawableElement extends Drawable {
     }
 
     /**
-     * color  
+     * color
      *   Gets or sets the main color of the element.
-     * 
+     *
      * <p>
      *   Can be any valid CSS color string.
      * </p>
@@ -191,37 +191,37 @@ export abstract class DrawableElement extends Drawable {
     color: string;
 
     /**
-     * label  
+     * label
      *   Gets or sets the label of the element.
      */
     label: string;
 
     /**
-     * state  
+     * state
      *   Gets or sets the drawable state.
      */
     state: DrawableStates;
 
     /**
-     * isHovered  
+     * isHovered
      *   Gets or sets the hovered state of the element.
      */
     isHovered: boolean;
 
     /**
-     * isDragging  
+     * isDragging
      *   Gets or sets the dragging state of the element.
      */
     isDragging: boolean;
 
     /**
-     * isSelected  
+     * isSelected
      *   Gets or sets the selected state of the element.
      */
     isSelected: boolean;
 
     /**
-     * draw  
+     * draw
      *   Gets the draw delegate of the element.
      */
     get draw() {
@@ -229,7 +229,7 @@ export abstract class DrawableElement extends Drawable {
     }
 
     /**
-     * drawSelectionShadow  
+     * drawSelectionShadow
      *   Gets the draw delegate of the selection shadow of the element.
      */
     get drawSelectionShadow() {
@@ -237,31 +237,31 @@ export abstract class DrawableElement extends Drawable {
     }
 
     /**
-     * update  
+     * update
      *   Updates the geometry and draw logic of the drawable element.
      */
     abstract update(g: GraphEditorCanvas): void;
 
     /**
-     * updateDraw  
+     * updateDraw
      *   Updates the draw delegate of the element.
      */
     abstract updateDraw(g: GraphEditorCanvas): void;
 
     /**
-     * hitPoint  
+     * hitPoint
      *   Tests whether a point has captured the element.
      */
     abstract hitPoint(pt: point): point | null;
 
     /**
-     * hitRect  
+     * hitRect
      *   Tests whether a rectangle has captured the element.
      */
     abstract hitRect(r: rect): boolean;
 
     /**
-     * updateTextSize  
+     * updateTextSize
      *   Updates the text dimensions of the label.
      */
     protected updateTextSize(g: GraphEditorCanvas) {

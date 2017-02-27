@@ -30,8 +30,8 @@ export class State {
 }
 
 function isEmpty(label?: string) {
-    if (label != undefined) {
-        if (label != "") {
+    if (label !== undefined) {
+        if (label !== "") {
             return false;
         }
     }
@@ -43,7 +43,7 @@ export function start(input: DFAGraph, data: string): State | boolean {
     let start: DFANode | null = null;
     const accepts = new Set<DFANode>();
 
-    for (const node of input.nodes){
+    for (const node of input.nodes) {
         if (node.isStartState) {
             if (!start) {
                 start = node;
@@ -66,7 +66,7 @@ export function start(input: DFAGraph, data: string): State | boolean {
                         throw new Error("Edge " + edge.label + " must be one symbol");
                     }
                     if (transitions.has(edge.label)) {
-                        throw new Error("Nondeterministic edge " + edge.label + (isEmpty(node.label)? "" : (" from node: " + node.label)));
+                        throw new Error("Nondeterministic edge " + edge.label + (isEmpty(node.label) ? "" : (" from node: " + node.label)));
                     }
                     transitions.add(edge.label);
                 }
@@ -76,7 +76,7 @@ export function start(input: DFAGraph, data: string): State | boolean {
     if (!start) {
         throw new Error("Must have one start state");
     }
-    if (accepts.size == 0) {
+    if (accepts.size === 0) {
         throw new Error("Must have at least one accept state");
     }
 
@@ -85,16 +85,16 @@ export function start(input: DFAGraph, data: string): State | boolean {
 
 export function step(current: State): State | boolean {
     if (current.inputLeft.length === 0) {
-        return current.active.isAcceptState == true;
+        return current.active.isAcceptState === true;
     }
     const destinations = current.active.children
         .filter(edge => edge.label === current.inputLeft[0])
         .map(edge => edge.destination);
 
-    if (destinations.length == 1) {
+    if (destinations.length === 1) {
         return new State(destinations[0], current.inputLeft.substr(1),
             `transitioning from ${current.active.label} to ${destinations[0].label}`);
-    } else if (destinations.length == 0) {
+    } else if (destinations.length === 0) {
         return false;
     } else {
         throw "This is a DFA!";

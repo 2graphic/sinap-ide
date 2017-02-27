@@ -12,17 +12,17 @@ import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.s
 import { MenuEventAction } from "../../models/menu";
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
 import { PluginService, Program, Output } from "../../services/plugin.service";
-import { WindowService } from "../../modal-windows/services/window.service"
-import { ModalInfo, ModalType } from './../../models/modal-window'
-import { REPLComponent, REPLDelegate } from "../repl/repl.component"
-import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component"
-import { ToolsPanelComponent } from "../tools-panel/tools-panel.component"
-import { TestPanelComponent } from "../test-panel/test-panel.component"
-import { StatusBarComponent } from "../status-bar/status-bar.component"
+import { WindowService } from "../../modal-windows/services/window.service";
+import { ModalInfo, ModalType } from './../../models/modal-window';
+import { REPLComponent, REPLDelegate } from "../repl/repl.component";
+import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
+import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
+import { TestPanelComponent } from "../test-panel/test-panel.component";
+import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { GraphController, UndoableAdd, UndoableChange, UndoableDelete, UndoableEvent } from "../../models/graph-controller";
 import { CoreElement, CoreModel, CoreElementKind } from "sinap-core";
-import { SideBarComponent } from "../side-bar/side-bar.component"
-import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component"
+import { SideBarComponent } from "../side-bar/side-bar.component";
+import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
 import { FileService, LocalFileService, File } from "../../services/files.service";
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
@@ -85,7 +85,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     @ViewChild('bottomPanels') bottomPanels: ElementRef;
 
     public package = "Finite Automata";
-    public barMessages: string[] = []
+    public barMessages: string[] = [];
 
     private tabs: Map<Number, TabContext> = new Map<Number, TabContext>();
     private context: TabContext | null;
@@ -110,7 +110,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 this.updateStatusBar(program);
                 this.testComponent.program = program;
             });
-        }
+        };
     }
 
     private updateStatusBar(program: Program) {
@@ -124,7 +124,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     }
 
     newFile(f?: String, g?: CoreModel) {
-        const kind = this.toolsPanel.activeGraphType == "Machine Learning" ?
+        const kind = this.toolsPanel.activeGraphType === "Machine Learning" ?
             MagicConstants.MACHINE_LEARNING_PLUGIN_KIND : MagicConstants.DFA_PLUGIN_KIND;
 
         const plugin = this.pluginService.getPlugin(kind);
@@ -243,7 +243,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     private focusIsChildOf(childOf: string) {
         let el: Element | null = document.activeElement;
         while (el && document.hasFocus()) {
-            if (el.id == childOf)
+            if (el.id === childOf)
                 return true;
             el = el.parentElement;
         }
@@ -275,7 +275,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                         // TODO: use correct plugin
                         const plugin = this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND);
                         this.newFile(file.name, new CoreModel(plugin, JSON.parse(f)));
-                    })
+                    });
                 }
             });
     }
@@ -295,16 +295,16 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
     /* ---------- Resizable Panels ---------- */
 
     private resizing(element: Element, event: ResizeEvent) {
-        if (element.id == "left-panels-group") {
-            if (event.rectangle.width != undefined) {
+        if (element.id === "left-panels-group") {
+            if (event.rectangle.width !== undefined) {
                 this.leftPanelsGroup.nativeElement.style.width = Math.max(event.rectangle.width, 250) + "px";
 
                 if (this.leftPanelsGroup.nativeElement.clientWidth + this.editorPanel.nativeElement.clientWidth >= window.innerWidth) {
                     this.leftPanelsGroup.nativeElement.style.width = (window.innerWidth - this.editorPanel.nativeElement.clientWidth - 1) + "px";
                 }
             }
-        } else if (element.id == "bottom-panels") {
-            if (event.rectangle.height != undefined) {
+        } else if (element.id === "bottom-panels") {
+            if (event.rectangle.height !== undefined) {
                 // 55 = height of tab bar plus height of status bar
                 this.bottomPanels.nativeElement.style.height = Math.min(Math.max(event.rectangle.height, 175), window.innerHeight - 55) + "px";
             }
@@ -313,8 +313,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 }
 
 class TabContext {
-    private readonly undoHistory = <UndoableEvent[]>[];
-    private readonly redoHistory = <UndoableEvent[]>[];
+    private readonly undoHistory = <UndoableEvent[]> [];
+    private readonly redoHistory = <UndoableEvent[]> [];
 
     private stack = this.undoHistory;
     private isRedoing = false;
@@ -343,7 +343,7 @@ class TabContext {
     public change(change: UndoableEvent) {
         console.log(change);
         this.stack.push(change);
-        if (this.stack == this.undoHistory && !this.isRedoing) {
+        if (this.stack === this.undoHistory && !this.isRedoing) {
             this.redoHistory.length = 0;
         }
     }
