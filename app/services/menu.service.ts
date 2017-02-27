@@ -17,7 +17,7 @@ export class MenuService {
         // Prevent users from incrementing the visual zoom (only regular zoom.)
         webFrame.setVisualZoomLevelLimits(1, 1);
 
-        let id = remote.getCurrentWindow().id; ;
+        let id = remote.getCurrentWindow().id;
 
         ipcRenderer.on("MenuEvent", (event, action: MenuEventAction) => {
             if (remote.BrowserWindow.getFocusedWindow().id === id) {

@@ -313,8 +313,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 }
 
 class TabContext {
-    private readonly undoHistory = <UndoableEvent[]> [];
-    private readonly redoHistory = <UndoableEvent[]> [];
+    private readonly undoHistory: UndoableEvent[] = [];
+    private readonly redoHistory: UndoableEvent[] = [];
 
     private stack = this.undoHistory;
     private isRedoing = false;
