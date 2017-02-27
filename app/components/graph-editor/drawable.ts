@@ -13,7 +13,7 @@ import {
 export class Drawable {
 
     /**
-     * _propertyChangedEmitter  
+     * _propertyChangedEmitter
      *   Event emitter for property changes.
      */
     private _propertyChangedEmitter: PropertyChangedEventEmitter<any>;
@@ -29,7 +29,7 @@ export class Drawable {
     }
 
     /**
-     * addPropertyChangedListener  
+     * addPropertyChangedListener
      *   Adds an event listener for property changed events.
      */
     addPropertyChangedListener(listener: PropertyChangedEventListener<any>) {
@@ -37,7 +37,7 @@ export class Drawable {
     }
 
     /**
-     * removePropertyChangedListener  
+     * removePropertyChangedListener
      *   Removes an event listener for property changed events.
      */
     removePropertyChangedListener(listener: PropertyChangedEventListener<any>) {
@@ -45,7 +45,7 @@ export class Drawable {
     }
 
     /**
-     * onPropertyChanged  
+     * onPropertyChanged
      *   Emits the property changed event.
      */
     protected onPropertyChanged(key: keyof this, oldVal: any) {
