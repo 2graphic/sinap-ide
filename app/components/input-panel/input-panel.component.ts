@@ -1,16 +1,15 @@
 // File: input-panel.component.ts
 //
 
-import { Component, ElementRef, ViewChild } from "@angular/core";
-import { Type, Program, CoreValue, ObjectType, Plugin } from "sinap-core";
-import { Output, isOutput } from "./../../services/plugin.service";
+import { Component, ElementRef, ViewChild, AfterViewChecked } from "@angular/core";
+import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType } from "sinap-core";
 
 @Component({
     selector: "sinap-input-panel",
     templateUrl: "./input-panel.component.html",
     styleUrls: ["./input-panel.component.scss"]
 })
-export class InputPanelComponent {
+export class InputPanelComponent implements AfterViewChecked {
     public _program?: Program;
 
     set program(program: Program | undefined) {
@@ -26,33 +25,44 @@ export class InputPanelComponent {
 
     private results: ProgramResult[] = [];
     private selected: ProgramResult;
-    private selectedState: any;
+    private selectedState: CoreValue;
 
     private inputForPlugin?: CoreValue;
 
+    private shouldScroll = false;
+    ngAfterViewChecked() {
+        if (this.shouldScroll) {
+            let el: Element = this.log.nativeElement;
+            el.scrollTop = el.scrollHeight;
+            this.shouldScroll = false;
+        }
+    };
+
     @ViewChild('log') log: ElementRef;
+
+    private isObjectType = isObjectType;
+    private isErrorType(t: Type) {
+        return t.isAssignableTo((t.env as any).lookupPluginType("Error"));
+    }
 
     private selectState(state: CoreValue) {
         this.selectedState = state;
-        if (state.type instanceof ObjectType && state.data.active) {
-            this.delegate.selectNode(state.data.active);
+        if (isObjectType(state.type) && state.value.active) {
+            this.delegate.selectNode(state.value.active);
         }
     }
 
     private scrollToBottom() {
-        setTimeout(() => {
-            let el: Element = this.log.nativeElement;
-            el.scrollTop = el.scrollHeight;
-        }, 0);
+        this.shouldScroll = true;
     }
 
-    private getStringType() {
-        return ((this.program as any).plugin as Plugin).typeEnvironment.getStringType();
+    private getStringType(program: Program) {
+        return program.plugin.typeEnvironment.getStringType();
     }
 
     private getInputType() {
         if (this.program) {
-            return this.getStringType();
+            return this.getStringType(this.program);
         }
 
         throw "No program";
@@ -66,19 +76,28 @@ export class InputPanelComponent {
      * Returns a new object value that doesn't have a message property.
      */
     private stripMessage(state: CoreValue) {
-        return state;
+        if (isObjectType(state.type)) {
+            const members = new Map(state.type.members);
+            members.delete("message");
+            return new CoreValue(new FakeObjectType(state.type.env, members), state.value);
+        } else {
+            return state;
+        }
     }
 
     getMessage(state: CoreValue) {
-        if (this.program && state.type instanceof ObjectType) {
-            return new CoreValue(state.type.members.get("message") as Type, state.data.message);
+        if (this.program) {
+            if (isObjectType(state.type)) {
+                const type = state.type.members.get("message");
+                if (type) {
+                    return new CoreValue(type, state.value.message);
+                }
+            } else {
+                return new CoreValue(this.getStringType(this.program), "");
+            }
         }
 
-        return new CoreValue(this.getStringType(), "");
-    }
-
-    isObjectType(state: CoreValue) {
-        return (state.type instanceof ObjectType);
+        return undefined;
     }
 
     private selectResult(c: ProgramResult) {
@@ -88,8 +107,7 @@ export class InputPanelComponent {
 
     private step(): boolean {
         if (this.selected && (this.selected.steps < this.selected.output.states.length)) {
-            this.selectState(this.selected.output.states[this.selected.steps]);
-            this.selected.steps++;
+            this.selectState(this.selected.output.states[this.selected.steps++]);
             this.scrollToBottom();
             return true;
         }
@@ -117,55 +135,38 @@ export class InputPanelComponent {
         g();
     }
 
-    private getStates(selected: ProgramResult) {
-        return selected.output.states.slice(0, selected.steps);
-    }
-
     private onSubmit(input: CoreValue) {
-        let handleOutput = (output: Output | Error) => {
-            let result: ProgramResult;
+        console.log(input, this.inputForPlugin);
+        const output = this.run(input);
+        console.log(input, output);
 
-            if (isOutput(output)) {
-                result = new ProgramResult(input, output);
-            } else {
-                let states: CoreValue[] = [];
 
-                if (output.stack) {
-                    states = output.stack.split("\n").map((frame) => {
-                        return new CoreValue(this.getStringType(), frame);
-                    });
-                    states.shift();
-                    states.reverse();
-                }
-                result = new ProgramResult(input, new Output(states, new CoreValue(this.getStringType(), output.message)));
-                result.steps = states.length;
-            }
+
+        if (output) {
+            let result = new ProgramResult(input, output);
+            console.log(result);
 
             this.selected = result;
             this.results.unshift(result);
 
             if (result.output.states.length > 0) {
-                this.selectedState = result.output.states[result.output.states.length - 1];
+                this.selectedState = result.output.states[0];
+                result.steps++;
             }
-        };
 
-        try {
-            let r = this.run(input);
-            handleOutput(r);
-        } catch (e) {
-            handleOutput(e);
+            this.setupInput();
+            this.scrollToBottom();
         }
-
-        this.setupInput();
-        this.scrollToBottom();
     }
 
-    private run(input: CoreValue): Output {
+    private run(input: CoreValue) {
         if (this.program) {
             return this.program.run([input]);
         } else {
-            throw new Error("No Graph to Run");
+            console.log("no graph to run!");
         }
+
+        return undefined;
     }
 }
 
@@ -173,7 +174,16 @@ export interface InputPanelDelegate {
     selectNode(n: any): void;
 }
 
+interface Output {
+    states: CoreValue[];
+    result: CoreValue;
+}
+
 class ProgramResult {
     constructor(public readonly input: CoreValue, public readonly output: Output) { };
     public steps = 0;
+
+    public getStates() {
+        return this.output.states.slice(0, this.steps);
+    }
 }

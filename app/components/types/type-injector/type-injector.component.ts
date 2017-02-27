@@ -4,7 +4,7 @@
 //
 
 import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type } from "@angular/core";
-import { CoreValue, Type as CoreType, ObjectType } from "sinap-core";
+import { CoreValue, Type as CoreType, isObjectType } from "sinap-core";
 
 import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
@@ -28,8 +28,7 @@ export class TypeInjectorComponent {
 
     @ViewChild('container', { read: ViewContainerRef }) private container: ViewContainerRef;
     private component?: ComponentRef<any>;
-
-    private _value: CoreValue;
+    private _value?: CoreValue;
     private _disabled: boolean = false;
 
     /**
@@ -60,63 +59,58 @@ export class TypeInjectorComponent {
     }
 
     @Input()
-    set value(v: CoreValue) {
+    set value(v: CoreValue | undefined) {
         if (!v) {
             this.container.clear();
-        } else {
-            if (!this._value || !this.areEqual(this._value, v)) {
-                this._value = v;
-                this.inject(v, this.readonly, this._disabled);
+            this.component = undefined;
+        } else if (this.component && this._value && this.areEqual(this._value, v)) {
+            if (this._value !== v) {
+                this.component.instance.value = v;
             }
+        } else {
+            this.inject(v, this.readonly, this._disabled);
         }
     }
 
     private areEqual(a: CoreValue, b: CoreValue) {
-        return (a.type.isAssignableTo(b.type) && b.type.isAssignableTo(a.type) && a.data === b.data);
+        return (a.type.isAssignableTo(b.type) && b.type.isAssignableTo(a.type) && a.value === b.value);
     }
 
     private inject(value: CoreValue, readonly: boolean, disabled: boolean) {
-        if (value) {
-            let componentType = this.getComponentType(value);
-            if (componentType) {
-                let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
-                let factory = this.resolver.resolveComponentFactory(componentType);
+        console.log("Creating new component");
+        this._value = value;
 
-                this.component = factory.create(injector);
-                this.component.instance.value = value;
-                this.component.instance.readonly = readonly;
-                this.component.instance.disabled = disabled;
+        let componentType = this.getComponentType(value);
 
-                this.container.clear();
-                this.container.insert(this.component.hostView);
+        let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
+        let factory = this.resolver.resolveComponentFactory(componentType);
 
-                this.component.changeDetectorRef.detectChanges();
+        this.component = factory.create(injector);
+        this.component.instance.value = value;
+        this.component.instance.readonly = readonly;
+        this.component.instance.disabled = disabled;
 
-                if (this.focus && this.component.instance.focus && document.activeElement.tagName.toLocaleLowerCase() === "body") {
-                    // Make sure we're not yanking the focus away from something important
-                    this.component.instance.focus();
-                }
-            }
+        this.container.clear();
+        this.container.insert(this.component.hostView);
+
+        this.component.changeDetectorRef.detectChanges();
+
+        if (this.focus && this.component.instance.focus && document.activeElement.tagName.toLocaleLowerCase() === "body") {
+            // Make sure we're not yanking the focus away from something important
+            this.component.instance.focus();
         }
     }
 
     private getComponentType(value: CoreValue) {
-        const type = (value.type as CoreType);
+        const type = value.type;
         const env = type.env;
-
-        if (env === undefined) {
-            if (type.name === "true | false") {
-                return BooleanTypeComponent;
-            }
-            console.log(value, type, env);
-        }
 
         if (type.isAssignableTo((env as any).lookupPluginType("Nodes"))) {
             return NodeTypeComponent;
         }
 
-        if (type.name === "null" || type instanceof ObjectType) {
-            return ObjectTypeComponent;
+        if (type.isAssignableTo((env as any).lookupPluginType("Error"))) {
+            return StringTypeComponent; // TODO: Make error component
         }
 
         for (let [func, componentType] of this.componentMap) {
@@ -125,7 +119,11 @@ export class TypeInjectorComponent {
             }
         }
 
-        console.log("IDK");
+        if (isObjectType(type)) {
+            return ObjectTypeComponent;
+        }
+
+        console.log("Unknown type for Value: ", value);
         return StringTypeComponent;
     }
 }

@@ -4,7 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue, ObjectType } from "sinap-core";
+import { CoreValue, isObjectType } from "sinap-core";
 
 @Component({
     selector: "sinap-object-type",
@@ -14,17 +14,20 @@ import { CoreValue, ObjectType } from "sinap-core";
 export class ObjectTypeComponent {
     @Input() readonly: boolean = true;
 
-    private values: [string, CoreValue][] = [];
+    private values = new Map<string, CoreValue>();
+    private keys: string[] = [];
 
     @Input()
     set value(v: CoreValue) {
         const type = v.type;
-        if (type instanceof ObjectType) {
+
+        // TODO, remove keys that no longer exist.
+        if (isObjectType(type)) {
             type.members.forEach((type, key) => {
-                if (key !== "__constructor") {
-                    this.values.push([key, new CoreValue(type, v.data[key])]);
-                }
+                this.values.set(key, new CoreValue(type, v.value[key]));
             });
         }
+
+        this.keys = [...this.values.keys()];
     }
 }

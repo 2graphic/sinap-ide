@@ -16,8 +16,8 @@ export class NodeTypeComponent {
     @Input() readonly: boolean = true;
 
     private getLabel() {
-        if (this.value && this.value.data && this.value.data.label && this.value.data.label !== "") {
-            return this.value.data.label;
+        if (this.value && this.value.value && this.value.value.label && this.value.value.label !== "") {
+            return this.value.value.label;
         } else {
             return "<NO LABEL>";
         }

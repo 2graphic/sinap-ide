@@ -17,7 +17,7 @@ import {
     PropertyChangedEventArgs
 } from "../components/graph-editor/graph-editor.component";
 
-import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType } from "sinap-core";
+import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType, WrappedScriptObjectType } from "sinap-core";
 import { DoubleMap } from "./double-map";
 
 /**
@@ -132,34 +132,36 @@ export class GraphController {
 
     public bridges = new DoubleMap<Drawable, CoreElement, BridgingProxy>();
 
+    validateEdgeHandler = (src: DrawableNode, dst?: DrawableNode, like?: DrawableEdge) => {
+        const source = this.bridges.getA(src);
+        const destination = dst ? this.bridges.getA(dst) : dst;
+
+        if (source === undefined || (dst !== undefined && destination === undefined)) {
+            throw "backer out of sync";
+        }
+
+        const sourceType = this.plugin.typeEnvironment.getElementType(source.core.kind, source.core.type.name);
+        const destinationType = destination !== undefined ? (this.plugin.typeEnvironment.getElementType(destination.core.kind, destination.core.type.name)) : undefined;
+
+        let edge: WrappedScriptObjectType;
+        if (like !== undefined) {
+            const e = this.bridges.getA(like);
+            if (e === undefined) {
+                throw "backer out of sync";
+            }
+            edge = this.plugin.typeEnvironment.getElementType(e.core.kind, e.core.type.name);
+        } else {
+            edge = this.plugin.typeEnvironment.getElementType(CoreElementKind.Edge, this.activeEdgeType);
+        }
+
+        return validateEdge(edge, sourceType, destinationType);
+    }
+
     constructor(public core: CoreModel, public plugin: Plugin) {
         this.activeEdgeType = this.plugin.elementTypes(CoreElementKind.Edge).next().value;
         this.activeNodeType = this.plugin.elementTypes(CoreElementKind.Node).next().value;
 
-        this.drawable = new DrawableGraph((src: DrawableNode,
-            dst?: DrawableNode,
-            like?: DrawableEdge) => {
-            // TODO: maybe define this validation routine elsewhere?
-            const source = this.bridges.getA(src);
-            const destination = dst !== undefined ? this.bridges.getA(dst) : null;
-
-            let edge: ObjectType;
-            if (like !== undefined) {
-                const e = this.bridges.getA(like);
-                if (e === undefined) {
-                    throw "backer out of sync";
-                }
-                edge = e.core.type;
-            } else {
-                edge = this.plugin.typeEnvironment.getElementType(CoreElementKind.Edge, this.activeEdgeType);
-            }
-
-            if (source === undefined || destination === undefined) {
-                throw "backer out of sync";
-            }
-
-            return validateEdge(edge, source.core.type, destination !== null ? destination.core.type : undefined);
-        });
+        this.drawable = new DrawableGraph(this.validateEdgeHandler);
         let coreGraph: CoreElement | null = null;
         const coreEdges: CoreElement[] = [];
 
