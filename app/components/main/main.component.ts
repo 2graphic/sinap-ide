@@ -341,6 +341,7 @@ class TabContext {
     }
 
     public change(change: UndoableEvent) {
+        console.log(change);
         this.stack.push(change);
         if (this.stack == this.undoHistory && !this.isRedoing) {
             this.redoHistory.length = 0;

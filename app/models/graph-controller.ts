@@ -102,11 +102,11 @@ function coreFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingP
 export type UndoableEvent = UndoableChange | UndoableAdd | UndoableDelete;
 
 export class UndoableAdd {
-    constructor(public bridge: BridgingProxy) { }
+    constructor(public bridges: BridgingProxy[]) { }
 }
 
 export class UndoableDelete {
-    constructor(public bridge: BridgingProxy) { }
+    constructor(public bridges: BridgingProxy[]) { }
 }
 
 // TODO: changes can also be adds or deletes
@@ -210,12 +210,22 @@ export class GraphController {
 
         // finally set up all the listeners after we copy all the elements
         const addDrawables = (drawables: Iterable<DrawableElement>) => {
-            for (const d of drawables)
-                this.addDrawable(d);
+            const bridges: BridgingProxy[] = [];
+
+            for (const d of drawables) {
+                bridges.push(this.addDrawable(d));
+            }
+
+            this.changed.emit(new UndoableAdd(bridges));
         }
         const removeDrawables = (drawables: Iterable<DrawableElement>) => {
-            for (const d of drawables)
-                this.removeDrawable(d);
+            const bridges: BridgingProxy[] = [];
+
+            for (const d of drawables) {
+                bridges.push(this.removeDrawable(d));
+            }
+
+            this.changed.emit(new UndoableDelete(bridges));
         }
         this.drawable.addCreatedNodeListener((n: DrawableNodeEventArgs) => addDrawables(n.drawables));
         this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs) => addDrawables(e.drawables));
@@ -252,27 +262,25 @@ export class GraphController {
         }
         const bridge = new BridgingProxy(core, drawable, this);
         this.bridges.set(drawable, core, bridge);
-        this.changed.emit(new UndoableAdd(bridge));
+
+        return bridge;
     }
 
     private removeDrawable(drawable: Drawable) {
         const bridge = this.toBridges(drawable);
         this.core.removeElement(bridge.core);
         this.bridges.delete(bridge.drawable, bridge.core);
-        this.changed.emit(new UndoableDelete(bridge));
+
+        return bridge;
     }
 
     public applyUndoableEvent(event: UndoableEvent) {
         if (event instanceof UndoableAdd) {
-            if (event.bridge.drawable instanceof DrawableElement) {
-                // this.drawable.deleteElement(event.bridge.drawable);
-                this.drawable.delete(event.bridge.drawable);
-            }
+            const elements = event.bridges.map((b) => b.drawable).filter((d) => (d instanceof DrawableElement)) as DrawableElement[];
+            this.drawable.delete(...elements);
         } else if (event instanceof UndoableDelete) {
-            if (event.bridge.drawable instanceof DrawableElement) {
-                // this.drawable.insertElement(event.bridge.drawable);
-                this.drawable.undelete(event.bridge.drawable);
-            }
+            const elements = event.bridges.map((b) => b.drawable).filter((d) => (d instanceof DrawableElement)) as DrawableElement[];
+            this.drawable.undelete(...elements);
         } else if (event instanceof UndoableChange) {
             event.target.set(event.key, event.oldValue, true);
         } else {

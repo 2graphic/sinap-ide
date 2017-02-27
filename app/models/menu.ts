@@ -20,7 +20,7 @@ export enum MenuEventAction {
 function clickHandlerMake(event: MenuEventAction) {
     let id = remote.getCurrentWindow().id;
 
-    return function (item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
+    return function(item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
         remote.BrowserWindow.fromId(id).webContents.send("MenuEvent", event);
     };
 }
@@ -96,20 +96,20 @@ var viewMenu: Electron.MenuItemOptions = {
         {
             label: 'Reload',
             accelerator: 'CmdOrCtrl+R',
-            click: function (item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
+            click: function(item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
                 if (focusedWindow)
                     focusedWindow.reload();
             }
         },
         {
             label: 'Toggle Full Screen',
-            accelerator: (function () {
+            accelerator: (function() {
                 if (process.platform == 'darwin')
                     return 'Ctrl+Command+F';
                 else
                     return 'F11';
             })(),
-            click: function (item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
+            click: function(item: Electron.MenuItem, focusedWindow: Electron.BrowserWindow) {
                 if (focusedWindow)
                     focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
             }
@@ -169,7 +169,7 @@ var helpMenu: Electron.MenuItemOptions = {
     submenu: [
         {
             label: 'Learn More',
-            click: function () { require('electron').shell.openExternal('https://github.com/2graphic/2graphic.github.io') }
+            click: function() { require('electron').shell.openExternal('https://github.com/2graphic/2graphic.github.io') }
         },
     ]
 };
@@ -225,7 +225,7 @@ if (process.platform === 'darwin') {
             {
                 label: 'Quit',
                 accelerator: 'Command+Q',
-                click: function () { app.quit(); }
+                click: function() { app.quit(); }
             },
         ]
     });
