@@ -8,7 +8,7 @@ import * as MathEx from "./math";
 
 
 /**
- * AA_SCALE  
+ * AA_SCALE
  *   Anti-aliasing scale.
  */
 const AA_SCALE: number = 2;
@@ -18,7 +18,7 @@ const AA_SCALE: number = 2;
 
 
 /**
- * CompositeOperations  
+ * CompositeOperations
  *   @see https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation
  */
 export type CompositeOperations =
@@ -60,19 +60,19 @@ export type LineStyles = "solid" | "dotted" | "dashed";
 export type Shapes = "circle" | "square" | "image";
 
 /**
- * point  
+ * point
  *   Represents a coordinate.
  */
 export type point = { x: number, y: number };
 
 /**
- * size  
+ * size
  *   Represents rectangle dimensions.
  */
 export type size = { h: number, w: number };
 
 /**
- * rect  
+ * rect
  *   Represents a rectangle with the top-left coordinate and height and width.
  */
 export type rect = point & size;
@@ -82,7 +82,7 @@ export type rect = point & size;
 
 
 /**
- * IMAGES  
+ * IMAGES
  *   Contains a map of cached images.
  */
 export const IMAGES = new Map<string, HTMLImageElement>();
@@ -92,7 +92,7 @@ export const IMAGES = new Map<string, HTMLImageElement>();
 
 
 /**
- * GraphEditorCanvas  
+ * GraphEditorCanvas
  *   Object that handles all of the drawing logic of the graph editor.
  */
 export class GraphEditorCanvas {
@@ -108,13 +108,13 @@ export class GraphEditorCanvas {
 
 
     /**
-     * _scale  
+     * _scale
      *   Scaling factor of the canvas.
      */
     private _scale: number = AA_SCALE;
 
     /**
-     * _origin  
+     * _origin
      *   The coordinates of the canvas origin.
      */
     private _origin: point = { x: 0, y: 0 };
@@ -124,7 +124,7 @@ export class GraphEditorCanvas {
 
 
     /**
-     * tracePath  
+     * tracePath
      *   Traces line segments from point to point of the given points.
      */
     tracePath(...pts: point[]) {
@@ -134,7 +134,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * traceQuadratic  
+     * traceQuadratic
      *   Traces a quadratic Bezier curve.
      */
     traceQuadratic(start: point, end: point, control: point) {
@@ -146,7 +146,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * traceCubic  
+     * traceCubic
      *   Traces a cubic Bezier curve.
      */
     traceCubic(start: point, end: point, control1: point, control2: point) {
@@ -159,7 +159,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * traceRect  
+     * traceRect
      *   Traces a rectangle.
      */
     traceRect(rect: rect) {
@@ -174,7 +174,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * traceCircle  
+     * traceCircle
      *   Traces a circle.
      */
     traceCircle(origin: point, radius: number) {
@@ -187,9 +187,9 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * traceArrow  
+     * traceArrow
      *   Traces an arrow towards the destination point.
-     * 
+     *
      *   The arrow is traced by computing the unit vector from the given source
      *   and destination points and rotating, scaling, and translating the unit
      *   vector before tracing the left and right sides of the arrow.
@@ -226,7 +226,7 @@ export class GraphEditorCanvas {
 
 
     /**
-     * clear  
+     * clear
      *   Clears the canvas.
      */
     clear(bgColor?: string): void {
@@ -241,7 +241,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * drawSelectionBox  
+     * drawSelectionBox
      *   Draws the selection box.
      */
     drawSelectionBox(rect: rect): void {
@@ -257,7 +257,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * drawCircle  
+     * drawCircle
      *   Draws a circle.
      */
     drawCircle(
@@ -286,7 +286,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * drawSquare  
+     * drawSquare
      *   Draws a square.
      */
     drawSquare(
@@ -315,7 +315,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * drawImage  
+     * drawImage
      *   Draws an image.
      */
     drawImage(p: point, img: HTMLImageElement, shadowColor?: string) {
@@ -332,7 +332,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * drawGrid  
+     * drawGrid
      *   Draws the editor grid.
      */
     drawGrid() {
@@ -362,7 +362,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * drawGridLines  
+     * drawGridLines
      *   Draws a bunch of evenly-spaced grid lines.
      */
     private drawGridLines(o: point, h: number, w: number) {
@@ -381,7 +381,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * drawText  
+     * drawText
      *   Draws text.
      */
     drawText(
@@ -421,7 +421,7 @@ export class GraphEditorCanvas {
 
 
     /**
-     * size  
+     * size
      *   Gets or sets the size dimensions of the canvas.
      */
     get size() {
@@ -449,7 +449,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * scale  
+     * scale
      *   Gets or sets the canvas scaling factor.
      */
     get scale(): number {
@@ -464,7 +464,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * lineStyle  
+     * lineStyle
      *   Sets the line style of the rendering context.
      */
     set lineStyle(value: { style: string, dotSize?: number }) {
@@ -484,7 +484,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * shadowBlur  
+     * shadowBlur
      *   Sets the shadow blur range.
      */
     set shadowBlur(value: number) {
@@ -492,7 +492,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * shadowColor  
+     * shadowColor
      *   Sets the shadow color.
      */
     set shadowColor(value: string) {
@@ -500,7 +500,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * globalAlpha  
+     * globalAlpha
      *   Sets the global alpha channel.
      */
     set globalAlpha(value: number) {
@@ -512,7 +512,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * strokeStyle  
+     * strokeStyle
      *   Sets the stroke color.
      */
     set strokeStyle(value: string) {
@@ -520,7 +520,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * fillStyle  
+     * fillStyle
      *   Sets the fill color.
      */
     set fillStyle(value: string) {
@@ -528,7 +528,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * lineWidth  
+     * lineWidth
      *   Sets the line width.
      */
     set lineWidth(value: number) {
@@ -536,7 +536,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * getTextWidth  
+     * getTextWidth
      *   Gets the width of a string.
      */
     getTextWidth(text: string) {
@@ -545,7 +545,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * getPt  
+     * getPt
      *   Gets the canvas coordinates from a DOM event.
      */
     getPt(pt: point): point {
@@ -562,7 +562,7 @@ export class GraphEditorCanvas {
 
 
     /**
-     * beginPath  
+     * beginPath
      *   Starts tracing a path.
      */
     beginPath() {
@@ -570,7 +570,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * stroke  
+     * stroke
      *   Strokes a path.
      */
     stroke() {
@@ -578,7 +578,7 @@ export class GraphEditorCanvas {
     }
 
     /**
-     * fill  
+     * fill
      *   Fills a path.
      */
     fill() {
@@ -592,7 +592,7 @@ export class GraphEditorCanvas {
 
 
 /**
- * makeRect  
+ * makeRect
  *   Makes a rectangle object with the bottom-left corner and height and width
  *   using the given opposing corner points.
  */
