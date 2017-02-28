@@ -52,7 +52,7 @@ export type CompositeOperations =
 /**
  * LineStyles
  */
-export type LineStyles = "solid" | "dotted" | "dashed";
+export type LineStyles = "solid" | "dotted" | "dashed" | "double";
 
 /**
  * Shapes
