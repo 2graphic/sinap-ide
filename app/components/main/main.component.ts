@@ -154,7 +154,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     newFile(f: File, g?: CoreModel) {
         const kind = MagicConstants.DFA_PLUGIN_KIND;
         console.log(kind);
-        this.pluginService.getPlugin(kind).then((plugin) => {
+        this.pluginService.getPluginByKind(kind).then((plugin) => {
             g = g ? g : new CoreModel(plugin);
 
             const graph = new GraphController(g, plugin);
@@ -176,10 +176,18 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     }
 
     promptNewFile() {
+<<<<<<< HEAD
         let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, ["Finite Machine", "Mealy Machine", "..."]);
 
         result.then((result: string) => {
             this.newFile(new UntitledFile(result));
+=======
+        this.pluginService.pluginKinds.then((pluginKinds) => {
+            let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginKinds);
+            result.then((result: string) => {
+                this.newFile(result);
+            });
+>>>>>>> 4adfde4... Used new plugin API.
         });
     }
 
@@ -299,6 +307,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     loadFile() {
         this.fileService.requestFiles()
             .then((files: File[]) => {
+<<<<<<< HEAD
                 files.forEach(this.openFile);
             });
     }
@@ -308,6 +317,16 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
             // TODO: use correct plugin
             this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND).then((plugin) => {
                 this.newFile(file, new CoreModel(plugin, JSON.parse(f)));
+=======
+                for (const file of files) {
+                    file.readData().then(f => {
+                        // TODO: use correct plugin
+                        this.pluginService.getPluginByKind(MagicConstants.DFA_PLUGIN_KIND).then((plugin) => {
+                            this.newFile(file.name, new CoreModel(plugin, JSON.parse(f)));
+                        });
+                    });
+                }
+>>>>>>> 4adfde4... Used new plugin API.
             });
         });
     }
