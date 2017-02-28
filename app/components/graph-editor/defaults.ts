@@ -104,6 +104,8 @@ export const NODE_PROPERTIES = {
     get position() { return { get x() { return 0; }, get y() { return 0; } }; },
     get label() { return ""; },
     get shape() { return "circle"; },
+    get image() { return ""; },
+    get anchorPoints() { return []; },
     get color() { return "#fff200"; },
     get borderColor() { return "#000"; },
     get borderStyle() { return "solid"; },
