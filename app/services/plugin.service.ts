@@ -24,6 +24,20 @@ function somePromises<T>(promises: Iterable<Promise<T>>): Promise<T[]> {
     return result;
 }
 
+function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
+    if (arr1.length !== arr2.length) {
+        return false;
+    }
+
+    for(let i = 0; i < arr1.length; i++) {
+        if (arr1[i] !== arr2[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 @Injectable()
 export class PluginService {
     readonly plugins: Promise<Plugin[]>;
@@ -39,6 +53,30 @@ export class PluginService {
                 const pluginProms = pluginDirectories.map((pluginDir) => loadPluginDir(pluginDir, this.fileService));
                 return somePromises(pluginProms);
             });
+    }
+
+    public getPluginByKind(kind: string[]): Promise<Plugin> {
+        return this.plugins.then((plugins) => {
+            const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginKind));
+            const pluginName = JSON.stringify(kind);
+            if (matches.length == 0) {
+                return Promise.reject(`Could not find a plugin with kind ${pluginName}`);
+            } else if (matches.length > 1) {
+                return Promise.reject(`Found multiple plugins matching kind ${pluginName}`);
+            } else {
+                return Promise.resolve(matches[0]);
+            }
+        });
+    }
+
+    public get pluginKinds(): Promise<string[][]> {
+        return this.plugins.then((plugins) => {
+            const result: string[][] = [];
+            for(const plugin of plugins) {
+                result.push(plugin.pluginKind);
+            }
+            return result;
+        });
     }
 
     public getProgram(plugin: Plugin, m: CoreModel): Promise<Program> {
