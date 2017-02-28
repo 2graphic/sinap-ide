@@ -19,7 +19,7 @@ import { PropertiesPanelComponent } from "../properties-panel/properties-panel.c
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
-import { GraphController, UndoableAdd, UndoableChange, UndoableDelete, UndoableEvent } from "../../models/graph-controller";
+import { GraphController, UndoableChange, UndoableEvent } from "../../models/graph-controller";
 import { CoreElement, CoreModel, CoreElementKind } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
@@ -341,7 +341,6 @@ class TabContext {
     }
 
     public change(change: UndoableEvent) {
-        console.log(change);
         this.stack.push(change);
         if (this.stack === this.undoHistory && !this.isRedoing) {
             this.redoHistory.length = 0;

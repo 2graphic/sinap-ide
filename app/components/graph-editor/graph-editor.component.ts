@@ -41,7 +41,9 @@ export {
     DrawableEdgeEventListener,
     DrawableEdgeEventArgs,
     DrawableNodeEventListener,
-    DrawableNodeEventArgs
+    DrawableNodeEventArgs,
+    CreatedOrDeletedEventArgs,
+    CreatedOrDeletedEvent
 } from "./drawable-graph";
 export { Drawable } from "./drawable";
 export { DrawableElement } from "./drawable-element";
@@ -1121,9 +1123,7 @@ export class GraphEditorComponent implements AfterViewInit {
             this.suspendRedraw();
             let srcNode = (e.source.isHidden ? this.hoverObject : e.source);
             let dstNode = (e.destination.isHidden ? this.hoverObject : e.destination);
-            let edge = this.graph.createEdge(srcNode, dstNode, like);
-            if (like)
-                this.graph.delete(like);
+            const edge = (like ? this.graph.moveEdge(srcNode, dstNode, like) : this.graph.createEdge(srcNode, dstNode, like));
             if (edge)
                 this.updateSelected(edge);
             this.resumeRedraw();
