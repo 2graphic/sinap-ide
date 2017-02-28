@@ -9,6 +9,7 @@
 import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
 import { LocalFileService, Directory, File } from "../../services/files.service";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
+import { File, Directory } from "sinap-core";
 
 
 @Component({

@@ -29,7 +29,7 @@ function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
         return false;
     }
 
-    for(let i = 0; i < arr1.length; i++) {
+    for (let i = 0; i < arr1.length; i++) {
         if (arr1[i] !== arr2[i]) {
             return false;
         }
@@ -59,7 +59,7 @@ export class PluginService {
         return this.plugins.then((plugins) => {
             const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginKind));
             const pluginName = JSON.stringify(kind);
-            if (matches.length == 0) {
+            if (matches.length === 0) {
                 return Promise.reject(`Could not find a plugin with kind ${pluginName}`);
             } else if (matches.length > 1) {
                 return Promise.reject(`Found multiple plugins matching kind ${pluginName}`);
@@ -72,7 +72,7 @@ export class PluginService {
     public get pluginKinds(): Promise<string[][]> {
         return this.plugins.then((plugins) => {
             const result: string[][] = [];
-            for(const plugin of plugins) {
+            for (const plugin of plugins) {
                 result.push(plugin.pluginKind);
             }
             return result;
