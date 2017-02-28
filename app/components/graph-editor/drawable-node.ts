@@ -17,6 +17,7 @@ import { DrawableGraph } from "./drawable-graph";
 import { DrawableElement } from "./drawable-element";
 import { DrawableEdge } from "./drawable-edge";
 import {
+    IMAGES,
     GraphEditorCanvas,
     LineStyles,
     makeRect,
@@ -33,18 +34,220 @@ import * as MathEx from "./math";
  *   Represents a node that is drawn on a graph editor canvas.
  */
 export class DrawableNode extends DrawableElement {
+    constructor(graph: DrawableGraph, like?: DrawableNode) {
+        super(graph);
+        Object.defineProperties(this, {
+            _pt: {
+                enumerable: false,
+                writable: true,
+                value: {
+                    x: (like ? like._pt.x + GRID_SPACING : NODE_PROPERTIES.position.x),
+                    y: (like ? like._pt.y + GRID_SPACING : NODE_PROPERTIES.position.y),
+                }
+            },
+            _shape: {
+                enumerable: false,
+                writable: true,
+                value: (like ? like._shape : NODE_PROPERTIES.shape as Shapes)
+            },
+            _img: {
+                enumerable: false,
+                writable: true,
+                value: (like ? like._img : NODE_PROPERTIES.image)
+            },
+            _apts: {
+                enumerable: false,
+                writable: true,
+                value: (like ? like._apts : NODE_PROPERTIES.anchorPoints)
+            },
+            _borderColor: {
+                enumerable: false,
+                writable: true,
+                value: (like ? like._borderColor : NODE_PROPERTIES.borderColor)
+            },
+            _borderStyle: {
+                enumerable: false,
+                writable: true,
+                value: (like ? like._borderStyle : NODE_PROPERTIES.borderStyle as LineStyles)
+            },
+            _borderWidth: {
+                enumerable: false,
+                writable: true,
+                value: (like ? like._borderWidth : NODE_PROPERTIES.borderWidth)
+            },
+            _size: {
+                enumerable: false,
+                writable: true,
+                value: { h: 0, w: 0 }
+            },
+            _innerBound: {
+                enumerable: false,
+                writable: true,
+                value: { h: 0, w: 0 }
+            },
+            _outerBound: {
+                enumerable: false,
+                writable: true,
+                value: { h: 0, w: 0 }
+            },
+            _incomingSet: {
+                enumerable: false,
+                writable: false,
+                value: new Set<DrawableEdge>()
+            },
+            _outgoingSet: {
+                enumerable: false,
+                writable: false,
+                value: new Set<DrawableEdge>()
+            },
+            _apt: {
+                enumerable: false,
+                writable: true,
+                value: this._pt
+            },
+            position: {
+                enumerable: true,
+                get: () => this._pt,
+                set: (value: point) => {
+                    const old = this.position;
+                    if (this._pt.x !== value.x || this._pt.y !== value.y) {
+                        this._pt.x = value.x;
+                        this._pt.y = value.y;
+                        this.onPropertyChanged("position", old);
+                    }
+                }
+            },
+            shape: {
+                enumerable: true,
+                get: () => this._shape,
+                set: (value: Shapes) => {
+                    const old = this._shape;
+                    if (this._shape !== value) {
+                        this._shape = value;
+                        this.onPropertyChanged("shape", old);
+                    }
+                }
+            },
+            image: {
+                enumerable: true,
+                get: () => this._img,
+                set: (value: string) => {
+                    const old = this._img;
+                    if (this._img !== value) {
+                        this._img = value;
+                        this.onPropertyChanged("image", old);
+                    }
+                }
+            },
+            anchorPoints: {
+                enumerable: true,
+                get: () => [...this._apts],
+                set: (value: point[]) => {
+                    this._apts = [];
+                    value.forEach(v => {
+                        const pt = {
+                            x: v.x - this._size.w / 2,
+                            y: v.y - this._size.h / 2
+                        };
+                        if (this._apts.filter(a => a.x === pt.x && a.y === pt.y).length === 0)
+                            this._apts.push(pt);
+                    });
+                }
+            },
+            borderColor: {
+                enumerable: true,
+                get: () => this._borderColor,
+                set: (value: string) => {
+                    const old = this._borderColor;
+                    if (this._borderColor !== value) {
+                        this._borderColor = value;
+                        this.onPropertyChanged("borderColor", old);
+                    }
+                }
+            },
+            borderStyle: {
+                enumerable: true,
+                get: () => this._borderStyle,
+                set: (value: LineStyles) => {
+                    const old = this._borderStyle;
+                    if (this._borderStyle !== value) {
+                        this._borderStyle = value;
+                        this.onPropertyChanged("borderStyle", old);
+                    }
+                }
+            },
+            borderWidth: {
+                enumerable: true,
+                get: () => this._borderWidth,
+                set: (value: number) => {
+                    const old = this._borderWidth;
+                    if (this._borderWidth !== value) {
+                        this._borderWidth = value;
+                        this.onPropertyChanged("borderWidth", old);
+                    }
+                }
+            },
+            isHidden: {
+                enumerable: false,
+                get: () => this instanceof HiddenNode
+            },
+            incomingEdges: {
+                enumerable: false,
+                get: () => new Set<DrawableEdge>([...this._incomingSet])
+            },
+            outgoingEdges: {
+                enumerable: false,
+                get: () => new Set<DrawableEdge>([...this._outgoingSet])
+            },
+            edges: {
+                enumerable: false,
+                get: () => new Set<DrawableEdge>([
+                    ...this._incomingSet,
+                    ...this._outgoingSet
+                ])
+            },
+            anchorPoint: {
+                enumerable: false,
+                get: () => this._apt,
+                set: (value: point) => this._apt = value
+            },
+            isAnchorVisible: {
+                enumerable: false,
+                get: () => this._apt !== this._pt
+            }
+        });
+        Object.seal(this);
+        this.color = (like ? like._color : NODE_PROPERTIES.color);
+        this.label = (like ? like.label : NODE_PROPERTIES.label);
+        this.clearAnchor();
+    }
+
+    // Private fields //////////////////////////////////////////////////////////
 
     /**
-     * _position
+     * _pt
      *   The coordinates of the center of the node.
      */
-    private _position: point;
+    private _pt: point;
 
     /**
      * _shape
      *   The shape of the node.
      */
     private _shape: Shapes;
+
+    /**
+     * _img
+     *   Path to the custom image.
+     */
+    private _img: string;
+
+    /**
+     * _apts
+     *
+     *   The collection of anchor points.
+     */
+    private _apts: point[];
 
     /**
      * _borderColor
@@ -103,160 +306,7 @@ export class DrawableNode extends DrawableElement {
      */
     private _apt: point;
 
-    /**
-     * constructor
-     */
-    constructor(graph: DrawableGraph, like?: DrawableNode) {
-        super(graph);
-        Object.defineProperties(this, {
-            _position: {
-                enumerable: false,
-                writable: true,
-                value: {
-                    x: (like ? like._position.x + GRID_SPACING : NODE_PROPERTIES.position.x),
-                    y: (like ? like._position.y + GRID_SPACING : NODE_PROPERTIES.position.y),
-                }
-            },
-            _shape: {
-                enumerable: false,
-                writable: true,
-                value: (like ? like._shape : NODE_PROPERTIES.shape as Shapes)
-            },
-            _borderColor: {
-                enumerable: false,
-                writable: true,
-                value: (like ? like._borderColor : NODE_PROPERTIES.borderColor)
-            },
-            _borderStyle: {
-                enumerable: false,
-                writable: true,
-                value: (like ? like._borderStyle : NODE_PROPERTIES.borderStyle as LineStyles)
-            },
-            _borderWidth: {
-                enumerable: false,
-                writable: true,
-                value: (like ? like._borderWidth : NODE_PROPERTIES.borderWidth)
-            },
-            _size: {
-                enumerable: false,
-                writable: true,
-                value: { h: 0, w: 0 }
-            },
-            _innerBound: {
-                enumerable: false,
-                writable: true,
-                value: { h: 0, w: 0 }
-            },
-            _outerBound: {
-                enumerable: false,
-                writable: true,
-                value: { h: 0, w: 0 }
-            },
-            _incomingSet: {
-                enumerable: false,
-                writable: false,
-                value: new Set<DrawableEdge>()
-            },
-            _outgoingSet: {
-                enumerable: false,
-                writable: false,
-                value: new Set<DrawableEdge>()
-            },
-            _apt: {
-                enumerable: false,
-                writable: true,
-                value: this._position
-            },
-            position: {
-                enumerable: true,
-                get: () => this._position,
-                set: (value: point) => {
-                    let old = this.position;
-                    if (this._position.x !== value.x || this._position.y !== value.y) {
-                        this._position.x = value.x;
-                        this._position.y = value.y;
-                        this.onPropertyChanged("position", old);
-                    }
-                }
-            },
-            shape: {
-                enumerable: true,
-                get: () => this._shape,
-                set: (value: Shapes) => {
-                    let old = this._shape;
-                    if (this._shape !== value) {
-                        this._shape = value;
-                        this.onPropertyChanged("shape", old);
-                    }
-                }
-            },
-            borderColor: {
-                enumerable: true,
-                get: () => this._borderColor,
-                set: (value: string) => {
-                    let old = this._borderColor;
-                    if (this._borderColor !== value) {
-                        this._borderColor = value;
-                        this.onPropertyChanged("borderColor", old);
-                    }
-                }
-            },
-            borderStyle: {
-                enumerable: true,
-                get: () => this._borderStyle,
-                set: (value: LineStyles) => {
-                    let old = this._borderStyle;
-                    if (this._borderStyle !== value) {
-                        this._borderStyle = value;
-                        this.onPropertyChanged("borderStyle", old);
-                    }
-                }
-            },
-            borderWidth: {
-                enumerable: true,
-                get: () => this._borderWidth,
-                set: (value: number) => {
-                    let old = this._borderWidth;
-                    if (this._borderWidth !== value) {
-                        this._borderWidth = value;
-                        this.onPropertyChanged("borderWidth", old);
-                    }
-                }
-            },
-            isHidden: {
-                enumerable: false,
-                get: () => this instanceof HiddenNode
-            },
-            incomingEdges: {
-                enumerable: false,
-                get: () => new Set<DrawableEdge>([...this._incomingSet])
-            },
-            outgoingEdges: {
-                enumerable: false,
-                get: () => new Set<DrawableEdge>([...this._outgoingSet])
-            },
-            edges: {
-                enumerable: false,
-                get: () => new Set<DrawableEdge>([
-                    ...this._incomingSet,
-                    ...this._outgoingSet
-                ])
-            },
-            anchorPoint: {
-                enumerable: false,
-                get: () => this._apt,
-                set: (value: point) => this._apt = value
-            },
-            isAnchorVisible: {
-                enumerable: false,
-                get: () => this._apt !== this._position
-            }
-        });
-        Object.seal(this);
-        this.color = (like ? like._color : NODE_PROPERTIES.color);
-        this.label = (like ? like.label : NODE_PROPERTIES.label);
-        this.clearAnchor();
-    }
+    // Public fields ///////////////////////////////////////////////////////////
 
     /**
      * position
@@ -269,6 +319,24 @@ export class DrawableNode extends DrawableElement {
      *   Gets or sets the shape of the node.
      */
     shape: Shapes;
+
+    /**
+     * image
+     *   Gets or sets the path to a custom SVG image.
+     */
+    image: string;
+
+    /**
+     * anchorPoints
+     *   Gets or sets the anchor points.
+     *
+     * <p>
+     *   The location of each anchor point is in relation to the (0, 0)
+     *   coordinate of the image file, or the top left corner of the bounding
+     *   rectangle of the selected shape.
+     * </p>
+     */
+    anchorPoints: point[];
 
     /**
      * borderColor
@@ -329,15 +397,16 @@ export class DrawableNode extends DrawableElement {
      *   Clears the anchor visibility.
      */
     clearAnchor() {
-        this.anchorPoint = this._position;
+        this.anchorPoint = this._pt;
     }
 
     /**
      * addEdge
+     *
      *   Adds an edge to this node.
      */
     addEdge(e: DrawableEdge) {
-        let old = this.edges;
+        const old = this.edges;
         if (e.source === this)
             this._outgoingSet.add(e);
         else if (e.destination === this)
@@ -350,7 +419,7 @@ export class DrawableNode extends DrawableElement {
      *   Removes an edge from this node.
      */
     removeEdge(e: DrawableEdge) {
-        let old = this.edges;
+        const old = this.edges;
         this._incomingSet.delete(e);
         this._outgoingSet.delete(e);
         this.onPropertyChanged("edges", old);
@@ -362,18 +431,25 @@ export class DrawableNode extends DrawableElement {
      */
     update(g: GraphEditorCanvas) {
         this.updateTextSize(g);
-        let s = (GRID_SPACING > this._textSize.h + 1.5 * FONT_SIZE ?
-            GRID_SPACING : this._textSize.h + 1.5 * FONT_SIZE);
-        s = (s < this._textSize.w + FONT_SIZE ?
-            this._textSize.w + FONT_SIZE : s);
-        this._size.h = s;
-        this._size.w = s;
-        this._innerBound.h = s - 2 * NODE_THRESHOLD_IN;
-        this._innerBound.w = this._innerBound.h;
-        this._outerBound.h = s + 2 * NODE_THRESHOLD_OUT;
-        this._outerBound.w = this._outerBound.h;
+        if (this._shape === "image") {
+            const img = IMAGES.get(this._img);
+            this._size.h = img!.height;
+            this._size.w = img!.width;
+        }
+        else {
+            let s = (GRID_SPACING > this._textSize.h + 1.5 * FONT_SIZE ?
+                GRID_SPACING : this._textSize.h + 1.5 * FONT_SIZE);
+            s = (s < this._textSize.w + FONT_SIZE ?
+                this._textSize.w + FONT_SIZE : s);
+            this._size.h = s;
+            this._size.w = s;
+        }
+        this._innerBound.h = this._size.h - 2 * NODE_THRESHOLD_IN;
+        this._innerBound.w = this._size.w - 2 * NODE_THRESHOLD_IN;
+        this._outerBound.h = this._size.h + 2 * NODE_THRESHOLD_OUT;
+        this._outerBound.w = this._size.w + 2 * NODE_THRESHOLD_OUT;
         this.updateDraw(g);
-        for (let e of this.edges)
+        for (const e of this.edges)
             e.update(g);
     }
 
@@ -382,18 +458,19 @@ export class DrawableNode extends DrawableElement {
      *   Updates the draw logic of the node.
      */
     updateDraw(g: GraphEditorCanvas) {
-        let pt = this._position;
-        let sz = this._size;
-        let bc = this._borderColor;
-        let bs = this._borderStyle;
-        let bw = this._borderWidth;
-        let cl = this._color;
+        const pt = this._pt;
+        const sz = this._size;
+        const bc = this._borderColor;
+        const bs = this._borderStyle;
+        const bw = this._borderWidth;
+        const cl = this._color;
         let sc = (this.isDragging ? NODE_DRAG_SHADOW_COLOR : (this.isHovered ? SELECTION_COLOR : undefined));
         /////////////////////////
         // Set selected shadow //
         /////////////////////////
         if (this.isSelected) {
-            let shadow = sc;
+            const shadow = sc;
+            const offsets = [-2, -2, 0, -2, 2, -2, -2, 0, 2, 0, -2, 2, 0, 2, 2, 2];
             this._drawSelectionShadow = () => {
                 switch (this._shape) {
                     case "circle":
@@ -402,9 +479,16 @@ export class DrawableNode extends DrawableElement {
                     case "square":
                         g.drawSquare(pt, sz.w + bw + 4, "solid", bw, SELECTION_COLOR, SELECTION_COLOR, shadow);
                         break;
+                    case "image":
+                        for (let i = 0; i < offsets.length; i += 2) {
+                            const opt = { x: pt.x + offsets[i], y: pt.y + offsets[i + 1] };
+                            g.drawImage(opt, IMAGES.get(this._img) !);
+                        }
+                        break;
                 }
             };
-            sc = undefined;
+            if (this._shape !== "image")
+                sc = undefined;
         }
         else {
             this._drawSelectionShadow = () => { };
@@ -412,13 +496,16 @@ export class DrawableNode extends DrawableElement {
         //////////////
         // Set node //
         //////////////
-        let shapeThunk = () => {
+        const shapeThunk = () => {
             switch (this._shape) {
                 case "circle":
                     g.drawCircle(pt, sz.w / 2, bs, bw, bc, cl, sc);
                     break;
                 case "square":
                     g.drawSquare(pt, sz.w, bs, bw, bc, cl, sc);
+                    break;
+                case "image":
+                    g.drawImage(pt, IMAGES.get(this._img) !, sc);
                     break;
             }
         };
@@ -471,42 +558,42 @@ export class DrawableNode extends DrawableElement {
      *   otherwise, null.
      */
     hitPoint(pt: point): point | null {
-        let posn = this._position;
+        const posn = { x: this._pt.x, y: this._pt.y };
+        const size = this._size;
+        const v = { x: pt.x - posn.x, y: pt.y - posn.y };
+        const ib = this._innerBound;
+        const ob = this._outerBound;
+        const apts = this._apts;
+        if (apts.length > 0) {
+            const d = NODE_THRESHOLD_OUT - NODE_THRESHOLD_IN;
+            const apt = this.getNearestAnchor(pt);
+            const u = { x: v.x - apt.x, y: v.y - apt.y };
+            if (MathEx.dot(u, u) <= d * d) {
+                return { x: apt.x + this._pt.x, y: apt.y + this._pt.y };
+            }
+        }
         switch (this._shape) {
-            case "circle":
-                let r = this._outerBound.w / 2;
-                let v = { x: pt.x - posn.x, y: pt.y - posn.y };
-                let d = MathEx.mag(v);
-                if (d <= r) {
-                    r = this._innerBound.w / 2;
-                    let anchor: point = posn;
-                    if (d >= r)
-                        anchor = this.getBoundaryPt({ x: v.x / d, y: v.y / d });
-                    return anchor;
+            case "circle": {
+                const dot = MathEx.dot(v, v);
+                if (dot < ib.w * ib.w / 4)
+                    return this._pt;
+                if (apts.length === 0 && dot <= ob.w * ob.w / 4) {
+                    const d = Math.sqrt(dot);
+                    return this.getBoundaryPt({ x: v.x / d, y: v.y / d });
                 }
+            } break;
 
-            case "square":
-                let hs = this._outerBound.w / 2;
-                let rect = makeRect(
-                    { x: posn.x - hs, y: posn.y - hs },
-                    { x: posn.x + hs, y: posn.y + hs }
-                );
-                if ((pt.x >= rect.x && pt.x <= rect.x + rect.w) &&
-                    (pt.y >= rect.y && pt.y <= rect.y + rect.w)) {
-                    let v = { x: pt.x - posn.x, y: pt.y - posn.y };
-                    let d = MathEx.mag(v);
-                    hs = this._innerBound.w / 2;
-                    rect = makeRect(
-                        { x: posn.x - hs, y: posn.y - hs },
-                        { x: posn.x + hs, y: posn.y + hs }
-                    );
-                    let anchor: point = posn;
-                    if ((pt.x <= rect.x || pt.x >= rect.x + rect.w) ||
-                        (pt.y <= rect.y || pt.y >= rect.y + rect.w)) {
-                        anchor = this.getBoundaryPt({ x: v.x / d, y: v.y / d });
-                    }
-                    return anchor;
+            case "image":
+            case "square": {
+                const ax = Math.abs(v.x);
+                const ay = Math.abs(v.y);
+                if (ax < ib.w / 2 && ay < ib.h / 2)
+                    return this._pt;
+                if (apts.length === 0 && ax <= ob.w / 2 && ay <= ob.h / 2) {
+                    const d = MathEx.mag(v);
+                    return this.getBoundaryPt({ x: v.x / d, y: v.y / d });
                 }
+            } break;
         }
         return null;
     }
@@ -520,10 +607,34 @@ export class DrawableNode extends DrawableElement {
         const R = r.x + r.w;
         const T = r.y;
         const B = r.y + r.h;
-        let posn = this._position;
-        let D = this._size.w / 2;
+        const posn = this._pt;
+        const D = this._size.w / 2;
         return (posn.x >= L - D && posn.x <= R + D &&
             posn.y >= T - D && posn.y <= B + D);
+    }
+
+    /**
+     * getNearestAnchor
+     *
+     *   Gets the nearest anchor point or the origin of the node if there are no
+     *   predefined anchor points.
+     */
+    getNearestAnchor(pt: point) {
+        const p = { x: pt.x - this._pt.x, y: pt.y - this._pt.y };
+        let apt = this._pt;
+        let min = Infinity;
+        this._apts.forEach(a => {
+            let v = {
+                x: p.x - a.x,
+                y: p.y - a.y
+            };
+            let dot = MathEx.dot(v, v);
+            if (dot <= min) {
+                min = dot;
+                apt = a;
+            }
+        });
+        return apt;
     }
 
     /**
@@ -532,43 +643,42 @@ export class DrawableNode extends DrawableElement {
      *   node based on its geometry.
      */
     getBoundaryPt(u: point) {
-        let v: point = { x: 0, y: 0 };
-        let border = this._borderWidth / 2;
+        const v: point = { x: 0, y: 0 };
+        const sz = this._size;
+        const border = this._borderWidth / 2;
 
         switch (this._shape) {
             // The boundary of a circle is just its radius plus half its border
             // width.
-            case "circle":
-                let r = this._size.h / 2;
-                v.x = u.x * r + border;
-                v.y = u.y * r + border;
-                break;
+            case "circle": {
+                const r = sz.h / 2 + border;
+                v.x = u.x * r;
+                v.y = u.y * r;
+            } break;
 
-            // The boundary of a square depends on the direction of u.
-            case "square":
-                let up = {
+            // The boundary of a rectangle depends on the direction of u.
+            case "image":
+            case "square": {
+                const up = {
                     x: (u.x < 0 ? -u.x : u.x),
                     y: (u.y < 0 ? -u.y : u.y)
                 };
-                let s = this._size.h / 2;
-                if (up.x < up.y) {
-                    let ratio = up.x / up.y;
-                    let b = s / up.y;
-                    let a = ratio * up.x;
-                    s = MathEx.mag({ x: a, y: b });
+                const h = sz.h / 2 + border;
+                const w = sz.w / 2 + border;
+                v.x = (h * up.x + up.x * up.y) / up.y;
+                if (v.x > w) {
+                    v.x = w;
+                    v.y = (w * up.y + up.y * up.x) / up.x;
                 }
-                else {
-                    let ratio = up.y / up.x;
-                    let a = s / up.x;
-                    let b = ratio * up.y;
-                    s = MathEx.mag({ x: a, y: b });
-                }
-                v.x = u.x * s + border;
-                v.y = u.y * s + border;
-                break;
+                else
+                    v.y = h;
+                const d = MathEx.mag(v);
+                v.x = u.x * d;
+                v.y = u.y * d;
+            } break;
         }
-        v.x += this._position.x;
-        v.y += this._position.y;
+        v.x += this._pt.x;
+        v.y += this._pt.y;
         return v;
     }
 
@@ -589,5 +699,9 @@ export class HiddenNode extends DrawableNode {
 
     updateDraw(g: GraphEditorCanvas) {
         this._draw = () => { };
+    }
+
+    getBoundaryPt(u: point) {
+        return this.position;
     }
 }
