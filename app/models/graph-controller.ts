@@ -257,7 +257,24 @@ export class GraphController {
 
     public applyUndoableEvent(event: UndoableEvent) {
         if (event instanceof UndoableAddOrDelete) {
-            this.drawable.undo(event.events.map((e) => [e[0], e[1].drawable] as CreatedOrDeletedEvent));
+            let r = this.drawable.undo(event.events.map((e) => [e[0], e[1].drawable] as CreatedOrDeletedEvent));
+            const mapped = r.map(([a, e]): ["created" | "deleted", BridgingProxy] => {
+                if (a === "created") {
+                    const found = event.events.find((event) => event[1].drawable === e);
+                    if (found) {
+                        const bridge = found[1];
+                        this.core.elements.push(bridge.core);
+                        this.bridges.set(bridge.drawable, bridge.core, bridge);
+                        return [a, bridge];
+                    } else {
+                        return [a, this.addDrawable(e)];
+                    }
+                } else {
+                    return [a, this.removeDrawable(e)];
+                }
+            });
+
+            this.changed.emit(new UndoableAddOrDelete(mapped));
         } else if (event instanceof UndoableChange) {
             event.target.set(event.key, event.oldValue, true);
         } else {

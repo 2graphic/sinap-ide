@@ -436,12 +436,11 @@ export class DrawableGraph extends Drawable {
         const deleted = this.deleteInternal(toDelete)[1].map((e): CreatedOrDeletedEvent => ["deleted", e]);
         const undeleted = this.undeleteInternal(toUndelete)[1].map((e): CreatedOrDeletedEvent => ["created", e]);
 
-        this._createdOrDeletedElementEmitter.emit(
-            new CreatedOrDeletedEventArgs(this, deleted.concat(undeleted))
-        );
+        return deleted.concat(undeleted);
     }
 
     delete(...items: DrawableElement[]): boolean {
+        console.log(this._deleted.size);
         const r = this.deleteInternal(items);
         this._createdOrDeletedElementEmitter.emit(
             new CreatedOrDeletedEventArgs(this, r[1].map((e): CreatedOrDeletedEvent => ["deleted", e]))
