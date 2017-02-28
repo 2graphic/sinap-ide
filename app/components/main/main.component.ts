@@ -25,10 +25,7 @@ import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
 import { LocalFileService, File, UntitledFile } from "../../services/files.service";
 import { SandboxService } from "../../services/sandbox.service";
-import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
-
-import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program } from "sinap-core";
-
+import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, File } from "sinap-core";
 import { ResizeEvent } from 'angular-resizable-element';
 
 
