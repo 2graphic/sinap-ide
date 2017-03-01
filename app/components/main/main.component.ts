@@ -319,6 +319,8 @@ class TabContext {
     private stack = this.undoHistory;
     private isRedoing = false;
 
+    private readonly UNDO_HISTORY_LENGTH = 100;
+
     constructor(public readonly index: number, public graph: GraphController, public filename?: String) { };
 
     public undo() {
@@ -344,6 +346,11 @@ class TabContext {
         this.stack.push(change);
         if (this.stack === this.undoHistory && !this.isRedoing) {
             this.redoHistory.length = 0;
+        }
+
+
+        if (this.undoHistory.length > this.UNDO_HISTORY_LENGTH) {
+            this.undoHistory.shift();
         }
     }
 }

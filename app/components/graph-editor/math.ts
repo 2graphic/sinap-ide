@@ -67,22 +67,22 @@ export function quadBezIntersect(
     lp0: point,
     lp1: point
 ) {
-    let A = lp1.y - lp0.y;
-    let B = lp0.x - lp1.x;
-    let C = -lp0.x * A - lp0.y * B;
+    const A = lp1.y - lp0.y;
+    const B = lp0.x - lp1.x;
+    const C = -lp0.x * A - lp0.y * B;
 
-    let coefs = quadBezCoefs(p0, p1, p2);
-    let a = A * coefs[0].x + B * coefs[0].y;
-    let b = A * coefs[1].x + B * coefs[1].y;
-    let c = A * coefs[2].x + B * coefs[2].y + C;
+    const coefs = quadBezCoefs(p0, p1, p2);
+    const a = A * coefs[0].x + B * coefs[0].y;
+    const b = A * coefs[1].x + B * coefs[1].y;
+    const c = A * coefs[2].x + B * coefs[2].y + C;
 
-    let rts = getQuadraticRoots(a, b, c);
-    for (let t of rts) {
-        let ipt = {
+    const rts = getQuadraticRoots(a, b, c);
+    for (const t of rts) {
+        const ipt = {
             x: coefs[0].x * t * t + coefs[1].x * t + coefs[2].x,
             y: coefs[0].y * t * t + coefs[1].y * t + coefs[2].y
         };
-        let s = (B === 0 ? (ipt.y - lp0.y) / A : (lp0.x - ipt.x) / B);
+        const s = (B === 0 ? (ipt.y - lp0.y) / A : (lp0.x - ipt.x) / B);
         if (s >= 0 && s <= 1)
             return true;
     }
@@ -100,23 +100,23 @@ export function cubBezIntersect(
     // Source:
     // https://www.particleincell.com/2013/cubic-line-intersection/
     // https://www.particleincell.com/wp-content/uploads/2013/08/cubic-line.svg
-    let A = lp1.y - lp0.y;
-    let B = lp0.x - lp1.x;
-    let C = -lp0.x * A - lp0.y * B;
+    const A = lp1.y - lp0.y;
+    const B = lp0.x - lp1.x;
+    const C = -lp0.x * A - lp0.y * B;
 
-    let coefs = cubBezCoefs(p0, p1, p2, p3);
-    let a = A * coefs[0].x + B * coefs[0].y;
-    let b = A * coefs[1].x + B * coefs[1].y;
-    let c = A * coefs[2].x + B * coefs[2].y;
-    let d = A * coefs[3].x + B * coefs[3].y + C;
+    const coefs = cubBezCoefs(p0, p1, p2, p3);
+    const a = A * coefs[0].x + B * coefs[0].y;
+    const b = A * coefs[1].x + B * coefs[1].y;
+    const c = A * coefs[2].x + B * coefs[2].y;
+    const d = A * coefs[3].x + B * coefs[3].y + C;
 
-    let rts = (a === 0 ? getQuadraticRoots(b, c, d) : getCubicRoots(a, b, c, d));
-    for (let t of rts) {
-        let ip = {
+    const rts = (a === 0 ? getQuadraticRoots(b, c, d) : getCubicRoots(a, b, c, d));
+    for (const t of rts) {
+        const ip = {
             x: coefs[0].x * t * t * t + coefs[1].x * t * t + coefs[2].x * t + coefs[3].x,
             y: coefs[0].y * t * t * t + coefs[1].y * t * t + coefs[2].y * t + coefs[3].y
         };
-        let s = (B === 0 ? (ip.y - lp0.y) / A : (lp0.x - ip.x) / B);
+        const s = (B === 0 ? (ip.y - lp0.y) / A : (lp0.x - ip.x) / B);
         if (s >= 0 && s <= 1)
             return true;
     }
@@ -125,7 +125,7 @@ export function cubBezIntersect(
 
 function getQuadraticRoots(a: number, b: number, c: number) {
     a *= 2;
-    let t = [];
+    const t = [];
     let d = b * b - 2 * a * c;
     if (d > 0) {
         d = Math.sqrt(d);
@@ -137,7 +137,7 @@ function getQuadraticRoots(a: number, b: number, c: number) {
             t.push(r);
     }
     else if (d === 0) {
-        let r = -b / (2 * a);
+        const r = -b / (2 * a);
         if (r >= 0 && r <= 1)
             t.push(r);
     }
@@ -148,25 +148,25 @@ function getCubicRoots(a: number, b: number, c: number, d: number) {
     // Source:
     // https://www.particleincell.com/2013/cubic-line-intersection/
     // https://www.particleincell.com/wp-content/uploads/2013/08/cubic-line.svg
-    let t = [];
+    const t = [];
 
-    let A = b / a;
-    let B = c / a;
-    let C = d / a;
+    const A = b / a;
+    const B = c / a;
+    const C = d / a;
 
-    let _A3 = -A / 3;
+    const _A3 = -A / 3;
 
-    let Q = (3 * B - Math.pow(A, 2)) / 9;
-    let Q3 = Math.pow(Q, 3);
-    let R = (9 * A * B - 27 * C - 2 * Math.pow(A, 3)) / 54;
-    let D = Q3 + Math.pow(R, 2);
+    const Q = (3 * B - Math.pow(A, 2)) / 9;
+    const Q3 = Math.pow(Q, 3);
+    const R = (9 * A * B - 27 * C - 2 * Math.pow(A, 3)) / 54;
+    const D = Q3 + Math.pow(R, 2);
 
     if (D >= 0) {
-        let sqrtD = Math.sqrt(D);
+        const sqrtD = Math.sqrt(D);
 
-        let S = sgn(R + sqrtD) * Math.pow(Math.abs(R + sqrtD), 1 / 3);
-        let T = sgn(R - sqrtD) * Math.pow(Math.abs(R - sqrtD), 1 / 3);
-        let ST = S + T;
+        const S = sgn(R + sqrtD) * Math.pow(Math.abs(R + sqrtD), 1 / 3);
+        const T = sgn(R - sqrtD) * Math.pow(Math.abs(R - sqrtD), 1 / 3);
+        const ST = S + T;
 
         let r = _A3 + ST;
         if (r >= 0 && r <= 1)
@@ -179,9 +179,9 @@ function getCubicRoots(a: number, b: number, c: number, d: number) {
         }
     }
     else {
-        let th = Math.acos(R / Math.sqrt(-Q3));
+        const th = Math.acos(R / Math.sqrt(-Q3));
 
-        let sqrtQ = 2 * Math.sqrt(-Q);
+        const sqrtQ = 2 * Math.sqrt(-Q);
         let r = _A3 + sqrtQ * Math.cos(th / 3);
         if (r >= 0 && r <= 1)
             t.push(r);

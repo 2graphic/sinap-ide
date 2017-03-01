@@ -120,7 +120,7 @@ export abstract class DrawableElement extends Drawable {
                 enumerable: true,
                 get: () => this._color,
                 set: (value: string) => {
-                    let old = this._color;
+                    const old = this._color;
                     if (this._color !== value) {
                         this._color = value;
                         this.onPropertyChanged("color", old);
@@ -131,7 +131,7 @@ export abstract class DrawableElement extends Drawable {
                 enumerable: true,
                 get: () => this._lines.join("\n"),
                 set: (value: string) => {
-                    let old = this.label;
+                    const old = this.label;
                     if (value !== this.label) {
                         if (value.trim() !== "")
                             this._lines = value.split("\n");
@@ -145,7 +145,7 @@ export abstract class DrawableElement extends Drawable {
                 enumerable: false,
                 get: () => this._state,
                 set: (value: DrawableStates) => {
-                    let old = this._state;
+                    const old = this._state;
                     if (this._state !== value) {
                         this._state = value;
                         this.onPropertyChanged("state", old);
@@ -166,7 +166,7 @@ export abstract class DrawableElement extends Drawable {
                 enumerable: false,
                 get: () => this._selected,
                 set: (value: boolean) => {
-                    let old = this._selected;
+                    const old = this._selected;
                     if (this._selected !== value) {
                         if (value)
                             this.graph.select(this);
