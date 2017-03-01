@@ -42,7 +42,9 @@ export {
     DrawableEdgeEventListener,
     DrawableEdgeEventArgs,
     DrawableNodeEventListener,
-    DrawableNodeEventArgs
+    DrawableNodeEventArgs,
+    CreatedOrDeletedEventArgs,
+    CreatedOrDeletedEvent
 } from "./drawable-graph";
 export { Drawable } from "./drawable";
 export { DrawableElement } from "./drawable-element";
@@ -516,7 +518,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.graph.clearSelection();
                 const hit = this.hitPtTest(ePt);
                 if (hit)
-                    this.graph.selectItems(hit.d);
+                    this.graph.select(hit.d);
             }
 
             // Drop the edge if one is being dragged.
@@ -582,44 +584,72 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onCreatedEdge
-     *   Registers the edge for drawing and listening for property changed
+     * onCreatedEdges
+     *   Registers the edges for drawing and listening for property changed
      *   events.
      */
-    private onCreatedEdge
+    private onCreatedEdges
     = (evt: DrawableEventArgs<DrawableEdge>) => {
-        this.registerDrawable(evt.drawable);
+        for (const e of evt.drawables)
+            this.registerDrawable(e);
     }
 
     /**
      * onCreatedNode
-     *   Registers the node for drawing and listening for property changed
+     *   Registers the nodes for drawing and listening for property changed
      *   events.
      */
-    private onCreatedNode
+    private onCreatedNodes
     = (evt: DrawableEventArgs<DrawableNode>) => {
-        this.registerDrawable(evt.drawable);
+        for (const n of evt.drawables)
+            this.registerDrawable(n);
+    }
+
+    private onUncreate
+    = (evt: DrawableEventArgs<DrawableElement>) => {
+        for (const d of evt.drawables)
+            this.unregisterDrawable(d);
+    }
+
+    private onRecreate
+    = (evt: DrawableEventArgs<DrawableElement>) => {
+        for (const d of evt.drawables)
+            this.registerDrawable(d);
     }
 
     /**
-     * onDeletedEdge
-     *   Unregisters the edge from drawing and removes the event listener for
+     * onDeletedEdges
+     *   Unregisters the edges from drawing and removes the event listener for
      *   property changed events.
      */
-    private onDeletedEdge
+    private onDeletedEdges
     = (evt: DrawableEventArgs<DrawableEdge>) => {
-        evt.drawable.update(this.canvas);
-        this.unregisterDrawable(evt.drawable);
+        for (const e of evt.drawables) {
+            this.unregisterDrawable(e);
+        }
     }
 
     /**
-     * onDeletedNode
-     *   Unregisters the node from drawing and removes the event listener for
+     * onDeletedNodes
+     *   Unregisters the nodes from drawing and removes the event listener for
      *   property changed events.
      */
-    private onDeletedNode
+    private onDeletedNodes
     = (evt: DrawableEventArgs<DrawableNode>) => {
-        this.unregisterDrawable(evt.drawable);
+        for (const e of evt.drawables)
+            this.unregisterDrawable(e);
+    }
+
+    private onUndelete
+    = (evt: DrawableEventArgs<DrawableElement>) => {
+        for (const d of evt.drawables)
+            this.registerDrawable(d);
+    }
+
+    private onRedelete
+    = (evt: DrawableEventArgs<DrawableElement>) => {
+        for (const d of evt.drawables)
+            this.unregisterDrawable(d);
     }
 
     /**
@@ -706,22 +736,23 @@ export class GraphEditorComponent implements AfterViewInit {
         this.graph = g;
         this.scale = g.scale;
         this.origin = g.origin;
-        g.addCreatedEdgeListener(this.onCreatedEdge);
-        g.addCreatedNodeListener(this.onCreatedNode);
-        g.addDeletedEdgeListener(this.onDeletedEdge);
-        g.addDeletedNodeListener(this.onDeletedNode);
+        g.addCreatedEdgeListener(this.onCreatedEdges);
+        g.addCreatedNodeListener(this.onCreatedNodes);
+        g.addDeletedEdgeListener(this.onDeletedEdges);
+        g.addDeletedNodeListener(this.onDeletedNodes);
         g.addPropertyChangedListener(this.onDrawablePropertyChanged);
         this.drawList = [];
         for (const d of [...g.edges, ...g.nodes])
             this.registerDrawable(d);
         this.deleteSelectedDelegate = () => {
             this.suspendRedraw();
-            g.deleteSelected();
+            g.delete(...g.selectedItems);
             this.resumeRedraw();
         };
         this.selectAllDelegate = () => {
             this.suspendRedraw();
-            g.selectItems(...g.nodes, ...g.edges);
+            g.select(...g.nodes);
+            g.select(...g.edges);
             this.resumeRedraw();
         };
     }
@@ -733,10 +764,10 @@ export class GraphEditorComponent implements AfterViewInit {
     private unregisterGraph(g: DrawableGraph) {
         this.deleteSelectedDelegate = NOOP;
         this.selectAllDelegate = NOOP;
-        g.removeCreatedEdgeListener(this.onCreatedEdge);
-        g.removeCreatedNodeListener(this.onCreatedNode);
-        g.removeDeletedEdgeListener(this.onDeletedEdge);
-        g.removeDeletedNodeListener(this.onDeletedNode);
+        g.removeCreatedEdgeListener(this.onCreatedEdges);
+        g.removeCreatedNodeListener(this.onCreatedNodes);
+        g.removeDeletedEdgeListener(this.onDeletedEdges);
+        g.removeDeletedNodeListener(this.onDeletedNodes);
         g.removePropertyChangedListener(this.onDrawablePropertyChanged);
         for (const d of [...g.edges, ...g.nodes])
             this.unregisterDrawable(d);
@@ -794,8 +825,8 @@ export class GraphEditorComponent implements AfterViewInit {
             else
                 deselect.push(i);
         }
-        this.graph.selectItems(...select);
-        this.graph.deselectItems(...deselect);
+        this.graph.select(...select);
+        this.graph.deselect(...deselect);
 
         // Update the canvas.
         this.redraw();
@@ -812,7 +843,7 @@ export class GraphEditorComponent implements AfterViewInit {
         // Reset the selected item.
         if (this.graph.selectedItemCount < 2) {
             this.graph.clearSelection();
-            this.graph.selectItems(dragObject);
+            this.graph.select(dragObject);
         }
     }
 
@@ -1146,16 +1177,11 @@ export class GraphEditorComponent implements AfterViewInit {
         // Move or create the edge if it was dropped on a node.
         if (this.hoverObject instanceof DrawableNode) {
             this.suspendRedraw();
-            const srcNode = (e.source.isHidden ? this.hoverObject : e.source);
-            const dstNode = (e.destination.isHidden ? this.hoverObject : e.destination);
-            const edge = this.graph.createEdge(srcNode, dstNode, like);
-            if (edge) {
-                if (srcNode.anchorPoints.length > 0)
-                    edge.bindAnchor(srcNode, srcNode.getNearestAnchor(e.sourcePoint));
-                if (dstNode.anchorPoints.length > 0)
-                    edge.bindAnchor(dstNode, dstNode.getNearestAnchor(e.destinationPoint));
+            let srcNode = (e.source.isHidden ? this.hoverObject : e.source);
+            let dstNode = (e.destination.isHidden ? this.hoverObject : e.destination);
+            const edge = (like ? this.graph.moveEdge(srcNode, dstNode, like) : this.graph.createEdge(srcNode, dstNode, like));
+            if (edge)
                 this.updateSelected(edge);
-            }
             this.resumeRedraw();
         }
         // Update the original edge if one was being moved.

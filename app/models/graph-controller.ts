@@ -12,9 +12,9 @@ import {
     DrawableEdge,
     DrawableNode,
     EdgeValidator,
-    DrawableEdgeEventArgs,
-    DrawableNodeEventArgs,
-    PropertyChangedEventArgs
+    CreatedOrDeletedEventArgs,
+    PropertyChangedEventArgs,
+    CreatedOrDeletedEvent as DrawableCreatedOrDeletedEvent
 } from "../components/graph-editor/graph-editor.component";
 
 import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType } from "sinap-core";
@@ -99,14 +99,10 @@ function coreFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingP
     return a;
 }
 
-export type UndoableEvent = UndoableChange | UndoableAdd | UndoableDelete;
-
-export class UndoableAdd {
-    constructor(public bridge: BridgingProxy) { }
-}
-
-export class UndoableDelete {
-    constructor(public bridge: BridgingProxy) { }
+export type UndoableEvent = UndoableChange | UndoableAddOrDelete;
+export type CreatedOrDeletedEvent = ["created" | "deleted", BridgingProxy];
+export class UndoableAddOrDelete {
+    constructor(public events: CreatedOrDeletedEvent[]) { }
 }
 
 // TODO: changes can also be adds or deletes
@@ -158,7 +154,7 @@ export class GraphController {
         let coreGraph: CoreElement | null = null;
         const coreEdges: CoreElement[] = [];
 
-        // each core element we iterate over needs to have a drawable equivilant made for it
+        // each core element we iterate over needs to have a drawable equivalent made for it
         for (const element of this.core.elements) {
             // placeholder for the new drawable (if we make one)
             let drawable: Drawable | null = null;
@@ -209,10 +205,7 @@ export class GraphController {
         }
 
         // finally set up all the listeners after we copy all the elements
-        this.drawable.addCreatedNodeListener((n: DrawableNodeEventArgs) => this.addDrawable(n.drawable, undefined));
-        this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs) => this.addDrawable(e.drawable, undefined));
-        this.drawable.addDeletedNodeListener((n: DrawableNodeEventArgs) => this.removeDrawable(n.drawable));
-        this.drawable.addDeletedEdgeListener((e: DrawableEdgeEventArgs) => this.removeDrawable(e.drawable));
+        this.drawable.addCreatedOrDeletedElementListener((n: CreatedOrDeletedEventArgs) => this.addOrDeleteDrawables(n.events));
         this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
         this.drawable.addSelectionChangedListener((a: PropertyChangedEventArgs<Iterable<DrawableElement>>) => {
             this.setSelectedElements(a.curr);
@@ -221,46 +214,80 @@ export class GraphController {
         this.setSelectedElements(undefined);
     }
 
+    private addOrDeleteDrawables(events: DrawableCreatedOrDeletedEvent[]) {
+        const mapped = events.map(([a, e]): CreatedOrDeletedEvent => {
+            return [a, (a === "created" ? this.addDrawable(e) : this.removeDrawable(e))];
+        });
+
+        this.changed.emit(new UndoableAddOrDelete(mapped));
+    }
     private addDrawable(drawable: Drawable, core?: CoreElement) {
         // if a core element to pair with this
         // drawable doesn't exist, make one
         if (!core) {
-            // this could probably be wrapped up in a function if
-            // it was useful elsewhere
-            const kind = drawable instanceof DrawableEdge ?
-                CoreElementKind.Edge : (drawable instanceof DrawableNode ?
-                    CoreElementKind.Node : CoreElementKind.Graph);
-
-            let type = undefined;
-            if (kind === CoreElementKind.Node) {
-                type = this.activeNodeType;
-            } else if (kind === CoreElementKind.Edge) {
-                type = this.activeEdgeType;
-            }
-
-            core = this.core.addElement(kind, type);
-            this.copyProperties(drawable, core);
-            // this.copyDrawableToCore(drawable, core);
+            core = this.makeCoreFromDrawable(drawable);
         }
         const bridge = new BridgingProxy(core, drawable, this);
         this.bridges.set(drawable, core, bridge);
-        this.changed.emit(new UndoableAdd(bridge));
+
+        return bridge;
+    }
+
+    private makeCoreFromDrawable(drawable: Drawable) {
+        const kind = drawable instanceof DrawableEdge ?
+            CoreElementKind.Edge : (drawable instanceof DrawableNode ?
+                CoreElementKind.Node : CoreElementKind.Graph);
+
+        let type = undefined;
+        if (kind === CoreElementKind.Node) {
+            type = this.activeNodeType;
+        } else if (kind === CoreElementKind.Edge) {
+            type = this.activeEdgeType;
+        }
+
+        const core = this.core.addElement(kind, type);
+        this.copyProperties(drawable, core);
+
+        return core;
     }
 
     private removeDrawable(drawable: Drawable) {
         const bridge = this.toBridges(drawable);
         this.core.removeElement(bridge.core);
         this.bridges.delete(bridge.drawable, bridge.core);
-        this.changed.emit(new UndoableDelete(bridge));
+
+        return bridge;
     }
 
     public applyUndoableEvent(event: UndoableEvent) {
-        if (event instanceof UndoableAdd) {
-            this.removeDrawable(event.bridge.drawable);
-        } else if (event instanceof UndoableDelete) {
-            this.addDrawable(event.bridge.drawable, event.bridge.core);
+        if (event instanceof UndoableAddOrDelete) {
+            const toUndo = event.events
+                .map((e) => [e[0], e[1].drawable] as DrawableCreatedOrDeletedEvent);
+
+            const undoResults = this.drawable.undo(toUndo);
+
+            const mapped = undoResults.map(([createdOrDeleted, drawable]): CreatedOrDeletedEvent =>
+                [createdOrDeleted, (() => {
+                    if (createdOrDeleted === "created") {
+                        const found = event.events.find(([_, bridge]) => bridge.drawable === drawable);
+
+                        if (found) {
+                            // Reinsert the core element and bridge
+                            const [_, bridge] = found;
+
+                            this.core.elements.push(bridge.core);
+                            this.bridges.set(bridge.drawable, bridge.core, bridge);
+                            return bridge;
+                        } else {
+                            return this.addDrawable(drawable);
+                        }
+                    } else {
+                        return this.removeDrawable(drawable);
+                    }
+                })()]);
+            this.changed.emit(new UndoableAddOrDelete(mapped));
         } else if (event instanceof UndoableChange) {
-            (event.target as any)[event.key] = event.oldValue;
+            event.target.set(event.key, event.oldValue, true);
         } else {
             throw "Unrecognized event";
         }

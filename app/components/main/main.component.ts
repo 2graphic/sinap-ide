@@ -19,13 +19,14 @@ import { PropertiesPanelComponent } from "../properties-panel/properties-panel.c
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
-import { GraphController, UndoableAdd, UndoableChange, UndoableDelete, UndoableEvent } from "../../models/graph-controller";
+import { GraphController, UndoableChange, UndoableEvent } from "../../models/graph-controller";
 import { CoreElement, CoreModel, CoreElementKind } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
 import { FileService, LocalFileService, File } from "../../services/files.service";
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
+
 import { ResizeEvent } from 'angular-resizable-element';
 
 @Component({
@@ -104,8 +105,7 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 
     private makeChangeNotifier(context: TabContext) {
         return (change: UndoableEvent) => {
-            // Something like this.changes.get(context).add(change)
-            console.log(context.graph, change);
+            context.change(change);
             this.getProgram(context).then(program => {
                 this.updateStatusBar(program);
                 this.testComponent.program = program;
@@ -222,6 +222,18 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             case MenuEventAction.NEXT_TAB:
                 this.tabBar.selectNextTab();
                 break;
+            case MenuEventAction.UNDO:
+                if (!this.focusIsChildOf("bottom-panels") && this.context) {
+                    this.context.undo();
+                    e.preventDefault();
+                }
+                break;
+            case MenuEventAction.REDO:
+                if (!this.focusIsChildOf("bottom-panels") && this.context) {
+                    this.context.redo();
+                    e.preventDefault();
+                }
+                break;
         }
     }
 
@@ -301,5 +313,44 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
 }
 
 class TabContext {
+    private readonly undoHistory: UndoableEvent[] = [];
+    private readonly redoHistory: UndoableEvent[] = [];
+
+    private stack = this.undoHistory;
+    private isRedoing = false;
+
+    private readonly UNDO_HISTORY_LENGTH = 100;
+
     constructor(public readonly index: number, public graph: GraphController, public filename?: String) { };
+
+    public undo() {
+        const change = this.undoHistory.pop();
+        if (change) {
+            // If undoing causes a change, push it to the redoHistory stack.
+            this.stack = this.redoHistory;
+            this.graph.applyUndoableEvent(change);
+            this.stack = this.undoHistory;
+        }
+    }
+
+    public redo() {
+        const change = this.redoHistory.pop();
+        if (change) {
+            this.isRedoing = true;
+            this.graph.applyUndoableEvent(change);
+            this.isRedoing = false;
+        }
+    }
+
+    public change(change: UndoableEvent) {
+        this.stack.push(change);
+        if (this.stack === this.undoHistory && !this.isRedoing) {
+            this.redoHistory.length = 0;
+        }
+
+
+        if (this.undoHistory.length > this.UNDO_HISTORY_LENGTH) {
+            this.undoHistory.shift();
+        }
+    }
 }
