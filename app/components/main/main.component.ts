@@ -105,6 +105,8 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
                 this.leftPanelIcons = [this.propertiesIcon, this.filesIcon];
             }
             this.graphEditor.redraw();
+        } else {
+            this.leftPanelIcons = [this.filesIcon];
         }
     };
 
@@ -124,7 +126,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         path: `${require('../../images/files.svg')}`,
         name: 'Files'
     };
-    private leftPanelIcons = [this.propertiesIcon, this.toolsIcon, this.filesIcon];
+    private leftPanelIcons = [this.filesIcon];
 
     private makeChangeNotifier(context: TabContext) {
         return (change: UndoableEvent) => {
