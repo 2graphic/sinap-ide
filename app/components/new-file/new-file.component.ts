@@ -7,6 +7,10 @@ import { Component, Input } from "@angular/core";
 import { WindowService } from "./../../modal-windows/services/window.service";
 import { ModalInfo, ModalComponent } from "./../../models/modal-window";
 
+export class NewFile {
+    constructor(readonly name: string, readonly kind: string[]) {
+    }
+}
 
 @Component({
     selector: "sinap-new-file",
@@ -14,14 +18,13 @@ import { ModalInfo, ModalComponent } from "./../../models/modal-window";
     styleUrls: ["./new-file.component.scss"],
     providers: [WindowService]
 })
-
 export class NewFileComponent implements ModalComponent {
     set modalInfo(modalInfo: ModalInfo) {
         this.plugins = modalInfo.data;
     }
 
     private plugins: string[][];
-
+    private selectedPlugin: string[];
 
     constructor(private windowService: WindowService) {
         // TODO: if we want to use a different ModalService then
@@ -29,9 +32,13 @@ export class NewFileComponent implements ModalComponent {
         // it can close itself.
     };
 
+    ngOnInit() {
+        this.selectedPlugin = this.plugins[0];
+    }
+
     public createNewFile(filename: string) {
         if (filename) {
-            this.windowService.closeWindow(filename);
+            this.windowService.closeWindow(new NewFile(filename, this.selectedPlugin));
         }
     }
 

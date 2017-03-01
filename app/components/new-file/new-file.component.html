@@ -3,9 +3,9 @@
     <!-- TODO: use a resizable panel view for all panels -->
     <!-- TODO: Get plugin information from plugin service and display dynamically-->
     <div id="side-bar">
-        <ul>
-            <li *ngFor="let plugin of plugins">{{plugin}}</li>
-        </ul>
+        <select name="Plugin Kind" [(ngModel)]="selectedPlugin">
+            <option *ngFor="let plugin of plugins; let i = index" [ngValue]="plugin">{{plugin[1]}}</option>
+        </select>
     </div>
     <div id="content" class="flex-container-column">
         <div id="description">

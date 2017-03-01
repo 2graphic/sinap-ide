@@ -108,7 +108,9 @@ function createNewWindow(selector: string, type: ModalType, data: any): ModalInf
             center: true,
             resizable: false
         });
-        newWindow.setMenu(null as any);
+        if (process.env.ENV === 'production') {
+            newWindow.setMenu(null as any);
+        }
 
         let info: ModalInfo = {
             id: newWindow.id,

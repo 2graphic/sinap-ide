@@ -27,6 +27,7 @@ import { LocalFileService, File, UntitledFile } from "../../services/files.servi
 import { SandboxService } from "../../services/sandbox.service";
 import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, File } from "sinap-core";
 import { ResizeEvent } from 'angular-resizable-element';
+import { NewFile } from "../new-file/new-file.component";
 
 
 @Component({
@@ -47,10 +48,10 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     }
 
     ngAfterViewInit() {
-        // if (process.env.ENV !== 'production') {
-        //     this.newFile();
-        //     this.changeDetectorRef.detectChanges();
-        // }
+        if (process.env.ENV !== 'production') {
+            // this.newFile();
+            this.changeDetectorRef.detectChanges();
+        }
 
         this.leftPanelsGroup.nativeElement.style.width = "300px";
         this.bottomPanels.nativeElement.style.height = "225px";
@@ -151,9 +152,9 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         return this.pluginService.getProgram(context.graph.plugin, context.graph.core);
     }
 
-    newFile(f: File, g?: CoreModel) {
-        const kind = MagicConstants.DFA_PLUGIN_KIND;
-        console.log(kind);
+    newFile(g: CoreModel, f?: string) {
+        // TODO: have a more efficient way to get kind.
+        const kind = g.serialize().kind;
         this.pluginService.getPluginByKind(kind).then((plugin) => {
             g = g ? g : new CoreModel(plugin);
 
@@ -176,18 +177,13 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     }
 
     promptNewFile() {
-<<<<<<< HEAD
-        let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, ["Finite Machine", "Mealy Machine", "..."]);
-
-        result.then((result: string) => {
-            this.newFile(new UntitledFile(result));
-=======
         this.pluginService.pluginKinds.then((pluginKinds) => {
             let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginKinds);
-            result.then((result: string) => {
-                this.newFile(result);
+            result.then((result: NewFile) => {
+                this.pluginService.getPluginByKind(result.kind).then((plugin) => {
+                    this.newFile(new CoreModel(plugin), result.name);
+                });
             });
->>>>>>> 4adfde4... Used new plugin API.
         });
     }
 
@@ -307,26 +303,14 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     loadFile() {
         this.fileService.requestFiles()
             .then((files: File[]) => {
-<<<<<<< HEAD
-                files.forEach(this.openFile);
-            });
-    }
-
-    openFile = (file: File) => {
-        file.readData().then(f => {
-            // TODO: use correct plugin
-            this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND).then((plugin) => {
-                this.newFile(file, new CoreModel(plugin, JSON.parse(f)));
-=======
                 for (const file of files) {
                     file.readData().then(f => {
                         // TODO: use correct plugin
                         this.pluginService.getPluginByKind(MagicConstants.DFA_PLUGIN_KIND).then((plugin) => {
-                            this.newFile(file.name, new CoreModel(plugin, JSON.parse(f)));
+                            this.newFile(new CoreModel(plugin, JSON.parse(f)), file.name);
                         });
                     });
                 }
->>>>>>> 4adfde4... Used new plugin API.
             });
         });
     }
