@@ -41,9 +41,7 @@ export {
     DrawableEdgeEventListener,
     DrawableEdgeEventArgs,
     DrawableNodeEventListener,
-    DrawableNodeEventArgs,
-    CreatedOrDeletedEventArgs,
-    CreatedOrDeletedEvent
+    DrawableNodeEventArgs
 } from "./drawable-graph";
 export { Drawable } from "./drawable";
 export { DrawableElement } from "./drawable-element";
@@ -597,16 +595,15 @@ export class GraphEditorComponent implements AfterViewInit {
             this.registerDrawable(n);
     }
 
-    private onUncreate
-    = (evt: DrawableEventArgs<DrawableElement>) => {
-        for (const d of evt.drawables)
-            this.unregisterDrawable(d);
-    }
-
-    private onRecreate
-    = (evt: DrawableEventArgs<DrawableElement>) => {
-        for (const d of evt.drawables)
-            this.registerDrawable(d);
+    /**
+     * onMovedEdges
+     *   Unregisters the original edge and registers the replacement edge.
+     */
+    private onMovedEdges
+    = (evt: DrawableEventArgs<DrawableEdge>) => {
+        this.unregisterDrawable(evt.like!);
+        for (const e of evt.drawables)
+            this.registerDrawable(e);
     }
 
     /**
@@ -630,18 +627,6 @@ export class GraphEditorComponent implements AfterViewInit {
     = (evt: DrawableEventArgs<DrawableNode>) => {
         for (const e of evt.drawables)
             this.unregisterDrawable(e);
-    }
-
-    private onUndelete
-    = (evt: DrawableEventArgs<DrawableElement>) => {
-        for (const d of evt.drawables)
-            this.registerDrawable(d);
-    }
-
-    private onRedelete
-    = (evt: DrawableEventArgs<DrawableElement>) => {
-        for (const d of evt.drawables)
-            this.unregisterDrawable(d);
     }
 
     /**
@@ -720,6 +705,7 @@ export class GraphEditorComponent implements AfterViewInit {
         this.origin = g.origin;
         g.addCreatedEdgeListener(this.onCreatedEdges);
         g.addCreatedNodeListener(this.onCreatedNodes);
+        g.addMovedEdgeListener(this.onMovedEdges);
         g.addDeletedEdgeListener(this.onDeletedEdges);
         g.addDeletedNodeListener(this.onDeletedNodes);
         g.addPropertyChangedListener(this.onDrawablePropertyChanged);
@@ -748,6 +734,7 @@ export class GraphEditorComponent implements AfterViewInit {
         this.selectAllDelegate = NOOP;
         g.removeCreatedEdgeListener(this.onCreatedEdges);
         g.removeCreatedNodeListener(this.onCreatedNodes);
+        g.removeMovedEdgeListener(this.onMovedEdges);
         g.removeDeletedEdgeListener(this.onDeletedEdges);
         g.removeDeletedNodeListener(this.onDeletedNodes);
         g.removePropertyChangedListener(this.onDrawablePropertyChanged);
@@ -1123,9 +1110,13 @@ export class GraphEditorComponent implements AfterViewInit {
             this.suspendRedraw();
             let srcNode = (e.source.isHidden ? this.hoverObject : e.source);
             let dstNode = (e.destination.isHidden ? this.hoverObject : e.destination);
-            const edge = (like ? this.graph.moveEdge(srcNode, dstNode, like) : this.graph.createEdge(srcNode, dstNode, like));
-            if (edge)
-                this.updateSelected(edge);
+            if (like)
+                this.updateSelected(this.graph.moveEdge(srcNode, dstNode, like));
+            else {
+                let edge = this.graph.createEdge(srcNode, dstNode);
+                if (edge)
+                    this.updateSelected(edge);
+            }
             this.resumeRedraw();
         }
         // Update the original edge if one was being moved.

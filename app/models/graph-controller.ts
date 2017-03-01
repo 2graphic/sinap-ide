@@ -12,9 +12,9 @@ import {
     DrawableEdge,
     DrawableNode,
     EdgeValidator,
-    CreatedOrDeletedEventArgs,
-    PropertyChangedEventArgs,
-    CreatedOrDeletedEvent
+    DrawableEdgeEventArgs,
+    DrawableNodeEventArgs,
+    PropertyChangedEventArgs
 } from "../components/graph-editor/graph-editor.component";
 
 import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType } from "sinap-core";
@@ -99,10 +99,18 @@ function coreFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingP
     return a;
 }
 
-export type UndoableEvent = UndoableChange | UndoableAddOrDelete;
+export type UndoableEvent = UndoableChange | UndoableAdd | UndoableDelete | UndoableMove;
 
-export class UndoableAddOrDelete {
-    constructor(public events: ["created" | "deleted", BridgingProxy][]) { }
+export class UndoableAdd {
+    constructor(public bridge: BridgingProxy) { }
+}
+
+export class UndoableDelete {
+    constructor(public bridge: BridgingProxy) { }
+}
+
+export class UndoableMove {
+    constructor(public replacement: BridgingProxy, public original: BridgingProxy) { }
 }
 
 // TODO: changes can also be adds or deletes
@@ -120,6 +128,7 @@ export class GraphController {
     public changed = new EventEmitter<UndoableEvent>();
 
     private selectedElements: Set<BridgingProxy>;
+    private undoableEvents = new Set<UndoableEvent>();
 
     public bridges = new DoubleMap<Drawable, CoreElement, BridgingProxy>();
 
@@ -205,13 +214,22 @@ export class GraphController {
         }
 
         // finally set up all the listeners after we copy all the elements
-        const addOrDeleteDrawables = (events: CreatedOrDeletedEvent[]) => {
-            const mapped = events.map(([a, e]): ["created" | "deleted", BridgingProxy] => {
-                return [a, (a === "created" ? this.addDrawable(e) : this.removeDrawable(e))];
-            });
-            this.changed.emit(new UndoableAddOrDelete(mapped));
+        const addDrawables = (drawables: Iterable<DrawableElement>) => {
+            for (const d of drawables)
+                this.addDrawable(d);
         };
-        this.drawable.addCreatedOrDeletedElementListener((n: CreatedOrDeletedEventArgs) => addOrDeleteDrawables(n.events));
+        const removeDrawables = (drawables: Iterable<DrawableElement>) => {
+            for (const d of drawables)
+                this.removeDrawable(d);
+        };
+        this.drawable.addCreatedNodeListener((n: DrawableNodeEventArgs) => addDrawables(n.drawables));
+        this.drawable.addCreatedEdgeListener((e: DrawableEdgeEventArgs) => addDrawables(e.drawables));
+        this.drawable.addMovedEdgeListener((e: DrawableEdgeEventArgs) => {
+            for (const d of e.drawables)
+                this.moveDrawable(d, e.like!);
+        });
+        this.drawable.addDeletedNodeListener((n: DrawableNodeEventArgs) => removeDrawables(n.drawables));
+        this.drawable.addDeletedEdgeListener((e: DrawableEdgeEventArgs) => removeDrawables(e.drawables));
         this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
         this.drawable.addSelectionChangedListener((a: PropertyChangedEventArgs<Iterable<DrawableElement>>) => {
             this.setSelectedElements(a.curr);
@@ -220,7 +238,7 @@ export class GraphController {
         this.setSelectedElements(undefined);
     }
 
-    private addDrawable(drawable: Drawable, core?: CoreElement) {
+    private addDrawable(drawable: Drawable, core: CoreElement | undefined = undefined, silent = false) {
         // if a core element to pair with this
         // drawable doesn't exist, make one
         if (!core) {
@@ -243,40 +261,141 @@ export class GraphController {
         }
         const bridge = new BridgingProxy(core, drawable, this);
         this.bridges.set(drawable, core, bridge);
-
-        return bridge;
+        if (!silent) {
+            const event = new UndoableAdd(bridge);
+            this.undoableEvents.add(event);
+            this.changed.emit(event);
+        }
     }
 
-    private removeDrawable(drawable: Drawable) {
+    private removeDrawable(drawable: Drawable, silent = false) {
         const bridge = this.toBridges(drawable);
         this.core.removeElement(bridge.core);
         this.bridges.delete(bridge.drawable, bridge.core);
+        if (!silent) {
+            const event = new UndoableDelete(bridge);
+            this.undoableEvents.add(event);
+            this.changed.emit(event);
+        }
+    }
 
-        return bridge;
+    private moveDrawable(replacement: DrawableEdge, original: DrawableEdge) {
+        const oBridge = this.toBridges(original);
+        this.removeDrawable(original, true);
+        this.addDrawable(replacement, undefined, true);
+        const rBridge = this.toBridges(replacement);
+        const event = new UndoableMove(rBridge, oBridge);
+        this.undoableEvents.add(event);
+        this.changed.emit(event);
     }
 
     public applyUndoableEvent(event: UndoableEvent) {
-        if (event instanceof UndoableAddOrDelete) {
-            let r = this.drawable.undo(event.events.map((e) => [e[0], e[1].drawable] as CreatedOrDeletedEvent));
-            const mapped = r.map(([a, e]): ["created" | "deleted", BridgingProxy] => {
-                if (a === "created") {
-                    const found = event.events.find((event) => event[1].drawable === e);
-                    if (found) {
-                        const bridge = found[1];
-                        this.core.elements.push(bridge.core);
-                        this.bridges.set(bridge.drawable, bridge.core, bridge);
-                        return [a, bridge];
-                    } else {
-                        return [a, this.addDrawable(e)];
-                    }
-                } else {
-                    return [a, this.removeDrawable(e)];
+        if (event instanceof UndoableAdd) {
+            if (event.bridge.drawable instanceof DrawableElement) {
+                this.drawable.delete(event.bridge.drawable);
+                this.undoableEvents.delete(event);
+            }
+        } else if (event instanceof UndoableDelete) {
+            // Get the old bridge.
+            const ob = event.bridge;
+            if (ob.drawable instanceof DrawableNode) {
+                // Create new drawable.
+                const nd = this.drawable.createNode(ob.drawable);
+                if (nd) {
+                    // Delete the old event.
+                    this.undoableEvents.delete(event);
+                    // Update new node position.
+                    (nd as any)["position"] = (ob.drawable as any)["position"];
+                    // Get new bridge.
+                    const nb = this.toBridges(nd);
+                    // Update drawable and core references in the undoable stack.
+                    this.undoableEvents.forEach(u => {
+                        if (u instanceof UndoableAdd || u instanceof UndoableDelete) {
+                            if (u.bridge === ob)
+                                u.bridge = nb;
+                            else if (u.bridge.drawable instanceof DrawableEdge) {
+                                if (u.bridge.core.data["source"] === ob.core)
+                                    u.bridge.core.data["source"] = nb.core;
+                                if (u.bridge.core.data["destination"] === ob.core)
+                                    u.bridge.core.data["destination"] = nb.core;
+                            }
+                        }
+                        else if (u instanceof UndoableMove) {
+                            if (u.original.core.data["source"] === ob.core)
+                                u.original.core.data["source"] = nb.core;
+                            if (u.original.core.data["destination"] === ob.core)
+                                u.original.core.data["destination"] = nb.core;
+                            if (u.replacement.core.data["source"] === ob.core)
+                                u.replacement.core.data["source"] = nb.core;
+                            if (u.replacement.core.data["destination"] === ob.core)
+                                u.replacement.core.data["destination"] = nb.core;
+                        }
+                        else if (u instanceof UndoableChange && u.target === event.bridge)
+                            u.target = nb;
+                    });
+                }
+                else
+                    throw "Error: unable to undo node deletion";
+            }
+            else if (ob.drawable instanceof DrawableEdge) {
+                // Get current source and destination.
+                const src = this.toBridges(ob.core.data["source"]).drawable as DrawableNode;
+                const dst = this.toBridges(ob.core.data["destination"]).drawable as DrawableNode;
+                // Create new drawable.
+                const nd = this.drawable.createEdge(src, dst, ob.drawable); // new drawable
+                if (nd) {
+                    // Delete old event.
+                    this.undoableEvents.delete(event);
+                    // Get new bridge.
+                    const nb = this.toBridges(nd);
+                    // Update event bridges.
+                    this.undoableEvents.forEach(u => {
+                        if (u instanceof UndoableAdd || u instanceof UndoableDelete) {
+                            if (u.bridge === ob)
+                                u.bridge = nb;
+                        }
+                        else if (u instanceof UndoableMove) {
+                            if (u.original === ob)
+                                u.original = nb;
+                            if (u.replacement === ob)
+                                u.replacement = nb;
+                        }
+                        else if (u instanceof UndoableChange && u.target === ob)
+                            u.target = nb;
+                    });
+                }
+                else
+                    throw "Error: unable to undo edge deletion";
+            }
+        } else if (event instanceof UndoableMove) {
+            // Delete the old event.
+            this.undoableEvents.delete(event);
+            // Get the drawable source and destination nodes of the original edge.
+            const dsrc = this.toBridges(event.original.core.data["source"]).drawable as DrawableNode;
+            const ddst = this.toBridges(event.original.core.data["destination"]).drawable as DrawableNode;
+            // Move the edge.
+            const nd = this.drawable.moveEdge(dsrc, ddst, event.replacement.drawable as DrawableEdge);
+            const nb = this.toBridges(nd);
+            // Update drawable and core references in the undoable stack.
+            this.undoableEvents.forEach(u => {
+                if (u instanceof UndoableAdd || u instanceof UndoableDelete) {
+                    if (u.bridge === event.original)
+                        u.bridge = nb;
+                }
+                else if (u instanceof UndoableMove) {
+                    if (u.replacement !== nb && u.original === event.replacement)
+                        u.original = nb;
+                    else if (u.original !== nb && u.replacement === event.replacement)
+                        u.replacement = nb;
+                }
+                else if (u instanceof UndoableChange) {
+                    if (u.target === event.original)
+                        u.target = nb;
                 }
             });
-
-            this.changed.emit(new UndoableAddOrDelete(mapped));
         } else if (event instanceof UndoableChange) {
             event.target.set(event.key, event.oldValue, true);
+            this.undoableEvents.delete(event);
         } else {
             throw "Unrecognized event";
         }
