@@ -20,12 +20,13 @@ import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
-import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
 import { LocalFileService, File } from "../../services/files.service";
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
+
+import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program } from "sinap-core";
 
 import { ResizeEvent } from 'angular-resizable-element';
 
@@ -89,18 +90,41 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     public barMessages: string[] = [];
 
     private tabs: Map<Number, TabContext> = new Map<Number, TabContext>();
-    private context: TabContext | null;
+    private _context?: TabContext;
 
     @ViewChild(StatusBarComponent)
     private statusBar: StatusBarComponent;
 
-    private onContextChanged() {
-        if (this.context) {
-            if (this.graphEditor) {
-                this.graphEditor.redraw();
+    private set context(context: TabContext | undefined) {
+        this._context = context;
+        if (this._context) {
+            this.toolsPanel.graph = this._context.graph;
+            if (this.toolsPanel.shouldDisplay()) {
+                this.leftPanelIcons = [this.propertiesIcon, this.toolsIcon, this.filesIcon];
+            } else {
+                this.leftPanelIcons = [this.propertiesIcon, this.filesIcon];
             }
+            this.graphEditor.redraw();
         }
     };
+
+    private get context() {
+        return this._context;
+    }
+
+    private propertiesIcon = {
+        path: `${require('../../images/properties.svg')}`,
+        name: 'Properties'
+    };
+    private toolsIcon = {
+        path: `${require('../../images/tools.svg')}`,
+        name: 'Tools'
+    };
+    private filesIcon = {
+        path: `${require('../../images/files.svg')}`,
+        name: 'Files'
+    };
+    private leftPanelIcons = [this.propertiesIcon, this.toolsIcon, this.filesIcon];
 
     private makeChangeNotifier(context: TabContext) {
         return (change: UndoableEvent) => {
@@ -123,8 +147,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     }
 
     newFile(f?: String, g?: CoreModel) {
-        const kind = this.toolsPanel.activeGraphType === "Machine Learning" ?
-            MagicConstants.MACHINE_LEARNING_PLUGIN_KIND : MagicConstants.DFA_PLUGIN_KIND;
+        const kind = MagicConstants.DFA_PLUGIN_KIND;
         console.log(kind);
         this.pluginService.getPlugin(kind).then((plugin) => {
             g = g ? g : new CoreModel(plugin);
@@ -167,14 +190,9 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         let context = this.tabs.get(i);
         if (context) {
             this.context = context;
-            // TODO: add back
-            // this.toolsPanel.manager = this.context.graph.pluginManager;
-
-            this.onContextChanged();
         } else {
             // No tabs
-            this.context = null;
-            this.onContextChanged();
+            this.context = undefined;
         }
     }
 

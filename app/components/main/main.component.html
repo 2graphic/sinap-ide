@@ -2,19 +2,7 @@
   <div id="left-panels-group" #leftPanelsGroup class="flex-container-column"
       [style.width.px]="leftPanelWidth"
       mwlResizable [resizeEdges]="{right: true}" (resizing)="resizing(leftPanelsGroup, $event)">
-    <sinap-side-bar #leftPanelBar class="panel-bar-horizontal" [vertical]="false" [title]="true" [icons]="
-          [{
-            path: '${require('../../images/properties.svg')}',
-            name: 'Properties'
-          },
-          {
-            path: '${require('../../images/tools.svg')}',
-            name: 'Tools'
-          },
-          {
-            path: '${require('../../images/files.svg')}',
-            name: 'Files'
-          }]">
+    <sinap-side-bar #leftPanelBar class="panel-bar-horizontal" [vertical]="false" [title]="true" [icons]="leftPanelIcons">
       </sinap-side-bar>
       <div id="left-panels">
         <sinap-properties-panel [hidden]="!(leftPanelBar.active == 'Properties')" [selectedElements]="context ? context.graph.selectedElements : null">
