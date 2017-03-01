@@ -56,7 +56,7 @@ let editMenu: Electron.MenuItemOptions = {
         },
         {
             label: 'Redo',
-            accelerator: 'CmdOrCtrl+shift+z',
+            accelerator: 'CmdOrCtrl+' + (process.platform === 'win32' ? 'y' : 'shift+z'),
             click: clickHandlerMake(MenuEventAction.REDO)
         },
         {

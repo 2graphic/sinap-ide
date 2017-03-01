@@ -169,9 +169,9 @@ export abstract class DrawableElement extends Drawable {
                     const old = this._selected;
                     if (this._selected !== value) {
                         if (value)
-                            this.graph.selectItems(this);
+                            this.graph.select(this);
                         else
-                            this.graph.deselectItems(this);
+                            this.graph.deselect(this);
                         this._selected = value;
                         this.onPropertyChanged("isSelected", old);
                     }
