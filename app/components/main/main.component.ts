@@ -17,7 +17,7 @@ import { ModalInfo, ModalType } from './../../models/modal-window';
 import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
 import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
-// import { TestPanelComponent } from "../test-panel/test-panel.component"
+import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program } from "sinap-core";
@@ -75,8 +75,8 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     @ViewChild("bottomPanelBar")
     private bottomPanelBar: SideBarComponent;
 
-    // @ViewChild(TestPanelComponent)
-    // private testComponent: TestPanelComponent;
+    @ViewChild(TestPanelComponent)
+    private testComponent: TestPanelComponent;
 
     @ViewChild(TabBarComponent)
     private tabBar: TabBarComponent;
@@ -114,7 +114,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         validation.unshift("DFA");
         this.barMessages = validation;
 
-        // this.testComponent.program = program;
+        this.testComponent.program = program;
         this.inputPanel.program = program;
     }
 
