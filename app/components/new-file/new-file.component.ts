@@ -20,7 +20,7 @@ export class NewFileComponent implements ModalComponent {
         this.plugins = modalInfo.data;
     }
 
-    private plugins: any;
+    private plugins: string[][];
 
 
     constructor(private windowService: WindowService) {

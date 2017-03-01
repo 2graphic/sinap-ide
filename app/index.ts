@@ -17,6 +17,8 @@
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import { ModalInfo, ModalType } from './models/modal-window';
 
+app.setName('Sinap');
+
 
 /**
  * win

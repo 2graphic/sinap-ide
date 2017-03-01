@@ -27,16 +27,47 @@ function surroundSync<T>(func: () => T): Promise<T> {
     });
 }
 
+function makeVoidPromise(resolve: () => void, reject: (err: any) => void): (err: any) => void {
+    return (err: any) => {
+        if (err) {
+            reject(err);
+        } else {
+            resolve();
+        }
+    };
+}
+
+function ensureNull(shouldBeNull: any): Promise<void> {
+    if (shouldBeNull) {
+        return Promise.reject(shouldBeNull);
+    } else {
+        return Promise.resolve();
+    }
+}
+
 @Injectable()
 export class LocalFileService implements FileService {
     getAppLocations(): Promise<AppLocations> {
-        const pluginPath = path.join('.', 'plugins');
+        const currentDirectory = new LocalDirectory(app.getAppPath());
+        const pluginDirectory = new LocalDirectory(path.join(app.getPath("userData"), 'plugins'));
         const result: AppLocations = {
-            currentDirectory: new LocalDirectory(app.getAppPath()),
-            pluginDirectory: new LocalDirectory(path.join(app.getPath("userData"), 'plugins'))
+            currentDirectory: currentDirectory,
+            pluginDirectory: pluginDirectory
         };
 
-        return Promise.resolve(result);
+        return new Promise<AppLocations>((resolve, reject) => {
+            fs.stat(pluginDirectory.fullName, (err: any, stats: any) => {
+                ensureNull(err)
+                    .then(() => resolve(result))
+                    .catch(() => {
+                        // TODO: Copy instead of symlink.
+                        return this.directoryByName(path.join('.', 'plugins'))
+                            .then((concreteDir: LocalDirectory) => concreteDir.copyDirectory(pluginDirectory));
+                    })
+                    .then(() => resolve(result))
+                    .catch((err) => reject(err));
+            });
+        });
     }
 
     joinPath(...paths: string[]): string {
@@ -116,24 +147,14 @@ class LocalFile implements File {
     readData(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             fs.readFile(this.fullName, "utf-8", (err: any, data: string) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(data);
-                }
+                ensureNull(err).then((_) => data).then(resolve).catch(reject);
             });
         });
     }
 
     writeData(data: string): Promise<{}> {
         return new Promise((resolve, reject) => {
-            fs.writeFile(this.fullName, data, (err: any) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(err);
-                }
-            });
+            fs.writeFile(this.fullName, data, makeVoidPromise(resolve, reject));
         });
     }
 }
@@ -145,14 +166,42 @@ class LocalDirectory implements Directory {
         this.name = path.basename(fullName);
     }
 
+    public ensureCreated(): Promise<{}> {
+        return new Promise<{}>((resolve, reject) => {
+            fs.mkdir(this.fullName, makeVoidPromise(resolve, reject));
+        });
+    }
+
+    public subdirByName(name: string): LocalDirectory {
+        return new LocalDirectory(path.join(this.fullName, name));
+    }
+
+    public fileByName(name: string): LocalFile {
+        return new LocalFile(path.join(this.fullName, name));
+    }
+
+    public copyDirectory(destination: LocalDirectory): Promise<{}> {
+        return destination.ensureCreated().then(() => {
+            return this.traverseDirectoryWithType().then((children) => {
+                const ops: Promise<{}>[] = children.map((child): Promise<{}> => {
+                    if (child instanceof LocalDirectory) {
+                        return child.copyDirectory(destination.subdirByName(child.name));
+                    } else {
+                        return child.readData().then((data) => destination.fileByName(child.name).writeData(data));
+                    }
+                });
+
+                return Promise.all(ops);
+            });
+        });
+    }
+
     private traverseDirectory(): Promise<string[]> {
         return new Promise<string[]>((resolve, reject) => {
             fs.readdir(this.fullName, (err: any, names: string[]) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(names.map((name) => path.join(this.fullName, name)));
-                }
+                ensureNull(err).then((_) => names.map((name) => path.join(this.fullName, name)))
+                    .then(resolve)
+                    .catch(reject);
             });
         });
     }
@@ -160,11 +209,7 @@ class LocalDirectory implements Directory {
     private isDirectory(fullName: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             fs.stat(fullName, (err: any, stats: any) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(stats.isDirectory());
-                }
+                ensureNull(err).then((_) => stats.isDirectory()).then(resolve).catch(reject);
             });
         });
     }
