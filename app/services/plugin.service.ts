@@ -60,11 +60,11 @@ export class PluginService {
             const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginKind));
             const pluginName = JSON.stringify(kind);
             if (matches.length === 0) {
-                return Promise.reject(`Could not find a plugin with kind ${pluginName}`);
+                throw new Error(`Could not find a plugin with kind ${pluginName}`);
             } else if (matches.length > 1) {
-                return Promise.reject(`Found multiple plugins matching kind ${pluginName}`);
+                throw new Error(`Found multiple plugins matching kind ${pluginName}`);
             } else {
-                return Promise.resolve<Plugin>(matches[0]);
+                return matches[0];
             }
         });
     }
