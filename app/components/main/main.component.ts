@@ -8,6 +8,7 @@
 
 
 import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
+import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, File } from "sinap-core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
 import { MenuEventAction } from "../../models/menu";
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
@@ -23,12 +24,11 @@ import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
-import { LocalFileService, File, UntitledFile } from "../../services/files.service";
+import { LocalFileService, UntitledFile } from "../../services/files.service";
 import { SandboxService } from "../../services/sandbox.service";
-import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, File } from "sinap-core";
+import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
 import { ResizeEvent } from 'angular-resizable-element';
 import { NewFile } from "../new-file/new-file.component";
-
 
 @Component({
     selector: "sinap-main",
@@ -48,10 +48,10 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     }
 
     ngAfterViewInit() {
-        if (process.env.ENV !== 'production') {
-            // this.newFile();
-            this.changeDetectorRef.detectChanges();
-        }
+        // if (process.env.ENV !== 'production') {
+        //     this.newFile();
+        //     this.changeDetectorRef.detectChanges();
+        // }
 
         this.leftPanelsGroup.nativeElement.style.width = "300px";
         this.bottomPanels.nativeElement.style.height = "225px";
@@ -152,23 +152,27 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         return this.pluginService.getProgram(context.graph.plugin, context.graph.core);
     }
 
-    newFile(g: CoreModel, f?: string) {
+    newFile(file: File, f?: string) {
         // TODO: have a more efficient way to get kind.
-        const kind = g.serialize().kind;
-        this.pluginService.getPluginByKind(kind).then((plugin) => {
-            g = g ? g : new CoreModel(plugin);
+        file.readData().then((content) => {
+            const pojo = JSON.parse(content);
+            const kind = pojo.kind;
+            this.pluginService.getPluginByKind(kind).then((plugin) => {
+                const model = new CoreModel(plugin, pojo);
 
-            const graph = new GraphController(g, plugin);
+                let filename = f ? f : "Untitled";
+                let tabNumber = this.tabBar.newTab(filename);
 
-            const tabNumber = this.tabBar.newTab(f);
-            const context = new TabContext(tabNumber, graph, f);
+                const graph = new GraphController(model, plugin);
+                const context = new TabContext(tabNumber, graph, file);
 
-            this.getProgram(context).then(this.gotNewProgram);
+                this.getProgram(context).then(this.gotNewProgram);
 
-            graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
+                graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
 
-            this.tabs.set(tabNumber, context);
-            this.selectedTab(tabNumber);
+                this.tabs.set(tabNumber, context);
+                this.selectedTab(tabNumber);
+            });
         });
     }
 
@@ -181,19 +185,10 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
             let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginKinds);
             result.then((result: NewFile) => {
                 this.pluginService.getPluginByKind(result.kind).then((plugin) => {
-                    this.newFile(new CoreModel(plugin), result.name);
+                    this.newFile(new UntitledFile(), result.name);
                 });
             });
         });
-    }
-
-    selectedFile(file: File) {
-        const entry = [...this.tabs.entries()].find(([i, context]) => file === context.file);
-        if (entry) {
-            this.tabBar.active = entry[0];
-        } else {
-            this.openFile(file);
-        }
     }
 
 
@@ -304,17 +299,10 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         this.fileService.requestFiles()
             .then((files: File[]) => {
                 for (const file of files) {
-                    file.readData().then(f => {
-                        // TODO: use correct plugin
-                        this.pluginService.getPluginByKind(MagicConstants.DFA_PLUGIN_KIND).then((plugin) => {
-                            this.newFile(new CoreModel(plugin, JSON.parse(f)), file.name);
-                        });
-                    });
+                    this.newFile(file);
                 }
             });
-        });
     }
-
 
     selectNode(a: any) {
         // TODO: Fix everything
