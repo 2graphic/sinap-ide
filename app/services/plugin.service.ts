@@ -2,7 +2,6 @@ import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { Type, ObjectType, CoreModel, Plugin, SerialJSO, loadPluginDir, Program, CoreValue } from "sinap-core";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { LocalFileService } from "../services/files.service";
-import * as MagicConstants from "../models/constants-not-to-be-included-in-beta";
 
 type StubContext = { global: { "plugin-stub": { "Program": any } } };
 
