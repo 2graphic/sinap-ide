@@ -29,7 +29,7 @@ export class FilesPanelComponent {
     openFile = new EventEmitter<File>();
 
     @Input()
-    set selectedFile(file: File | undefined) {
+    set selectedFile(file: any | undefined) { // TODO: WHYYYYY?
         this.filesList.selectedIndex = file ? this.files.indexOf(file) : -1;
     }
 
