@@ -292,13 +292,11 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     loadFile() {
         this.fileService.requestFiles()
             .then((files: File[]) => {
-                for (const file of files) {
-                    this.openFile(file);
-                }
+                files.forEach(this.openFile);
             });
     }
 
-    openFile(file: File) {
+    openFile = (file: File) => {
         file.readData().then((content) => {
             const pojo = JSON.parse(content);
             const kind = pojo.kind;
@@ -330,17 +328,19 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
 
     /* ---------- Resizable Panels ---------- */
 
-    private leftPanelWidth = 300;
-    private bottomPanelHeight = 225;
-
     private resizing(element: Element, event: ResizeEvent) {
         if (element.id === "left-panels-group") {
             if (event.rectangle.width !== undefined) {
-                this.leftPanelWidth = Math.max(event.rectangle.width, 250);
+                this.leftPanelsGroup.nativeElement.style.width = Math.max(event.rectangle.width, 250) + "px";
+
+                if (this.leftPanelsGroup.nativeElement.clientWidth + this.editorPanel.nativeElement.clientWidth >= window.innerWidth) {
+                    this.leftPanelsGroup.nativeElement.style.width = (window.innerWidth - this.editorPanel.nativeElement.clientWidth - 1) + "px";
+                }
             }
         } else if (element.id === "bottom-panels") {
             if (event.rectangle.height !== undefined) {
-                this.bottomPanelHeight = Math.max(event.rectangle.height, 175);
+                // 55 = height of tab bar plus height of status bar
+                this.bottomPanels.nativeElement.style.height = Math.min(Math.max(event.rectangle.height, 175), window.innerHeight - 55) + "px";
             }
         }
     }
