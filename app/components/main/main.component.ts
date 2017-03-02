@@ -99,6 +99,8 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     private set context(context: TabContext | undefined) {
         this._context = context;
         if (this._context) {
+            this.getProgram(this._context).then(this.gotNewProgram);
+
             this.toolsPanel.graph = this._context.graph;
             if (this.toolsPanel.shouldDisplay()) {
                 this.leftPanelIcons = [this.propertiesIcon, this.toolsIcon, this.filesIcon];
@@ -305,7 +307,12 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     }
 
     selectedFile(file: File) {
-        this.openFile(file);
+        const entry = [...this.tabs.entries()].find(([i, context]) => file === context.file);
+        if (entry) {
+            this.tabBar.active = entry[0];
+        } else {
+            this.openFile(file);
+        }
     }
 
     selectNode(a: any) {
