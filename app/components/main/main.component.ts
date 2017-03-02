@@ -302,7 +302,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         file.readData().then((content) => {
             const pojo = JSON.parse(content);
             const kind = pojo.kind;
-            this.newFile(file, kind, pojo)
+            this.newFile(file, kind, pojo);
         });
     }
 
