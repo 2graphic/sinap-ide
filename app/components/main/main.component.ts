@@ -26,7 +26,6 @@ import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
 import { LocalFileService, UntitledFile } from "../../services/files.service";
 import { SandboxService } from "../../services/sandbox.service";
-import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
 import { ResizeEvent } from 'angular-resizable-element';
 import { NewFile } from "../new-file/new-file.component";
 
