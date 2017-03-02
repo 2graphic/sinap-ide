@@ -49,7 +49,8 @@ function ensureNull(shouldBeNull: any): Promise<void> {
 export class LocalFileService implements FileService {
     getAppLocations(): Promise<AppLocations> {
         const currentDirectory = new LocalDirectory(app.getAppPath());
-        const pluginDirectory = new LocalDirectory(path.join(app.getPath("userData"), 'plugins'));
+        const pluginPath = process.env.ENV !== 'production' ? path.join('.', 'plugins') : path.join(app.getPath("userData"), 'plugins');
+        const pluginDirectory = new LocalDirectory(pluginPath);
         const result: AppLocations = {
             currentDirectory: currentDirectory,
             pluginDirectory: pluginDirectory
