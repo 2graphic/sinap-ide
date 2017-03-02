@@ -17,12 +17,13 @@ import { ModalInfo, ModalType } from './../../models/modal-window';
 import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
 import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
+import { FilesPanelComponent } from "../files-panel/files-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
-import { LocalFileService, File } from "../../services/files.service";
+import { LocalFileService, File, UntitledFile } from "../../services/files.service";
 import { SandboxService } from "../../services/sandbox.service";
 import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
 
@@ -49,10 +50,10 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     }
 
     ngAfterViewInit() {
-        if (process.env.ENV !== 'production') {
-            this.newFile();
-            this.changeDetectorRef.detectChanges();
-        }
+        // if (process.env.ENV !== 'production') {
+        //     this.newFile();
+        //     this.changeDetectorRef.detectChanges();
+        // }
 
         this.leftPanelsGroup.nativeElement.style.width = "300px";
         this.bottomPanels.nativeElement.style.height = "225px";
@@ -69,6 +70,9 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
 
     @ViewChild(ToolsPanelComponent)
     private toolsPanel: ToolsPanelComponent;
+
+    @ViewChild(FilesPanelComponent)
+    private filesPanel: FilesPanelComponent;
 
     @ViewChild("leftPanelBar")
     private leftPanelBar: SideBarComponent;
@@ -89,7 +93,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     public package = "Finite Automata";
     public barMessages: string[] = [];
 
-    private tabs: Map<Number, TabContext> = new Map<Number, TabContext>();
+    private tabs = new Map<number, TabContext>();
     private _context?: TabContext;
 
     @ViewChild(StatusBarComponent)
@@ -104,9 +108,11 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
             } else {
                 this.leftPanelIcons = [this.propertiesIcon, this.filesIcon];
             }
+            this.filesPanel.selectedFile = this._context.file;
             this.graphEditor.redraw();
         } else {
             this.leftPanelIcons = [this.filesIcon];
+            this.filesPanel.selectedFile = undefined;
         }
     };
 
@@ -148,17 +154,16 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         return this.pluginService.getProgram(context.graph.plugin, context.graph.core);
     }
 
-    newFile(f?: String, g?: CoreModel) {
+    newFile(f: File, g?: CoreModel) {
         const kind = MagicConstants.DFA_PLUGIN_KIND;
         console.log(kind);
         this.pluginService.getPlugin(kind).then((plugin) => {
             g = g ? g : new CoreModel(plugin);
 
-            let filename = f ? f : "Untitled";
-            let tabNumber = this.tabBar.newTab(filename);
-
             const graph = new GraphController(g, plugin);
-            const context = new TabContext(tabNumber, graph, filename);
+
+            const tabNumber = this.tabBar.newTab(f);
+            const context = new TabContext(tabNumber, graph, f);
 
             this.getProgram(context).then(this.gotNewProgram);
 
@@ -177,18 +182,27 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL);
 
         result.then((result: string) => {
-            this.newFile(result);
+            this.newFile(new UntitledFile(result));
         });
+    }
+
+    selectedFile(file: File) {
+        const entry = [...this.tabs.entries()].find(([i, context]) => file === context.file);
+        if (entry) {
+            this.tabBar.active = entry[0];
+        } else {
+            this.openFile(file);
+        }
     }
 
 
     /* ---------- TabBarDelegate ---------- */
 
-    deletedTab(i: Number) {
+    deletedTab(i: number) {
         this.tabs.delete(i);
     }
 
-    selectedTab(i: Number) {
+    selectedTab(i: number) {
         let context = this.tabs.get(i);
         if (context) {
             this.context = context;
@@ -288,15 +302,17 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     loadFile() {
         this.fileService.requestFiles()
             .then((files: File[]) => {
-                for (const file of files) {
-                    file.readData().then(f => {
-                        // TODO: use correct plugin
-                        this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND).then((plugin) => {
-                            this.newFile(file.name, new CoreModel(plugin, JSON.parse(f)));
-                        });
-                    });
-                }
+                files.forEach(this.openFile);
             });
+    }
+
+    openFile = (file: File) => {
+        file.readData().then(f => {
+            // TODO: use correct plugin
+            this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND).then((plugin) => {
+                this.newFile(file, new CoreModel(plugin, JSON.parse(f)));
+            });
+        });
     }
 
 
@@ -340,7 +356,7 @@ class TabContext {
 
     private readonly UNDO_HISTORY_LENGTH = 100;
 
-    constructor(public readonly index: number, public graph: GraphController, public filename?: String) { };
+    constructor(public readonly index: number, public graph: GraphController, public file: File) { };
 
     public undo() {
         const change = this.undoHistory.pop();

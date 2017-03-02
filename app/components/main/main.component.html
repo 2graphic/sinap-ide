@@ -9,7 +9,7 @@
         </sinap-properties-panel>
         <sinap-tools-panel [hidden]="!(leftPanelBar.active == 'Tools')">
         </sinap-tools-panel>
-        <sinap-files-panel [hidden]="!(leftPanelBar.active == 'Files')">
+        <sinap-files-panel [hidden]="!(leftPanelBar.active == 'Files')" (openFile)="selectedFile($event)">
         </sinap-files-panel>
       </div>
   </div>

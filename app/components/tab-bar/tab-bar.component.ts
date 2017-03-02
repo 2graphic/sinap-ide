@@ -83,11 +83,8 @@ export class TabBarComponent {
     }
 
     // This will give you the number to identify this tab with.
-    newTab(name: String): number {
-        let tab = {
-            'name': name,
-            'index': this.index++,
-        };
+    newTab(data: any): number {
+        const tab = new Tab(data, this.index++);
 
         this.tabs.push(tab);
         this._active = tab.index; // bypass the getter to avoid triggering the delegate
@@ -131,7 +128,6 @@ export interface TabDelegate {
     createNewTab: () => void;
 }
 
-interface Tab {
-    name: String;
-    index: number; // tabs can have the same name, so you must reference them by number
+class Tab {
+    constructor(public data: any, public readonly index: number) { };
 }

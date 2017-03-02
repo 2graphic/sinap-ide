@@ -6,7 +6,7 @@
 //
 
 
-import { Component, Input } from "@angular/core";
+import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
 import { LocalFileService, Directory, File } from "../../services/files.service";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
 
@@ -19,8 +19,18 @@ import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.c
 })
 export class FilesPanelComponent {
     private directory?: Directory;
-    private files: string[] = [];
+    private files: File[] = [];
     private openFiles: string[] = [];
+
+    @ViewChild('filesList') filesList: CollapsibleListComponent;
+
+    @Output()
+    openFile = new EventEmitter<File>();
+
+    @Input()
+    set selectedFile(file: File | undefined) {
+        this.filesList.selectedIndex = file ? this.files.indexOf(file) : -1;
+    }
 
     @Input("directory")
     setDirectory(value: string | null) {
@@ -29,9 +39,7 @@ export class FilesPanelComponent {
                 .then((directory: Directory) => {
                     this.directory = directory;
                     directory.getFiles().then((files: File[]) => {
-                        this.files = files.map((file) => {
-                            return file.name;
-                        });
+                        this.files = files;
                     });
                 });
         }
@@ -42,9 +50,13 @@ export class FilesPanelComponent {
         }
     }
 
+    itemSelected(list: CollapsibleListComponent) {
+        const file = this.files[list.selectedIndex];
+        this.openFile.emit(file);
+    }
+
     constructor(private fileService: LocalFileService) {
-        // TODO:
-        // Replace this with a button that will ask the user to open a folder.
-        this.setDirectory(".");
+        // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
+        this.setDirectory("./examples");
     }
 }

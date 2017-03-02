@@ -88,11 +88,44 @@ export class LocalFileService implements FileService {
     }
 }
 
+export class UntitledFile implements File {
+    readonly _name?: string;
+    readonly _fullName?: string;
+
+    constructor(name?: string) {
+        this._name = this._fullName = name;
+    }
+
+    get name() {
+        return this._name ? this._name : "Untitled";
+    }
+
+    get fullName() {
+        return this.name;
+    }
+
+    toString() {
+        return this.name;
+    }
+
+    readData(): Promise<string> {
+        return Promise.reject("Can't read an Untitled file.");
+    }
+
+    writeData(data: string): Promise<{}> {
+        return Promise.reject("Not implemented");
+    }
+}
+
 class LocalFile implements File {
     readonly name: string;
 
     constructor(readonly fullName: string) {
         this.name = path.basename(fullName);
+    }
+
+    toString() {
+        return this.name;
     }
 
     readData(): Promise<string> {
