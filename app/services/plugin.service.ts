@@ -64,7 +64,7 @@ export class PluginService {
             } else if (matches.length > 1) {
                 return Promise.reject(`Found multiple plugins matching kind ${pluginName}`);
             } else {
-                return Promise.resolve(matches[0]);
+                return Promise.resolve<Plugin>(matches[0]);
             }
         });
     }
