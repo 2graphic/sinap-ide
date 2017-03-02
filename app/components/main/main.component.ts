@@ -8,7 +8,7 @@
 
 
 import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
-import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, File } from "sinap-core";
+import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, File, SerialJSO } from "sinap-core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
 import { MenuEventAction } from "../../models/menu";
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
@@ -151,27 +151,22 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         return this.pluginService.getProgram(context.graph.plugin, context.graph.core);
     }
 
-    newFile(file: File, f?: string) {
+    newFile(file: File, kind: string[], content?: SerialJSO) {
         // TODO: have a more efficient way to get kind.
-        file.readData().then((content) => {
-            const pojo = JSON.parse(content);
-            const kind = pojo.kind;
-            this.pluginService.getPluginByKind(kind).then((plugin) => {
-                const model = new CoreModel(plugin, pojo);
+        this.pluginService.getPluginByKind(kind).then((plugin) => {
+            const model = new CoreModel(plugin, content);
 
-                let filename = f ? f : "Untitled";
-                let tabNumber = this.tabBar.newTab(filename);
+            let tabNumber = this.tabBar.newTab(file);
 
-                const graph = new GraphController(model, plugin);
-                const context = new TabContext(tabNumber, graph, file);
+            const graph = new GraphController(model, plugin);
+            const context = new TabContext(tabNumber, graph, file);
 
-                this.getProgram(context).then(this.gotNewProgram);
+            this.getProgram(context).then(this.gotNewProgram);
 
-                graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
+            graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
 
-                this.tabs.set(tabNumber, context);
-                this.selectedTab(tabNumber);
-            });
+            this.tabs.set(tabNumber, context);
+            this.selectedTab(tabNumber);
         });
     }
 
@@ -183,9 +178,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         this.pluginService.pluginKinds.then((pluginKinds) => {
             let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginKinds);
             result.then((result: NewFile) => {
-                this.pluginService.getPluginByKind(result.kind).then((plugin) => {
-                    this.newFile(new UntitledFile(), result.name);
-                });
+                this.newFile(new UntitledFile(result.name), result.kind);
             });
         });
     }
@@ -298,9 +291,21 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         this.fileService.requestFiles()
             .then((files: File[]) => {
                 for (const file of files) {
-                    this.newFile(file);
+                    this.openFile(file);
                 }
             });
+    }
+
+    openFile(file: File) {
+        file.readData().then((content) => {
+            const pojo = JSON.parse(content);
+            const kind = pojo.kind;
+            this.newFile(file, kind, pojo)
+        });
+    }
+
+    selectedFile(file: File) {
+        this.openFile(file);
     }
 
     selectNode(a: any) {
