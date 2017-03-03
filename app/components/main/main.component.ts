@@ -45,6 +45,23 @@ import { ResizeEvent } from 'angular-resizable-element';
 
 export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, InputPanelDelegate, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
+        window.addEventListener("beforeunload", this.onClose);
+
+        // Restore previously opened files.
+        try {
+            const openFilesJSON = localStorage.getItem("openFiles");
+            if (openFilesJSON) {
+                const openFiles = JSON.parse(openFilesJSON) as string[];
+                openFiles.map((fileName) => this.fileService.fileByName(fileName)).forEach((p) => {
+                    p.then((f) => {
+                        this.openFile(f);
+                    });
+                });
+            }
+        } catch (e) {
+            console.log(e);
+        }
+
     }
 
     ngOnInit(): void {
@@ -126,6 +143,18 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             this.tabs.set(tabNumber, context);
             this.selectedTab(tabNumber);
         });
+    }
+
+    onClose = (e: any): any => {
+        // Save what files are open
+        const openFiles = [...this.tabs.values()].map((context) => context.file.getPath()).filter((path) => path !== undefined) as string[];
+        localStorage.setItem("openFiles", JSON.stringify(openFiles));
+
+        // TODO: Figure out WTF Electron is doing
+        // const isDirty = [...this.tabs.values()].map((context) => context.file.dirty).reduce((dirty, accum) => (dirty || accum), false);
+        // if (isDirty) {
+        //     return confirm('You have unsaved files, are you sure you wish to quit?');
+        // }
     }
 
 

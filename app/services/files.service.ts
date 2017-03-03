@@ -122,6 +122,7 @@ export interface LocalFile extends File {
     dirty: boolean;
     markDirty: () => void;
     equals: (file: LocalFile) => boolean;
+    getPath: () => string | undefined;
 }
 
 class AbstractFile {
@@ -158,6 +159,14 @@ export class UntitledFile extends AbstractFile implements LocalFile {
 
     equals(file: LocalFile) {
         return (this._fullName !== undefined && (path.relative(".", this._fullName) === path.relative(".", file.fullName)));
+    }
+
+    getPath() {
+        if (this._fullName !== undefined) {
+            return this._fullName;
+        }
+
+        return undefined;
     }
 
     get fullName() {
@@ -206,6 +215,10 @@ class OpenedFile extends AbstractFile implements LocalFile {
 
     equals(file: LocalFile) {
         return (path.relative(".", this.fullName) === path.relative(".", file.fullName));
+    }
+
+    getPath() {
+        return this.fullName;
     }
 
     readData(): Promise<string> {
