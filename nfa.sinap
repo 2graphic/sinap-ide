@@ -1,0 +1,131 @@
+{
+    "format": "sinap-file-format",
+    "kind": [
+        "Formal Languages",
+        "NFA"
+    ],
+    "version": "0.0.7",
+    "elements": [
+        {
+            "kind": "Graph",
+            "type": "NFAGraph",
+            "data": {}
+        },
+        {
+            "kind": "Node",
+            "type": "NFANode",
+            "data": {
+                "color": "#fff200",
+                "label": "start",
+                "position": {
+                    "x": 320,
+                    "y": 190
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2,
+                "isStartState": true
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "NFANode",
+            "data": {
+                "color": "#fff200",
+                "label": "q2",
+                "position": {
+                    "x": 486,
+                    "y": 100
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "NFAEdge",
+            "data": {
+                "color": "#000",
+                "label": "0",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "NFANode",
+            "data": {
+                "color": "#fff200",
+                "label": "accept",
+                "position": {
+                    "x": 596,
+                    "y": 186
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2,
+                "isAcceptState": true
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "NFAEdge",
+            "data": {
+                "color": "#000",
+                "label": "1",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 4
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "NFAEdge",
+            "data": {
+                "color": "#000",
+                "label": "0",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 4
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        }
+    ]
+}

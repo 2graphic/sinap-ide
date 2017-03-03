@@ -19,7 +19,7 @@ import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
-import { NewFile } from "../new-file/new-file.component";
+import { NewFileResult } from "../new-file/new-file.component";
 
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { MenuEventAction } from "../../models/menu";
@@ -173,7 +173,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     promptNewFile() {
         this.pluginService.pluginKinds.then((pluginKinds) => {
             let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginKinds);
-            result.then((result: NewFile) => {
+            result.then((result: NewFileResult) => {
                 this.newFile(new UntitledFile(result.name), result.kind);
             });
         });
