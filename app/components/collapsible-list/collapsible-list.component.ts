@@ -22,7 +22,7 @@ import { Component, Input, Output, EventEmitter } from "@angular/core";
 export class CollapsibleListComponent {
 
     private _isExpanded: boolean = true;
-    public selectedIndex: number = -1;
+    public selectedIndex: number = 0;
 
     @Input()
     items: any[] = [];

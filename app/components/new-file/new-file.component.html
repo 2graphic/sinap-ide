@@ -1,7 +1,7 @@
 <div id="container" class="flex-container-row">
     <div id="side-bar">
         <div *ngFor="let list of availablePlugins">
-            <sinap-collapsible-list [items]="list.plugins" [text]="list.title" selectedIndexChanged="newSelection($event)"></sinap-collapsible-list>
+            <sinap-collapsible-list [items]="list.plugins" [text]="list.title" (selectedIndexChanged)="newSelection($event)"></sinap-collapsible-list>
         </div>
     </div>
     <div id="content" class="flex-container-column">
