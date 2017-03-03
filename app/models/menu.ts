@@ -11,7 +11,7 @@ export enum MenuEventAction {
     DELETE,
     SELECT_ALL,
     SAVE_FILE,
-    LOAD_FILE,
+    OPEN_FILE,
     CLOSE,
     PREVIOUS_TAB,
     NEXT_TAB,
@@ -39,9 +39,9 @@ let fileMenu: Electron.MenuItemOptions = {
             click: clickHandlerMake(MenuEventAction.SAVE_FILE)
         },
         {
-            label: 'Load',
+            label: 'Open...',
             accelerator: 'CmdOrCtrl+o',
-            click: clickHandlerMake(MenuEventAction.LOAD_FILE)
+            click: clickHandlerMake(MenuEventAction.OPEN_FILE)
         }
     ]
 };

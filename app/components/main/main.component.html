@@ -5,11 +5,11 @@
     <sinap-side-bar #leftPanelBar class="panel-bar-horizontal" [vertical]="false" [title]="true" [icons]="leftPanelIcons">
       </sinap-side-bar>
       <div id="left-panels">
-        <sinap-properties-panel [hidden]="!(leftPanelBar.active == 'Properties')" [selectedElements]="context ? context.graph.selectedElements : null">
+        <sinap-properties-panel [hidden]="!(leftPanelBar.active == 'Properties')" [selectedElements]="_context ? _context.graph.selectedElements : null">
         </sinap-properties-panel>
         <sinap-tools-panel [hidden]="!(leftPanelBar.active == 'Tools')">
         </sinap-tools-panel>
-        <sinap-files-panel [hidden]="!(leftPanelBar.active == 'Files')" (openFile)="selectedFile($event)">
+        <sinap-files-panel [hidden]="!(leftPanelBar.active == 'Files')" (openFile)="openFile($event)">
         </sinap-files-panel>
       </div>
   </div>
@@ -20,9 +20,9 @@
       <div [hidden]="(this.tabs.size == 0)" class="full-size flex-container-column">
         <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
         <div id="graph-editor-container">
-          <sinap-graph-editor [graph]="context ? context.graph.drawable : null" id="graph-editor"></sinap-graph-editor>
+          <sinap-graph-editor [graph]="_context ? _context.graph.drawable : null" id="graph-editor"></sinap-graph-editor>
         </div>
-        <sinap-status-bar id="status-bar" [title]="package" [items]="barMessages"></sinap-status-bar>
+        <sinap-status-bar id="status-bar"></sinap-status-bar>
       </div>
       <div [hidden]="(this.tabs.size > 0)" class="full-size">
         <div (click)="promptNewFile()" id="empty-background" class="full-size">
@@ -34,15 +34,7 @@
     <div id="bottom-panels" #bottomPanels class="flex-container-row"
         [style.height.px]="bottomPanelHeight"
         mwlResizable [resizeEdges]="{top: true}" (resizing)="resizing(bottomPanels, $event)">
-      <sinap-side-bar #bottomSideBar class="panel-bar-vertical" [vertical]="true" [icons]="
-          [{
-            path: '${require('../../images/input.svg')}',
-            name: 'Input'
-          },
-          {
-            path: '${require('../../images/test.svg')}',
-            name: 'Test'
-          }]">
+      <sinap-side-bar #bottomSideBar class="panel-bar-vertical" [vertical]="true" [icons]="bottomPanelIcons">
         </sinap-side-bar>
         <div id="bottom-panel">
           <sinap-input-panel [hidden]="!(bottomSideBar.active == 'Input')"></sinap-input-panel>

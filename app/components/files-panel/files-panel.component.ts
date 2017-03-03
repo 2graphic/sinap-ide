@@ -7,9 +7,9 @@
 
 
 import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
-import { LocalFileService } from "../../services/files.service";
+import { LocalFileService, LocalFile } from "../../services/files.service";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
-import { File as SinapFile, Directory } from "sinap-core";
+import { Directory } from "sinap-core";
 
 
 @Component({
@@ -20,16 +20,16 @@ import { File as SinapFile, Directory } from "sinap-core";
 })
 export class FilesPanelComponent {
     private directory?: Directory;
-    private files: SinapFile[] = [];
-    private openFiles: string[] = [];
+    private files: LocalFile[] = [];
+    private openFiles: LocalFile[] = [];
 
     @ViewChild('filesList') filesList: CollapsibleListComponent;
 
     @Output()
-    openFile = new EventEmitter<SinapFile>();
+    openFile = new EventEmitter<LocalFile>();
 
     @Input()
-    set selectedFile(file: SinapFile | undefined) {
+    set selectedFile(file: LocalFile | undefined) {
         this.filesList.selectedIndex = file ? this.files.indexOf(file) : -1;
     }
 
@@ -39,7 +39,7 @@ export class FilesPanelComponent {
             this.fileService.directoryByName(value)
                 .then((directory: Directory) => {
                     this.directory = directory;
-                    directory.getFiles().then((files: SinapFile[]) => {
+                    directory.getFiles().then((files: LocalFile[]) => {
                         this.files = files;
                     });
                 });
