@@ -17,6 +17,10 @@ const path = remote.require("path");
 const { dialog, app } = remote;
 const process = remote.require('process');
 
+export const SINAP_FILE_FILTER = [
+    { name: 'Sinap Files', extensions: ['sinap'] }
+];
+
 function surroundSync<T>(func: () => T): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         try {
@@ -91,16 +95,25 @@ export class LocalFileService implements FileService {
         return surroundSync(() => new LocalDirectory(fullName));
     }
 
-    requestSaveFile(): Promise<LocalFile> {
-        return new Promise<LocalFile>((resolve, reject) => dialog.showSaveDialog({}, (name) => resolve(new OpenedFile(name))));
+    requestSaveFile(name?: string): Promise<LocalFile> {
+        return new Promise<LocalFile>((resolve, reject) => dialog.showSaveDialog(remote.BrowserWindow.getFocusedWindow(), {
+            defaultPath: name,
+            filters: SINAP_FILE_FILTER
+        }, (name) => resolve(new OpenedFile(name))));
     }
 
     requestFiles(): Promise<LocalFile[]> {
         return new Promise<LocalFile[]>((resolve, reject) => {
-            const options: any = {
-                properties: ['openFile', 'multiSelections']
-            };
-            dialog.showOpenDialog(options, (filenames: string[]) => resolve(filenames.map((name) => new OpenedFile(name))));
+            dialog.showOpenDialog(remote.BrowserWindow.getFocusedWindow(), {
+                properties: ['openFile', 'multiSelections'],
+                filters: SINAP_FILE_FILTER
+            }, (filenames: string[]) => {
+                if (filenames) {
+                    resolve(filenames.map((name) => new OpenedFile(name)))
+                } else {
+                    reject(new Error("No files were selected."));
+                }
+            });
         });
     }
 }
@@ -132,7 +145,7 @@ class AbstractFile {
     }
 
     toString() {
-        return this.name + (this.dirty ? "*" : "");
+        return this.name.replace(".sinap", "") + (this.dirty ? " ●" : "");
     }
 }
 
@@ -171,10 +184,15 @@ export class UntitledFile extends AbstractFile implements LocalFile {
             if (this._fullName) {
                 writeFile();
             } else {
-                dialog.showSaveDialog({}, (name) => {
-                    this._fullName = name;
-                    this._name = path.basename(this._fullName);
-                    writeFile();
+                dialog.showSaveDialog(remote.BrowserWindow.getFocusedWindow(), {
+                    defaultPath: this.name,
+                    filters: SINAP_FILE_FILTER
+                }, (name) => {
+                    if (name) {
+                        this._fullName = name;
+                        this._name = path.basename(this._fullName);
+                        writeFile();
+                    }
                 });
             }
         });

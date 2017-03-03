@@ -162,6 +162,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         this.fileService.requestFiles()
             .then((files: LocalFile[]) => {
                 files.forEach(this.openFile);
+            }).catch((e) => {
+                // User cancelled, do nothing
+                console.log(e);
             });
     }
 

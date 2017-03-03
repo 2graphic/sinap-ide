@@ -8,6 +8,9 @@ import { Program } from "sinap-core";
 import { PluginService } from "../../services/plugin.service";
 import { LocalFile } from "../../services/files.service";
 
+const electron = require('electron');
+const dialog = electron.remote.dialog;
+
 /**
  * Stores the state of each open tab.
  */
@@ -67,7 +70,8 @@ export class TabContext {
 
         return this.file.writeData(JSON.stringify(pojo, null, 4))
             .catch((err) => {
-                alert(`Error occurred while saving to file ${this.file.fullName}: ${err}.`);
+                dialog.showErrorBox("Unable to Save", `Error occurred while saving to file:\n${this.file.fullName}.`);
+                console.log(err);
             });
     }
 
