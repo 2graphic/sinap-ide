@@ -7,27 +7,34 @@
 //
 
 
-import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
-import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, File, SerialJSO } from "sinap-core";
-import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
-import { MenuEventAction } from "../../models/menu";
+import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
+import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, SerialJSO } from "sinap-core";
+
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
-import { PluginService } from "../../services/plugin.service";
-import { WindowService } from "../../modal-windows/services/window.service";
-import { ModalInfo, ModalType } from './../../models/modal-window';
 import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
 import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 import { FilesPanelComponent } from "../files-panel/files-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
-import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
-import { LocalFileService, UntitledFile } from "../../services/files.service";
-import { SandboxService } from "../../services/sandbox.service";
-import { ResizeEvent } from 'angular-resizable-element';
 import { NewFile } from "../new-file/new-file.component";
+
+import { GraphController, UndoableEvent } from "../../models/graph-controller";
+import { MenuEventAction } from "../../models/menu";
+import { ModalInfo, ModalType } from './../../models/modal-window';
+
+import { LocalFileService, LocalFile, UntitledFile } from "../../services/files.service";
+import { SandboxService } from "../../services/sandbox.service";
+import { PluginService } from "../../services/plugin.service";
+import { WindowService } from "../../modal-windows/services/window.service";
+import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
+
+import { TabContext } from "./tab-context";
+import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "./icons";
+
+import { ResizeEvent } from 'angular-resizable-element';
 
 @Component({
     selector: "sinap-main",
@@ -36,7 +43,7 @@ import { NewFile } from "../new-file/new-file.component";
     providers: [MenuService, PluginService, WindowService, LocalFileService, SandboxService]
 })
 
-export class MainComponent implements OnInit, MenuEventListener, InputPanelDelegate, TabDelegate {
+export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, InputPanelDelegate, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
     }
 
@@ -47,113 +54,64 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     }
 
     ngAfterViewInit() {
-        // if (process.env.ENV !== 'production') {
-        //     this.newFile();
-        //     this.changeDetectorRef.detectChanges();
-        // }
-
         this.leftPanelsGroup.nativeElement.style.width = "300px";
         this.bottomPanels.nativeElement.style.height = "225px";
     }
 
-    @ViewChild(GraphEditorComponent)
-    private graphEditor: GraphEditorComponent;
+    ngAfterViewChecked() {
+        // TODO: Let HTML resize this for us.
+        this.graphEditor.resize();
+    }
 
-    @ViewChild(InputPanelComponent)
-    private inputPanel: InputPanelComponent;
-
-    @ViewChild(PropertiesPanelComponent)
-    private propertiesPanel: PropertiesPanelComponent;
-
-    @ViewChild(ToolsPanelComponent)
-    private toolsPanel: ToolsPanelComponent;
-
-    @ViewChild(FilesPanelComponent)
-    private filesPanel: FilesPanelComponent;
-
-    @ViewChild("leftPanelBar")
-    private leftPanelBar: SideBarComponent;
-
-    @ViewChild("bottomPanelBar")
-    private bottomPanelBar: SideBarComponent;
-
-    @ViewChild(TestPanelComponent)
-    private testComponent: TestPanelComponent;
-
-    @ViewChild(TabBarComponent)
-    private tabBar: TabBarComponent;
-
+    // Setup references to child components. These are setup by angular once ngAfterViewInit is called.
+    @ViewChild(GraphEditorComponent) private graphEditor: GraphEditorComponent;
+    @ViewChild(InputPanelComponent) private inputPanel: InputPanelComponent;
+    @ViewChild(PropertiesPanelComponent) private propertiesPanel: PropertiesPanelComponent;
+    @ViewChild(ToolsPanelComponent) private toolsPanel: ToolsPanelComponent;
+    @ViewChild(FilesPanelComponent) private filesPanel: FilesPanelComponent;
+    @ViewChild("leftPanelBar") private leftPanelBar: SideBarComponent;
+    @ViewChild("bottomPanelBar") private bottomPanelBar: SideBarComponent;
+    @ViewChild(TestPanelComponent) private testComponent: TestPanelComponent;
+    @ViewChild(TabBarComponent) private tabBar: TabBarComponent;
     @ViewChild('editorPanel') editorPanel: ElementRef;
     @ViewChild('leftPanelsGroup') leftPanelsGroup: ElementRef;
     @ViewChild('bottomPanels') bottomPanels: ElementRef;
-
-    public package = "Finite Automata";
-    public barMessages: string[] = [];
+    @ViewChild(StatusBarComponent) private statusBar: StatusBarComponent;
 
     private tabs = new Map<number, TabContext>();
+    private leftPanelIcons = [FILES_ICON];
+    private bottomPanelIcons = [INPUT_ICON, TEST_ICON];
+
     private _context?: TabContext;
-
-    @ViewChild(StatusBarComponent)
-    private statusBar: StatusBarComponent;
-
     private set context(context: TabContext | undefined) {
         this._context = context;
-        if (this._context) {
-            this.getProgram(this._context).then(this.gotNewProgram);
+        if (context) {
+            context.compileProgram().then(this.onNewProgram);
 
-            this.toolsPanel.graph = this._context.graph;
+            this.toolsPanel.graph = context.graph;
+            this.filesPanel.selectedFile = context.file;
+            this.statusBar.title = context.title;
+            this.statusBar.items = context.barMessages;
+
+
             if (this.toolsPanel.shouldDisplay()) {
-                this.leftPanelIcons = [this.propertiesIcon, this.toolsIcon, this.filesIcon];
+                this.leftPanelIcons = [PROPERTIES_ICON, TOOLS_ICON, FILES_ICON];
             } else {
-                this.leftPanelIcons = [this.propertiesIcon, this.filesIcon];
+                this.leftPanelIcons = [PROPERTIES_ICON, FILES_ICON];
             }
-            this.filesPanel.selectedFile = this._context.file;
-            this.graphEditor.redraw();
         } else {
-            this.leftPanelIcons = [this.filesIcon];
+            // Clear state
+
+            this.leftPanelIcons = [FILES_ICON];
             this.filesPanel.selectedFile = undefined;
+            this.statusBar.title = "";
+            this.statusBar.items = [];
+            this.toolsPanel.graph = undefined;
         }
     };
 
-    private get context() {
-        return this._context;
-    }
-
-    private propertiesIcon = {
-        path: `${require('../../images/properties.svg')}`,
-        name: 'Properties'
-    };
-    private toolsIcon = {
-        path: `${require('../../images/tools.svg')}`,
-        name: 'Tools'
-    };
-    private filesIcon = {
-        path: `${require('../../images/files.svg')}`,
-        name: 'Files'
-    };
-    private leftPanelIcons = [this.filesIcon];
-
-    private makeChangeNotifier(context: TabContext) {
-        return (change: UndoableEvent) => {
-            context.change(change);
-            this.getProgram(context).then(this.gotNewProgram);
-        };
-    }
-
-    private gotNewProgram = (program: Program) => {
-        let validation = program.validate();
-        validation.unshift("DFA");
-        this.barMessages = validation;
-
-        this.testComponent.program = program;
-        this.inputPanel.program = program;
-    }
-
-    private getProgram(context: TabContext) {
-        return this.pluginService.getProgram(context.graph.plugin, context.graph.core);
-    }
-
-    newFile(file: File, kind: string[], content?: SerialJSO) {
+    /** Create a new tab and open it */
+    newFile(file: LocalFile, kind: string[], content?: SerialJSO) {
         // TODO: have a more efficient way to get kind.
         this.pluginService.getPluginByKind(kind).then((plugin) => {
             const model = new CoreModel(plugin, content);
@@ -161,9 +119,7 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
             let tabNumber = this.tabBar.newTab(file);
 
             const graph = new GraphController(model, plugin);
-            const context = new TabContext(tabNumber, graph, file);
-
-            this.getProgram(context).then(this.gotNewProgram);
+            const context = new TabContext(tabNumber, graph, file, this.pluginService);
 
             graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
 
@@ -172,9 +128,18 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         });
     }
 
-    ngAfterViewChecked() {
-        this.graphEditor.resize();
+
+    private makeChangeNotifier(context: TabContext) {
+        return (change: UndoableEvent) => {
+            context.compileProgram().then(this.onNewProgram);
+        };
     }
+
+    private onNewProgram = (program: Program) => {
+        this.testComponent.program = program;
+        this.inputPanel.program = program;
+    }
+
 
     promptNewFile() {
         this.pluginService.pluginKinds.then((pluginKinds) => {
@@ -185,9 +150,66 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         });
     }
 
+    saveFile() {
+        if (this._context) {
+            this._context.save().then(() => {
+                this.changeDetectorRef.detectChanges();
+            });
+        }
+    }
+
+    requestOpenFile() {
+        this.fileService.requestFiles()
+            .then((files: LocalFile[]) => {
+                files.forEach(this.openFile);
+            });
+    }
+
+    openFile = (file: LocalFile) => {
+        const entry = [...this.tabs.entries()].find(([i, context]) => file.equals(context.file));
+        if (entry) {
+            this.tabBar.active = entry[0];
+        } else {
+            file.readData().then((content) => {
+                const pojo = JSON.parse(content);
+                const kind = pojo.kind;
+                this.newFile(file, kind, pojo);
+            });
+        }
+    }
+
+
+
+
+    selectNode(a: any) {
+        // TODO: Fix everything
+        if (this._context) {
+            for (let n of this._context.graph.drawable.nodes) {
+                if (n.label === a.label) {
+                    this._context.graph.drawable.clearSelection();
+                    this._context.graph.drawable.select(n);
+                }
+            }
+        }
+    }
+
+    /**
+     * Return true if the focused element is a child of an element with an `id` of `childOf`
+     */
+    private focusIsChildOf(childOf: string) {
+        let el: Element | null = document.activeElement;
+        while (el && document.hasFocus()) {
+            if (el.id === childOf)
+                return true;
+            el = el.parentElement;
+        }
+        return false;
+    }
+
+
+
 
     /* ---------- TabBarDelegate ---------- */
-
     deletedTab(i: number) {
         this.tabs.delete(i);
     }
@@ -205,17 +227,17 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     createNewTab() {
         this.promptNewFile();
     }
-
     /* ------------------------------------ */
 
 
+    /* ---------- MenuEventListener ---------- */
     menuEvent(e: MenuEvent) {
         switch (e.action) {
             case MenuEventAction.NEW_FILE:
                 this.promptNewFile();
                 break;
-            case MenuEventAction.LOAD_FILE:
-                this.loadFile();
+            case MenuEventAction.OPEN_FILE:
+                this.requestOpenFile();
                 break;
             case MenuEventAction.SAVE_FILE:
                 this.saveFile();
@@ -233,8 +255,8 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
                 }
                 break;
             case MenuEventAction.CLOSE:
-                if (this.context) {
-                    this.tabBar.deleteTab(this.context.index);
+                if (this._context) {
+                    this.tabBar.deleteTab(this._context.index);
                     e.preventDefault();
                 }
                 break;
@@ -245,89 +267,23 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
                 this.tabBar.selectNextTab();
                 break;
             case MenuEventAction.UNDO:
-                if (!this.focusIsChildOf("bottom-panels") && this.context) {
-                    this.context.undo();
+                if (!this.focusIsChildOf("bottom-panels") && this._context) {
+                    this._context.undo();
                     e.preventDefault();
                 }
                 break;
             case MenuEventAction.REDO:
-                if (!this.focusIsChildOf("bottom-panels") && this.context) {
-                    this.context.redo();
+                if (!this.focusIsChildOf("bottom-panels") && this._context) {
+                    this._context.redo();
                     e.preventDefault();
                 }
                 break;
         }
     }
-
-    /**
-     * Return true if the focused element is a child of an element with an `id` of `childOf`
-     */
-    private focusIsChildOf(childOf: string) {
-        let el: Element | null = document.activeElement;
-        while (el && document.hasFocus()) {
-            if (el.id === childOf)
-                return true;
-            el = el.parentElement;
-        }
-        return false;
-    }
-
-    saveFile() {
-        this.fileService.requestSaveFile()
-            .then((file: File) => {
-                if (!this.context) {
-                    alert("No open graph to save");
-                    return;
-                }
-
-                const pojo = this.context.graph.core.serialize();
-
-                file.writeData(JSON.stringify(pojo, null, 4))
-                    .catch((err) => {
-                        alert(`Error occurred while saving to file ${file.name}: ${err}.`);
-                    });
-            });
-    }
-
-    loadFile() {
-        this.fileService.requestFiles()
-            .then((files: File[]) => {
-                files.forEach(this.openFile);
-            });
-    }
-
-    openFile = (file: File) => {
-        file.readData().then((content) => {
-            const pojo = JSON.parse(content);
-            const kind = pojo.kind;
-            this.newFile(file, kind, pojo);
-        });
-    }
-
-    selectedFile(file: File) {
-        const entry = [...this.tabs.entries()].find(([i, context]) => file === context.file);
-        if (entry) {
-            this.tabBar.active = entry[0];
-        } else {
-            this.openFile(file);
-        }
-    }
-
-    selectNode(a: any) {
-        // TODO: Fix everything
-        if (this.context) {
-            for (let n of this.context.graph.drawable.nodes) {
-                if (n.label === a.label) {
-                    this.context.graph.drawable.clearSelection();
-                    this.context.graph.drawable.select(n);
-                }
-            }
-        }
-    }
+    /* --------------------------------------- */
 
 
     /* ---------- Resizable Panels ---------- */
-
     private resizing(element: Element, event: ResizeEvent) {
         if (element.id === "left-panels-group") {
             if (event.rectangle.width !== undefined) {
@@ -344,47 +300,5 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
             }
         }
     }
-}
-
-class TabContext {
-    private readonly undoHistory: UndoableEvent[] = [];
-    private readonly redoHistory: UndoableEvent[] = [];
-
-    private stack = this.undoHistory;
-    private isRedoing = false;
-
-    private readonly UNDO_HISTORY_LENGTH = 100;
-
-    constructor(public readonly index: number, public graph: GraphController, public file: File) { };
-
-    public undo() {
-        const change = this.undoHistory.pop();
-        if (change) {
-            // If undoing causes a change, push it to the redoHistory stack.
-            this.stack = this.redoHistory;
-            this.graph.applyUndoableEvent(change);
-            this.stack = this.undoHistory;
-        }
-    }
-
-    public redo() {
-        const change = this.redoHistory.pop();
-        if (change) {
-            this.isRedoing = true;
-            this.graph.applyUndoableEvent(change);
-            this.isRedoing = false;
-        }
-    }
-
-    public change(change: UndoableEvent) {
-        this.stack.push(change);
-        if (this.stack === this.undoHistory && !this.isRedoing) {
-            this.redoHistory.length = 0;
-        }
-
-
-        if (this.undoHistory.length > this.UNDO_HISTORY_LENGTH) {
-            this.undoHistory.shift();
-        }
-    }
+    /* -------------------------------------- */
 }

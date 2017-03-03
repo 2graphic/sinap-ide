@@ -74,7 +74,7 @@
             "type": "DFAEdge",
             "data": {
                 "color": "#000",
-                "label": "1",
+                "label": "2",
                 "source": {
                     "kind": "sinap-pointer",
                     "index": 1

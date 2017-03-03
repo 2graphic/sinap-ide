@@ -46,13 +46,13 @@
     "zone.js": "0.7.4"
   },
   "devDependencies": {
-    "@types/electron": "1.4.30",
+    "@types/electron": "1.4.33",
     "@types/node": "6.0.x",
     "angular2-template-loader": "0.6.x",
     "concurrently": "3.1.x",
     "cpx": "1.5.x",
     "css-loader": "0.26.x",
-    "electron": "1.4.8",
+    "electron": "1.6.1",
     "electron-packager": "8.4.x",
     "extract-loader": "0.1.x",
     "file-loader": "0.9.x",

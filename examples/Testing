@@ -1,0 +1,33 @@
+{
+    "format": "sinap-file-format",
+    "kind": [
+        "Formal Languages",
+        "DFA"
+    ],
+    "version": "0.0.7",
+    "elements": [
+        {
+            "kind": "Graph",
+            "type": "DFAGraph",
+            "data": {}
+        },
+        {
+            "kind": "Node",
+            "type": "DFANode",
+            "data": {
+                "color": "#fff200",
+                "label": "",
+                "position": {
+                    "x": 408,
+                    "y": 308
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        }
+    ]
+}
