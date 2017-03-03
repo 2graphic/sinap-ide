@@ -8,6 +8,7 @@
 
 
 import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
+import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, File, SerialJSO } from "sinap-core";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
 import { MenuEventAction } from "../../models/menu";
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
@@ -23,14 +24,10 @@ import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
-import { LocalFileService, File, UntitledFile } from "../../services/files.service";
+import { LocalFileService, UntitledFile } from "../../services/files.service";
 import { SandboxService } from "../../services/sandbox.service";
-import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
-
-import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program } from "sinap-core";
-
 import { ResizeEvent } from 'angular-resizable-element';
-
+import { NewFile } from "../new-file/new-file.component";
 
 @Component({
     selector: "sinap-main",
@@ -102,6 +99,8 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     private set context(context: TabContext | undefined) {
         this._context = context;
         if (this._context) {
+            this.getProgram(this._context).then(this.gotNewProgram);
+
             this.toolsPanel.graph = this._context.graph;
             if (this.toolsPanel.shouldDisplay()) {
                 this.leftPanelIcons = [this.propertiesIcon, this.toolsIcon, this.filesIcon];
@@ -154,16 +153,15 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
         return this.pluginService.getProgram(context.graph.plugin, context.graph.core);
     }
 
-    newFile(f: File, g?: CoreModel) {
-        const kind = MagicConstants.DFA_PLUGIN_KIND;
-        console.log(kind);
-        this.pluginService.getPlugin(kind).then((plugin) => {
-            g = g ? g : new CoreModel(plugin);
+    newFile(file: File, kind: string[], content?: SerialJSO) {
+        // TODO: have a more efficient way to get kind.
+        this.pluginService.getPluginByKind(kind).then((plugin) => {
+            const model = new CoreModel(plugin, content);
 
-            const graph = new GraphController(g, plugin);
+            let tabNumber = this.tabBar.newTab(file);
 
-            const tabNumber = this.tabBar.newTab(f);
-            const context = new TabContext(tabNumber, graph, f);
+            const graph = new GraphController(model, plugin);
+            const context = new TabContext(tabNumber, graph, file);
 
             this.getProgram(context).then(this.gotNewProgram);
 
@@ -179,20 +177,12 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     }
 
     promptNewFile() {
-        let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL);
-
-        result.then((result: string) => {
-            this.newFile(new UntitledFile(result));
+        this.pluginService.pluginKinds.then((pluginKinds) => {
+            let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginKinds);
+            result.then((result: NewFile) => {
+                this.newFile(new UntitledFile(result.name), result.kind);
+            });
         });
-    }
-
-    selectedFile(file: File) {
-        const entry = [...this.tabs.entries()].find(([i, context]) => file === context.file);
-        if (entry) {
-            this.tabBar.active = entry[0];
-        } else {
-            this.openFile(file);
-        }
     }
 
 
@@ -307,14 +297,21 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
     }
 
     openFile = (file: File) => {
-        file.readData().then(f => {
-            // TODO: use correct plugin
-            this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND).then((plugin) => {
-                this.newFile(file, new CoreModel(plugin, JSON.parse(f)));
-            });
+        file.readData().then((content) => {
+            const pojo = JSON.parse(content);
+            const kind = pojo.kind;
+            this.newFile(file, kind, pojo);
         });
     }
 
+    selectedFile(file: File) {
+        const entry = [...this.tabs.entries()].find(([i, context]) => file === context.file);
+        if (entry) {
+            this.tabBar.active = entry[0];
+        } else {
+            this.openFile(file);
+        }
+    }
 
     selectNode(a: any) {
         // TODO: Fix everything
@@ -331,17 +328,19 @@ export class MainComponent implements OnInit, MenuEventListener, InputPanelDeleg
 
     /* ---------- Resizable Panels ---------- */
 
-    private leftPanelWidth = 300;
-    private bottomPanelHeight = 225;
-
     private resizing(element: Element, event: ResizeEvent) {
         if (element.id === "left-panels-group") {
             if (event.rectangle.width !== undefined) {
-                this.leftPanelWidth = Math.max(event.rectangle.width, 250);
+                this.leftPanelsGroup.nativeElement.style.width = Math.max(event.rectangle.width, 250) + "px";
+
+                if (this.leftPanelsGroup.nativeElement.clientWidth + this.editorPanel.nativeElement.clientWidth >= window.innerWidth) {
+                    this.leftPanelsGroup.nativeElement.style.width = (window.innerWidth - this.editorPanel.nativeElement.clientWidth - 1) + "px";
+                }
             }
         } else if (element.id === "bottom-panels") {
             if (event.rectangle.height !== undefined) {
-                this.bottomPanelHeight = Math.max(event.rectangle.height, 175);
+                // 55 = height of tab bar plus height of status bar
+                this.bottomPanels.nativeElement.style.height = Math.min(Math.max(event.rectangle.height, 175), window.innerHeight - 55) + "px";
             }
         }
     }

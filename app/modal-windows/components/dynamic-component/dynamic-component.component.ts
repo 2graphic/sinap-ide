@@ -4,9 +4,10 @@
 //
 
 
-import { Component, ViewContainerRef, ViewChild, ComponentFactoryResolver, ComponentRef, OnInit, Type } from '@angular/core';
+import { Component, ViewContainerRef, ViewChild, ComponentFactoryResolver, ComponentRef, OnInit, Type, ReflectiveInjector } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { WindowService } from './../../services/window.service';
+import { ModalComponent } from "./../../../models/modal-window";
 
 import { NewFileComponent } from './../../../components/new-file/new-file.component'; // TODO, shorter way to do this...?
 
@@ -29,7 +30,7 @@ export class DynamicComponent {
     /**
      * Add the type information for each component you want this component to be able to create.
      */
-    private componentMap = new Map<string, [string, Type<any>]>(
+    private componentMap = new Map<string, [string, Type<ModalComponent>]>(
         [["sinap-new-file", ["New File", NewFileComponent]]]
         // Preferences, etc...
     );
@@ -37,16 +38,24 @@ export class DynamicComponent {
     constructor(private resolver: ComponentFactoryResolver, private titleService: Title, private windowService: WindowService) { }
 
     ngAfterViewInit() {
-        let windowInfo = this.windowService.windowInfo;
+        const windowInfo = this.windowService.windowInfo;
         if (windowInfo) {
-            let componentInfo = this.componentMap.get(windowInfo.selector);
+            const componentInfo = this.componentMap.get(windowInfo.selector);
             if (componentInfo) {
-                let [name, component] = componentInfo;
+                const injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
+
+                const [name, componentType] = componentInfo;
 
                 this.titleService.setTitle(name);
 
-                let factory = this.resolver.resolveComponentFactory(component);
-                this.container.createComponent(factory);
+                const factory = this.resolver.resolveComponentFactory(componentType);
+                const component = factory.create(injector);
+
+                component.instance.modalInfo = windowInfo;
+
+                this.container.insert(component.hostView);
+
+                component.changeDetectorRef.detectChanges();
             }
         }
     }

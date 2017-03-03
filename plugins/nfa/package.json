@@ -1,0 +1,30 @@
+{
+  "name": "nfa",
+  "version": "1.0.0",
+  "description": "An interpreter for NFAs for the Sinap graph based IDE.",
+  "main": "nfa.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/2graphic/sinap-core.git"
+  },
+  "keywords": [
+    "nfa",
+    "sinap",
+    "2graphic",
+    "plugin",
+    "formal-languages"
+  ],
+  "author": "2graphic",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/2graphic/sinap-core/issues"
+  },
+  "homepage": "https://github.com/2graphic/sinap-core#readme",
+  "sinap": {
+    "kind": ["Formal Languages", "NFA"],
+    "plugin-file": "nfa.ts"
+  }
+}
