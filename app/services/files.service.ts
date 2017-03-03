@@ -109,7 +109,7 @@ export class LocalFileService implements FileService {
                 filters: SINAP_FILE_FILTER
             }, (filenames: string[]) => {
                 if (filenames) {
-                    resolve(filenames.map((name) => new OpenedFile(name)))
+                    resolve(filenames.map((name) => new OpenedFile(name)));
                 } else {
                     reject(new Error("No files were selected."));
                 }
