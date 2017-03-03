@@ -11,7 +11,7 @@
   "scripts": {
     "clean": "rimraf ./build && rimraf ./dist && rimraf ./dll",
     "webpack": "webpack --progress --profile --colors --display-error-details --display-cached",
-    "format": "tslint --project . --fix",
+    "format": "tsfmt -r && tslint --project . --fix",
     "lint": "tsfmt --verify && tslint --project .",
     "build": "npm run format && npm run webpack",
     "build:dll": "npm run webpack -- --config webpack.dll.config.js",
