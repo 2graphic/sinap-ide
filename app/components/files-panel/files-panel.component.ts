@@ -30,7 +30,12 @@ export class FilesPanelComponent {
 
     @Input()
     set selectedFile(file: LocalFile | undefined) {
-        this.filesList.selectedIndex = file ? this.files.indexOf(file) : -1;
+        if (file) {
+            const found = this.files.find((f) => file.equals(f));
+            this.filesList.selectedIndex = found ? this.files.indexOf(found) : -1;
+        } else {
+            this.filesList.selectedIndex = -1;
+        }
     }
 
     @Input("directory")

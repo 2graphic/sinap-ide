@@ -106,7 +106,8 @@ function createNewWindow(selector: string, type: ModalType, data: any): ModalInf
             width: 600,
             height: 450,
             center: true,
-            resizable: false
+            resizable: true,
+            show: false,
         });
         if (process.env.ENV === 'production') {
             newWindow.setMenu(null as any);

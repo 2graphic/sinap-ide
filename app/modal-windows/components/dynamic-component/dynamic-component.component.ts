@@ -50,11 +50,9 @@ export class DynamicComponent {
 
                 const factory = this.resolver.resolveComponentFactory(componentType);
                 const component = factory.create(injector);
-
-                component.instance.modalInfo = windowInfo;
-
                 this.container.insert(component.hostView);
 
+                component.instance.modalInfo = windowInfo;
                 component.changeDetectorRef.detectChanges();
             }
         }
