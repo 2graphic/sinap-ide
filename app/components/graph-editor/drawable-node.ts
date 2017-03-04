@@ -409,7 +409,7 @@ export class DrawableNode extends DrawableElement {
         const old = this.edges;
         if (e.source === this)
             this._outgoingSet.add(e);
-        else if (e.destination === this)
+        if (e.destination === this)
             this._incomingSet.add(e);
         this.onPropertyChanged("edges", old);
     }
@@ -491,7 +491,7 @@ export class DrawableNode extends DrawableElement {
                 sc = undefined;
         }
         else {
-            this._drawSelectionShadow = () => { };
+            this._drawSelectionShadow = MathEx.NOOP;
         }
         //////////////
         // Set node //
@@ -698,7 +698,7 @@ export class HiddenNode extends DrawableNode {
     update(g: GraphEditorCanvas) { }
 
     updateDraw(g: GraphEditorCanvas) {
-        this._draw = () => { };
+        this._draw = MathEx.NOOP;
     }
 
     getBoundaryPt(u: point) {

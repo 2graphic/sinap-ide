@@ -4,6 +4,7 @@
 
 
 import { FONT_SIZE } from "./defaults";
+import { NOOP } from "./math";
 import { GraphEditorCanvas, point, rect, size } from "./graph-editor-canvas";
 import { Drawable } from "./drawable";
 import { DrawableGraph } from "./drawable-graph";
@@ -105,12 +106,12 @@ export abstract class DrawableElement extends Drawable {
             _draw: {
                 enumerable: false,
                 writable: true,
-                value: () => { }
+                value: NOOP
             },
             _drawSelectionShadow: {
                 enumerable: false,
                 writable: true,
-                value: () => { }
+                value: NOOP
             },
             graph: {
                 enumerable: false,
