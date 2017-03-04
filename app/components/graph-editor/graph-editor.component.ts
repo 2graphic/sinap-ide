@@ -861,10 +861,20 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.updateHoverObject(null);
                 this.dragObject.isDragging = true;
                 const edges = this.dragObject.edges;
+                const replace: DrawableEdge[] = [];
+                const remove: DrawableEdge[] = [];
                 this.drawList = this.drawList.filter(v => {
+                    if (v instanceof DrawableEdge && edges.has(v)) {
+                        if (edges.has(v))
+                            replace.push(v);
+                        else
+                            remove.push(v);
+                    }
                     return v !== this.dragObject && !edges.has(v as DrawableEdge);
                 });
-                this.drawList.push(...edges, this.dragObject);
+                this.drawList.push(...replace, this.dragObject);
+                for (const v of remove)
+                    this.dragObject.removeEdge(v);
             }
             this.redraw();
         }
