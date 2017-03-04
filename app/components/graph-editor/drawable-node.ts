@@ -482,7 +482,7 @@ export class DrawableNode extends DrawableElement {
                     case "image":
                         for (let i = 0; i < offsets.length; i += 2) {
                             const opt = { x: pt.x + offsets[i], y: pt.y + offsets[i + 1] };
-                            g.drawImage(opt, IMAGES.get(this._img)!);
+                            g.drawImage(opt, IMAGES.get(this._img) !);
                         }
                         break;
                 }
@@ -505,7 +505,7 @@ export class DrawableNode extends DrawableElement {
                     g.drawSquare(pt, sz.w, bs, bw, bc, cl, sc);
                     break;
                 case "image":
-                    g.drawImage(pt, IMAGES.get(this._img)!, sc);
+                    g.drawImage(pt, IMAGES.get(this._img) !, sc);
                     break;
             }
         };
