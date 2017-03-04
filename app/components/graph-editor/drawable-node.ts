@@ -560,17 +560,16 @@ export class DrawableNode extends DrawableElement {
     hitPoint(pt: point): point | null {
         const posn = { x: this._pt.x, y: this._pt.y };
         const size = this._size;
-        const v = { x: pt.x - posn.x, y: pt.y - posn.y };
+        const v = MathEx.subtract(pt, posn);
         const ib = this._innerBound;
         const ob = this._outerBound;
         const apts = this._apts;
         if (apts.length > 0) {
             const d = NODE_THRESHOLD_OUT - NODE_THRESHOLD_IN;
             const apt = this.getNearestAnchor(pt);
-            const u = { x: v.x - apt.x, y: v.y - apt.y };
-            if (MathEx.dot(u, u) <= d * d) {
-                return { x: apt.x + this._pt.x, y: apt.y + this._pt.y };
-            }
+            const u = MathEx.subtract(v, apt);
+            if (MathEx.dot(u, u) <= d * d)
+                return MathEx.add(apt, this._pt);
         }
         switch (this._shape) {
             case "circle": {
@@ -620,14 +619,11 @@ export class DrawableNode extends DrawableElement {
      *   predefined anchor points.
      */
     getNearestAnchor(pt: point) {
-        const p = { x: pt.x - this._pt.x, y: pt.y - this._pt.y };
+        const p = MathEx.subtract(pt, this._pt);
         let apt = this._pt;
         let min = Infinity;
         this._apts.forEach(a => {
-            let v = {
-                x: p.x - a.x,
-                y: p.y - a.y
-            };
+            let v = MathEx.subtract(p, a);
             let dot = MathEx.dot(v, v);
             if (dot <= min) {
                 min = dot;
