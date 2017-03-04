@@ -40,6 +40,7 @@ export const SIN_22_5: number = Math.sin(Math.PI / 8);
 
 export const SQRT3 = Math.sqrt(3);
 
+export const NOOP = () => { };
 
 // Functions ///////////////////////////////////////////////////////////////////
 
@@ -58,6 +59,28 @@ export function dot(a: point, b: point): number {
  */
 export function mag(v: point): number {
     return Math.sqrt(dot(v, v));
+}
+
+/**
+ * normal
+ *
+ *   Gets the unit normal vector of the given vector.
+ *
+ *
+ * @param v
+ *   The vector with which to get the normal.
+ */
+export function normal(v: point): point {
+    const d = mag(v);
+    return { x: v.y / d, y: v.x / d };
+}
+
+export function add(a: point, b: point): point {
+    return { x: a.x + b.x, y: a.y + b.y };
+}
+
+export function subtract(a: point, b: point): point {
+    return { x: a.x - b.x, y: a.y - b.y };
 }
 
 export function quadBezIntersect(
@@ -235,6 +258,6 @@ function cubBezCoefs(p0: point, p1: point, p2: point, p3: point) {
     ];
 }
 
-function sgn(n: number) {
+export function sgn(n: number) {
     return (n < 0 ? -1 : 1);
 }
