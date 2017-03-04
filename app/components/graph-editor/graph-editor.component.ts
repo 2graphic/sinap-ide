@@ -119,10 +119,18 @@ export class GraphEditorComponent implements AfterViewInit {
     = null;
 
     /**
-     * downEvt
-     *   The previous down event payload.
+     * downPt
+     *   The previous down event point.
      */
-    private downEvt: MouseEvent | null
+    private dragPt: point | null
+    = null;
+
+    /**
+     * selectionPt
+     *
+     *   The original point of the selection box.
+     */
+    private selectionPt: point | null
     = null;
 
     /**
@@ -173,6 +181,9 @@ export class GraphEditorComponent implements AfterViewInit {
     private selectAllDelegate: callback
     = MathEx.NOOP;
 
+    private drawSelectionBoxDelegate: callback
+    = MathEx.NOOP;
+
 
     // Public Fields ///////////////////////////////////////////////////////////
 
@@ -198,7 +209,7 @@ export class GraphEditorComponent implements AfterViewInit {
             this.unregisterEventListeners();
             this.suspendRedraw();
             this.panPt = null;
-            this.downEvt = null;
+            this.dragPt = null;
             this.stickyTimeout = null;
             this.dragObject = null;
             this.hoverObject = null;
@@ -237,6 +248,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.canvas.drawGrid();
                 this.canvas.clear("#fff");
                 this.canvas.globalCompositeOperation = "source-over";
+                this.drawSelectionBoxDelegate();
             };
             this.redrawDelegate();
         }
@@ -397,8 +409,8 @@ export class GraphEditorComponent implements AfterViewInit {
                     this.onMouseUp
                 );
 
-                // Save the event payload.
-                this.downEvt = e;
+                // Save the mouse point.
+                this.dragPt = this.canvas.getPt(e);
 
                 // Set a timer for creating a node if nothing is being hovered.
                 if (!this.hoverObject) {
@@ -430,24 +442,23 @@ export class GraphEditorComponent implements AfterViewInit {
         let ePt = this.canvas.getPt(e);
 
         // Capture the down event if the drag object has been set.
-        if (this.dragObject && e.buttons === 1 && !this.downEvt)
-            this.downEvt = e;
+        if (this.dragObject && e.buttons === 1 && !this.dragPt)
+            this.dragPt = this.canvas.getPt(e);
 
         // Make sure the down event was previously captured.
-        if (this.downEvt) {
+        if (this.dragPt) {
             this.focusHiddenArea();
             this.el.nativeElement.style.cursor = "default";
 
             // Get the change in x and y locations of the cursor.
-            const downPt = this.canvas.getPt(this.downEvt);
-            const dPt = { x: downPt.x - ePt.x, y: downPt.y - ePt.y };
+            const dPt = MathEx.subtract(this.dragPt, ePt);
 
             // Update the canvas if waiting is not set.
             if (!this.stickyTimeout) {
 
                 // Update the selection box if selecting.
                 if (!this.dragObject)
-                    this.updateSelectionBox(downPt, ePt);
+                    this.updateSelectionBox(this.dragPt, ePt);
 
                 // Update node position.
                 else {
@@ -457,14 +468,10 @@ export class GraphEditorComponent implements AfterViewInit {
                             ePt
                         )) {
                         ePt = (this.hoverObject as DrawableNode).anchorPoint;
+                        dPt.x = this.dragPt.x - ePt.x;
+                        dPt.y = this.dragPt.y - ePt.y;
                     }
-                    this.updateDragNodes(
-                        this.dragObject,
-                        {
-                            x: ePt.x - this.dragObject.position.x,
-                            y: ePt.y - this.dragObject.position.y
-                        }
-                    );
+                    this.updateDragNodes(this.dragObject, dPt);
                 }
             }
 
@@ -475,10 +482,13 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.stickyTimeout = null;
                 this.graph.clearSelection();
             }
+
+            // Update the drag point.
+            this.dragPt = ePt;
         }
 
         // Panning.
-        else if (e.buttons === 2) {
+        else if (e.buttons === 2 && this.panPt) {
             this.pan(e);
             this.panPt = e;
         }
@@ -498,7 +508,7 @@ export class GraphEditorComponent implements AfterViewInit {
         this.focusHiddenArea();
 
         // Make sure a down event was previously captured.
-        if (this.downEvt) {
+        if (this.dragPt) {
 
             // Swap up and down events.
             this.el.nativeElement.removeEventListener(
@@ -528,7 +538,10 @@ export class GraphEditorComponent implements AfterViewInit {
 
             // Drop the node if one is being dragged.
             else if (this.dragObject) {
-                this.dropNodes(this.dragObject, ePt);
+                this.dropNodes(
+                    this.dragObject,
+                    MathEx.subtract(this.dragPt, ePt)
+                );
             }
 
             // Reset input states.
@@ -566,9 +579,8 @@ export class GraphEditorComponent implements AfterViewInit {
     private onStickey
     = (): void => {
         // Create a new node and reset sticky.
-        if (this.downEvt) {
+        if (this.dragPt) {
             this.suspendRedraw();
-            const downPt = this.canvas.getPt(this.downEvt);
             clearTimeout(this.stickyTimeout as NodeJS.Timer);
             this.stickyTimeout = null;
 
@@ -576,7 +588,7 @@ export class GraphEditorComponent implements AfterViewInit {
             this.dragObject = this.graph.createNode();
             if (this.dragObject) {
                 this.graph.clearSelection();
-                this.dragObject.position = downPt;
+                this.dragObject.position = this.dragPt;
                 this.dragObject.isDragging = true;
             }
             this.resumeRedraw();
@@ -605,18 +617,6 @@ export class GraphEditorComponent implements AfterViewInit {
             this.registerDrawable(n);
     }
 
-    private onUncreate
-    = (evt: DrawableEventArgs<DrawableElement>) => {
-        for (const d of evt.drawables)
-            this.unregisterDrawable(d);
-    }
-
-    private onRecreate
-    = (evt: DrawableEventArgs<DrawableElement>) => {
-        for (const d of evt.drawables)
-            this.registerDrawable(d);
-    }
-
     /**
      * onDeletedEdges
      *   Unregisters the edges from drawing and removes the event listener for
@@ -638,18 +638,6 @@ export class GraphEditorComponent implements AfterViewInit {
     = (evt: DrawableEventArgs<DrawableNode>) => {
         for (const e of evt.drawables)
             this.unregisterDrawable(e);
-    }
-
-    private onUndelete
-    = (evt: DrawableEventArgs<DrawableElement>) => {
-        for (const d of evt.drawables)
-            this.registerDrawable(d);
-    }
-
-    private onRedelete
-    = (evt: DrawableEventArgs<DrawableElement>) => {
-        for (const d of evt.drawables)
-            this.unregisterDrawable(d);
     }
 
     /**
@@ -814,7 +802,9 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Updates the selection box.
      */
     private updateSelectionBox(downPt: pt, ePt: pt): void {
-        const rect = makeRect(downPt, ePt);
+        if (!this.selectionPt)
+            this.selectionPt = downPt;
+        const rect = makeRect(this.selectionPt, ePt);
 
         // Update the selected components.
         const deselect = [];
@@ -828,11 +818,13 @@ export class GraphEditorComponent implements AfterViewInit {
         this.graph.select(...select);
         this.graph.deselect(...deselect);
 
+        // Update the draw delegate.
+        this.drawSelectionBoxDelegate = () => {
+            this.canvas.drawSelectionBox(rect);
+        };
+
         // Update the canvas.
         this.redraw();
-        // TODO:
-        // Only draw selection box if resumeRedraw
-        this.canvas.drawSelectionBox(rect);
     }
 
     /**
@@ -860,13 +852,29 @@ export class GraphEditorComponent implements AfterViewInit {
                 const edge = this.createDragEdge(n, true);
                 if (n.anchorPoints.length > 0)
                     edge.bindAnchor(n, n.getNearestAnchor(n.anchorPoint));
+                edge.update(this.canvas);
             }
 
-            // Set the drag object to the node if no anchor pt is being displayed.
+            // Set the drag object to the node if no anchor point is being displayed.
             else {
                 this.dragObject = this.hoverObject;
                 this.updateHoverObject(null);
                 this.dragObject.isDragging = true;
+                const edges = this.dragObject.edges;
+                const replace: DrawableEdge[] = [];
+                const remove: DrawableEdge[] = [];
+                this.drawList = this.drawList.filter(v => {
+                    if (v instanceof DrawableEdge && edges.has(v)) {
+                        if (edges.has(v))
+                            replace.push(v);
+                        else
+                            remove.push(v);
+                    }
+                    return v !== this.dragObject && !edges.has(v as DrawableEdge);
+                });
+                this.drawList.push(...replace, this.dragObject);
+                for (const v of remove)
+                    this.dragObject.removeEdge(v);
             }
             this.redraw();
         }
@@ -979,7 +987,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Updates a single node being dragged.
      */
     private updateDragNode(n: DrawableNode, dPt: pt): void {
-        n.position = { x: n.position.x + dPt.x, y: n.position.y + dPt.y };
+        n.position = MathEx.subtract(n.position, dPt);
         for (const e of n.edges)
             e.update(this.canvas);
     }
@@ -996,7 +1004,7 @@ export class GraphEditorComponent implements AfterViewInit {
         const prev = this.panPt;
         const curr: pt = p;
         if (prev) {
-            const dp = { x: curr.x - prev.x, y: curr.y - prev.y };
+            const dp = MathEx.subtract(curr, prev);
             this.canvas.origin.x += dp.x / this.canvas.scale;
             this.canvas.origin.y += dp.y / this.canvas.scale;
         }
@@ -1015,15 +1023,9 @@ export class GraphEditorComponent implements AfterViewInit {
         // Get the canvas coordinates after zoom.
         const pt2 = this.canvas.getPt(p);
         // Get the delta between pre- and post-zoom canvas pts.
-        const dpt = {
-            x: pt2.x - pt1.x,
-            y: pt2.y - pt1.y
-        };
+        const dpt = MathEx.subtract(pt2, pt1);
         // Move the canvas origin by the delta.
-        this.origin = {
-            x: this.canvas.origin.x + dpt.x,
-            y: this.canvas.origin.y + dpt.y
-        };
+        this.origin = MathEx.add(this.canvas.origin, dpt);
         this.redraw();
     }
 
@@ -1063,7 +1065,9 @@ export class GraphEditorComponent implements AfterViewInit {
             clearTimeout(this.stickyTimeout as NodeJS.Timer);
             this.stickyTimeout = null;
         }
-        this.downEvt = null;
+        this.drawSelectionBoxDelegate = MathEx.NOOP;
+        this.dragPt = null;
+        this.selectionPt = null;
         this.moveEdge = null;
         this.updateHoverObject(null);
         this.updateDragObject();
@@ -1116,7 +1120,6 @@ export class GraphEditorComponent implements AfterViewInit {
                     const spt = (src === dst ?
                         { x: src.position.x, y: src.position.y - 1 } :
                         src.position);
-                    src.position;
                     const dpt = dst.position;
                     const u = { x: 0, y: 0 };
                     if (dst === n) {
@@ -1152,7 +1155,7 @@ export class GraphEditorComponent implements AfterViewInit {
         like?: DrawableEdge
     ) {
         const h = new HiddenNode(this.graph);
-        h.position = this.canvas.getPt(this.downEvt as point);
+        h.position = this.dragPt!;
         const src = (isSrc ? n : h);
         const dst = (isSrc ? h : n);
         const bnd = (isSrc ? src : dst);
@@ -1180,6 +1183,8 @@ export class GraphEditorComponent implements AfterViewInit {
             let srcNode = (e.source.isHidden ? this.hoverObject : e.source);
             let dstNode = (e.destination.isHidden ? this.hoverObject : e.destination);
             const edge = (like ? this.graph.moveEdge(srcNode, dstNode, like) : this.graph.createEdge(srcNode, dstNode, like));
+            e.source.removeEdge(e);
+            e.destination.removeEdge(e);
             if (edge)
                 this.updateSelected(edge);
             this.resumeRedraw();
@@ -1198,10 +1203,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private dropNodes(dragNode: DrawableNode, pt: pt): void {
         const posn = dragNode.position;
-        this.updateDragNodes(
-            dragNode,
-            { x: pt.x - posn.x, y: pt.y - posn.y }
-        );
+        this.updateDragNodes(dragNode, pt);
         //
         // TODO:
         // Pevent nodes from being dropped on top of eachother.

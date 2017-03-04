@@ -99,7 +99,6 @@ export class GraphEditorCanvas {
     constructor(private g: CanvasRenderingContext2D) {
         // These probably do nothing.
         this.g.mozImageSmoothingEnabled = true;
-        this.g.msImageSmoothingEnabled = true;
         this.g.oImageSmoothingEnabled = true;
     }
 
@@ -199,10 +198,7 @@ export class GraphEditorCanvas {
         dst: point
     ): void {
         // Get the unit vector from the source point to the destination point.
-        const v: point = {
-            x: dst.x - src.x,
-            y: dst.y - src.y
-        };
+        const v: point = MathEx.subtract(dst, src);
         const d = MathEx.mag(v);
         const u = { x: v.x / d, y: v.y / d };
 
