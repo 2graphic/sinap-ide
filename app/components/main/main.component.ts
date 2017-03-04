@@ -198,7 +198,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     openFile = (file: LocalFile) => {
-        const entry = [...this.tabs.entries()].find(([i, context]) => file.equals(context.file));
+        const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
         if (entry) {
             this.tabBar.active = entry[0];
         } else {
