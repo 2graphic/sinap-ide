@@ -4,7 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue } from "sinap-core";
+import { CoreValue, PluginTypeEnvironment } from "sinap-core";
 
 @Component({
     selector: "sinap-boolean-type",
@@ -12,6 +12,6 @@ import { CoreValue } from "sinap-core";
     styleUrls: ["./boolean-type.component.scss"]
 })
 export class BooleanTypeComponent {
-    @Input() value: CoreValue;
+    @Input() value: CoreValue<PluginTypeEnvironment>;
     @Input() readonly: boolean = true;
 }

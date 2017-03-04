@@ -4,7 +4,7 @@
 
 
 import { Component, Input } from "@angular/core";
-import { Program, CoreValue } from "sinap-core";
+import { Program, CoreValue, valueWrap, PluginTypeEnvironment } from "sinap-core";
 
 @Component({
     selector: "sinap-test-panel",
@@ -49,7 +49,7 @@ export class TestPanelComponent {
                 test.output = out.result;
             } catch (e) {
                 console.log(e);
-                test.output = new CoreValue(this.program.plugin.typeEnvironment.getStringType(), "Error");
+                test.output = valueWrap(this.program.plugin.typeEnvironment, e, false);
             }
         }
     }
@@ -69,9 +69,9 @@ export class TestPanelComponent {
     private newTest() {
         if (this.program) {
             const test = {
-                input: new CoreValue(this.program.plugin.typeEnvironment.getStringType(), ""),
-                expected: new CoreValue(this.program.plugin.typeEnvironment.getBooleanType(), true),
-                output: new CoreValue(this.program.plugin.typeEnvironment.getStringType(), "Not ran")
+                input: this.program.makeValue(this.program.runArguments[0][0], undefined, true),
+                expected: valueWrap(this.program.plugin.typeEnvironment, true, false),
+                output: valueWrap(this.program.plugin.typeEnvironment, "Not ran", false)
             };
 
             // test.input.changed.asObservable().subscribe(this.testChanged.bind(this, test));
@@ -110,7 +110,7 @@ export class TestPanelComponent {
 }
 
 interface Test {
-    input: CoreValue;
-    expected: CoreValue;
-    output: CoreValue;
+    input: CoreValue<PluginTypeEnvironment>;
+    expected: CoreValue<PluginTypeEnvironment>;
+    output: CoreValue<PluginTypeEnvironment>;
 }

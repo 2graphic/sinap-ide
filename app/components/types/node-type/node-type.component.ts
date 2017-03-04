@@ -4,7 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue } from "sinap-core";
+import { CoreValue, PluginTypeEnvironment, CoreElement } from "sinap-core";
 
 @Component({
     selector: "sinap-node-type",
@@ -12,12 +12,12 @@ import { CoreValue } from "sinap-core";
     styleUrls: ["./node-type.component.scss"]
 })
 export class NodeTypeComponent {
-    @Input() value: CoreValue;
+    @Input() value: CoreValue<PluginTypeEnvironment>;
     @Input() readonly: boolean = true;
 
     private getLabel() {
-        if (this.value && this.value.value && this.value.value.label && this.value.value.label !== "") {
-            return this.value.value.label;
+        if (this.value instanceof CoreElement) {
+            return this.value.uuid; // TODO
         } else {
             return "<NO LABEL>";
         }

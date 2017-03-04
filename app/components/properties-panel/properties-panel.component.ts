@@ -5,7 +5,7 @@
 
 import { Component, Input } from "@angular/core";
 import { BridgingProxy } from "../../models/graph-controller";
-import { Type, UnionType, WrappedScriptObjectType, isUnionType } from "sinap-core";
+import { Type, UnionType, WrappedScriptObjectType, isUnionType, PluginTypeEnvironment } from "sinap-core";
 
 @Component({
     selector: "sinap-properties-panel",
@@ -15,14 +15,14 @@ import { Type, UnionType, WrappedScriptObjectType, isUnionType } from "sinap-cor
 export class PropertiesPanelComponent {
     private isEmpty = true;
     private fieldNames: string[];
-    private fields: { [a: string]: [string, string, Type][] };
+    private fields: { [a: string]: [string, string, Type<PluginTypeEnvironment>][] };
     private element: { [a: string]: any };
-    private lookupSinapType: (a: string) => Type;
-    private lookupPluginType: (a: string) => Type;
+    private lookupSinapType: (a: string) => Type<PluginTypeEnvironment>;
+    private lookupPluginType: (a: string) => Type<PluginTypeEnvironment>;
     private isUnionType = isUnionType;
 
 
-    unionValues(t: UnionType) {
+    unionValues(t: UnionType<PluginTypeEnvironment>) {
         // substring necessary to strip the quote marks off the types
         // that is, the union.types looks like ['"option a"', '"option b"', ...]
         return [...t.types].map(t => t.name.substring(1, t.name.length - 1));
@@ -47,10 +47,10 @@ export class PropertiesPanelComponent {
                 const pluginType = bridge.core.type;
 
                 // TODO: move this to function
-                const pluginFields = [...pluginType.members.entries()].map(([n, t]) => [n, pluginType.prettyNames.get(n), t] as [string, string, Type]);
+                const pluginFields = [...pluginType.members.entries()].map(([n, t]) => [n, pluginType.prettyNames.get(n), t] as [string, string, Type<PluginTypeEnvironment>]);
                 const drawableFields = [...drawableType.members.entries()]
                     .filter(([n, _]) => !pluginType.members.has(n))
-                    .map(([n, t]) => [n, drawableType.prettyNames.get(n), t] as [string, string, Type]);
+                    .map(([n, t]) => [n, drawableType.prettyNames.get(n), t] as [string, string, Type<PluginTypeEnvironment>]);
 
                 this.fields = {
                     "General": pluginFields,

@@ -2,7 +2,7 @@
 //
 
 import { Component, ElementRef, ViewChild, AfterViewChecked } from "@angular/core";
-import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType } from "sinap-core";
+import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType, PluginTypeEnvironment, CoreObjectValue, CorePrimitiveValue, CoreElement } from "sinap-core";
 
 @Component({
     selector: "sinap-input-panel",
@@ -25,9 +25,9 @@ export class InputPanelComponent implements AfterViewChecked {
 
     private results: ProgramResult[] = [];
     private selected: ProgramResult;
-    private selectedState: CoreValue;
+    private selectedState: CoreValue<PluginTypeEnvironment>;
 
-    private inputForPlugin?: CoreValue;
+    private inputForPlugin?: CoreValue<PluginTypeEnvironment>;
 
     private shouldScroll = false;
     ngAfterViewChecked() {
@@ -41,14 +41,18 @@ export class InputPanelComponent implements AfterViewChecked {
     @ViewChild('log') log: ElementRef;
 
     private isObjectType = isObjectType;
-    private isErrorType(t: Type) {
+    private isErrorType(t: Type<PluginTypeEnvironment>) {
         return t.isAssignableTo((t.env as any).lookupPluginType("Error"));
     }
 
-    private selectState(state: CoreValue) {
+    private selectState(state: CoreValue<PluginTypeEnvironment>) {
         this.selectedState = state;
-        if (isObjectType(state.type) && state.value.active) {
-            this.delegate.selectNode(state.value.active);
+        if (state instanceof CoreObjectValue && state.type.members.has("active")) {
+            let active = state.get("active");
+
+            if (active instanceof CoreElement) {
+                this.delegate.selectElement(active);
+            }
         }
     }
 
@@ -56,45 +60,29 @@ export class InputPanelComponent implements AfterViewChecked {
         this.shouldScroll = true;
     }
 
-    private getStringType(program: Program) {
-        return program.plugin.typeEnvironment.getStringType();
-    }
-
-    private getInputType() {
-        if (this.program) {
-            return this.getStringType(this.program);
-        }
-
-        throw "No program";
-    }
-
     private setupInput() {
-        this.inputForPlugin = new CoreValue(this.getInputType(), "");
+        if (this.program) {
+            this.inputForPlugin = this.program.makeValue(this.program.runArguments[0][0], undefined, true);
+        }
     }
 
     /**
      * Returns a new object value that doesn't have a message property.
      */
-    private stripMessage(state: CoreValue) {
-        if (isObjectType(state.type)) {
-            const members = new Map(state.type.members);
-            members.delete("message");
-            return new CoreValue(new FakeObjectType(state.type.env, members), state.value);
-        } else {
-            return state;
-        }
+    private stripMessage(state: CoreValue<PluginTypeEnvironment>) {
+        return state;
+        // if (isObjectType(state.type)) {
+        //     const members = new Map(state.type.members);
+        //     members.delete("message");
+        //     return new CoreValue<PluginTypeEnvironment>(new FakeObjectType(state.type.env, members), state.value);
+        // } else {
+        //     return state;
+        // }
     }
 
-    getMessage(state: CoreValue) {
-        if (this.program) {
-            if (isObjectType(state.type)) {
-                const type = state.type.members.get("message");
-                if (type) {
-                    return new CoreValue(type, state.value.message);
-                }
-            } else {
-                return new CoreValue(this.getStringType(this.program), "");
-            }
+    getMessage(state: CoreValue<PluginTypeEnvironment>) {
+        if (state instanceof CoreObjectValue) {
+            return state.type.members.has("message") ? state.get("message") : undefined;
         }
 
         return undefined;
@@ -135,7 +123,7 @@ export class InputPanelComponent implements AfterViewChecked {
         g();
     }
 
-    private onSubmit(input: CoreValue) {
+    private onSubmit(input: CoreValue<PluginTypeEnvironment>) {
         console.log(input, this.inputForPlugin);
         const output = this.run(input);
         console.log(input, output);
@@ -159,7 +147,7 @@ export class InputPanelComponent implements AfterViewChecked {
         }
     }
 
-    private run(input: CoreValue) {
+    private run(input: CoreValue<PluginTypeEnvironment>) {
         if (this.program) {
             return this.program.run([input]);
         } else {
@@ -171,16 +159,16 @@ export class InputPanelComponent implements AfterViewChecked {
 }
 
 export interface InputPanelDelegate {
-    selectNode(n: any): void;
+    selectElement(element: CoreElement): void;
 }
 
 interface Output {
-    states: CoreValue[];
-    result: CoreValue;
+    states: CoreValue<PluginTypeEnvironment>[];
+    result: CoreValue<PluginTypeEnvironment>;
 }
 
 class ProgramResult {
-    constructor(public readonly input: CoreValue, public readonly output: Output) { };
+    constructor(public readonly input: CoreValue<PluginTypeEnvironment>, public readonly output: Output) { };
     public steps = 0;
 
     public getStates() {

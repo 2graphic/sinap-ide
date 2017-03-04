@@ -17,7 +17,7 @@ import {
     CreatedOrDeletedEvent as DrawableCreatedOrDeletedEvent
 } from "../components/graph-editor/graph-editor.component";
 
-import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType, WrappedScriptObjectType } from "sinap-core";
+import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType, WrappedScriptObjectType, PluginTypeEnvironment } from "sinap-core";
 import { DoubleMap } from "./double-map";
 
 /**
@@ -136,7 +136,7 @@ export class GraphController {
         const sourceType = this.plugin.typeEnvironment.getElementType(source.core.kind, source.core.type.name);
         const destinationType = destination !== undefined ? (this.plugin.typeEnvironment.getElementType(destination.core.kind, destination.core.type.name)) : undefined;
 
-        let edge: WrappedScriptObjectType;
+        let edge: WrappedScriptObjectType<PluginTypeEnvironment>;
         if (like !== undefined) {
             const e = this.bridges.getA(like);
             if (e === undefined) {
@@ -159,7 +159,7 @@ export class GraphController {
         const coreEdges: CoreElement[] = [];
 
         // each core element we iterate over needs to have a drawable equivalent made for it
-        for (const element of this.core.elements) {
+        for (const [_, element] of this.core.elements) {
             // placeholder for the new drawable (if we make one)
             let drawable: Drawable | null = null;
             switch (element.kind) {
@@ -279,7 +279,7 @@ export class GraphController {
                             // Reinsert the core element and bridge
                             const [_, bridge] = found;
 
-                            this.core.elements.push(bridge.core);
+                            this.core.elements.set(bridge.core.uuid, bridge.core);
                             this.bridges.set(bridge.drawable, bridge.core, bridge);
                             return bridge;
                         } else {

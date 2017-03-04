@@ -4,7 +4,7 @@
 //
 
 import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type } from "@angular/core";
-import { CoreValue, Type as CoreType, isObjectType } from "sinap-core";
+import { CoreValue, Type as CoreType, isObjectType, PluginTypeEnvironment } from "sinap-core";
 
 import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
@@ -28,7 +28,7 @@ export class TypeInjectorComponent {
 
     @ViewChild('container', { read: ViewContainerRef }) private container: ViewContainerRef;
     private component?: ComponentRef<any>;
-    private _value?: CoreValue;
+    private _value?: CoreValue<PluginTypeEnvironment>;
     private _disabled: boolean = false;
 
     /**
@@ -59,7 +59,7 @@ export class TypeInjectorComponent {
     }
 
     @Input()
-    set value(v: CoreValue | undefined) {
+    set value(v: CoreValue<PluginTypeEnvironment> | undefined) {
         if (!v) {
             this.container.clear();
             this.component = undefined;
@@ -72,11 +72,11 @@ export class TypeInjectorComponent {
         }
     }
 
-    private areEqual(a: CoreValue, b: CoreValue) {
-        return (a.type.isAssignableTo(b.type) && b.type.isAssignableTo(a.type) && a.value === b.value);
+    private areEqual(a: CoreValue<PluginTypeEnvironment>, b: CoreValue<PluginTypeEnvironment>) {
+        return false;//(a.type.isAssignableTo(b.type) && b.type.isAssignableTo(a.type) && a.type === b.value);
     }
 
-    private inject(value: CoreValue, readonly: boolean, disabled: boolean) {
+    private inject(value: CoreValue<PluginTypeEnvironment>, readonly: boolean, disabled: boolean) {
         console.log("Creating new component");
         this._value = value;
 
@@ -101,7 +101,7 @@ export class TypeInjectorComponent {
         }
     }
 
-    private getComponentType(value: CoreValue) {
+    private getComponentType(value: CoreValue<PluginTypeEnvironment>) {
         const type = value.type;
         const env = type.env;
 
@@ -114,7 +114,7 @@ export class TypeInjectorComponent {
         }
 
         for (let [func, componentType] of this.componentMap) {
-            if (type.isAssignableTo(((env as any)[func])() as CoreType)) {
+            if (type.isAssignableTo(((env as any)[func])() as CoreType<PluginTypeEnvironment>)) {
                 return componentType;
             }
         }

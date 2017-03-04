@@ -10,7 +10,7 @@
 import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
 import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, SerialJSO } from "sinap-core";
 
-import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
+import { GraphEditorComponent, DrawableElement } from "../graph-editor/graph-editor.component";
 import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
 import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
@@ -213,13 +213,15 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
 
 
-    selectNode(a: any) {
+    selectElement(element: CoreElement) {
         // TODO: Fix everything
         if (this._context) {
-            for (let n of this._context.graph.drawable.nodes) {
-                if (n.label === a.label) {
+            for (let bridge of this._context.graph.bridges.entries()) {
+                if (bridge.core.uuid === element as any /*element.uuid*/) {
                     this._context.graph.drawable.clearSelection();
-                    this._context.graph.drawable.select(n);
+                    if (bridge.drawable instanceof DrawableElement) {
+                        this._context.graph.drawable.select(bridge.drawable);
+                    }
                 }
             }
         }
