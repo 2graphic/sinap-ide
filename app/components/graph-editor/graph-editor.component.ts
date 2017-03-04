@@ -165,13 +165,13 @@ export class GraphEditorComponent implements AfterViewInit {
      *   For suspending and resuming draw calls.
      */
     private redrawDelegate: callback
-    = NOOP;
+    = MathEx.NOOP;
 
     private deleteSelectedDelegate: callback
-    = NOOP;
+    = MathEx.NOOP;
 
     private selectAllDelegate: callback
-    = NOOP;
+    = MathEx.NOOP;
 
 
     // Public Fields ///////////////////////////////////////////////////////////
@@ -215,7 +215,7 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Suspends updates to the canvas.
      */
     suspendRedraw() {
-        this.redrawDelegate = NOOP;
+        this.redrawDelegate = MathEx.NOOP;
     }
 
     /**
@@ -762,8 +762,8 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Unregisters event listeners for the previously bound graph.
      */
     private unregisterGraph(g: DrawableGraph) {
-        this.deleteSelectedDelegate = NOOP;
-        this.selectAllDelegate = NOOP;
+        this.deleteSelectedDelegate = MathEx.NOOP;
+        this.selectAllDelegate = MathEx.NOOP;
         g.removeCreatedEdgeListener(this.onCreatedEdges);
         g.removeCreatedNodeListener(this.onCreatedNodes);
         g.removeDeletedEdgeListener(this.onDeletedEdges);
@@ -1210,10 +1210,3 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
 }
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-
-const NOOP: callback
-    = () => { };

@@ -12,9 +12,9 @@ import {
 
 import { DrawableGraph } from "./drawable-graph";
 import { DrawableElement } from "./drawable-element";
-import { DrawableNode } from "./drawable-node";
+import { DrawableNode as DNode } from "./drawable-node";
 import {
-    GraphEditorCanvas,
+    GraphEditorCanvas as Canvas,
     LineStyles,
     makeRect,
     point,
@@ -24,69 +24,18 @@ import {
 import * as MathEx from "./math";
 
 
+type fnGetPoints = (src: DNode, dst: DNode, bspt: point | null, bdpt: point | null) => point[];
+
+
 /**
  * DrawableEdge
  *   Represents an edge that is drawn on the graph editor canvas.
  */
 export class DrawableEdge extends DrawableElement {
-
-    /**
-     * _srcArrow
-     *   Keeps track of whether or not the source arrow is displayed.
-     */
-    private _srcArrow: boolean;
-
-    /**
-     * _dstArrow
-     *   Keeps track of whether or not the destination arrow is displayed.
-     */
-    private _dstArrow: boolean;
-
-    /**
-     * _lineStyle
-     *   Keeps track of the line style of the edge.
-     */
-    private _lineStyle: LineStyles;
-
-    /**
-     * _lineWidth
-     *   Keeps track of the line width of the edge.
-     */
-    private _lineWidth: number;
-
-    /**
-     * _pts
-     *   Keeps track of points-of-interest related to the edge.
-     *
-     * <p>
-     *   The first two points represent the boundary points along the source and
-     *   destination nodes respectively. The third point is the midpoint along
-     *   the edge line. For cubic lines, the fourth and fifth points are more
-     *   points along the line. The remaining points are control points for
-     *   either quadratic or cubic Bezier curves.
-     * </p>
-     */
-    private _pts: point[];
-
-    /**
-     * _spt
-     *   The bound anchor point of the source node.
-     */
-    private _spt: point | null;
-
-    /**
-     * _dpt
-     *   The bound anchor point of the destination node.
-     */
-    private _dpt: point | null;
-
-    /**
-     * constructor
-     */
     constructor(
         graph: DrawableGraph,
-        private readonly src: DrawableNode,
-        private readonly dst: DrawableNode,
+        private readonly src: DNode,
+        private readonly dst: DNode,
         like?: DrawableEdge
     ) {
         super(graph);
@@ -202,17 +151,73 @@ export class DrawableEdge extends DrawableElement {
         this.dst.addEdge(this);
     }
 
+
+    // Private fields //////////////////////////////////////////////////////////
+
+
+    /**
+     * _srcArrow
+     *   Keeps track of whether or not the source arrow is displayed.
+     */
+    private _srcArrow: boolean;
+
+    /**
+     * _dstArrow
+     *   Keeps track of whether or not the destination arrow is displayed.
+     */
+    private _dstArrow: boolean;
+
+    /**
+     * _lineStyle
+     *   Keeps track of the line style of the edge.
+     */
+    private _lineStyle: LineStyles;
+
+    /**
+     * _lineWidth
+     *   Keeps track of the line width of the edge.
+     */
+    private _lineWidth: number;
+
+    /**
+     * _pts
+     *
+     *   Keeps track of points-of-interest related to the edge.
+     *
+     * <p>
+     *   The first two points represent the boundary points along the source and
+     *   destination nodes respectively; the third point is the center point of
+     *   the label; the fourth point is the midpoint along the edge geometry;
+     *   for cubic bezier curves, the fifth and sixth points are the t/3 and
+     *   2t/3 points of the line; all other points are control points for
+     *   bezier curves.
+     * </p>
+     */
+    private _pts: point[];
+
+    /**
+     * _spt
+     *   The bound anchor point of the source node.
+     */
+    private _spt: point | null;
+
+    /**
+     * _dpt
+     *   The bound anchor point of the destination node.
+     */
+    private _dpt: point | null;
+
     /**
      * source
      *   Gets the reference to the drawable source node of the edge.
      */
-    readonly source: DrawableNode;
+    readonly source: DNode;
 
     /**
      * destination
      *   Gets the reference to the drawable destination node of the edge.
      */
-    readonly destination: DrawableNode;
+    readonly destination: DNode;
 
     /**
      * sourcePoint
@@ -265,32 +270,45 @@ export class DrawableEdge extends DrawableElement {
             this._pts = value;
     }
 
+
+    ////////////////////////////////////////////////////////////////////////////
+
     /**
      * update
      *   Updates the geometry and draw logic of the edge.
      */
-    update(g: GraphEditorCanvas): void {
+    update(g: Canvas): void {
         console.assert(
             !this.src.isHidden || !this.dst.isHidden,
             "error GraphEditorEdge.updatePoints: drawable edge must " +
             "have either a source or a destination"
         );
         this.updateTextSize(g);
+        const adjacent = this.getAdjacent();
+        const opposing = this.getOpposing();
         // TODO:
-        // Something about anchor pts for custom node images.
-        if (this.src === this.dst) {
-            this.setLoopPoints();
+        // Fix overlapped edges.
+        if (this.src === this.dst)
+            this.updateOverlappedPoints(g, getLoopPoints, adjacent);
+        else if (!this.src.isHidden && !this.dst.isHidden) {
+            if (opposing.length > 0)
+                this.updateOverlappedPoints(g, getQuadraticPoints, adjacent);
+            else
+                this.updateOverlappedPoints(g, getStraightPoints, adjacent);
+            if (adjacent.length > 0)
+                this.updateOverlappedPoints(g, getQuadraticPoints, opposing);
+            else
+                this.updateOverlappedPoints(g, getStraightPoints, opposing);
         }
         else
-            this.updateOverlappedEdges(g);
-        this.updateDraw(g);
+            this.updateOverlappedPoints(g, getStraightPoints, adjacent);
     }
 
     /**
      * updateDraw
      *   Updates the draw logic of the edge.
      */
-    updateDraw(g: GraphEditorCanvas) {
+    updateDraw(g: Canvas) {
         let hovered = this.isHovered;
         /////////////////////////
         // Set selected shadow //
@@ -305,7 +323,7 @@ export class DrawableEdge extends DrawableElement {
                 this.isHovered
             );
             const traceThunk = this.makeTraceEdge(g);
-            let drawLabelThunk = () => { };
+            let drawLabelThunk = MathEx.NOOP;
             if (this._lines.length > 0) {
                 const size = {
                     h: this._textSize.h + 4,
@@ -329,7 +347,7 @@ export class DrawableEdge extends DrawableElement {
             hovered = false;
         }
         else {
-            this._drawSelectionShadow = () => { };
+            this._drawSelectionShadow = MathEx.NOOP;
         }
         //////////////
         // Set edge //
@@ -343,7 +361,7 @@ export class DrawableEdge extends DrawableElement {
             hovered
         );
         const traceThunk = this.makeTraceEdge(g);
-        let drawLabelThunk = () => { };
+        let drawLabelThunk = MathEx.NOOP;
         if (this._lines.length > 0) {
             drawLabelThunk = () => {
                 this.drawLabel(g);
@@ -370,60 +388,65 @@ export class DrawableEdge extends DrawableElement {
      */
     hitPoint(pt: point): point | null {
         if (!(this.src.isHidden || this.dst.isHidden)) {
-            const src = this._pts[0];
-            const dst = this._pts[1];
-            const mid = this._pts[2];
+            const spt = this._pts[0];
+            const dpt = this._pts[1];
+            if (this._textSize.h > 0 && inside(
+                pt,
+                this._pts[2].x - this._textSize.w / 2 - 6, this._pts[2].y - this._textSize.h / 2,
+                this._pts[2].x + this._textSize.w / 2 + 6, this._pts[2].y + this._textSize.h / 2))
+                return ((pt.x - this._pts[2].x) > 0 ? dpt : spt);
+            const mpt = this._pts[3];
             const margin = this._lineWidth * this._lineWidth + EDGE_HIT_MARGIN * EDGE_HIT_MARGIN;
 
             const tl = {
-                x: Math.min(src.x, dst.x, mid.x) - margin,
-                y: Math.min(src.y, dst.y, mid.y) - margin
+                x: Math.min(spt.x, dpt.x, mpt.x) - margin,
+                y: Math.min(spt.y, dpt.y, mpt.y) - margin
             };
             const br = {
-                x: Math.max(src.x, dst.x, mid.x) + margin,
-                y: Math.max(src.y, dst.y, mid.y) + margin
+                x: Math.max(spt.x, dpt.x, mpt.x) + margin,
+                y: Math.max(spt.y, dpt.y, mpt.y) + margin
             };
             if (pt.x >= tl.x && pt.y >= tl.y && pt.x <= br.x && pt.y <= br.y) {
                 switch (this._pts.length) {
                     // Cubic Bezier.
-                    case 7: {
-                        const pt1 = this._pts[3];
-                        const pt2 = this._pts[4];
-                        let hitPt1 = hitPtTestLine(src, pt1, pt, margin);
+                    case 8: {
+                        const pt1 = this._pts[4];
+                        const pt2 = this._pts[5];
+                        let hitPt1 = hitPtTestLine(spt, pt1, pt, margin);
                         const hitPt2 = hitPtTestLine(pt1, pt2, pt, margin);
-                        let hitPt3 = hitPtTestLine(pt2, dst, pt, margin);
+                        let hitPt3 = hitPtTestLine(pt2, dpt, pt, margin);
                         if (hitPt2 === pt1 || hitPt1 === pt1)
-                            hitPt1 = src;
+                            hitPt1 = spt;
                         else if (hitPt2 === pt2 || hitPt3 === pt2)
-                            hitPt3 = dst;
+                            hitPt3 = dpt;
                         if (hitPt1 && hitPt3) {
-                            const v = { x: pt.x - src.x, y: pt.y - src.y };
+                            const v = { x: pt.x - spt.x, y: pt.y - spt.y };
                             const d1 = MathEx.dot(v, v);
-                            v.x = pt.x - dst.x;
-                            v.y = pt.y - dst.y;
+                            v.x = pt.x - dpt.x;
+                            v.y = pt.y - dpt.y;
                             const d2 = MathEx.dot(v, v);
-                            return (d2 < d1 ? dst : src);
+                            return (d2 < d1 ? dpt : spt);
                         }
                         else if (hitPt1)
-                            return src;
+                            return spt;
                         else if (hitPt3)
-                            return dst;
+                            return dpt;
 
                     } break;
 
                     // Quadratic Bezier.
-                    case 4: {
-                        let hitPt = hitPtTestLine(src, mid, pt, margin);
+                    case 5: {
+                        let hitPt = hitPtTestLine(spt, mpt, pt, margin);
                         if (hitPt)
-                            return src;
-                        hitPt = hitPtTestLine(mid, dst, pt, margin);
+                            return spt;
+                        hitPt = hitPtTestLine(mpt, dpt, pt, margin);
                         if (hitPt)
-                            return dst;
+                            return dpt;
                     } break;
 
                     // Straight Line.
                     default: {
-                        const hitPt = hitPtTestLine(src, dst, pt, margin);
+                        const hitPt = hitPtTestLine(spt, dpt, pt, margin);
                         if (hitPt)
                             return hitPt;
                     } break;
@@ -446,28 +469,26 @@ export class DrawableEdge extends DrawableElement {
         const p0 = ps[0];
         const p1 = ps[1];
         const p2 = ps[2];
-        const inside = (p: point) => {
-            return (p.x <= R && p.x >= L && p.y <= B && p.y >= T);
-        };
-        if (inside(p0) || inside(p1) || inside(p2))
+        const p3 = ps[3];
+        if (inside(p0, L, T, R, B) || inside(p1, L, T, R, B) || inside(p2, L, T, R, B) || inside(p3, L, T, R, B))
             return true;
 
         switch (ps.length) {
             // Cubic.
-            case 7: {
-                return inside(ps[3]) || inside(ps[4]) ||
-                    MathEx.cubBezIntersect(p0, ps[5], ps[6], p1, { x: L, y: T }, { x: L, y: B }) ||
-                    MathEx.cubBezIntersect(p0, ps[5], ps[6], p1, { x: R, y: T }, { x: R, y: B }) ||
-                    MathEx.cubBezIntersect(p0, ps[5], ps[6], p1, { x: L, y: T }, { x: R, y: T }) ||
-                    MathEx.cubBezIntersect(p0, ps[5], ps[6], p1, { x: L, y: B }, { x: R, y: B });
+            case 8: {
+                return inside(ps[4], L, T, R, B) || inside(ps[5], L, T, R, B) ||
+                    MathEx.cubBezIntersect(p0, ps[6], ps[7], p1, { x: L, y: T }, { x: L, y: B }) ||
+                    MathEx.cubBezIntersect(p0, ps[6], ps[7], p1, { x: R, y: T }, { x: R, y: B }) ||
+                    MathEx.cubBezIntersect(p0, ps[6], ps[7], p1, { x: L, y: T }, { x: R, y: T }) ||
+                    MathEx.cubBezIntersect(p0, ps[6], ps[7], p1, { x: L, y: B }, { x: R, y: B });
             }
 
             // Quadratic.
-            case 4:
-                return MathEx.quadBezIntersect(p0, ps[3], p1, { x: L, y: T }, { x: L, y: B }) ||
-                    MathEx.quadBezIntersect(p0, ps[3], p1, { x: R, y: T }, { x: R, y: B }) ||
-                    MathEx.quadBezIntersect(p0, ps[3], p1, { x: L, y: T }, { x: R, y: T }) ||
-                    MathEx.quadBezIntersect(p0, ps[3], p1, { x: L, y: B }, { x: R, y: B });
+            case 5:
+                return MathEx.quadBezIntersect(p0, ps[4], p1, { x: L, y: T }, { x: L, y: B }) ||
+                    MathEx.quadBezIntersect(p0, ps[4], p1, { x: R, y: T }, { x: R, y: B }) ||
+                    MathEx.quadBezIntersect(p0, ps[4], p1, { x: L, y: T }, { x: R, y: T }) ||
+                    MathEx.quadBezIntersect(p0, ps[4], p1, { x: L, y: B }, { x: R, y: B });
 
             // Straight.
             default:
@@ -479,7 +500,7 @@ export class DrawableEdge extends DrawableElement {
      * bindAnchor
      *   Binds an end point of the edge to a node anchor.
      */
-    bindAnchor(n: DrawableNode, apt: point) {
+    bindAnchor(n: DNode, apt: point) {
         if (n === this.src)
             this._spt = apt;
         else if (n === this.dst)
@@ -490,221 +511,68 @@ export class DrawableEdge extends DrawableElement {
      * unbindAnchor
      *   Unbinds an end point of the edge from a node anchor.
      */
-    unbindAnchor(n: DrawableNode) {
+    unbindAnchor(n: DNode) {
         if (n === this.src)
             this._spt = null;
         else if (n === this.dst)
             this._dpt = null;
     }
 
-    /**
-     * updateOverlappedEdges
-     */
-    private updateOverlappedEdges(g: GraphEditorCanvas) {
-        if (!this.src.isHidden && !this.dst.isHidden) {
-            const srcIn = this.source.incomingEdges;
-            const srcOut = this.source.outgoingEdges;
-            const dstIn = this.destination.incomingEdges;
-            const dstOut = this.destination.outgoingEdges;
-            const opposing = new Set<DrawableEdge>(
-                [...dstOut].filter(v => srcIn.has(v) && this._spt === v._dpt)
-            );
-            const adjacent = new Set<DrawableEdge>(
-                [...srcOut].filter(v => dstIn.has(v) && this._spt === v._spt)
-            );
-            if (opposing.size > 0) {
-                for (const edge of adjacent) {
-                    edge.setQuadraticPoints();
-                    edge.updateDraw(g);
-                }
+    private updateOverlappedPoints(g: Canvas, getPts: fnGetPoints, edges: DrawableEdge[]) {
+        const first = edges.pop();
+        if (first) {
+            first.points = getPts(first.src, first.dst, first._spt, first._dpt);
+            const norm = MathEx.normal(MathEx.subtract(first._pts[0], first._pts[1]));
+            const dir = MathEx.sgn(norm.y);
+            norm.x *= (first.src === first.dst ? 0 : GRID_SPACING / 2);
+            norm.y *= GRID_SPACING / 2;
+            first._pts[2].x -= norm.x;
+            first._pts[2].y += norm.y;
+            let yOffset = dir * first._textSize.h;
+            for (const edge of edges) {
+                edge.points = getPts(edge.src, edge.dst, edge._spt, edge._dpt);
+                edge._pts[2].x -= norm.x;
+                edge._pts[2].y += norm.y + yOffset;
+                yOffset += dir * edge._textSize.h;
+                edge.updateDraw(g);
+                // TODO:
+                // How do we want to deal with adjacent edges of different types?
+                // edge._draw = MathEx.NOOP;
             }
-            else {
-                for (const edge of adjacent) {
-                    edge.setStraightPoints();
-                    edge.updateDraw(g);
-                }
-            }
-            if (adjacent.size > 0) {
-                for (const edge of opposing) {
-                    edge.setQuadraticPoints();
-                    edge.updateDraw(g);
-                }
-            }
-            else {
-                for (const edge of opposing) {
-                    edge.setStraightPoints();
-                    edge.updateDraw(g);
-                }
-            }
+            first.updateDraw(g);
+            edges.push(first);
         }
-        else
-            this.setStraightPoints();
     }
 
-    /**
-     * setStraightPoints
-     *   Sets the end points and midpoint of a straight line.
-     */
-    private setStraightPoints(): void {
-        const pts: point[] = [];
-        pts.push({ x: this.src.position.x, y: this.src.position.y });
-        pts.push({ x: this.dst.position.x, y: this.dst.position.y });
-        if (this._spt && this._dpt) {
-            pts[0].x += this._spt.x;
-            pts[0].y += this._spt.y;
-            pts[1].x += this._dpt.x;
-            pts[1].y += this._dpt.y;
-        }
-        else if (this._spt && !this._dpt) {
-            pts[0].x += this._spt.x;
-            pts[0].y += this._spt.y;
-            const v = { x: pts[0].x - pts[1].x, y: pts[0].y - pts[1].y };
-            const d = MathEx.mag(v);
-            const u = { x: v.x / d, y: v.y / d };
-            pts[1] = this.dst.getBoundaryPt(u);
-        }
-        else if (!this._spt && this._dpt) {
-            pts[1].x += this._dpt.x;
-            pts[1].y += this._dpt.y;
-            const v = { x: pts[1].x - pts[0].x, y: pts[1].y - pts[0].y };
-            const d = MathEx.mag(v);
-            const u = { x: v.x / d, y: v.y / d };
-            pts[0] = this.src.getBoundaryPt(u);
-        }
-        else {
-            const v = { x: pts[1].x - pts[0].x, y: pts[1].y - pts[0].y };
-            const d = MathEx.mag(v);
-            const u = { x: v.x / d, y: v.y / d };
-            pts[0] = this.src.getBoundaryPt(u);
-            u.x *= -1;
-            u.y *= -1;
-            pts[1] = this.dst.getBoundaryPt(u);
-        }
-        pts.push({
-            x: (pts[0].x + pts[1].x) / 2,
-            y: (pts[0].y + pts[1].y) / 2
-        });
-        this.points = pts;
+    private getAdjacent() {
+        return this.filterEdges(
+            this.dst.incomingEdges,
+            this.src.outgoingEdges,
+            this._spt,
+            this._dpt
+        );
     }
 
-    /**
-     * setQuadraticPoints
-     *   Sets the edge points and midpoint of an overlapping edge.
-     */
-    private setQuadraticPoints(): void {
-        const pts: point[] = [];
-        let spt = {
-            x: this.src.position.x + (this._spt ? this._spt.x : 0),
-            y: this.src.position.y + (this._spt ? this._spt.y : 0)
-        };
-        let dpt = {
-            x: this.dst.position.x + (this._dpt ? this._dpt.x : 0),
-            y: this.dst.position.y + (this._dpt ? this._dpt.y : 0)
-        };
-
-        // Get a vector from the source node to the destination node.
-        const v: point = { x: dpt.x - spt.x, y: dpt.y - spt.y, };
-        // Get the magitude of the vector.
-        let d = MathEx.mag(v);
-
-        if (!this._spt)
-            spt = this.src.getBoundaryPt({ x: v.x / d, y: v.y / d });
-        if (!this._dpt)
-            dpt = this.dst.getBoundaryPt({ x: -v.x / d, y: -v.y / d });
-        v.x = dpt.x - spt.x;
-        v.y = dpt.y - spt.y;
-        d = MathEx.mag(v);
-
-        // Set the control point to the midpoint of the vector plus the scaled
-        // normal.
-        const pt1: point = {
-            x: spt.x + v.x / 2 + v.y / d * GRID_SPACING,
-            y: spt.y + v.y / 2 - v.x / d * GRID_SPACING
-        };
-
-        if (!this._spt) {
-            v.x = pt1.x - this.src.position.x;
-            v.y = pt1.y - this.src.position.y;
-            d = MathEx.mag(v);
-            pts.push(this.src.getBoundaryPt({ x: v.x / d, y: v.y / d }));
-        }
-        else
-            pts.push(spt);
-
-        if (!this._dpt) {
-            // Get the destination endpoint.
-            v.x = pt1.x - this.dst.position.x;
-            v.y = pt1.y - this.dst.position.y;
-            d = MathEx.mag(v);
-            pts.push(this.dst.getBoundaryPt({ x: v.x / d, y: v.y / d }));
-        }
-        else
-            pts.push(dpt);
-
-        // Midpoint.
-        pts.push({
-            x: (pts[0].x + 2 * pt1.x + pts[1].x) / 4,
-            y: (pts[0].y + 2 * pt1.y + pts[1].y) / 4
-        });
-        pts.push(pt1);
-        this.points = pts;
+    private getOpposing() {
+        return this.filterEdges(
+            this.src.incomingEdges,
+            this.dst.outgoingEdges,
+            this._dpt,
+            this._spt
+        );
     }
 
-    /**
-     * setLoopPoints
-     *   Sets the edge points and midpoint of a self-referencing node.
-     */
-    private setLoopPoints(): void {
-        const pts: point[] = [];
-        let spt = {
-            x: this.src.position.x + (this._spt ? this._spt.x : 0),
-            y: this.src.position.y + (this._spt ? this._spt.y : 0)
-        };
-        let dpt = {
-            x: this.dst.position.x + (this._dpt ? this._dpt.x : 0),
-            y: this.dst.position.y + (this._dpt ? this._dpt.y : 0)
-        };
-
-        const u: point = { x: MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
-        const v: point = { x: -MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
-
-        if (!this._spt)
-            pts.push(this.src.getBoundaryPt(u));
-        else
-            pts.push(spt);
-
-        if (!this._dpt)
-            pts.push(this.dst.getBoundaryPt(v));
-        else
-            pts.push(dpt);
-
-        const pt1: point = {
-            x: pts[0].x + 2 * GRID_SPACING * u.x,
-            y: pts[0].y + 2 * GRID_SPACING * u.y
-        };
-        const pt2: point = {
-            x: pts[1].x + 2 * GRID_SPACING * v.x,
-            y: pts[1].y + 2 * GRID_SPACING * v.y
-        };
-
-        // mid
-        pts.push({
-            x: (pts[0].x + 3 * (pt1.x + pt2.x) + pts[1].x) / 8,
-            y: (pts[0].y + 3 * (pt1.y + pt2.y) + pts[1].y) / 8
-        });
-        // 1/3
-        pts.push({
-            x: (8 * pts[0].x + 12 * pt1.x + 6 * pt2.x + pts[1].x) / 27,
-            y: (8 * pts[0].y + 12 * pt1.y + 6 * pt2.y + pts[1].y) / 27
-        });
-        // 2/3
-        pts.push({
-            x: (pts[0].x + 6 * pt1.x + 12 * pt2.x + 8 * pts[1].x) / 27,
-            y: (pts[0].y + 6 * pt1.y + 12 * pt2.y + 8 * pts[1].y) / 27
-        });
-        pts.push(pt1);
-        pts.push(pt2);
-        this.points = pts;
+    private filterEdges(
+        incoming: Set<DrawableEdge>,
+        outgoing: Set<DrawableEdge>,
+        spt: point | null,
+        dpt: point | null) {
+        const edges = [...outgoing].filter(v =>
+            incoming.has(v) && (spt === v._spt && dpt === v._dpt)
+        );
+        edges.sort();
+        edges.reverse();
+        return edges;
     }
 
     /**
@@ -712,7 +580,7 @@ export class DrawableEdge extends DrawableElement {
      *   Makes a function that sets up the canvas for drawing an edge.
      */
     private makePreDrawEdge(
-        g: GraphEditorCanvas,
+        g: Canvas,
         color: string,
         lineWidth: number,
         lineStyle: string,
@@ -745,78 +613,86 @@ export class DrawableEdge extends DrawableElement {
      * makeTraceEdge
      *   Makes a function that traces the geometry of an edge.
      */
-    private makeTraceEdge(g: GraphEditorCanvas): () => void {
+    private makeTraceEdge(g: Canvas): () => void {
         const pts = this._pts;
         const showSrc = this._srcArrow;
         const showDst = this._dstArrow;
+        const spt = pts[0];
+        const dpt = pts[1];
         switch (pts.length) {
             // Cubic
-            case 7:
+            case 8: {
+                const cpt1 = pts[6];
+                const cpt2 = pts[7];
                 if (showSrc && showDst)
                     return () => {
-                        g.traceCubic(pts[0], pts[1], pts[5], pts[6]);
-                        g.traceArrow(pts[5], pts[0]);
-                        g.traceArrow(pts[6], pts[1]);
+                        g.traceCubic(spt, dpt, cpt1, cpt2);
+                        g.traceArrow(cpt1, spt);
+                        g.traceArrow(cpt2, dpt);
                     };
                 else if (showSrc && !showDst)
                     return () => {
-                        g.traceCubic(pts[0], pts[1], pts[5], pts[6]);
-                        g.traceArrow(pts[5], pts[0]);
+                        g.traceCubic(spt, dpt, cpt1, cpt2);
+                        g.traceArrow(cpt1, spt);
                     };
                 else if (!showSrc && showDst)
                     return () => {
-                        g.traceCubic(pts[0], pts[1], pts[5], pts[6]);
-                        g.traceArrow(pts[6], pts[1]);
+                        g.traceCubic(spt, dpt, cpt1, cpt2);
+                        g.traceArrow(cpt2, dpt);
                     };
                 else
                     return () => {
-                        g.traceCubic(pts[0], pts[1], pts[5], pts[6]);
+                        g.traceCubic(spt, dpt, cpt1, cpt2);
                     };
+            }
 
             // Quadratic
-            case 4:
+            case 5: {
+                const cpt = pts[4];
                 if (showSrc && showDst)
                     return () => {
-                        g.traceQuadratic(pts[0], pts[1], pts[3]);
-                        g.traceArrow(pts[3], pts[0]);
-                        g.traceArrow(pts[3], pts[1]);
+                        g.traceQuadratic(spt, dpt, cpt);
+                        g.traceArrow(cpt, spt);
+                        g.traceArrow(cpt, dpt);
                     };
                 else if (showSrc && !showDst)
                     return () => {
-                        g.traceQuadratic(pts[0], pts[1], pts[3]);
-                        g.traceArrow(pts[3], pts[0]);
+                        g.traceQuadratic(spt, dpt, cpt);
+                        g.traceArrow(cpt, spt);
                     };
                 else if (!showSrc && showDst)
                     return () => {
-                        g.traceQuadratic(pts[0], pts[1], pts[3]);
-                        g.traceArrow(pts[3], pts[1]);
+                        g.traceQuadratic(spt, dpt, cpt);
+                        g.traceArrow(cpt, dpt);
                     };
                 else
                     return () => {
-                        g.traceQuadratic(pts[0], pts[1], pts[3]);
+                        g.traceQuadratic(spt, dpt, cpt);
                     };
+            }
 
             // Linear
-            default:
+            default: {
                 if (showSrc && showDst)
                     return () => {
-                        g.tracePath(pts[0], pts[1]);
-                        g.traceArrow(pts[1], pts[0]);
-                        g.traceArrow(pts[0], pts[1]);
+                        g.tracePath(spt, dpt);
+                        g.traceArrow(dpt, spt);
+                        g.traceArrow(spt, dpt);
                     };
                 else if (showSrc && !showDst)
                     return () => {
-                        g.tracePath(pts[0], pts[1]);
-                        g.traceArrow(pts[1], pts[0]);
+                        g.tracePath(spt, dpt);
+                        g.traceArrow(dpt, spt);
                     };
                 else if (!showSrc && showDst)
                     return () => {
-                        g.tracePath(pts[0], pts[1]);
-                        g.traceArrow(pts[0], pts[1]);
+                        g.tracePath(spt, dpt);
+                        g.traceArrow(spt, dpt);
                     };
+            }
         }
         return () => {
-            g.tracePath(pts[0], pts[1]);
+            g.tracePath(spt, dpt);
         };
     }
 
@@ -824,7 +700,7 @@ export class DrawableEdge extends DrawableElement {
      * drawLabelRect
      *   Draws the background rectangle for the edge label.
      */
-    private drawLabelRect(g: GraphEditorCanvas, sz: size) {
+    private drawLabelRect(g: Canvas, sz: size) {
         const pt = this._pts[2];
         g.traceRect(makeRect(
             { x: pt.x - sz.w / 2 - 6, y: pt.y - sz.h / 2 },
@@ -839,7 +715,7 @@ export class DrawableEdge extends DrawableElement {
      * drawEdgeLabel
      *   Draws the edge label.
      */
-    private drawLabel(g: GraphEditorCanvas): void {
+    private drawLabel(g: Canvas): void {
         g.fillStyle = "#fff";
         this.drawLabelRect(g, this._textSize);
         g.drawText(this._pts[2], this._textSize.h, this._lines, "#000");
@@ -847,6 +723,172 @@ export class DrawableEdge extends DrawableElement {
 
 }
 
+
+// Static functions ////////////////////////////////////////////////////////////
+
+
+const getStraightPoints = (src: DNode, dst: DNode, bspt: point | null, bdpt: point | null) => {
+    const pts: point[] = [];
+    pts.push({ x: src.position.x, y: src.position.y });
+    pts.push({ x: dst.position.x, y: dst.position.y });
+    if (bspt && bdpt) {
+        pts[0].x += bspt.x;
+        pts[0].y += bspt.y;
+        pts[1].x += bdpt.x;
+        pts[1].y += bdpt.y;
+    }
+    else if (bspt && !bdpt) {
+        pts[0].x += bspt.x;
+        pts[0].y += bspt.y;
+        const v = { x: pts[0].x - pts[1].x, y: pts[0].y - pts[1].y };
+        const d = MathEx.mag(v);
+        const u = { x: v.x / d, y: v.y / d };
+        pts[1] = dst.getBoundaryPt(u);
+    }
+    else if (!bspt && bdpt) {
+        pts[1].x += bdpt.x;
+        pts[1].y += bdpt.y;
+        const v = { x: pts[1].x - pts[0].x, y: pts[1].y - pts[0].y };
+        const d = MathEx.mag(v);
+        const u = { x: v.x / d, y: v.y / d };
+        pts[0] = src.getBoundaryPt(u);
+    }
+    else {
+        const v = { x: pts[1].x - pts[0].x, y: pts[1].y - pts[0].y };
+        const d = MathEx.mag(v);
+        const u = { x: v.x / d, y: v.y / d };
+        pts[0] = src.getBoundaryPt(u);
+        u.x *= -1;
+        u.y *= -1;
+        pts[1] = dst.getBoundaryPt(u);
+    }
+    pts.push({
+        x: (pts[0].x + pts[1].x) / 2,
+        y: (pts[0].y + pts[1].y) / 2
+    });
+    pts.push({ x: pts[2].x, y: pts[2].y });
+    return pts;
+};
+
+const getQuadraticPoints = (src: DNode, dst: DNode, bspt: point | null, bdpt: point | null) => {
+    const pts: point[] = [];
+    let spt = {
+        x: src.position.x + (bspt ? bspt.x : 0),
+        y: src.position.y + (bspt ? bspt.y : 0)
+    };
+    let dpt = {
+        x: dst.position.x + (bdpt ? bdpt.x : 0),
+        y: dst.position.y + (bdpt ? bdpt.y : 0)
+    };
+
+    // Get a vector from the source node to the destination node.
+    const v: point = { x: dpt.x - spt.x, y: dpt.y - spt.y, };
+    // Get the magitude of the vector.
+    let d = MathEx.mag(v);
+
+    if (!bspt)
+        spt = src.getBoundaryPt({ x: v.x / d, y: v.y / d });
+    if (!bdpt)
+        dpt = dst.getBoundaryPt({ x: -v.x / d, y: -v.y / d });
+    v.x = dpt.x - spt.x;
+    v.y = dpt.y - spt.y;
+    d = MathEx.mag(v);
+
+    // Set the control point to the midpoint of the vector plus the scaled
+    // normal.
+    const pt1: point = {
+        x: spt.x + v.x / 2 + v.y / d * GRID_SPACING,
+        y: spt.y + v.y / 2 - v.x / d * GRID_SPACING
+    };
+
+    if (!bspt) {
+        v.x = pt1.x - src.position.x;
+        v.y = pt1.y - src.position.y;
+        d = MathEx.mag(v);
+        pts.push(src.getBoundaryPt({ x: v.x / d, y: v.y / d }));
+    }
+    else
+        pts.push(spt);
+
+    if (!bdpt) {
+        // Get the destination endpoint.
+        v.x = pt1.x - dst.position.x;
+        v.y = pt1.y - dst.position.y;
+        d = MathEx.mag(v);
+        pts.push(dst.getBoundaryPt({ x: v.x / d, y: v.y / d }));
+    }
+    else
+        pts.push(dpt);
+
+    // Midpoint and label point.
+    pts.push({
+        x: (pts[0].x + 2 * pt1.x + pts[1].x) / 4,
+        y: (pts[0].y + 2 * pt1.y + pts[1].y) / 4
+    });
+    pts.push({ x: pts[2].x, y: pts[2].y });
+    pts.push(pt1);
+    return pts;
+};
+
+const getLoopPoints = (src: DNode, dst: DNode, bspt: point | null, bdpt: point | null) => {
+    // TODO:
+    // Make sure the edge goes from left to right if the source and destination
+    // points of the edge are not bound to any anchor points.
+    // Otherwise, make sure that the control points go in the appropriate
+    // direction relative to the positions of the end points.
+    const pts: point[] = [];
+    let spt = {
+        x: src.position.x + (bspt ? bspt.x : 0),
+        y: src.position.y + (bspt ? bspt.y : 0)
+    };
+    let dpt = {
+        x: dst.position.x + (bdpt ? bdpt.x : 0),
+        y: dst.position.y + (bdpt ? bdpt.y : 0)
+    };
+
+    const u: point = { x: -MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
+    const v: point = { x: MathEx.SIN_22_5, y: -MathEx.COS_22_5 };
+
+    if (!bspt)
+        pts.push(src.getBoundaryPt(u));
+    else
+        pts.push(spt);
+
+    if (!bdpt)
+        pts.push(dst.getBoundaryPt(v));
+    else
+        pts.push(dpt);
+
+    const pt1: point = {
+        x: pts[0].x + 2 * GRID_SPACING * u.x,
+        y: pts[0].y + 2 * GRID_SPACING * u.y
+    };
+    const pt2: point = {
+        x: pts[1].x + 2 * GRID_SPACING * v.x,
+        y: pts[1].y + 2 * GRID_SPACING * v.y
+    };
+
+    // label
+    pts.push({
+        x: (pts[0].x + 3 * (pt1.x + pt2.x) + pts[1].x) / 8,
+        y: (pts[0].y + 3 * (pt1.y + pt2.y) + pts[1].y) / 8
+    });
+    // mid
+    pts.push({ x: pts[2].x, y: pts[2].y });
+    // 1/3
+    pts.push({
+        x: (8 * pts[0].x + 12 * pt1.x + 6 * pt2.x + pts[1].x) / 27,
+        y: (8 * pts[0].y + 12 * pt1.y + 6 * pt2.y + pts[1].y) / 27
+    });
+    // 2/3
+    pts.push({
+        x: (pts[0].x + 6 * pt1.x + 12 * pt2.x + 8 * pts[1].x) / 27,
+        y: (pts[0].y + 6 * pt1.y + 12 * pt2.y + 8 * pts[1].y) / 27
+    });
+    pts.push(pt1);
+    pts.push(pt2);
+    return pts;
+};
 
 /**
  * hitPtTestLine
@@ -930,3 +972,7 @@ function hitRectTestStraighEdge(
         intersect(B, p0.y, p0.x, Dy, Dx, L, R)
     );
 }
+
+const inside = (p: point, left: number, top: number, right: number, bottom: number) => {
+    return (p.x >= left && p.x <= right && p.y >= top && p.y <= bottom);
+};
