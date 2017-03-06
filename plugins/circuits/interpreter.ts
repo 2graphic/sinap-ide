@@ -5,10 +5,17 @@ export type Graph = Circuit;
 export class BasicGate {
     children: Wire[];
     parents: Wire[];
+    protected value: boolean;
+    getValue(): boolean {
+        return this.value;
+    }
+    setValue(value: boolean) {
+        this.value = value;
+    }
 }
 
 export class InputGate extends BasicGate {
-    value: boolean;
+    public value: boolean;
 }
 
 export class OutputGate extends BasicGate {
@@ -31,9 +38,6 @@ export class Wire {
 
 export class Circuit {
     nodes: Nodes[];
-}
-
-export class State {
 }
 
 function getTraversalOrder(circuit: Circuit): BasicGate[] {
@@ -65,33 +69,38 @@ function easyReduce<T, R>(arr: T[], func: (current: T, result: R) => R, initial:
     return result;
 }
 
+export class State {
+}
+
 export function start(input: Circuit, other: string): string | State {
     const toVisit = getTraversalOrder(input);
-    const values = new Map<BasicGate, boolean>();
-    let result = "";
+    let output = "";
 
     function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init: boolean): boolean {
-        return easyReduce(node.parents, (parent, current) => op(values.get(parent.source), current), init);
+        return easyReduce(node.parents, (parent, current) => op(parent.source.getValue(), current), init);
     }
 
     for (const node of toVisit) {
+        let result: boolean;
         if (node instanceof InputGate) {
-            values.set(node, node.value);
+            result = node.value;
         } else if (node instanceof AndGate) {
-            values.set(node, applyOp(node, (a, b) => a && b, true));
+            result = applyOp(node, (a, b) => a && b, true);
         } else if (node instanceof OrGate) {
-            values.set(node, applyOp(node, (a, b) => a || b, false));
+            result = applyOp(node, (a, b) => a || b, false);
         } else if (node instanceof NotGate) {
-            values.set(node, !values.get(node.parents[0].source));
+            result = !node.parents[0].source.getValue();
         } else if (node instanceof OutputGate) {
-            const output = values.get(node.parents[0].source) ? true : false;
-            result += `${node.label}:${output} `;
+            result = node.parents[0].source.getValue();
+            output += `${node.label}:${result} `;
         } else {
             throw new Error(`Unknown type of node: ${Object.getPrototypeOf(node)}`);
         }
+
+        node.setValue(result);
     }
 
-    return result;
+    return output;
 }
 
 export function step(state: State): State | boolean {
