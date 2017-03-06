@@ -1,0 +1,147 @@
+{
+    "format": "sinap-file-format",
+    "kind": [
+        "Circuits",
+        "Digital Logic"
+    ],
+    "version": "0.0.7",
+    "elements": [
+        {
+            "kind": "Graph",
+            "type": "Circuit",
+            "data": {}
+        },
+        {
+            "kind": "Node",
+            "type": "InputGate",
+            "data": {
+                "color": "#fff200",
+                "label": "a",
+                "position": {
+                    "x": 95,
+                    "y": 125.1137397634213
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "InputGate",
+            "data": {
+                "color": "#fff200",
+                "label": "b",
+                "position": {
+                    "x": 96,
+                    "y": 243.22111010009093
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "AndGate",
+            "data": {
+                "color": "#fff200",
+                "label": "",
+                "position": {
+                    "x": 242,
+                    "y": 179.1628753412193
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Wire",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 3
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Wire",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 3
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "OutputGate",
+            "data": {
+                "color": "#fff200",
+                "label": "f",
+                "position": {
+                    "x": 419,
+                    "y": 180.16378525932666
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Wire",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 3
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 6
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        }
+    ]
+}

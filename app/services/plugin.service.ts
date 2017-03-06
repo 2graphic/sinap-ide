@@ -14,7 +14,8 @@ function somePromises<T>(promises: Iterable<Promise<T>>): Promise<T[]> {
             return promise.then((ele) => {
                 arr.push(ele);
                 return arr;
-            }).catch((_) => {
+            }).catch((err) => {
+                console.log(err);
                 return arr;
             });
         });
