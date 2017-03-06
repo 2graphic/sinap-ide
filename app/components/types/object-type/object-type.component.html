@@ -1,0 +1,6 @@
+<table>
+    <tr *ngFor="let key of keys">
+        <td>{{key}}</td>
+        <td><sinap-type [value]="values[key]" [readonly]="readonly"></sinap-type></td>
+    </tr>
+</table>

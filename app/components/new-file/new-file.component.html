@@ -1,18 +1,8 @@
 <div id="container" class="flex-container-row">
-    <!-- TODO: use a expanded list view for all panels -->
-    <!-- TODO: use a resizable panel view for all panels -->
-    <!-- TODO: Get plugin information from plugin service and display dynamically-->
     <div id="side-bar">
-        <ul>
-            <li class="top">FLAP</li>
-            <li class="active">Finite Machine</li>
-            <li>Mealy Machine</li>
-            <li>Moore Machine</li>
-            <li>Pushdown Automaton</li>
-            <li>Turing Machine</li>
-            <li class="top">Machine Learning</li>
-            <li>Nerual Network</li>
-        </ul>
+        <div *ngFor="let list of availablePlugins">
+            <sinap-collapsible-list [items]="list.plugins" [text]="list.title" (selectedIndexChanged)="newSelection($event)"></sinap-collapsible-list>
+        </div>
     </div>
     <div id="content" class="flex-container-column">
         <div id="description">

@@ -24,6 +24,12 @@ li {
     padding-left: 1.75em;
     font-weight: normal;
     font-size: small;
+
+    cursor: pointer;
+}
+
+.active {
+    cursor: inherit;
 }
 
 li:hover, .active {

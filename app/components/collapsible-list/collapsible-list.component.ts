@@ -22,7 +22,7 @@ import { Component, Input, Output, EventEmitter } from "@angular/core";
 export class CollapsibleListComponent {
 
     private _isExpanded: boolean = true;
-    private _selectedIndex: number = -1;
+    public selectedIndex: number = -1;
 
     @Input()
     items: any[] = [];
@@ -34,16 +34,7 @@ export class CollapsibleListComponent {
     tooltip: string | null;
 
     @Output()
-    selectedIndexChanged = new EventEmitter();
-
-    get selectedIndex() {
-        return this._selectedIndex;
-    }
-
-    set selectedIndex(value: number) {
-        this._selectedIndex = value;
-        this.selectedIndexChanged.emit(this);
-    }
+    selectedIndexChanged = new EventEmitter<CollapsibleListComponent>();
 
     get isExpanded() {
         return this._isExpanded;
@@ -59,6 +50,7 @@ export class CollapsibleListComponent {
 
     private clickItem(e: MouseEvent) {
         this.selectedIndex = parseInt((e.target as Element).id);
+        this.selectedIndexChanged.emit(this);
     }
 
 }

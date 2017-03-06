@@ -1,10 +1,4 @@
 <div id="wrapper">
-    <div *ngIf="manager">
-    Active Node Type: <select [(ngModel)]="manager.activeNodeType">
-        <option *ngFor="let t of manager.nodeTypes" [ngValue]="t">{{t}}</option>
-    </select>
-    </div>
-    Active Graph Type: <select [(ngModel)]="activeGraphType">
-        <option *ngFor="let t of graphTypes" [ngValue]="t">{{t}}</option>
-    </select>
+    <sinap-collapsible-list #nodesList [hidden]="nodes.length <= 1" [items]="nodes" text="Nodes"></sinap-collapsible-list>
+    <sinap-collapsible-list #edgesList [hidden]="edges.length <= 1" [items]="edges" text="Edges"></sinap-collapsible-list>
 </div>

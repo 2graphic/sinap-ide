@@ -1,0 +1,30 @@
+{
+  "name": "turing-machine",
+  "version": "1.0.0",
+  "description": "An interpreter for Turing Machines for the Sinap graph based IDE.",
+  "main": "turning.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/2graphic/sinap-core.git"
+  },
+  "keywords": [
+    "turing-machine",
+    "sinap",
+    "2graphic",
+    "plugin",
+    "formal-languages"
+  ],
+  "author": "2graphic",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/2graphic/sinap-core/issues"
+  },
+  "homepage": "https://github.com/2graphic/sinap-core#readme",
+  "sinap": {
+    "kind": ["Formal Languages", "Turing Machine"],
+    "plugin-file": "plugin.ts"
+  }
+}
