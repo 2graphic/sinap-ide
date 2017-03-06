@@ -136,11 +136,7 @@ export class InputPanelComponent implements AfterViewChecked {
     }
 
     private onSubmit(input: CoreValue) {
-        console.log(input, this.inputForPlugin);
         const output = this.run(input);
-        console.log(input, output);
-
-
 
         if (output) {
             let result = new ProgramResult(input, output);
@@ -152,6 +148,7 @@ export class InputPanelComponent implements AfterViewChecked {
             if (result.output.states.length > 0) {
                 this.selectedState = result.output.states[0];
                 result.steps++;
+                this.selectState(result.output.states[0]);
             }
 
             this.setupInput();

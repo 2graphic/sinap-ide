@@ -21,12 +21,19 @@ export class ObjectTypeComponent {
     set value(v: CoreValue) {
         const type = v.type;
 
+        //console.log(v);
+
         // TODO, remove keys that no longer exist.
         if (isObjectType(type)) {
             type.members.forEach((type, key) => {
+                if (key == "__constructor" || key == "states") {
+                    return;
+                }
                 this.values.set(key, new CoreValue(type, v.value[key]));
             });
         }
+
+        //console.log(this.values);
 
         this.keys = [...this.values.keys()];
     }

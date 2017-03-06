@@ -52,10 +52,12 @@ export class Tape {
 }
 
 export class State {
-    get active() {
-        return this.states[0][1];
-    }
+    active: Nodes;
+    tape: string;
+
     constructor(public states: [Tape, Nodes][]) {
+        this.active = states[0][1];
+        this.tape = states[0][0].data.join("");
     }
 }
 
@@ -73,7 +75,7 @@ export function step(current: State): State | boolean {
         return false;
     }
 
-    const nextState = new State([]);
+    const nextStates: [Tape, Nodes][] = [];
 
     for (const [tapeOriginal, node] of current.states) {
         if (node.isAcceptState) {
@@ -85,9 +87,9 @@ export function step(current: State): State | boolean {
         for (const edge of edges) {
             const tape = tapeOriginal.copy();
             tape.update(edge.write, edge.move);
-            nextState.states.push([tape, edge.destination]);
+            nextStates.push([tape, edge.destination]);
         }
     }
 
-    return nextState;
+    return new State(nextStates);
 }
