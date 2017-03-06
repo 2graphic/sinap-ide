@@ -25,7 +25,7 @@ export class InputPanelComponent implements AfterViewChecked {
 
     private results: ProgramResult[] = [];
     private selected: ProgramResult;
-    private selectedState: CoreValue;
+    private selectedState: State;
 
     private inputForPlugin?: CoreValue;
 
@@ -45,10 +45,10 @@ export class InputPanelComponent implements AfterViewChecked {
         return t.isAssignableTo((t.env as any).lookupPluginType("Error"));
     }
 
-    private selectState(state: CoreValue) {
+    private selectState(state: State) {
         this.selectedState = state;
-        if (isObjectType(state.type) && state.value.active) {
-            this.delegate.selectNode(state.value.active);
+        if (isObjectType(state.state.type) && state.state.value.active) {
+            this.delegate.selectNode(state.state.value.active);
         }
     }
 
@@ -70,34 +70,6 @@ export class InputPanelComponent implements AfterViewChecked {
 
     private setupInput() {
         this.inputForPlugin = new CoreValue(this.getInputType(), "");
-    }
-
-    /**
-     * Returns a new object value that doesn't have a message property.
-     */
-    private stripMessage(state: CoreValue) {
-        if (isObjectType(state.type)) {
-            const members = new Map(state.type.members);
-            members.delete("message");
-            return new CoreValue(new FakeObjectType(state.type.env, members), state.value);
-        } else {
-            return state;
-        }
-    }
-
-    getMessage(state: CoreValue) {
-        if (this.program) {
-            if (isObjectType(state.type)) {
-                const type = state.type.members.get("message");
-                if (type) {
-                    return new CoreValue(type, state.value.message);
-                }
-            } else {
-                return new CoreValue(this.getStringType(this.program), "");
-            }
-        }
-
-        return undefined;
     }
 
     private selectResult(c: ProgramResult) {
@@ -137,9 +109,9 @@ export class InputPanelComponent implements AfterViewChecked {
 
     private onSubmit(input: CoreValue) {
         const output = this.run(input);
-
         if (output) {
-            let result = new ProgramResult(input, output);
+            const states = output.states.map(s => new State(s));
+            const result = new ProgramResult(input, new Output(states, output.result));
             console.log(result);
 
             this.selected = result;
@@ -171,9 +143,42 @@ export interface InputPanelDelegate {
     selectNode(n: any): void;
 }
 
-interface Output {
-    states: CoreValue[];
-    result: CoreValue;
+class Output {
+    constructor(public readonly states: State[], public readonly result: CoreValue) { };
+}
+
+class State {
+    message: CoreValue | undefined;
+    state: CoreValue;
+
+    constructor(value: CoreValue) {
+        this.message = this.getMessage(value);
+        this.state = this.stripMessage(value);
+    }
+
+    /**
+     * Returns a new object value that doesn't have a message property.
+     */
+    private stripMessage(state: CoreValue) {
+        if (isObjectType(state.type)) {
+            const members = new Map(state.type.members);
+            members.delete("message");
+            return new CoreValue(new FakeObjectType(state.type.env, members), state.value);
+        } else {
+            return state;
+        }
+    }
+
+    private getMessage(state: CoreValue) {
+        if (isObjectType(state.type)) {
+            const type = state.type.members.get("message");
+            if (type) {
+                return new CoreValue(type, state.value.message);
+            }
+        }
+
+        return undefined;
+    }
 }
 
 class ProgramResult {

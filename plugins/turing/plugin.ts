@@ -53,11 +53,11 @@ export class Tape {
 
 export class State {
     active: Nodes;
-    tape: string;
+    message: string;
 
     constructor(public states: [Tape, Nodes][]) {
         this.active = states[0][1];
-        this.tape = states[0][0].data.join("");
+        this.message = states[0][0].data.join("");
     }
 }
 

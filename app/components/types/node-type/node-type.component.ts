@@ -17,7 +17,7 @@ export class NodeTypeComponent {
 
     private label: string = "";
 
-    @Input() 
+    @Input()
     set value(v: CoreValue) {
         this._value = v;
         if (v && v.value && v.value.label && v.value.label !== "") {
