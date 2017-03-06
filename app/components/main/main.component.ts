@@ -171,8 +171,8 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
 
     promptNewFile() {
-        this.pluginService.pluginKinds.then((pluginKinds) => {
-            let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginKinds);
+        this.pluginService.pluginData.then((pluginData) => {
+            let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginData);
             result.then((result: NewFileResult) => {
                 this.newFile(new UntitledFile(result.name), result.kind);
             });
