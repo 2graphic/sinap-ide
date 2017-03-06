@@ -12,6 +12,10 @@ import { Component, Input } from "@angular/core";
     styleUrls: ["./status-bar.component.scss"]
 })
 export class StatusBarComponent {
-    @Input() title: String;
-    @Input() items: String[]; // For now we'll support displaying just custom strings.
+    @Input() info: StatusBarInfo | undefined;
+}
+
+export interface StatusBarInfo {
+    title: string;
+    items: string[];
 }

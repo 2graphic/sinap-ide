@@ -107,9 +107,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
             this.toolsPanel.graph = context.graph;
             this.filesPanel.selectedFile = context.file;
-            this.statusBar.title = context.title;
-            this.statusBar.items = context.barMessages;
-
+            this.statusBar.info = context.statusBarInfo;
 
             if (this.toolsPanel.shouldDisplay()) {
                 this.leftPanelIcons = [PROPERTIES_ICON, TOOLS_ICON, FILES_ICON];
@@ -121,8 +119,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
             this.leftPanelIcons = [FILES_ICON];
             this.filesPanel.selectedFile = undefined;
-            this.statusBar.title = "";
-            this.statusBar.items = [];
+            this.statusBar.info = undefined;
             this.toolsPanel.graph = undefined;
         }
     };

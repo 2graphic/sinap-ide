@@ -7,6 +7,7 @@ import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { Program } from "sinap-core";
 import { PluginService } from "../../services/plugin.service";
 import { LocalFile } from "../../services/files.service";
+import { StatusBarInfo } from "../../components/status-bar/status-bar.component";
 
 const electron = require('electron');
 const dialog = electron.remote.dialog;
@@ -16,7 +17,10 @@ const dialog = electron.remote.dialog;
  */
 export class TabContext {
     constructor(public readonly index: number, public graph: GraphController, public file: LocalFile, private pluginService: PluginService) {
-        this.title = this.graph.plugin.pluginKind[this.graph.plugin.pluginKind.length - 1];
+        this.statusBarInfo = {
+            title: this.graph.plugin.pluginKind[this.graph.plugin.pluginKind.length - 1],
+            items: []
+        };
         graph.changed.asObservable().subscribe(this.addUndoableEvent);
     };
 
@@ -33,22 +37,11 @@ export class TabContext {
      */
     private readonly UNDO_HISTORY_LENGTH = 100;
 
-
-    public readonly title: string;
-
     /**
      * Shown below the graph editor on the blue status bar
      */
-    private _barMessages: string[] = [];
-    set barMessages(messages: string[]) {
-        this._barMessages.length = 0;
-        messages.forEach((m) => {
-            this._barMessages.push(m);
-        });
-    }
-    get barMessages() {
-        return this._barMessages;
-    }
+    public statusBarInfo: StatusBarInfo;
+
 
     /** Compile the graph with the plugin, and retains a cached copy for subsequent calls. */
     public compileProgram = (() => {
@@ -57,7 +50,7 @@ export class TabContext {
         return () => {
             if (!cachedProgram || this.dirty) {
                 return (cachedProgram = this.pluginService.getProgram(this.graph.plugin, this.graph.core).then((program) => {
-                    this.barMessages = program.validate();
+                    this.statusBarInfo.items = program.validate();
                     return program;
                 }));
             } else {
