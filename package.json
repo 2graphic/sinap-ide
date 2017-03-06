@@ -43,7 +43,7 @@
     "reflect-metadata": "^0.1.x",
     "reset-css": "2.2.x",
     "rxjs": "5.0.x",
-    "sinap-core": "2.1.1",
+    "sinap-core": "2.1.2",
     "zone.js": "0.7.4"
   },
   "devDependencies": {
