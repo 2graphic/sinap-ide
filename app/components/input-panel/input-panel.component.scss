@@ -55,6 +55,35 @@
     filter: opacity(100%);
 }
 
+.expanded {
+    background-color: aliceblue;
+    box-shadow: inset 0 1px 7px -4px black;
+
+    td {
+        padding: .25em;
+        padding-top: .5em;
+    }
+}
+
+.expand-chevron-before {
+    border-right: thin solid lightgrey;
+}
+
+.expand-chevron-right {
+    width: 1px;
+}
+
+.expand-chevron-down {
+    width: 1px;
+    background-color: aliceblue;
+    transform: scaleY(1.2) translateY(2px);
+    border: none;
+
+    span {
+        transform: rotate(90deg);
+    }
+}
+
 #left-panel-output {
     flex: auto;
     display: flex;

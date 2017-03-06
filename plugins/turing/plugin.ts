@@ -54,7 +54,7 @@ export class Tape {
         let r = "... " + this.blank + " ";
         let i = 0;
         for (let i = 0; i < this.data.length; i++) {
-            if (i == this.head) {
+            if (i === this.head) {
                 r += "[" + this.data[i] + "]";
             } else {
                 r += " " + this.data[i] + " ";
