@@ -70,18 +70,27 @@ function easyReduce<T, R>(arr: T[], func: (current: T, result: R) => R, initial:
 }
 
 export class State {
+    constructor(public toVisit: Nodes[], public output: string) {
+    }
+}
+
+function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init: boolean): boolean {
+    return easyReduce(node.parents, (parent, current) => op(parent.source.getValue(), current), init);
 }
 
 export function start(input: Circuit, other: string): string | State {
     const toVisit = getTraversalOrder(input);
-    let output = "";
+    return new State(toVisit, "");
+}
 
-    function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init: boolean): boolean {
-        return easyReduce(node.parents, (parent, current) => op(parent.source.getValue(), current), init);
-    }
-
-    for (const node of toVisit) {
+export function step(state: State): State | string {
+    if (state.toVisit.length === 0) {
+        return state.output;
+    } else {
+        let output = state.output;
+        const node: BasicGate = state.toVisit[0];
         let result: boolean;
+
         if (node instanceof InputGate) {
             result = node.value;
         } else if (node instanceof AndGate) {
@@ -98,11 +107,6 @@ export function start(input: Circuit, other: string): string | State {
         }
 
         node.setValue(result);
+        return new State(state.toVisit.slice(1), output);
     }
-
-    return output;
-}
-
-export function step(state: State): State | boolean {
-    return true;
 }
