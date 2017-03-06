@@ -4,8 +4,8 @@
         <span class="toolbar-spacer"></span>
         <span class="toolbar-spacer"></span>
         <img src="${require('../../images/play.svg')}" (click)="step()" class="toolbar-button" title="Step" />
-        <img src="${require('../../images/play-all.svg')}" (click)="stepToCompletion()" class="toolbar-button" title="Step to Completion"
-        />
+        <img src="${require('../../images/play-finish.svg')}" (click)="stepFinish()" class="toolbar-button" title="Finish" />
+        <img src="${require('../../images/play-all.svg')}" (click)="stepToCompletion()" class="toolbar-button" title="Step to Completion" />
     </div>
 
     <div *ngIf="inputForPlugin" class="flex-container-row">

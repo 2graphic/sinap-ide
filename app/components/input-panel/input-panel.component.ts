@@ -87,6 +87,14 @@ export class InputPanelComponent implements AfterViewChecked {
         return false;
     }
 
+    private stepFinish() {
+        if (this.selected) {
+            this.selected.steps = this.selected.output.states.length - 1;
+            this.selectState(this.selected.output.states[this.selected.steps++]);
+            this.scrollToBottom();
+        }
+    }
+
     /**
      * Calls this.step() every 750 milliseconds as long as this.step() returns true.
      */
