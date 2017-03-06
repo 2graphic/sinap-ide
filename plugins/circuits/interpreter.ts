@@ -33,6 +33,9 @@ export class Circuit {
     nodes: Nodes[];
 }
 
+export class State {
+}
+
 function getTraversalOrder(circuit: Circuit): BasicGate[] {
     const visited = new Set<BasicGate>();
     const result: BasicGate[] = [];
@@ -40,11 +43,15 @@ function getTraversalOrder(circuit: Circuit): BasicGate[] {
     function helper(toVisit: BasicGate) {
         if (!visited.has(toVisit)) {
             visited.add(toVisit);
-            for (const child of toVisit.children) {
-                helper(child.destination);
+            for (const parent of toVisit.parents) {
+                helper(parent.source);
             }
             result.push(toVisit);
         }
+    }
+
+    for (const node of circuit.nodes) {
+        helper(node);
     }
 
     return result;
@@ -58,9 +65,10 @@ function easyReduce<T, R>(arr: T[], func: (current: T, result: R) => R, initial:
     return result;
 }
 
-export function start(input: Circuit, other: string): boolean | string {
+export function start(input: Circuit, other: string): string | State {
     const toVisit = getTraversalOrder(input);
     const values = new Map<BasicGate, boolean>();
+    let result = "";
 
     function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init: boolean): boolean {
         return easyReduce(node.parents, (parent, current) => op(values.get(parent.source), current), init);
@@ -76,7 +84,16 @@ export function start(input: Circuit, other: string): boolean | string {
         } else if (node instanceof NotGate) {
             values.set(node, !values.get(node.parents[0].source));
         } else if (node instanceof OutputGate) {
-            return values.get(node.parents[0].source);
+            const output = values.get(node.parents[0].source) ? true : false;
+            result += `${node.label}:${output} `;
+        } else {
+            throw new Error(`Unknown type of node: ${Object.getPrototypeOf(node)}`);
         }
     }
+
+    return result;
+}
+
+export function step(state: State): State | boolean {
+    return true;
 }
