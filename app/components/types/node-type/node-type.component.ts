@@ -12,14 +12,18 @@ import { CoreValue } from "sinap-core";
     styleUrls: ["./node-type.component.scss"]
 })
 export class NodeTypeComponent {
-    @Input() value: CoreValue;
+    private _value: CoreValue;
     @Input() readonly: boolean = true;
 
-    private getLabel() {
-        if (this.value && this.value.value && this.value.value.label && this.value.value.label !== "") {
-            return this.value.value.label;
+    private label: string = "";
+
+    @Input() 
+    set value(v: CoreValue) {
+        this._value = v;
+        if (v && v.value && v.value.label && v.value.label !== "") {
+            this.label = v.value.label;
         } else {
-            return "<NO LABEL>";
+            this.label = "<NO LABEL>";
         }
     }
 }
