@@ -5,6 +5,7 @@ export type Graph = Circuit;
 export class BasicGate {
     children: Wire[];
     parents: Wire[];
+    label: string;
     protected value: boolean;
     getValue(): boolean {
         return this.value;
@@ -19,7 +20,6 @@ export class InputGate extends BasicGate {
 }
 
 export class OutputGate extends BasicGate {
-    label: string;
 }
 
 export class AndGate extends BasicGate {
@@ -70,7 +70,7 @@ function easyReduce<T, R>(arr: T[], func: (current: T, result: R) => R, initial:
 }
 
 export class State {
-    constructor(public toVisit: Nodes[], public output: string) {
+    constructor(public toVisit: Nodes[], public output: string, public active: Nodes, public value: boolean) {
     }
 }
 
@@ -80,7 +80,7 @@ function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init:
 
 export function start(input: Circuit, other: string): string | State {
     const toVisit = getTraversalOrder(input);
-    return new State(toVisit, "");
+    return new State(toVisit.slice(1), "", toVisit[0], false);
 }
 
 export function step(state: State): State | string {
@@ -107,6 +107,6 @@ export function step(state: State): State | string {
         }
 
         node.setValue(result);
-        return new State(state.toVisit.slice(1), output);
+        return new State(state.toVisit.slice(1), output, node, node.getValue());
     }
 }
