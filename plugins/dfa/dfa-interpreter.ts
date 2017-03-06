@@ -76,9 +76,6 @@ export function start(input: DFAGraph, data: string): State | boolean {
     if (!start) {
         throw new Error("Must have one start state");
     }
-    if (accepts.size === 0) {
-        throw new Error("Must have at least one accept state");
-    }
 
     return new State(start, data, "starting");
 }
