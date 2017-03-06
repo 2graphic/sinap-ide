@@ -31,7 +31,6 @@ export class Wire {
 
 export class Circuit {
     nodes: Nodes[];
-    // startState: DFANode;
 }
 
 function getTraversalOrder(circuit: Circuit): BasicGate[] {
@@ -59,7 +58,7 @@ function easyReduce<T, R>(arr: T[], func: (current: T, result: R) => R, initial:
     return result;
 }
 
-export function start(input: Circuit, other: string): boolean {
+export function start(input: Circuit, other: string): boolean | string {
     const toVisit = getTraversalOrder(input);
     const values = new Map<BasicGate, boolean>();
 
