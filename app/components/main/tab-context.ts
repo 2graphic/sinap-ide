@@ -42,7 +42,12 @@ export class TabContext {
     private _barMessages: string[] = [];
     set barMessages(messages: string[]) {
         this._barMessages.length = 0;
-        this._barMessages.concat(messages);
+        messages.forEach((m) => {
+            this._barMessages.push(m);
+        });
+    }
+    get barMessages() {
+        return this._barMessages;
     }
 
     /** Compile the graph with the plugin, and retains a cached copy for subsequent calls. */
