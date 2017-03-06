@@ -23,6 +23,20 @@ function somePromises<T>(promises: Iterable<Promise<T>>): Promise<T[]> {
     return result;
 }
 
+export class PluginData {
+    constructor(readonly path: string[], readonly description: string) {
+    }
+    get name(): string {
+        return this.path[this.path.length - 1];
+    }
+    get group(): string {
+        return this.path[this.path.length - 2];
+    }
+    toString() {
+        return this.name;
+    }
+}
+
 function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
     if (arr1.length !== arr2.length) {
         return false;
@@ -68,13 +82,9 @@ export class PluginService {
         });
     }
 
-    public get pluginKinds(): Promise<string[][]> {
+    public get pluginData(): Promise<PluginData[]> {
         return this.plugins.then((plugins) => {
-            const result: string[][] = [];
-            for (const plugin of plugins) {
-                result.push(plugin.pluginKind);
-            }
-            return result;
+            return plugins.map((plugin) => new PluginData(plugin.pluginKind, plugin.description));
         });
     }
 
