@@ -23,7 +23,7 @@
   "sinap": {
     "kind": ["Circuits", "Digital Logic"],
     "plugin-file": "interpreter.ts",
-    "description": "A plugin for desigining rudimentary circuits involving digital logic."
+    "description": "A plugin for designing rudimentary circuits involving digital logic."
   },
   "homepage": "https://github.com/2graphic/sinap-ide#readme"
 }
