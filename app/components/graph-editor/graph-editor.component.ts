@@ -861,20 +861,13 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.updateHoverObject(null);
                 this.dragObject.isDragging = true;
                 const edges = this.dragObject.edges;
-                const replace: DrawableEdge[] = [];
-                const remove: DrawableEdge[] = [];
+                const replace: DrawableElement[] = [];
                 this.drawList = this.drawList.filter(v => {
-                    if (v instanceof DrawableEdge && edges.has(v)) {
-                        if (edges.has(v))
-                            replace.push(v);
-                        else
-                            remove.push(v);
-                    }
+                    if (edges.has(v as DrawableEdge))
+                        replace.push(v);
                     return v !== this.dragObject && !edges.has(v as DrawableEdge);
                 });
                 this.drawList.push(...replace, this.dragObject);
-                for (const v of remove)
-                    this.dragObject.removeEdge(v);
             }
             this.redraw();
         }
@@ -1005,8 +998,10 @@ export class GraphEditorComponent implements AfterViewInit {
         const curr: pt = p;
         if (prev) {
             const dp = MathEx.subtract(curr, prev);
-            this.canvas.origin.x += dp.x / this.canvas.scale;
-            this.canvas.origin.y += dp.y / this.canvas.scale;
+            this.graph.origin = {
+                x: this.graph.origin.x + dp.x / this.canvas.scale,
+                y: this.graph.origin.y + dp.y / this.canvas.scale
+            };
         }
         this.redraw();
     }
@@ -1019,13 +1014,13 @@ export class GraphEditorComponent implements AfterViewInit {
         // Get the canvas coordinates before zoom.
         const pt1 = this.canvas.getPt(p);
         // Apply zoom.
-        this.scale = this.canvas.scale * s;
+        this.graph.scale = this.canvas.scale * s;
         // Get the canvas coordinates after zoom.
         const pt2 = this.canvas.getPt(p);
         // Get the delta between pre- and post-zoom canvas pts.
         const dpt = MathEx.subtract(pt2, pt1);
         // Move the canvas origin by the delta.
-        this.origin = MathEx.add(this.canvas.origin, dpt);
+        this.graph.origin = MathEx.add(this.canvas.origin, dpt);
         this.redraw();
     }
 
@@ -1183,10 +1178,13 @@ export class GraphEditorComponent implements AfterViewInit {
             let srcNode = (e.source.isHidden ? this.hoverObject : e.source);
             let dstNode = (e.destination.isHidden ? this.hoverObject : e.destination);
             const edge = (like ? this.graph.moveEdge(srcNode, dstNode, like) : this.graph.createEdge(srcNode, dstNode, like));
-            e.source.removeEdge(e);
-            e.destination.removeEdge(e);
-            if (edge)
+            if (edge) {
+                if (srcNode.anchorPoints.length > 0)
+                    edge.bindAnchor(srcNode, srcNode.getNearestAnchor(e.sourcePoint));
+                if (dstNode.anchorPoints.length > 0)
+                    edge.bindAnchor(dstNode, dstNode.getNearestAnchor(e.destinationPoint));
                 this.updateSelected(edge);
+            }
             this.resumeRedraw();
         }
         // Update the original edge if one was being moved.
@@ -1194,6 +1192,8 @@ export class GraphEditorComponent implements AfterViewInit {
             like.isDragging = false;
             this.updateSelected(like);
         }
+        e.source.removeEdge(e);
+        e.destination.removeEdge(e);
     }
 
     /**
