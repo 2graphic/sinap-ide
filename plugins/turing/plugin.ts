@@ -32,7 +32,7 @@ export class Tape {
         return this.data[this.head];
     }
 
-    update(nv: string, dir: "Right" |  "Left") {
+    update(nv: string, dir: "Right" | "Left") {
         this.data[this.head] = nv;
         this.head += dir === 'Left' ? -1 : 1;
         if (this.head === this.data.length) {
@@ -49,6 +49,21 @@ export class Tape {
         t.head = this.head;
         return t;
     }
+
+    toString() {
+        let r = "... " + this.blank + " ";
+        let i = 0;
+        for (let i = 0; i < this.data.length; i++) {
+            if (i == this.head) {
+                r += "[" + this.data[i] + "]";
+            } else {
+                r += " " + this.data[i] + " ";
+            }
+        }
+
+        r += " " + this.blank + " ...";
+        return r;
+    }
 }
 
 export class State {
@@ -57,7 +72,7 @@ export class State {
 
     constructor(public states: [Tape, Nodes][]) {
         this.active = states[0][1];
-        this.message = states[0][0].data.join("");
+        this.message = states[0][0].toString();
     }
 }
 
