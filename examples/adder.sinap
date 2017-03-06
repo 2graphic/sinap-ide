@@ -21,8 +21,8 @@
                     "x": 95,
                     "y": 125.1137397634213
                 },
-                "shape": "circle",
-                "image": "",
+                "shape": "image",
+                "image": "../plugins/start_state.svg",
                 "anchorPoints": [],
                 "borderColor": "#000",
                 "borderStyle": "solid",
@@ -40,8 +40,8 @@
                     "x": 96,
                     "y": 243.22111010009093
                 },
-                "shape": "circle",
-                "image": "",
+                "shape": "image",
+                "image": "../plugins/start_state.svg",
                 "anchorPoints": [],
                 "borderColor": "#000",
                 "borderStyle": "solid",
@@ -59,32 +59,12 @@
                     "x": 268,
                     "y": 133.12101910828022
                 },
-                "shape": "circle",
-                "image": "",
+                "shape": "image",
+                "image": "../plugins/and_gate.svg",
                 "anchorPoints": [],
                 "borderColor": "#000",
                 "borderStyle": "solid",
                 "borderWidth": 2
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Wire",
-            "data": {
-                "color": "#000",
-                "label": "",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 2
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 3
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2
             }
         },
         {
@@ -137,7 +117,7 @@
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 6
+                    "index": 5
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -173,8 +153,8 @@
                     "x": 269,
                     "y": 247.2247497725205
                 },
-                "shape": "circle",
-                "image": "",
+                "shape": "image",
+                "image": "../plugins/or_gate.svg",
                 "anchorPoints": [],
                 "borderColor": "#000",
                 "borderStyle": "solid",
@@ -193,7 +173,7 @@
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 9
+                    "index": 8
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -213,7 +193,7 @@
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 9
+                    "index": 8
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -231,8 +211,8 @@
                     "x": 338,
                     "y": 195.17743403093723
                 },
-                "shape": "circle",
-                "image": "",
+                "shape": "image",
+                "image": "../plugins/not_gate.svg",
                 "anchorPoints": [],
                 "borderColor": "#000",
                 "borderStyle": "solid",
@@ -251,7 +231,7 @@
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 12
+                    "index": 11
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -269,8 +249,8 @@
                     "x": 415.00000000000017,
                     "y": 249.22656960873516
                 },
-                "shape": "circle",
-                "image": "",
+                "shape": "image",
+                "image": "../plugins/and_gate.svg",
                 "anchorPoints": [],
                 "borderColor": "#000",
                 "borderStyle": "solid",
@@ -285,51 +265,71 @@
                 "label": "",
                 "source": {
                     "kind": "sinap-pointer",
-                    "index": 9
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 14
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Wire",
-            "data": {
-                "color": "#000",
-                "label": "",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 12
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 14
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Wire",
-            "data": {
-                "color": "#000",
-                "label": "",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 14
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
                     "index": 8
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 13
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Wire",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 11
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 13
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Wire",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 13
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 7
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Wire",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 3
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
