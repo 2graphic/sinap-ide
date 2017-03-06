@@ -86,10 +86,6 @@ export function start(input: Graph, data: string): State | boolean {
 }
 
 export function step(current: State): State | boolean {
-    if (current.states.length === 0) {
-        return false;
-    }
-
     const nextStates: [Tape, Nodes][] = [];
 
     for (const [tapeOriginal, node] of current.states) {
@@ -104,6 +100,10 @@ export function step(current: State): State | boolean {
             tape.update(edge.write, edge.move);
             nextStates.push([tape, edge.destination]);
         }
+    }
+
+    if (nextStates.length === 0) {
+        return false;
     }
 
     return new State(nextStates);
