@@ -11,6 +11,7 @@ import { BrowserModule, Title } from "@angular/platform-browser";
 
 import { FormsModule } from '@angular/forms';
 import { NewFileComponent } from './../components/new-file/new-file.component';
+import { CollapsibleListComponent } from './../components/collapsible-list/collapsible-list.component';
 import { DynamicComponent } from './components/dynamic-component/dynamic-component.component';
 
 @NgModule({
@@ -20,6 +21,7 @@ import { DynamicComponent } from './components/dynamic-component/dynamic-compone
     ],
     declarations: [
         NewFileComponent,
+        CollapsibleListComponent,
         DynamicComponent,
     ],
     providers: [

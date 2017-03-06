@@ -6,9 +6,10 @@
 //
 
 
-import { Component, Input } from "@angular/core";
-import { FileService, LocalFileService, Directory, File } from "../../services/files.service";
+import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
+import { LocalFileService, LocalFile } from "../../services/files.service";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
+import { Directory } from "sinap-core";
 
 
 @Component({
@@ -19,8 +20,23 @@ import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.c
 })
 export class FilesPanelComponent {
     private directory?: Directory;
-    private files: string[] = [];
-    private openFiles: string[] = [];
+    private files: LocalFile[] = [];
+    private openFiles: LocalFile[] = [];
+
+    @ViewChild('filesList') filesList: CollapsibleListComponent;
+
+    @Output()
+    openFile = new EventEmitter<LocalFile>();
+
+    @Input()
+    set selectedFile(file: LocalFile | undefined) {
+        if (file) {
+            const found = this.files.find((f) => file.equals(f));
+            this.filesList.selectedIndex = found ? this.files.indexOf(found) : -1;
+        } else {
+            this.filesList.selectedIndex = -1;
+        }
+    }
 
     @Input("directory")
     setDirectory(value: string | null) {
@@ -28,10 +44,8 @@ export class FilesPanelComponent {
             this.fileService.directoryByName(value)
                 .then((directory: Directory) => {
                     this.directory = directory;
-                    directory.getFiles().then((files: File[]) => {
-                        this.files = files.map((file) => {
-                            return file.name;
-                        });
+                    directory.getFiles().then((files: LocalFile[]) => {
+                        this.files = files;
                     });
                 });
         }
@@ -42,9 +56,13 @@ export class FilesPanelComponent {
         }
     }
 
+    itemSelected(list: CollapsibleListComponent) {
+        const file = this.files[list.selectedIndex];
+        this.openFile.emit(file);
+    }
+
     constructor(private fileService: LocalFileService) {
-        // TODO:
-        // Replace this with a button that will ask the user to open a folder.
-        this.setDirectory(".");
+        // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
+        this.setDirectory("./examples");
     }
 }

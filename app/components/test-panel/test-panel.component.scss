@@ -39,8 +39,13 @@ tr.bad {
     border-bottom: 1px solid #777;
 }
 
+tr {
+    height: 2em;
+}
+
 td {
-    padding: 10px;
+    padding: .25em;
+    vertical-align: middle;
 }
 
 input {

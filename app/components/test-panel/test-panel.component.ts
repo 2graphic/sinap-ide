@@ -4,7 +4,7 @@
 
 
 import { Component, Input } from "@angular/core";
-import { Program } from "./../../services/plugin.service";
+import { Program, CoreValue } from "sinap-core";
 
 @Component({
     selector: "sinap-test-panel",
@@ -12,9 +12,9 @@ import { Program } from "./../../services/plugin.service";
     styleUrls: ["./test-panel.component.scss"]
 })
 export class TestPanelComponent {
-    private _program: Program | null = null;
+    private _program?: Program;
 
-    set program(program: Program | null) {
+    set program(program: Program | undefined) {
         this._program = program;
 
         if (program && this.autoplay) {
@@ -45,11 +45,11 @@ export class TestPanelComponent {
     private runTest(test: Test) {
         if (this.program) {
             try {
-                let out = this.program.run(test.input);
-                console.log(test, out);
-                test.output = out.result as boolean;
+                let out = this.program.run([test.input]);
+                test.output = out.result;
             } catch (e) {
-                test.output = null;
+                console.log(e);
+                test.output = new CoreValue(this.program.plugin.typeEnvironment.getStringType(), "Error");
             }
         }
     }
@@ -67,11 +67,18 @@ export class TestPanelComponent {
     }
 
     private newTest() {
-        this.tests.push({
-            input: "",
-            expected: true,
-            output: null
-        });
+        if (this.program) {
+            const test = {
+                input: new CoreValue(this.program.plugin.typeEnvironment.getStringType(), ""),
+                expected: new CoreValue(this.program.plugin.typeEnvironment.getBooleanType(), true),
+                output: new CoreValue(this.program.plugin.typeEnvironment.getStringType(), "Not ran")
+            };
+
+            // test.input.changed.asObservable().subscribe(this.testChanged.bind(this, test));
+
+            this.tests.push(test);
+            this.runTest(test);
+        }
     }
 
     private select(test: Test) {
@@ -103,7 +110,7 @@ export class TestPanelComponent {
 }
 
 interface Test {
-    input: string;
-    expected: boolean;
-    output: boolean | null;
+    input: CoreValue;
+    expected: CoreValue;
+    output: CoreValue;
 }

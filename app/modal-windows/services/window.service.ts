@@ -11,17 +11,20 @@ import { ModalInfo, ModalService, ModalType } from './../../models/modal-window'
 @Injectable()
 export class WindowService implements ModalService {
     private callbacks = new Map<Number, (data: any) => void>();
-    public windowInfo: ModalInfo | null; // Main window will be null
+    public windowInfo?: ModalInfo; // Main window will be null
 
     constructor(private _ngZone: NgZone) {
         ipcRenderer.on("windowResult", (event, arg) => this.callback(arg as ModalInfo));
 
         // TODO: sending synchronous IPC here could be a bad idea, a better idea would be to send it async and store windowInfo as a Promise
-        this.windowInfo = ipcRenderer.sendSync("getWindowInfo", remote.getCurrentWindow().id);
+        const r = ipcRenderer.sendSync("getWindowInfo", remote.getCurrentWindow().id);
+        if (r) {
+            this.windowInfo = r;
+        }
     }
 
-    public createModal(selector: string, type: ModalType): [ModalInfo, Promise<any>] {
-        let modal: ModalInfo = ipcRenderer.sendSync('createWindow', selector, type);
+    public createModal(selector: string, type: ModalType, data?: any): [ModalInfo, Promise<any>] {
+        let modal: ModalInfo = ipcRenderer.sendSync('createWindow', selector, type, data);
 
         return [modal, new Promise((resolve, reject) => {
             this.callbacks.set(modal.id, resolve);
@@ -32,7 +35,7 @@ export class WindowService implements ModalService {
      * Asks the Electron process to close this window.
      * data can be null, and if so the Promise isn't resolved.
      */
-    public closeModal(modal: ModalInfo, data: any | null) {
+    public closeModal(modal: ModalInfo, data?: any) {
         if (modal) {
             modal.data = data;
             ipcRenderer.send('windowResult', modal);
@@ -42,7 +45,7 @@ export class WindowService implements ModalService {
     /**
      * Closes the currently open window (wrapper for closeModal)
      */
-    public closeWindow(data: any | null) {
+    public closeWindow(data?: any) {
         if (this.windowInfo) {
             this.closeModal(this.windowInfo, data);
         }

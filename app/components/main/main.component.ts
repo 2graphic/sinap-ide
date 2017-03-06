@@ -7,25 +7,32 @@
 //
 
 
-import { Component, OnInit, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
-import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
-import { MenuEventAction } from "../../models/menu";
+import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
+import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, SerialJSO } from "sinap-core";
+
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
-import { PluginService, Program, Output } from "../../services/plugin.service";
-import { WindowService } from "../../modal-windows/services/window.service";
-import { ModalInfo, ModalType } from './../../models/modal-window';
-import { REPLComponent, REPLDelegate } from "../repl/repl.component";
+import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
 import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
+import { FilesPanelComponent } from "../files-panel/files-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
-import { GraphController, UndoableChange, UndoableEvent } from "../../models/graph-controller";
-import { CoreElement, CoreModel, CoreElementKind } from "sinap-core";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
-import { FileService, LocalFileService, File } from "../../services/files.service";
+import { NewFileResult } from "../new-file/new-file.component";
+
+import { GraphController, UndoableEvent } from "../../models/graph-controller";
+import { MenuEventAction } from "../../models/menu";
+import { ModalInfo, ModalType } from './../../models/modal-window';
+
+import { LocalFileService, LocalFile, UntitledFile } from "../../services/files.service";
 import { SandboxService } from "../../services/sandbox.service";
-import * as MagicConstants from "../../models/constants-not-to-be-included-in-beta";
+import { PluginService } from "../../services/plugin.service";
+import { WindowService } from "../../modal-windows/services/window.service";
+import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
+
+import { TabContext } from "./tab-context";
+import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "./icons";
 
 import { ResizeEvent } from 'angular-resizable-element';
 
@@ -36,164 +43,233 @@ import { ResizeEvent } from 'angular-resizable-element';
     providers: [MenuService, PluginService, WindowService, LocalFileService, SandboxService]
 })
 
-export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, TabDelegate {
+export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, InputPanelDelegate, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
+        window.addEventListener("beforeunload", this.onClose);
+
+        // Restore previously opened files.
+        try {
+            const openFilesJSON = localStorage.getItem("openFiles");
+            if (openFilesJSON) {
+                const openFiles = JSON.parse(openFilesJSON) as string[];
+                openFiles.map((fileName) => this.fileService.fileByName(fileName)).forEach((p) => {
+                    p.then((f) => {
+                        this.openFile(f);
+                    });
+                });
+            }
+        } catch (e) {
+            console.log(e);
+        }
+
     }
 
     ngOnInit(): void {
-        this.repl.delegate = this;
+        this.inputPanel.delegate = this;
         this.tabBar.delegate = this;
         this.menu.addEventListener(this);
     }
 
     ngAfterViewInit() {
-        if (process.env.ENV !== 'production') {
-            this.newFile();
-            this.changeDetectorRef.detectChanges();
-        }
-
         this.leftPanelsGroup.nativeElement.style.width = "300px";
         this.bottomPanels.nativeElement.style.height = "225px";
     }
 
-    @ViewChild(GraphEditorComponent)
-    private graphEditor: GraphEditorComponent;
-
-    @ViewChild(REPLComponent)
-    private repl: REPLComponent;
-
-    @ViewChild(PropertiesPanelComponent)
-    private propertiesPanel: PropertiesPanelComponent;
-
-    @ViewChild(ToolsPanelComponent)
-    private toolsPanel: ToolsPanelComponent;
-
-    @ViewChild("leftPanelBar")
-    private leftPanelBar: SideBarComponent;
-
-    @ViewChild("bottomPanelBar")
-    private bottomPanelBar: SideBarComponent;
-
-    @ViewChild(TestPanelComponent)
-    private testComponent: TestPanelComponent;
-
-    @ViewChild(TabBarComponent)
-    private tabBar: TabBarComponent;
-
-    @ViewChild('editorPanel') editorPanel: ElementRef;
-    @ViewChild('leftPanelsGroup') leftPanelsGroup: ElementRef;
-    @ViewChild('bottomPanels') bottomPanels: ElementRef;
-
-    public package = "Finite Automata";
-    public barMessages: string[] = [];
-
-    private tabs: Map<Number, TabContext> = new Map<Number, TabContext>();
-    private context: TabContext | null;
-
-    @ViewChild(StatusBarComponent)
-    private statusBar: StatusBarComponent;
-
-    private onContextChanged() {
-        if (this.context) {
-            if (this.graphEditor) {
-                this.graphEditor.redraw();
-            }
-            if (this.pluginService) {
-            }
-        }
-    };
-
-    private makeChangeNotifier(context: TabContext) {
-        return (change: UndoableEvent) => {
-            context.change(change);
-            this.getProgram(context).then(program => {
-                this.updateStatusBar(program);
-                this.testComponent.program = program;
-            });
-        };
-    }
-
-    private updateStatusBar(program: Program) {
-        let validation = program.validate();
-        validation.unshift("DFA");
-        this.barMessages = validation;
-    }
-
-    private getProgram(context: TabContext) {
-        return this.pluginService.getProgram(context.graph.plugin, context.graph.core);
-    }
-
-    newFile(f?: String, g?: CoreModel) {
-        const kind = this.toolsPanel.activeGraphType === "Machine Learning" ?
-            MagicConstants.MACHINE_LEARNING_PLUGIN_KIND : MagicConstants.DFA_PLUGIN_KIND;
-
-        const plugin = this.pluginService.getPlugin(kind);
-        g = g ? g : new CoreModel(plugin);
-
-        let filename = f ? f : "Untitled";
-        let tabNumber = this.tabBar.newTab(filename);
-
-        const graph = new GraphController(g, plugin);
-        const context = new TabContext(tabNumber, graph, filename);
-
-        this.getProgram(context).then(program => {
-            this.updateStatusBar(program);
-        });
-
-        graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
-
-        this.tabs.set(tabNumber, context);
-        this.selectedTab(tabNumber);
-    }
-
     ngAfterViewChecked() {
+        // TODO: Let HTML resize this for us.
         this.graphEditor.resize();
     }
 
-    promptNewFile() {
-        let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL);
+    // Setup references to child components. These are setup by angular once ngAfterViewInit is called.
+    @ViewChild(GraphEditorComponent) private graphEditor: GraphEditorComponent;
+    @ViewChild(InputPanelComponent) private inputPanel: InputPanelComponent;
+    @ViewChild(PropertiesPanelComponent) private propertiesPanel: PropertiesPanelComponent;
+    @ViewChild(ToolsPanelComponent) private toolsPanel: ToolsPanelComponent;
+    @ViewChild(FilesPanelComponent) private filesPanel: FilesPanelComponent;
+    @ViewChild("leftPanelBar") private leftPanelBar: SideBarComponent;
+    @ViewChild("bottomPanelBar") private bottomPanelBar: SideBarComponent;
+    @ViewChild(TestPanelComponent) private testComponent: TestPanelComponent;
+    @ViewChild(TabBarComponent) private tabBar: TabBarComponent;
+    @ViewChild('editorPanel') editorPanel: ElementRef;
+    @ViewChild('leftPanelsGroup') leftPanelsGroup: ElementRef;
+    @ViewChild('bottomPanels') bottomPanels: ElementRef;
+    @ViewChild(StatusBarComponent) private statusBar: StatusBarComponent;
 
-        result.then((result: string) => {
-            this.newFile(result);
+    private tabs = new Map<number, TabContext>();
+    private leftPanelIcons = [FILES_ICON];
+    private bottomPanelIcons = [INPUT_ICON, TEST_ICON];
+
+    private _context?: TabContext;
+    private set context(context: TabContext | undefined) {
+        this._context = context;
+        if (context) {
+            context.compileProgram().then(this.onNewProgram);
+
+            this.toolsPanel.graph = context.graph;
+            this.filesPanel.selectedFile = context.file;
+            this.statusBar.title = context.title;
+            this.statusBar.items = context.barMessages;
+
+
+            if (this.toolsPanel.shouldDisplay()) {
+                this.leftPanelIcons = [PROPERTIES_ICON, TOOLS_ICON, FILES_ICON];
+            } else {
+                this.leftPanelIcons = [PROPERTIES_ICON, FILES_ICON];
+            }
+        } else {
+            // Clear state
+
+            this.leftPanelIcons = [FILES_ICON];
+            this.filesPanel.selectedFile = undefined;
+            this.statusBar.title = "";
+            this.statusBar.items = [];
+            this.toolsPanel.graph = undefined;
+        }
+    };
+
+    /** Create a new tab and open it */
+    newFile(file: LocalFile, kind: string[], content?: SerialJSO) {
+        // TODO: have a more efficient way to get kind.
+        this.pluginService.getPluginByKind(kind).then((plugin) => {
+            const model = new CoreModel(plugin, content);
+
+            let tabNumber = this.tabBar.newTab(file);
+
+            const graph = new GraphController(model, plugin);
+            const context = new TabContext(tabNumber, graph, file, this.pluginService);
+
+            graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
+
+            this.tabs.set(tabNumber, context);
+            this.selectedTab(tabNumber);
         });
     }
 
+    onClose = (e: any): any => {
+        // Save what files are open
+        const openFiles = [...this.tabs.values()].map((context) => context.file.getPath()).filter((path) => path !== undefined) as string[];
+        localStorage.setItem("openFiles", JSON.stringify(openFiles));
+
+        // TODO: Figure out WTF Electron is doing
+        // const isDirty = [...this.tabs.values()].map((context) => context.file.dirty).reduce((dirty, accum) => (dirty || accum), false);
+        // if (isDirty) {
+        //     return confirm('You have unsaved files, are you sure you wish to quit?');
+        // }
+    }
+
+
+    private makeChangeNotifier(context: TabContext) {
+        return (change: UndoableEvent) => {
+            context.compileProgram().then(this.onNewProgram);
+        };
+    }
+
+    private onNewProgram = (program: Program) => {
+        this.testComponent.program = program;
+        this.inputPanel.program = program;
+    }
+
+
+    promptNewFile() {
+        this.pluginService.pluginKinds.then((pluginKinds) => {
+            let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginKinds);
+            result.then((result: NewFileResult) => {
+                this.newFile(new UntitledFile(result.name), result.kind);
+            });
+        });
+    }
+
+    saveFile() {
+        if (this._context) {
+            this._context.save().then(() => {
+                this.changeDetectorRef.detectChanges();
+            });
+        }
+    }
+
+    requestOpenFile() {
+        this.fileService.requestFiles()
+            .then((files: LocalFile[]) => {
+                files.forEach(this.openFile);
+            }).catch((e) => {
+                // User cancelled, do nothing
+                console.log(e);
+            });
+    }
+
+    openFile = (file: LocalFile) => {
+        const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
+        if (entry) {
+            this.tabBar.active = entry[0];
+        } else {
+            file.readData().then((content) => {
+                const pojo = JSON.parse(content);
+                const kind = pojo.kind;
+                this.newFile(file, kind, pojo);
+            });
+        }
+    }
+
+
+
+
+    selectNode(a: any) {
+        // TODO: Fix everything
+        if (this._context) {
+            for (let n of this._context.graph.drawable.nodes) {
+                if (n.label === a.label) {
+                    this._context.graph.drawable.clearSelection();
+                    this._context.graph.drawable.select(n);
+                }
+            }
+        }
+    }
+
+    /**
+     * Return true if the focused element is a child of an element with an `id` of `childOf`
+     */
+    private focusIsChildOf(childOf: string) {
+        let el: Element | null = document.activeElement;
+        while (el && document.hasFocus()) {
+            if (el.id === childOf)
+                return true;
+            el = el.parentElement;
+        }
+        return false;
+    }
+
+
+
 
     /* ---------- TabBarDelegate ---------- */
-
-    deletedTab(i: Number) {
+    deletedTab(i: number) {
         this.tabs.delete(i);
     }
 
-    selectedTab(i: Number) {
+    selectedTab(i: number) {
         let context = this.tabs.get(i);
         if (context) {
             this.context = context;
-            // TODO: add back
-            // this.toolsPanel.manager = this.context.graph.pluginManager;
-
-            this.onContextChanged();
         } else {
             // No tabs
-            this.context = null;
-            this.onContextChanged();
+            this.context = undefined;
         }
     }
 
     createNewTab() {
         this.promptNewFile();
     }
-
     /* ------------------------------------ */
 
 
+    /* ---------- MenuEventListener ---------- */
     menuEvent(e: MenuEvent) {
         switch (e.action) {
             case MenuEventAction.NEW_FILE:
                 this.promptNewFile();
                 break;
-            case MenuEventAction.LOAD_FILE:
-                this.loadFile();
+            case MenuEventAction.OPEN_FILE:
+                this.requestOpenFile();
                 break;
             case MenuEventAction.SAVE_FILE:
                 this.saveFile();
@@ -211,8 +287,8 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 }
                 break;
             case MenuEventAction.CLOSE:
-                if (this.context) {
-                    this.tabBar.deleteTab(this.context.index);
+                if (this._context) {
+                    this.tabBar.deleteTab(this._context.index);
                     e.preventDefault();
                 }
                 break;
@@ -223,77 +299,23 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
                 this.tabBar.selectNextTab();
                 break;
             case MenuEventAction.UNDO:
-                if (!this.focusIsChildOf("bottom-panels") && this.context) {
-                    this.context.undo();
+                if (!this.focusIsChildOf("bottom-panels") && this._context) {
+                    this._context.undo();
                     e.preventDefault();
                 }
                 break;
             case MenuEventAction.REDO:
-                if (!this.focusIsChildOf("bottom-panels") && this.context) {
-                    this.context.redo();
+                if (!this.focusIsChildOf("bottom-panels") && this._context) {
+                    this._context.redo();
                     e.preventDefault();
                 }
                 break;
         }
     }
-
-    /**
-     * Return true if the focused element is a child of an element with an `id` of `childOf`
-     */
-    private focusIsChildOf(childOf: string) {
-        let el: Element | null = document.activeElement;
-        while (el && document.hasFocus()) {
-            if (el.id === childOf)
-                return true;
-            el = el.parentElement;
-        }
-        return false;
-    }
-
-    saveFile() {
-        this.fileService.requestSaveFile()
-            .then((file: File) => {
-                if (!this.context) {
-                    alert("No open graph to save");
-                    return;
-                }
-
-                const pojo = this.context.graph.core.serialize();
-
-                file.writeData(JSON.stringify(pojo, null, 4))
-                    .catch((err) => {
-                        alert(`Error occurred while saving to file ${file.name}: ${err}.`);
-                    });
-            });
-    }
-
-    loadFile() {
-        this.fileService.requestFiles()
-            .then((files: File[]) => {
-                for (const file of files) {
-                    file.readData().then(f => {
-                        // TODO: use correct plugin
-                        const plugin = this.pluginService.getPlugin(MagicConstants.DFA_PLUGIN_KIND);
-                        this.newFile(file.name, new CoreModel(plugin, JSON.parse(f)));
-                    });
-                }
-            });
-    }
-
-    run(input: string): Promise<Output> {
-        if (this.context) {
-            return this.getProgram(this.context).then(a => {
-                return a.run(input);
-            });
-        } else {
-            throw new Error("No Graph to Run");
-        }
-    }
-
+    /* --------------------------------------- */
 
 
     /* ---------- Resizable Panels ---------- */
-
     private resizing(element: Element, event: ResizeEvent) {
         if (element.id === "left-panels-group") {
             if (event.rectangle.width !== undefined) {
@@ -310,47 +332,5 @@ export class MainComponent implements OnInit, MenuEventListener, REPLDelegate, T
             }
         }
     }
-}
-
-class TabContext {
-    private readonly undoHistory: UndoableEvent[] = [];
-    private readonly redoHistory: UndoableEvent[] = [];
-
-    private stack = this.undoHistory;
-    private isRedoing = false;
-
-    private readonly UNDO_HISTORY_LENGTH = 100;
-
-    constructor(public readonly index: number, public graph: GraphController, public filename?: String) { };
-
-    public undo() {
-        const change = this.undoHistory.pop();
-        if (change) {
-            // If undoing causes a change, push it to the redoHistory stack.
-            this.stack = this.redoHistory;
-            this.graph.applyUndoableEvent(change);
-            this.stack = this.undoHistory;
-        }
-    }
-
-    public redo() {
-        const change = this.redoHistory.pop();
-        if (change) {
-            this.isRedoing = true;
-            this.graph.applyUndoableEvent(change);
-            this.isRedoing = false;
-        }
-    }
-
-    public change(change: UndoableEvent) {
-        this.stack.push(change);
-        if (this.stack === this.undoHistory && !this.isRedoing) {
-            this.redoHistory.length = 0;
-        }
-
-
-        if (this.undoHistory.length > this.UNDO_HISTORY_LENGTH) {
-            this.undoHistory.shift();
-        }
-    }
+    /* -------------------------------------- */
 }

@@ -1,0 +1,93 @@
+{
+    "format": "sinap-file-format",
+    "kind": [
+        "Formal Languages",
+        "DFA"
+    ],
+    "version": "0.0.7",
+    "elements": [
+        {
+            "kind": "Graph",
+            "type": "DFAGraph",
+            "data": {}
+        },
+        {
+            "kind": "Node",
+            "type": "DFANode",
+            "data": {
+                "color": "#fff200",
+                "label": "",
+                "position": {
+                    "x": 488,
+                    "y": 471
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2,
+                "isStartState": true
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "DFANode",
+            "data": {
+                "color": "#fff200",
+                "label": "",
+                "position": {
+                    "x": 726,
+                    "y": 471
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2,
+                "isAcceptState": true
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "DFAEdge",
+            "data": {
+                "color": "#000",
+                "label": "5",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "DFAEdge",
+            "data": {
+                "color": "#000",
+                "label": "1",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        }
+    ]
+}

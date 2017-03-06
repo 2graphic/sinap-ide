@@ -17,6 +17,8 @@
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import { ModalInfo, ModalType } from './models/modal-window';
 
+app.setName('Sinap');
+
 
 /**
  * win
@@ -74,9 +76,9 @@ app.on("window-all-closed", () => {
 
 let childWindows = new Map<Number, [Electron.BrowserWindow, ModalInfo]>();
 
-ipcMain.on('createWindow', (event, selector, type) => {
+ipcMain.on('createWindow', (event, selector, type, data) => {
     if (win) {
-        event.returnValue = createNewWindow(selector, type);
+        event.returnValue = createNewWindow(selector, type, data);
     }
 });
 
@@ -96,7 +98,7 @@ ipcMain.on('getWindowInfo', (event, arg: Number) => {
     event.returnValue = window ? window[1] : null;
 });
 
-function createNewWindow(selector: string, type: ModalType): ModalInfo {
+function createNewWindow(selector: string, type: ModalType, data: any): ModalInfo {
     if (win) {
         let newWindow = new BrowserWindow({
             parent: win,
@@ -104,15 +106,18 @@ function createNewWindow(selector: string, type: ModalType): ModalInfo {
             width: 600,
             height: 450,
             center: true,
-            resizable: false
+            resizable: true,
+            show: false,
         });
-        newWindow.setMenu(null as any);
+        if (process.env.ENV === 'production') {
+            newWindow.setMenu(null as any);
+        }
 
         let info: ModalInfo = {
             id: newWindow.id,
             selector: selector,
             type: type,
-            data: null
+            data: data
         };
         childWindows.set(info.id, [newWindow, info]);
 
@@ -135,7 +140,7 @@ function createNewWindow(selector: string, type: ModalType): ModalInfo {
         id: -1,
         selector: selector,
         type: type,
-        data: null
+        data: undefined
     };
 }
 
