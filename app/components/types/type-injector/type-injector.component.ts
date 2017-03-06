@@ -81,7 +81,7 @@ export class TypeInjectorComponent {
 
         let componentType = this.getComponentType(value);
 
-        //console.log(value, componentType);
+        // console.log(value, componentType);
 
         let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
         let factory = this.resolver.resolveComponentFactory(componentType);
