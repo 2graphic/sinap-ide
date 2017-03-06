@@ -27,7 +27,8 @@
                 "borderColor": "#000",
                 "borderStyle": "solid",
                 "borderWidth": 2,
-                "value": true
+                "value": true,
+                "inputIndex": 0
             }
         },
         {
@@ -46,7 +47,8 @@
                 "borderColor": "#000",
                 "borderStyle": "solid",
                 "borderWidth": 2,
-                "value": false
+                "value": false,
+                "inputIndex": 1
             }
         },
         {
@@ -182,26 +184,6 @@
             }
         },
         {
-            "kind": "Edge",
-            "type": "Wire",
-            "data": {
-                "color": "#000",
-                "label": "",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 2
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 8
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2
-            }
-        },
-        {
             "kind": "Node",
             "type": "NotGate",
             "data": {
@@ -231,7 +213,7 @@
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 11
+                    "index": 10
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -269,7 +251,7 @@
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 13
+                    "index": 12
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -285,11 +267,11 @@
                 "label": "",
                 "source": {
                     "kind": "sinap-pointer",
-                    "index": 11
+                    "index": 10
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 13
+                    "index": 12
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -305,7 +287,7 @@
                 "label": "",
                 "source": {
                     "kind": "sinap-pointer",
-                    "index": 13
+                    "index": 12
                 },
                 "destination": {
                     "kind": "sinap-pointer",
@@ -330,6 +312,26 @@
                 "destination": {
                     "kind": "sinap-pointer",
                     "index": 3
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Wire",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 8
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,

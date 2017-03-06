@@ -16,7 +16,7 @@ export class BasicGate {
 }
 
 export class InputGate extends BasicGate {
-    public value: boolean;
+    inputIndex: number;
 }
 
 export class OutputGate extends BasicGate {
@@ -70,7 +70,7 @@ function easyReduce<T, R>(arr: T[], func: (current: T, result: R) => R, initial:
 }
 
 export class State {
-    constructor(public toVisit: Nodes[], public output: string, public active: Nodes, public value: boolean) {
+    constructor(public toVisit: Nodes[], public output: string, public active: Nodes, public value: boolean, public input: string) {
     }
 }
 
@@ -78,9 +78,9 @@ function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init:
     return easyReduce(node.parents, (parent, current) => op(parent.source.getValue(), current), init);
 }
 
-export function start(input: Circuit, other: string): string | State {
-    const toVisit = getTraversalOrder(input);
-    return new State(toVisit.slice(1), "", toVisit[0], false);
+export function start(start: Circuit, input: string): string | State {
+    const toVisit = getTraversalOrder(start);
+    return new State(toVisit.slice(1), "", toVisit[0], false, input);
 }
 
 export function step(state: State): State | string {
@@ -92,7 +92,7 @@ export function step(state: State): State | string {
         let result: boolean;
 
         if (node instanceof InputGate) {
-            result = node.value;
+            result = state.input.charAt(node.inputIndex) === "T";
         } else if (node instanceof AndGate) {
             result = applyOp(node, (a, b) => a && b, true);
         } else if (node instanceof OrGate) {
@@ -107,6 +107,6 @@ export function step(state: State): State | string {
         }
 
         node.setValue(result);
-        return new State(state.toVisit.slice(1), output, node, node.getValue());
+        return new State(state.toVisit.slice(1), output, node, node.getValue(), state.input);
     }
 }
