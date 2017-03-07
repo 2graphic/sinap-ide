@@ -92,12 +92,38 @@ export class DrawableEdge extends DrawableElement {
                 get: () => this.dst
             },
             sourcePoint: {
-                enumerable: false,
-                get: () => this._pts[0]
+                enumerable: true,
+                get: () => this._pts[0],
+                set: (value: point) => {
+                    if (this._pts[0]) {
+                        const old = { x: this._pts[0].x, y: this._pts[0].y };
+                        if (this._pts[0].x !== value.x || this._pts[0].y !== value.y) {
+                            this._pts[0].x = value.x;
+                            this._pts[0].y = value.y;
+                            this.onPropertyChanged("sourcePoint", old);
+                        }
+                    }
+                    else if (value && this.src.anchorPoints.length > 0) {
+                        this.bindSourceAnchor(value);
+                    }
+                }
             },
             destinationPoint: {
-                enumerable: false,
-                get: () => this._pts[1]
+                enumerable: true,
+                get: () => this._pts[1],
+                set: (value: point) => {
+                    if (this._pts[1]) {
+                        const old = { x: this._pts[1].x, y: this._pts[1].y };
+                        if (this._pts[1].x !== value.x || this._pts[1].y !== value.y) {
+                            this._pts[1].x = value.x;
+                            this._pts[1].y = value.y;
+                            this.onPropertyChanged("destinationPoint", old);
+                        }
+                    }
+                    else if (value && this.dst.anchorPoints.length > 0) {
+                        this.bindDestinationAnchor(value);
+                    }
+                }
             },
             showSourceArrow: {
                 enumerable: true,
@@ -497,14 +523,23 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * bindAnchor
-     *   Binds an end point of the edge to a node anchor.
+     * bindSourceAnchor
+     *
+     *   Binds the source point of the edge to the nearest anchor point of its
+     *   source node from the given point.
      */
-    bindAnchor(n: DNode, apt: point) {
-        if (n === this.src)
-            this._spt = apt;
-        else if (n === this.dst)
-            this._dpt = apt;
+    bindSourceAnchor(pt: point) {
+        this._spt = this.src.getNearestAnchor(pt);
+    }
+
+    /**
+     * bindDestinationAnchor
+     *
+     *   Binds the destination point of the edge to the nearest anchor point of
+     *   its destination node from the given point.
+     */
+    bindDestinationAnchor(pt: point) {
+        this._dpt = this.dst.getNearestAnchor(pt);
     }
 
     /**
@@ -523,7 +558,7 @@ export class DrawableEdge extends DrawableElement {
         if (first) {
             first.points = getPts(first.src, first.dst, first._spt, first._dpt);
             const norm = MathEx.normal(MathEx.subtract(first._pts[0], first._pts[1]));
-            const dir = MathEx.sgn(norm.y);
+            const dir = (first.src === first.dst ? -1 : MathEx.sgn(norm.y));
             norm.x *= (first.src === first.dst ? 0 : GRID_SPACING / 2);
             norm.y *= GRID_SPACING / 2;
             first._pts[2].x -= norm.x;
