@@ -41,3 +41,13 @@ p {
 .expand { /* Use any number of expands and they'll fill up the free space equally */
     flex:1;
 }
+
+.slider {
+    height: .75em;
+}
+
+button, button:active {
+    border-width: 0;
+    background-color: #0067b3;
+    color: white;
+}
