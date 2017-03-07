@@ -429,7 +429,10 @@
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
                 "lineStyle": "solid",
-                "lineWidth": 2
+                "lineWidth": 2,
+                "read": "1",
+                "write": "1",
+                "move": "Right"
             }
         },
         {
@@ -457,7 +460,10 @@
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
                 "lineStyle": "solid",
-                "lineWidth": 2
+                "lineWidth": 2,
+                "read": "0",
+                "write": "0",
+                "move": "Right"
             }
         }
     ]
