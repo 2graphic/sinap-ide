@@ -35,6 +35,45 @@
 
 #left-panel-input {
     flex: none;
+    display: flex;
+    flex-direction: row;
+}
+
+#input-value {
+    flex: 1;
+}
+
+#input-button {
+    flex: none;
+    width: 4em;
+
+    button {
+        width: calc(100% - .5em);
+        height: 100%;
+        margin-left: .5em;
+        border-radius: 4px;
+        background-color: whitesmoke;
+        border: thin solid black;
+    }
+
+    button:hover {
+        background-color: lightgrey;
+        cursor: pointer;
+    }
+
+    button:focus {
+        outline: none;
+    }
+}
+
+:host /deep/ svg, :host /deep/ path {
+    stroke: black;
+    fill: black;
+}
+
+:host /deep/ svg {
+    width: 1em;
+    height: 1em;
 }
 
 .program-result {

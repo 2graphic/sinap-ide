@@ -37,7 +37,14 @@
                 </div>
             </div>
             <div id="left-panel-input" (keyup.enter)="onSubmit(inputForPlugin)">
-                <sinap-type [readonly]="false" [focus]="true" [disabled]="!this.program" [value]="inputForPlugin"></sinap-type>
+                <div id="input-value">
+                    <sinap-type [readonly]="false" [focus]="true" [disabled]="!this.program" [value]="inputForPlugin"></sinap-type>                    
+                </div>
+                <div id="input-button">
+                    <button (click)="onSubmit(inputForPlugin)">
+                        <div [inlineSVG]="'${require('../../images/play.svg')}'"></div>
+                    </button>
+                </div>
             </div>
         </div>
 
