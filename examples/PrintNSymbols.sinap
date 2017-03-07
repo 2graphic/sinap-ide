@@ -476,7 +476,10 @@
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
                 "lineStyle": "solid",
-                "lineWidth": 2
+                "lineWidth": 2,
+                "read": "□",
+                "write": "□",
+                "move": "Left"
             }
         }
     ]
