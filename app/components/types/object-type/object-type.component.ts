@@ -4,7 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue, isObjectType } from "sinap-core";
+import { CoreValue, isObjectType, ObjectType } from "sinap-core";
 
 @Component({
     selector: "sinap-object-type",
@@ -19,27 +19,25 @@ export class ObjectTypeComponent {
 
     @Input()
     set value(v: CoreValue) {
-        const type = v.type;
+        const type = v.type as ObjectType;
 
         // TODO, remove keys that no longer exist.
-        if (isObjectType(type)) {
-            type.members.forEach((type, key) => {
-                if (key === "__constructor" || key === "states" || key === "toVisit" || key === "input" || key === "output") {
-                    return;
-                }
-                let subValue;
-                if (typeof v.value[key] === 'boolean') {
-                    subValue = {
-                        get: () => v.value[key],
-                        set: (newValue: any) => v.value[key] = newValue,
-                        toString: () => v.value[key]
-                    };
-                } else {
-                    subValue = v.value[key];
-                }
-                this.values.set(key, new CoreValue(type, subValue));
-            });
-        }
+        type.members.forEach((type, key) => {
+            if (key === "__constructor" || key === "states" || key === "toVisit" || key === "input" || key === "output") {
+                return;
+            }
+            let subValue;
+            if (typeof v.value[key] === 'boolean') {
+                subValue = {
+                    get: () => v.value[key],
+                    set: (newValue: any) => v.value[key] = newValue,
+                    toString: () => v.value[key]
+                };
+            } else {
+                subValue = v.value[key];
+            }
+            this.values.set(key, new CoreValue(type, subValue));
+        });
 
         this.keys = [...this.values.keys()];
     }

@@ -74,7 +74,7 @@ interface InputType {"a": boolean; "b": boolean; };
 export class State {
     message: string;
 
-    constructor(public toVisit: Nodes[], public output: string, public active: Nodes, public value: boolean, public input: InputType) {
+    constructor(public toVisit: Nodes[], public output: Object, public active: Nodes, public value: boolean, public input: InputType) {
         this.message = toVisit.map((n) => n.label).join();
     }
 }
@@ -87,12 +87,12 @@ export function start(start: Circuit, input: InputType): string | State {
     const toVisit = getTraversalOrder(start);
     const active = toVisit[0];
     active.setValue(input[active.label]);
-    return new State(toVisit.slice(1), "", active, active.getValue(), input);
+    return new State(toVisit.slice(1), {}, active, active.getValue(), input);
 }
 
-export function step(state: State): State | string {
+export function step(state: State): Object | State {
     if (state.toVisit.length === 0) {
-        return state.output.trim();
+        return state.output;
     } else {
         let output = state.output;
         const node: BasicGate = state.toVisit[0];
@@ -109,7 +109,7 @@ export function step(state: State): State | string {
             result = !node.parents[0].source.getValue();
         } else if (node instanceof OutputGate) {
             result = node.parents[0].source.getValue();
-            output += `${node.label}:${result} `;
+            output[node.label] = result;
         } else {
             throw new Error(`Unknown type of node: ${Object.getPrototypeOf(node)}`);
         }

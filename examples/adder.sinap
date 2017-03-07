@@ -164,7 +164,7 @@
             "type": "NotGate",
             "data": {
                 "color": "#fff200",
-                "label": "",
+                "label": "4",
                 "position": {
                     "x": 338,
                     "y": 195.17743403093723

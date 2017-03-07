@@ -129,6 +129,17 @@ export class TypeInjectorComponent {
             return ObjectTypeComponent;
         }
 
+        if (typeof value.value === "object") {
+            const members = new Map<string, CoreType>();
+            Object.keys(value.value).forEach((k) => {
+                members.set(k, type.env.getBooleanType());
+            });
+
+            (value.type as any).members = members;
+
+            return ObjectTypeComponent;
+        }
+
         console.log("Unknown type for Value: ", value);
         return StringTypeComponent;
     }

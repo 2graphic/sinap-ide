@@ -98,10 +98,32 @@ export class TestPanelComponent {
     }
 
     private getExpected(program: Program) {
-        if (program.plugin.pluginKind[1] == "Digital Logic") {
-            return new CoreValue(program.plugin.typeEnvironment.getStringType(), "Cout:false S:false");
+        if (program.plugin.pluginKind[1] === "Digital Logic") {
+            const members = new Map<string, Type>();
+            members.set("Cout", program.plugin.typeEnvironment.getBooleanType());
+            members.set("S", program.plugin.typeEnvironment.getBooleanType());
+            return new CoreValue(new FakeObjectType(program.plugin.typeEnvironment, members), {
+                "Cout": false,
+                "S": false
+            });
         } else {
             return new CoreValue(program.plugin.typeEnvironment.getBooleanType(), true);
+        }
+    }
+
+    private areEqual(a: any, b: any) {
+        if (typeof a === "object" && typeof b === "object") {
+            for (let p in a) {
+                if (b.hasOwnProperty(p)) {
+                    if (a[p] !== b[p]) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        } else {
+            return a === b;
         }
     }
 
