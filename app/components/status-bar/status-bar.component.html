@@ -1,12 +1,12 @@
 <div id="wrapper">
-    <div id="items">
+    <div id="items" *ngIf="info !== undefined">
         <p class="title">
-            {{title}}
+            {{info.title}}
         </p>
 
         <span class="spacer"></span>
 
-        <p *ngFor="let item of items">
+        <p *ngFor="let item of info.items">
             {{item}}
         </p>
 

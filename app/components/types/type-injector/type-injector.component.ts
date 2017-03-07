@@ -77,10 +77,11 @@ export class TypeInjectorComponent {
     }
 
     private inject(value: CoreValue, readonly: boolean, disabled: boolean) {
-        console.log("Creating new component");
         this._value = value;
 
         let componentType = this.getComponentType(value);
+
+        // console.log(value, componentType);
 
         let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
         let factory = this.resolver.resolveComponentFactory(componentType);

@@ -25,6 +25,7 @@
   "homepage": "https://github.com/2graphic/sinap-core#readme",
   "sinap": {
     "kind": ["Formal Languages", "NFA"],
-    "plugin-file": "nfa.ts"
+    "plugin-file": "nfa.ts",
+    "description": "This interpreter provides a simple non-deterministic finite automata (NFA) implementation."
   }
 }

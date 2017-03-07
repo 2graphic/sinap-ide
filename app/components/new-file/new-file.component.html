@@ -4,12 +4,12 @@
             <sinap-collapsible-list [items]="list.plugins" [text]="list.title" (selectedIndexChanged)="newSelection($event)"></sinap-collapsible-list>
         </div>
     </div>
-    <div id="content" class="flex-container-column">
+    <div id="content" class="flex-container-column" *ngIf="selectedPlugin">
         <div id="description">
-            <h1>Finite Automaton</h1>
+            <h1>{{selectedPlugin.name}}</h1>
             <hr>
             <h4>Description</h4>
-            <p>A graph that simulates a finite state machine where each node is the state of the machine and each edge is some transition between states.</p>
+            <p>{{selectedPlugin.description}}</p>
         </div>
         <div id="filename" class="flex-container-row">
             <div id="text-input">
