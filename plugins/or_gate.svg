@@ -2,11 +2,10 @@
 <path d="
 M 0 15 H 10
 M 0 35 H 10
-M 10 10 H 25
-M 10 40 H 25
 M 40 25 H 50
-M 10 10 V 40
-M 25 10 A 15 15 0 0 1 25 40"
+M 5 10 Q 30 10 40 25
+M 5 40 Q 30 40 40 25
+M 5 10 Q 20 25 5 40"
 stroke="black"
 stroke-width="2"
 fill="transparent"

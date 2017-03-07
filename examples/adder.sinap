@@ -23,7 +23,7 @@
                 },
                 "shape": "image",
                 "image": "../plugins/start_state.svg",
-                "anchorPoints": [],
+                "anchorPoints": [{"x":30,"y":0}],
                 "borderColor": "#000",
                 "borderStyle": "solid",
                 "borderWidth": 2,
@@ -43,7 +43,7 @@
                 },
                 "shape": "image",
                 "image": "../plugins/start_state.svg",
-                "anchorPoints": [],
+                "anchorPoints": [{"x":30,"y":0}],
                 "borderColor": "#000",
                 "borderStyle": "solid",
                 "borderWidth": 2,
@@ -56,37 +56,30 @@
             "type": "AndGate",
             "data": {
                 "color": "#fff200",
-                "label": "AND",
+                "label": "",
                 "position": {
                     "x": 268,
                     "y": 133.12101910828022
                 },
                 "shape": "image",
                 "image": "../plugins/and_gate.svg",
-                "anchorPoints": [],
+                "anchorPoints": [
+                    {
+                        "x": -25,
+                        "y": -10
+                    },
+                    {
+                        "x": -25,
+                        "y": 10
+                    },
+                    {
+                        "x": 25,
+                        "y": 0
+                    }
+                ],
                 "borderColor": "#000",
                 "borderStyle": "solid",
                 "borderWidth": 2
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Wire",
-            "data": {
-                "color": "#000",
-                "label": "",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 1
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 3
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2
             }
         },
         {
@@ -105,26 +98,6 @@
                 "borderColor": "#000",
                 "borderStyle": "solid",
                 "borderWidth": 2
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Wire",
-            "data": {
-                "color": "#000",
-                "label": "",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 3
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 5
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2
             }
         },
         {
@@ -150,14 +123,85 @@
             "type": "OrGate",
             "data": {
                 "color": "#fff200",
-                "label": "OR",
+                "label": "",
                 "position": {
                     "x": 269,
                     "y": 247.2247497725205
                 },
                 "shape": "image",
                 "image": "../plugins/or_gate.svg",
-                "anchorPoints": [],
+                "anchorPoints": [
+                    {
+                        "x": -25,
+                        "y": -10
+                    },
+                    {
+                        "x": -25,
+                        "y": 10
+                    },
+                    {
+                        "x": 25,
+                        "y": 0
+                    }
+                ],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "NotGate",
+            "data": {
+                "color": "#fff200",
+                "label": "",
+                "position": {
+                    "x": 338,
+                    "y": 195.17743403093723
+                },
+                "shape": "image",
+                "image": "../plugins/not_gate.svg",
+                "anchorPoints": [
+                    {
+                        "x": -25,
+                        "y": 0
+                    },
+                    {
+                        "x": 25,
+                        "y": 0
+                    }
+                ],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "AndGate",
+            "data": {
+                "color": "#fff200",
+                "label": "",
+                "position": {
+                    "x": 415.00000000000017,
+                    "y": 249.22656960873516
+                },
+                "shape": "image",
+                "image": "../plugins/and_gate.svg",
+                "anchorPoints": [
+                    {
+                        "x": -25,
+                        "y": -10
+                    },
+                    {
+                        "x": -25,
+                        "y": 10
+                    },
+                    {
+                        "x": 25,
+                        "y": 0
+                    }
+                ],
                 "borderColor": "#000",
                 "borderStyle": "solid",
                 "borderWidth": 2
@@ -175,30 +219,72 @@
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 8
+                    "index": 3
                 },
                 "showSourceArrow": false,
-                "showDestinationArrow": true,
+                "showDestinationArrow": false,
                 "lineStyle": "solid",
                 "lineWidth": 2
             }
         },
         {
-            "kind": "Node",
-            "type": "NotGate",
+            "kind": "Edge",
+            "type": "Wire",
             "data": {
-                "color": "#fff200",
-                "label": "NOT",
-                "position": {
-                    "x": 338,
-                    "y": 195.17743403093723
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
                 },
-                "shape": "image",
-                "image": "../plugins/not_gate.svg",
-                "anchorPoints": [],
-                "borderColor": "#000",
-                "borderStyle": "solid",
-                "borderWidth": 2
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 6
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": false,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Wire",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 3
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": false,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Wire",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 6
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": false,
+                "lineStyle": "solid",
+                "lineWidth": 2
             }
         },
         {
@@ -213,48 +299,10 @@
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 10
+                    "index": 4
                 },
                 "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2
-            }
-        },
-        {
-            "kind": "Node",
-            "type": "AndGate",
-            "data": {
-                "color": "#fff200",
-                "label": "AND",
-                "position": {
-                    "x": 415.00000000000017,
-                    "y": 249.22656960873516
-                },
-                "shape": "image",
-                "image": "../plugins/and_gate.svg",
-                "anchorPoints": [],
-                "borderColor": "#000",
-                "borderStyle": "solid",
-                "borderWidth": 2
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Wire",
-            "data": {
-                "color": "#000",
-                "label": "",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 8
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 12
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
+                "showDestinationArrow": false,
                 "lineStyle": "solid",
                 "lineWidth": 2
             }
@@ -267,34 +315,14 @@
                 "label": "",
                 "source": {
                     "kind": "sinap-pointer",
-                    "index": 10
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 12
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Wire",
-            "data": {
-                "color": "#000",
-                "label": "",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 12
+                    "index": 3
                 },
                 "destination": {
                     "kind": "sinap-pointer",
                     "index": 7
                 },
                 "showSourceArrow": false,
-                "showDestinationArrow": true,
+                "showDestinationArrow": false,
                 "lineStyle": "solid",
                 "lineWidth": 2
             }
@@ -307,34 +335,54 @@
                 "label": "",
                 "source": {
                     "kind": "sinap-pointer",
-                    "index": 2
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 3
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Wire",
-            "data": {
-                "color": "#000",
-                "label": "",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 2
+                    "index": 6
                 },
                 "destination": {
                     "kind": "sinap-pointer",
                     "index": 8
                 },
                 "showSourceArrow": false,
-                "showDestinationArrow": true,
+                "showDestinationArrow": false,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Wire",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 8
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 5
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": false,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Wire",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 7
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 8
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": false,
                 "lineStyle": "solid",
                 "lineWidth": 2
             }
