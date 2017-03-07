@@ -86,7 +86,8 @@ function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init:
 export function start(start: Circuit, input: InputType): string | State {
     const toVisit = getTraversalOrder(start);
     const active = toVisit[0];
-    return new State(toVisit.slice(1), "", active, input[active.label], input);
+    active.setValue(input[active.label]);
+    return new State(toVisit.slice(1), "", active, active.getValue(), input);
 }
 
 export function step(state: State): State | string {
@@ -98,7 +99,8 @@ export function step(state: State): State | string {
         let result: boolean;
 
         if (node instanceof InputGate) {
-            result = state.input[node.label];
+            node.setValue(state.input[node.label]);
+            result = node.getValue();
         } else if (node instanceof AndGate) {
             result = applyOp(node, (a, b) => a && b, true);
         } else if (node instanceof OrGate) {
