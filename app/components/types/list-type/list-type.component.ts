@@ -12,6 +12,16 @@ import { CoreValue } from "sinap-core";
     styleUrls: ["./list-type.component.scss"]
 })
 export class ListTypeComponent {
-    @Input() value: CoreValue;
+    @Input() _value: CoreValue;
     @Input() readonly: boolean = true;
+
+    private values: CoreValue[] = [];
+
+    @Input()
+    set value(v: CoreValue) {
+        if (this.values.length === 0 && Array.isArray(v.value)) {
+            const type = (v.type.env as any).lookupPluginType("Nodes");
+            this.values = v.value.map((v) => new CoreValue(type, v));
+        }
+    }
 }

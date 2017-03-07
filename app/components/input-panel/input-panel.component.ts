@@ -47,9 +47,7 @@ export class InputPanelComponent implements AfterViewChecked {
 
     private selectState(state: State) {
         this.selectedState = state;
-        if (isObjectType(state.state.type) && state.state.value.active) {
-            this.delegate.selectNode(state.state.value.active);
-        }
+        this.delegate.selectNode(state.state.value.active);
     }
 
     private scrollToBottom() {
