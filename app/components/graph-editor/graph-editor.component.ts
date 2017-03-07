@@ -851,7 +851,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 const n = this.hoverObject;
                 const edge = this.createDragEdge(n, true);
                 if (n.anchorPoints.length > 0)
-                    edge.bindAnchor(n, n.getNearestAnchor(n.anchorPoint));
+                    edge.bindSourceAnchor(n.anchorPoint);
                 edge.update(this.canvas);
             }
 
@@ -885,8 +885,12 @@ export class GraphEditorComponent implements AfterViewInit {
             );
             const n = (isSrc ? this.hoverObject.source : this.hoverObject.destination);
             const pt = (isSrc ? this.hoverObject.sourcePoint : this.hoverObject.destinationPoint);
-            if (n.anchorPoints.length > 0)
-                edge.bindAnchor(n, n.getNearestAnchor(pt));
+            if (n.anchorPoints.length > 0) {
+                if (isSrc)
+                    edge.bindSourceAnchor(pt);
+                else
+                    edge.bindDestinationAnchor(pt);
+            }
             this.hoverObject.isDragging = true;
             this.moveEdge = this.hoverObject;
             this.updateHoverObject(null);
@@ -1184,9 +1188,9 @@ export class GraphEditorComponent implements AfterViewInit {
             const edge = (like ? this.graph.moveEdge(srcNode, dstNode, like) : this.graph.createEdge(srcNode, dstNode, like));
             if (edge) {
                 if (srcNode.anchorPoints.length > 0)
-                    edge.bindAnchor(srcNode, srcNode.getNearestAnchor(e.sourcePoint));
+                    edge.bindSourceAnchor(e.sourcePoint);
                 if (dstNode.anchorPoints.length > 0)
-                    edge.bindAnchor(dstNode, dstNode.getNearestAnchor(e.destinationPoint));
+                    edge.bindDestinationAnchor(e.destinationPoint);
                 this.updateSelected(edge);
             }
             this.resumeRedraw();

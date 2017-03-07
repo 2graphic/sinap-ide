@@ -104,7 +104,7 @@ export class DrawableEdge extends DrawableElement {
                         }
                     }
                     else if (value && this.src.anchorPoints.length > 0) {
-                        this.bindAnchor(this.src, this.src.getNearestAnchor(value));
+                        this.bindSourceAnchor(value);
                     }
                 }
             },
@@ -121,7 +121,7 @@ export class DrawableEdge extends DrawableElement {
                         }
                     }
                     else if (value && this.dst.anchorPoints.length > 0) {
-                        this.bindAnchor(this.dst, this.dst.getNearestAnchor(value));
+                        this.bindDestinationAnchor(value);
                     }
                 }
             },
@@ -523,14 +523,23 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * bindAnchor
-     *   Binds an end point of the edge to a node anchor.
+     * bindSourceAnchor
+     *
+     *   Binds the source point of the edge to the nearest anchor point of its
+     *   source node from the given point.
      */
-    bindAnchor(n: DNode, apt: point) {
-        if (n === this.src)
-            this._spt = apt;
-        else if (n === this.dst)
-            this._dpt = apt;
+    bindSourceAnchor(pt: point) {
+        this._spt = this.src.getNearestAnchor(pt);
+    }
+
+    /**
+     * bindDestinationAnchor
+     *
+     *   Binds the destination point of the edge to the nearest anchor point of
+     *   its destination node from the given point.
+     */
+    bindDestinationAnchor(pt: point) {
+        this._dpt = this.dst.getNearestAnchor(pt);
     }
 
     /**
