@@ -1082,6 +1082,10 @@ export class GraphEditorComponent implements AfterViewInit {
             };
             img.src = n.image;
         }
+        else if (IMAGES.has(n.image)) {
+            n.update(this.canvas);
+            this.redraw();
+        }
     }
 
     /**
