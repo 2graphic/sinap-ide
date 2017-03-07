@@ -30,9 +30,9 @@ export class ObjectTypeComponent {
                 let subValue;
                 if (typeof v.value[key] === 'boolean') {
                     subValue = {
-                        get: ()=>v.value[key],
-                        set: (newValue:any)=>v.value[key] = newValue,
-                        toString: ()=>v.value[key]
+                        get: () => v.value[key],
+                        set: (newValue: any) => v.value[key] = newValue,
+                        toString: () => v.value[key]
                     };
                 } else {
                     subValue = v.value[key];
