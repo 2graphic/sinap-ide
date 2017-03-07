@@ -85,7 +85,8 @@ function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init:
 
 export function start(start: Circuit, input: InputType): string | State {
     const toVisit = getTraversalOrder(start);
-    return new State(toVisit.slice(1), "", toVisit[0], false, input);
+    const active = toVisit[0];
+    return new State(toVisit.slice(1), "", active, input[active.label], input);
 }
 
 export function step(state: State): State | string {
