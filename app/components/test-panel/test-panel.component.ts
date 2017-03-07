@@ -70,7 +70,7 @@ export class TestPanelComponent {
         if (this.program) {
             const test = {
                 input: this.getInput(this.program),
-                expected: new CoreValue(this.program.plugin.typeEnvironment.getBooleanType(), true),
+                expected: this.getExpected(this.program),
                 output: new CoreValue(this.program.plugin.typeEnvironment.getStringType(), "Not ran")
             };
 
@@ -94,6 +94,14 @@ export class TestPanelComponent {
             });
         } else {
             return new CoreValue(type, "");
+        }
+    }
+
+    private getExpected(program: Program) {
+        if (program.plugin.pluginKind[1] == "Digital Logic") {
+            return new CoreValue(program.plugin.typeEnvironment.getStringType(), "Cout:false S:false");
+        } else {
+            return new CoreValue(program.plugin.typeEnvironment.getBooleanType(), true);
         }
     }
 

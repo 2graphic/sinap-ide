@@ -92,7 +92,7 @@ export function start(start: Circuit, input: InputType): string | State {
 
 export function step(state: State): State | string {
     if (state.toVisit.length === 0) {
-        return state.output;
+        return state.output.trim();
     } else {
         let output = state.output;
         const node: BasicGate = state.toVisit[0];
