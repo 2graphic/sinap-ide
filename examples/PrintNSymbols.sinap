@@ -1,0 +1,464 @@
+{
+    "format": "sinap-file-format",
+    "kind": [
+        "Formal Languages",
+        "Turing Machine"
+    ],
+    "version": "0.0.7",
+    "elements": [
+        {
+            "kind": "Graph",
+            "type": "Graph",
+            "data": {
+                "blank": "□"
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#fff200",
+                "label": "  q1",
+                "position": {
+                    "x": 179,
+                    "y": 220.00000000000003
+                },
+                "shape": "image",
+                "image": "./../plugins/start_state.svg",
+                "anchorPoints": [
+                    {
+                        "x": 2,
+                        "y": -16
+                    },
+                    {
+                        "x": 20,
+                        "y": -16
+                    },
+                    {
+                        "x": 2,
+                        "y": 16
+                    },
+                    {
+                        "x": 20,
+                        "y": 16
+                    },
+                    {
+                        "x": 11,
+                        "y": -20
+                    },
+                    {
+                        "x": 11,
+                        "y": 20
+                    },
+                    {
+                        "x": -5,
+                        "y": 0
+                    },
+                    {
+                        "x": 27,
+                        "y": 0
+                    }
+                ],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2,
+                "isStartState": true
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#fff200",
+                "label": "q2",
+                "position": {
+                    "x": 637,
+                    "y": 221.99999999999997
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "0; 0; <-",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "0",
+                "write": "0",
+                "move": "Left"
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#fff200",
+                "label": "q6",
+                "position": {
+                    "x": 636,
+                    "y": 479.99999999999994
+                },
+                "shape": "image",
+                "image": "./../plugins/accept_state.svg",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2,
+                "isAcceptState": true
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "□; □; <-",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 4
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "□",
+                "write": "□",
+                "move": "Left"
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#000000",
+                "label": "Input should be a\nbinary number.\n Consumes the\n input and prints\n the number of A's.\n\nI.E. 11 -> 00#AAA",
+                "position": {
+                    "x": 380,
+                    "y": 420
+                },
+                "shape": "square",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#fff200",
+                "label": "q3",
+                "position": {
+                    "x": 858.0000000000001,
+                    "y": 221
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "1; 0; ->",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 7
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "1",
+                "write": "0",
+                "move": "Right"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "0; 1; ->",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 7
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 7
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "0",
+                "write": "1",
+                "move": "Right"
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#fff200",
+                "label": "q4",
+                "position": {
+                    "x": 1053,
+                    "y": 220.00000000000003
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "#; #; ->",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 7
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 10
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "#",
+                "write": "#",
+                "move": "Right"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "A; A; ->",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 10
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 10
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "A",
+                "write": "A",
+                "move": "Right"
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#fff200",
+                "label": "q5",
+                "position": {
+                    "x": 855.9999999999999,
+                    "y": 378
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "□; A; <-",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 10
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 13
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "□",
+                "write": "A",
+                "move": "Left"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "#; #; <-",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 13
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "#",
+                "write": "#",
+                "move": "Left"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "A; A; <-",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 13
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 13
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "A",
+                "write": "A",
+                "move": "Left"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "□; #; <-",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "□",
+                "write": "#",
+                "move": "Left"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "1; 1; ->",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "sourcePoint": {
+                    "x": 169.83026071728256,
+                    "y": 197.86229106023825
+                },
+                "destinationPoint": {
+                    "x": 199,
+                    "y": 204.00000000000003
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "0; 0; ->",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "sourcePoint": {
+                    "x": 169.83026071728256,
+                    "y": 197.86229106023825
+                },
+                "destinationPoint": {
+                    "x": 199,
+                    "y": 204.00000000000003
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2
+            }
+        }
+    ]
+}
