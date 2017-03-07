@@ -1,4 +1,5 @@
 export class NFANode {
+    /** Start State */
     isStartState: boolean;
     /** Accept State */
     isAcceptState: boolean;
