@@ -60,16 +60,22 @@ export class InputPanelComponent implements AfterViewChecked {
         return program.plugin.typeEnvironment.getStringType();
     }
 
-    private getInputType() {
-        if (this.program) {
-            return this.getStringType(this.program);
-        }
-
-        throw "No program";
-    }
-
     private setupInput() {
-        this.inputForPlugin = new CoreValue(this.getInputType(), "");
+        if (this.program) {
+            let type = this.program.runArguments[0][0];
+
+            if (type.name === "InputType") {
+                const members = new Map<string, Type>();
+                members.set("a", this.program.plugin.typeEnvironment.getBooleanType());
+                members.set("b", this.program.plugin.typeEnvironment.getBooleanType());
+                this.inputForPlugin = new CoreValue(new FakeObjectType(this.program.plugin.typeEnvironment, members), {
+                    "a": false,
+                    "b": false
+                });
+            } else {
+                this.inputForPlugin = new CoreValue(type, "");
+            }
+        }
     }
 
     private selectResult(c: ProgramResult) {

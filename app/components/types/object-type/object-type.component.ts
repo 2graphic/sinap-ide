@@ -21,19 +21,25 @@ export class ObjectTypeComponent {
     set value(v: CoreValue) {
         const type = v.type;
 
-        // console.log(v);
-
         // TODO, remove keys that no longer exist.
         if (isObjectType(type)) {
             type.members.forEach((type, key) => {
                 if (key === "__constructor" || key === "states") {
                     return;
                 }
-                this.values.set(key, new CoreValue(type, v.value[key]));
+                let subValue;
+                if (typeof v.value[key] === 'boolean') {
+                    subValue = {
+                        get: ()=>v.value[key],
+                        set: (newValue:any)=>v.value[key] = newValue,
+                        toString: ()=>v.value[key]
+                    };
+                } else {
+                    subValue = v.value[key];
+                }
+                this.values.set(key, new CoreValue(type, subValue));
             });
         }
-
-        // console.log(this.values);
 
         this.keys = [...this.values.keys()];
     }

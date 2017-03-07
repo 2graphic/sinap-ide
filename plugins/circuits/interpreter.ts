@@ -69,8 +69,10 @@ function easyReduce<T, R>(arr: T[], func: (current: T, result: R) => R, initial:
     return result;
 }
 
+interface InputType {"a": boolean, "b": boolean};
+
 export class State {
-    constructor(public toVisit: Nodes[], public output: string, public active: Nodes, public value: boolean, public input: string) {
+    constructor(public toVisit: Nodes[], public output: string, public active: Nodes, public value: boolean, public input: InputType) {
     }
 }
 
@@ -78,7 +80,7 @@ function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init:
     return easyReduce(node.parents, (parent, current) => op(parent.source.getValue(), current), init);
 }
 
-export function start(start: Circuit, input: string): string | State {
+export function start(start: Circuit, input: InputType): string | State {
     const toVisit = getTraversalOrder(start);
     return new State(toVisit.slice(1), "", toVisit[0], false, input);
 }
@@ -92,7 +94,7 @@ export function step(state: State): State | string {
         let result: boolean;
 
         if (node instanceof InputGate) {
-            result = state.input.charAt(node.inputIndex) === "T";
+            result = state.input[node.label];
         } else if (node instanceof AndGate) {
             result = applyOp(node, (a, b) => a && b, true);
         } else if (node instanceof OrGate) {

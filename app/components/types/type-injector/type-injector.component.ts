@@ -10,6 +10,7 @@ import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
 import { ObjectTypeComponent } from "./../object-type/object-type.component";
 import { NodeTypeComponent } from "./../node-type/node-type.component";
+import { ListTypeComponent } from "./../list-type/list-type.component";
 
 
 /**
@@ -20,7 +21,7 @@ import { NodeTypeComponent } from "./../node-type/node-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent],
     template: `<template #container></template>`,
 })
 export class TypeInjectorComponent {
@@ -105,6 +106,10 @@ export class TypeInjectorComponent {
     private getComponentType(value: CoreValue) {
         const type = value.type;
         const env = type.env;
+
+        if (type.name === "boolean[]") {
+            return ListTypeComponent;
+        }
 
         if (type.isAssignableTo((env as any).lookupPluginType("Nodes"))) {
             return NodeTypeComponent;
