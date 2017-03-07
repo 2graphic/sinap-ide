@@ -72,7 +72,10 @@ function easyReduce<T, R>(arr: T[], func: (current: T, result: R) => R, initial:
 interface InputType {"a": boolean; "b": boolean; };
 
 export class State {
+    message: string;
+
     constructor(public toVisit: Nodes[], public output: string, public active: Nodes, public value: boolean, public input: InputType) {
+        this.message = toVisit.map((n) => n.label).join();
     }
 }
 

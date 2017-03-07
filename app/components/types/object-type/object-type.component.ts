@@ -24,7 +24,7 @@ export class ObjectTypeComponent {
         // TODO, remove keys that no longer exist.
         if (isObjectType(type)) {
             type.members.forEach((type, key) => {
-                if (key === "__constructor" || key === "states") {
+                if (key === "__constructor" || key === "states" || key === "toVisit") {
                     return;
                 }
                 let subValue;
