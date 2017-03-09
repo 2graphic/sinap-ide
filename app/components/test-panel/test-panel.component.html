@@ -19,7 +19,7 @@
                 <td>Expected Result</td>
                 <td>Actual Result</td>
             </tr>
-            <tr *ngFor="let test of tests" [class.bad]="test.output == null || test.output.value != test.expected.value" [class.selected]="selected.has(test)"
+            <tr *ngFor="let test of tests" [class.bad]="test.output == null || !areEqual(test.output.value, test.expected.value)" [class.selected]="selected.has(test)"
                 (click)="select(test)">
                 <td><sinap-type [value]="test.input" [readonly]="false" [focus]="true"></sinap-type></td>
                 <td><sinap-type [value]="test.expected" [readonly]="false"></sinap-type></td>

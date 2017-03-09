@@ -92,12 +92,38 @@ export class DrawableEdge extends DrawableElement {
                 get: () => this.dst
             },
             sourcePoint: {
-                enumerable: false,
-                get: () => this._pts[0]
+                enumerable: true,
+                get: () => this._pts[0],
+                set: (value: point) => {
+                    if (this._pts[0]) {
+                        const old = { x: this._pts[0].x, y: this._pts[0].y };
+                        if (this._pts[0].x !== value.x || this._pts[0].y !== value.y) {
+                            this._pts[0].x = value.x;
+                            this._pts[0].y = value.y;
+                            this.onPropertyChanged("sourcePoint", old);
+                        }
+                    }
+                    else if (value && this.src.anchorPoints.length > 0) {
+                        this.bindSourceAnchor(value);
+                    }
+                }
             },
             destinationPoint: {
-                enumerable: false,
-                get: () => this._pts[1]
+                enumerable: true,
+                get: () => this._pts[1],
+                set: (value: point) => {
+                    if (this._pts[1]) {
+                        const old = { x: this._pts[1].x, y: this._pts[1].y };
+                        if (this._pts[1].x !== value.x || this._pts[1].y !== value.y) {
+                            this._pts[1].x = value.x;
+                            this._pts[1].y = value.y;
+                            this.onPropertyChanged("destinationPoint", old);
+                        }
+                    }
+                    else if (value && this.dst.anchorPoints.length > 0) {
+                        this.bindDestinationAnchor(value);
+                    }
+                }
             },
             showSourceArrow: {
                 enumerable: true,
@@ -420,7 +446,7 @@ export class DrawableEdge extends DrawableElement {
                         else if (hitPt2 === pt2 || hitPt3 === pt2)
                             hitPt3 = dpt;
                         if (hitPt1 && hitPt3) {
-                            const v = { x: pt.x - spt.x, y: pt.y - spt.y };
+                            const v = MathEx.subtract(pt, spt);
                             const d1 = MathEx.dot(v, v);
                             v.x = pt.x - dpt.x;
                             v.y = pt.y - dpt.y;
@@ -497,14 +523,23 @@ export class DrawableEdge extends DrawableElement {
     }
 
     /**
-     * bindAnchor
-     *   Binds an end point of the edge to a node anchor.
+     * bindSourceAnchor
+     *
+     *   Binds the source point of the edge to the nearest anchor point of its
+     *   source node from the given point.
      */
-    bindAnchor(n: DNode, apt: point) {
-        if (n === this.src)
-            this._spt = apt;
-        else if (n === this.dst)
-            this._dpt = apt;
+    bindSourceAnchor(pt: point) {
+        this._spt = this.src.getNearestAnchor(pt);
+    }
+
+    /**
+     * bindDestinationAnchor
+     *
+     *   Binds the destination point of the edge to the nearest anchor point of
+     *   its destination node from the given point.
+     */
+    bindDestinationAnchor(pt: point) {
+        this._dpt = this.dst.getNearestAnchor(pt);
     }
 
     /**
@@ -523,7 +558,7 @@ export class DrawableEdge extends DrawableElement {
         if (first) {
             first.points = getPts(first.src, first.dst, first._spt, first._dpt);
             const norm = MathEx.normal(MathEx.subtract(first._pts[0], first._pts[1]));
-            const dir = MathEx.sgn(norm.y);
+            const dir = (first.src === first.dst ? -1 : MathEx.sgn(norm.y));
             norm.x *= (first.src === first.dst ? 0 : GRID_SPACING / 2);
             norm.y *= GRID_SPACING / 2;
             first._pts[2].x -= norm.x;
@@ -570,7 +605,13 @@ export class DrawableEdge extends DrawableElement {
         const edges = [...outgoing].filter(v =>
             incoming.has(v) && (spt === v._spt && dpt === v._dpt)
         );
-        edges.sort();
+        edges.sort((a, b) => {
+            if (a.label < b.label)
+                return -1;
+            else if (a.label > b.label)
+                return 1;
+            return 0;
+        });
         edges.reverse();
         return edges;
     }
@@ -740,7 +781,7 @@ const getStraightPoints = (src: DNode, dst: DNode, bspt: point | null, bdpt: poi
     else if (bspt && !bdpt) {
         pts[0].x += bspt.x;
         pts[0].y += bspt.y;
-        const v = { x: pts[0].x - pts[1].x, y: pts[0].y - pts[1].y };
+        const v = MathEx.subtract(pts[0], pts[1]);
         const d = MathEx.mag(v);
         const u = { x: v.x / d, y: v.y / d };
         pts[1] = dst.getBoundaryPt(u);
@@ -748,13 +789,13 @@ const getStraightPoints = (src: DNode, dst: DNode, bspt: point | null, bdpt: poi
     else if (!bspt && bdpt) {
         pts[1].x += bdpt.x;
         pts[1].y += bdpt.y;
-        const v = { x: pts[1].x - pts[0].x, y: pts[1].y - pts[0].y };
+        const v = MathEx.subtract(pts[1], pts[0]);
         const d = MathEx.mag(v);
         const u = { x: v.x / d, y: v.y / d };
         pts[0] = src.getBoundaryPt(u);
     }
     else {
-        const v = { x: pts[1].x - pts[0].x, y: pts[1].y - pts[0].y };
+        const v = MathEx.subtract(pts[1], pts[0]);
         const d = MathEx.mag(v);
         const u = { x: v.x / d, y: v.y / d };
         pts[0] = src.getBoundaryPt(u);
@@ -782,7 +823,7 @@ const getQuadraticPoints = (src: DNode, dst: DNode, bspt: point | null, bdpt: po
     };
 
     // Get a vector from the source node to the destination node.
-    const v: point = { x: dpt.x - spt.x, y: dpt.y - spt.y, };
+    const v = MathEx.subtract(dpt, spt);
     // Get the magitude of the vector.
     let d = MathEx.mag(v);
 
@@ -901,15 +942,9 @@ function hitPtTestLine(
     margin: number
 ): point | null {
     // Edge vector src -> dst
-    const ve = {
-        x: dst.x - src.x,
-        y: dst.y - src.y,
-    };
+    const ve = MathEx.subtract(dst, src);
     // Cursor vector e.src -> cursor
-    const vm = {
-        x: pt.x - src.x,
-        y: pt.y - src.y
-    };
+    const vm = MathEx.subtract(pt, src);
     const dotee = MathEx.dot(ve, ve); // edge dot edge
     const dotem = MathEx.dot(ve, vm); // edge dot cursor
     // Projection vector cursor -> edge
@@ -918,12 +953,12 @@ function hitPtTestLine(
         y: ve.y * dotem / dotee
     };
     // Rejection vector cursor -^ edge
-    const r = { x: vm.x - p.x, y: vm.y - p.y };
+    const r = MathEx.subtract(vm, p);
 
     const dotpp = MathEx.dot(p, p); // proj dot proj
     const dotrr = MathEx.dot(r, r); // rej dot rej
 
-    const dep = { x: ve.x - p.x, y: ve.y - p.y };
+    const dep = MathEx.subtract(ve, p);
     const dotdep = MathEx.dot(dep, dep);
 
     if (dotpp <= dotee && dotdep <= dotee && dotrr < margin)

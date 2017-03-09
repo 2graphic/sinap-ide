@@ -2,24 +2,26 @@
     "format": "sinap-file-format",
     "kind": [
         "Formal Languages",
-        "DFA"
+        "Turing Machine"
     ],
     "version": "0.0.7",
     "elements": [
         {
             "kind": "Graph",
-            "type": "DFAGraph",
-            "data": {}
+            "type": "Graph",
+            "data": {
+                "blank": "K"
+            }
         },
         {
             "kind": "Node",
-            "type": "DFANode",
+            "type": "Nodes",
             "data": {
                 "color": "#fff200",
-                "label": "",
+                "label": "q1",
                 "position": {
-                    "x": 488,
-                    "y": 471
+                    "x": 234,
+                    "y": 189.00000000000003
                 },
                 "shape": "circle",
                 "image": "",
@@ -32,13 +34,31 @@
         },
         {
             "kind": "Node",
-            "type": "DFANode",
+            "type": "Nodes",
             "data": {
                 "color": "#fff200",
-                "label": "",
+                "label": "q2",
                 "position": {
-                    "x": 726,
-                    "y": 471
+                    "x": 401,
+                    "y": 182.00000000000003
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#fff200",
+                "label": "q3",
+                "position": {
+                    "x": 540,
+                    "y": 191.00000000000003
                 },
                 "shape": "circle",
                 "image": "",
@@ -51,10 +71,10 @@
         },
         {
             "kind": "Edge",
-            "type": "DFAEdge",
+            "type": "Edges",
             "data": {
                 "color": "#000",
-                "label": "5",
+                "label": "",
                 "source": {
                     "kind": "sinap-pointer",
                     "index": 1
@@ -66,27 +86,33 @@
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
                 "lineStyle": "solid",
-                "lineWidth": 2
+                "lineWidth": 2,
+                "read": "1",
+                "write": "2",
+                "move": "Right"
             }
         },
         {
             "kind": "Edge",
-            "type": "DFAEdge",
+            "type": "Edges",
             "data": {
                 "color": "#000",
-                "label": "1",
+                "label": "",
                 "source": {
                     "kind": "sinap-pointer",
-                    "index": 1
+                    "index": 2
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 1
+                    "index": 3
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
                 "lineStyle": "solid",
-                "lineWidth": 2
+                "lineWidth": 2,
+                "read": "2",
+                "write": "3",
+                "move": "Right"
             }
         }
     ]

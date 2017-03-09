@@ -12,14 +12,18 @@ import { CoreValue, PluginTypeEnvironment, CoreElement } from "sinap-core";
     styleUrls: ["./node-type.component.scss"]
 })
 export class NodeTypeComponent {
-    @Input() value: CoreValue<PluginTypeEnvironment>;
+    private _value: CoreValue<PluginTypeEnvironment>;
     @Input() readonly: boolean = true;
 
-    private getLabel() {
-        if (this.value instanceof CoreElement) {
-            return this.value.uuid; // TODO
+    private label: string = "";
+
+    @Input()
+    set value(v: CoreValue<PluginTypeEnvironment>) {
+        this._value = v;
+        if (v && v.value && v.value.label && v.value.label !== "") {
+            this.label = v.value.label;
         } else {
-            return "<NO LABEL>";
+            this.label = "<NO LABEL>";
         }
     }
 }

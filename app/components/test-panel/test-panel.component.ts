@@ -4,7 +4,7 @@
 
 
 import { Component, Input } from "@angular/core";
-import { Program, CoreValue, valueWrap, PluginTypeEnvironment } from "sinap-core";
+import { Program, CoreValue, valueWrap, PluginTypeEnvironment, FakeObjectType, Type } from "sinap-core";
 
 @Component({
     selector: "sinap-test-panel",
@@ -69,15 +69,61 @@ export class TestPanelComponent {
     private newTest() {
         if (this.program) {
             const test = {
-                input: this.program.makeValue(this.program.runArguments[0][0], undefined, true),
-                expected: valueWrap(this.program.plugin.typeEnvironment, true, false),
-                output: valueWrap(this.program.plugin.typeEnvironment, "Not ran", false)
+                input: this.getInput(this.program),
+                expected: this.getExpected(this.program),
+                output: new CoreValue(this.program.plugin.typeEnvironment.getStringType(), "Not ran")
             };
 
             // test.input.changed.asObservable().subscribe(this.testChanged.bind(this, test));
 
             this.tests.push(test);
             this.runTest(test);
+        }
+    }
+
+    private getInput(program: Program) {
+        let type = program.runArguments[0][0];
+
+        if (type.name === "InputType") {
+            const members = new Map<string, Type>();
+            members.set("a", program.plugin.typeEnvironment.getBooleanType());
+            members.set("b", program.plugin.typeEnvironment.getBooleanType());
+            return new CoreValue(new FakeObjectType(program.plugin.typeEnvironment, members), {
+                "a": false,
+                "b": false
+            });
+        } else {
+            return new CoreValue(type, "");
+        }
+    }
+
+    private getExpected(program: Program) {
+        if (program.plugin.pluginKind[1] === "Digital Logic") {
+            const members = new Map<string, Type>();
+            members.set("Cout", program.plugin.typeEnvironment.getBooleanType());
+            members.set("S", program.plugin.typeEnvironment.getBooleanType());
+            return new CoreValue(new FakeObjectType(program.plugin.typeEnvironment, members), {
+                "Cout": false,
+                "S": false
+            });
+        } else {
+            return new CoreValue(program.plugin.typeEnvironment.getBooleanType(), true);
+        }
+    }
+
+    private areEqual(a: any, b: any) {
+        if (typeof a === "object" && typeof b === "object") {
+            for (let p in a) {
+                if (b.hasOwnProperty(p)) {
+                    if (a[p] !== b[p]) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        } else {
+            return a === b;
         }
     }
 

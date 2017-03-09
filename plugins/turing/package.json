@@ -1,8 +1,8 @@
 {
-  "name": "nfa",
+  "name": "turing-machine",
   "version": "1.0.0",
-  "description": "An interpreter for NFAs for the Sinap graph based IDE.",
-  "main": "nfa.ts",
+  "description": "An interpreter for Turing Machines for the Sinap graph based IDE.",
+  "main": "turning.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,7 +11,7 @@
     "url": "git+https://github.com/2graphic/sinap-core.git"
   },
   "keywords": [
-    "nfa",
+    "turing-machine",
     "sinap",
     "2graphic",
     "plugin",
@@ -24,8 +24,8 @@
   },
   "homepage": "https://github.com/2graphic/sinap-core#readme",
   "sinap": {
-    "kind": ["Formal Languages", "NFA"],
-    "plugin-file": "nfa.ts",
-    "description": "This interpreter provides a simple non-deterministic finite automata (NFA) implementation."
+    "kind": ["Formal Languages", "Turing Machine"],
+    "plugin-file": "plugin.ts",
+    "description": "This plugin provides a full Turing Machine represented as a graph including full non-determinism support."
   }
 }
