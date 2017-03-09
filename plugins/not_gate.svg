@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="50" width="50">
+<path d="
+M 0 25 H 15
+M 40 25 H 50
+M 15 15 V 35 L 30 25 Z"
+stroke="black"
+stroke-width="2"
+fill="transparent"
+/>
+<circle cx="35" cy="25" r="5"
+stroke="black"
+stroke-width="2"
+fill="transparent"
+/>
+</svg>

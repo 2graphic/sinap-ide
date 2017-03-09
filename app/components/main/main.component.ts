@@ -213,12 +213,23 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     selectNode(a: any) {
         // TODO: Fix everything
         if (this._context) {
-            for (let n of this._context.graph.drawable.nodes) {
-                if (n.label === a.label) {
-                    this._context.graph.drawable.clearSelection();
-                    this._context.graph.drawable.select(n);
+            let f = (element: any) => {
+                for (let n of this._context!.graph.drawable.nodes) {
+                    if (n.label === element.label) {
+                        toSelect.push(n);
+                    }
                 }
+            };
+
+            const toSelect: any[] = [];
+            if (Array.isArray(a)) {
+                a.forEach(f);
+            } else {
+                f(a);
             }
+
+            this._context.graph.drawable.clearSelection();
+            this._context.graph.drawable.select(...toSelect);
         }
     }
 

@@ -3,7 +3,7 @@
 // Date created: January 17, 2017
 
 
-import { Component, Input, ViewChild, AfterViewInit, ChangeDetectorRef } from "@angular/core";
+import { Component, Input, ViewChild, AfterViewInit, ChangeDetectorRef, ViewChildren, QueryList } from "@angular/core";
 import { WindowService } from "./../../modal-windows/services/window.service";
 import { CollapsibleListComponent } from "./../../components/collapsible-list/collapsible-list.component";
 import { ModalInfo, ModalComponent } from "./../../models/modal-window";
@@ -43,6 +43,7 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
     private availablePlugins: PluginList[];
     private selectedPlugin: PluginData;
     @ViewChild(CollapsibleListComponent) firstList: CollapsibleListComponent;
+    @ViewChildren(CollapsibleListComponent) lists: QueryList<CollapsibleListComponent>;
 
     constructor(private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) { };
 
@@ -55,6 +56,11 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
     }
 
     newSelection(list: CollapsibleListComponent) {
+        this.lists.forEach((l) => {
+            if (l !== list) {
+                l.selectedIndex = -1;
+            }
+        });
         this.selectedPlugin = list.items[list.selectedIndex];
         this.changeDetectorRef.detectChanges();
     }

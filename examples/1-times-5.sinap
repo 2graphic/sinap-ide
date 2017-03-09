@@ -16,7 +16,7 @@
             "type": "DFANode",
             "data": {
                 "color": "#fff200",
-                "label": "",
+                "label": "q1",
                 "position": {
                     "x": 488,
                     "y": 471
@@ -35,7 +35,7 @@
             "type": "DFANode",
             "data": {
                 "color": "#fff200",
-                "label": "",
+                "label": "q2",
                 "position": {
                     "x": 726,
                     "y": 471
