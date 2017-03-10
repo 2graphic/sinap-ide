@@ -42,7 +42,6 @@ import { ResizeEvent } from 'angular-resizable-element';
     styleUrls: ["./main.component.scss"],
     providers: [MenuService, PluginService, WindowService, LocalFileService, SandboxService]
 })
-
 export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, InputPanelDelegate, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
