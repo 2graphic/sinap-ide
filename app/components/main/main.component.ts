@@ -11,11 +11,11 @@ import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDe
 import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, SerialJSO } from "sinap-core";
 
 import { GraphEditorComponent, DrawableElement } from "../graph-editor/graph-editor.component";
-import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
+// import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
 import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 import { FilesPanelComponent } from "../files-panel/files-panel.component";
-import { TestPanelComponent } from "../test-panel/test-panel.component";
+// import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
@@ -43,7 +43,7 @@ import { ResizeEvent } from 'angular-resizable-element';
     providers: [MenuService, PluginService, WindowService, LocalFileService, SandboxService]
 })
 
-export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, InputPanelDelegate, TabDelegate {
+export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, /*InputPanelDelegate,*/ TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
@@ -65,7 +65,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     ngOnInit(): void {
-        this.inputPanel.delegate = this;
+        // this.inputPanel.delegate = this;
         this.tabBar.delegate = this;
         this.menu.addEventListener(this);
     }
@@ -82,13 +82,13 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     // Setup references to child components. These are setup by angular once ngAfterViewInit is called.
     @ViewChild(GraphEditorComponent) private graphEditor: GraphEditorComponent;
-    @ViewChild(InputPanelComponent) private inputPanel: InputPanelComponent;
+    // @ViewChild(InputPanelComponent) private inputPanel: InputPanelComponent;
     @ViewChild(PropertiesPanelComponent) private propertiesPanel: PropertiesPanelComponent;
     @ViewChild(ToolsPanelComponent) private toolsPanel: ToolsPanelComponent;
     @ViewChild(FilesPanelComponent) private filesPanel: FilesPanelComponent;
     @ViewChild("leftPanelBar") private leftPanelBar: SideBarComponent;
     @ViewChild("bottomPanelBar") private bottomPanelBar: SideBarComponent;
-    @ViewChild(TestPanelComponent) private testComponent: TestPanelComponent;
+    // @ViewChild(TestPanelComponent) private testComponent: TestPanelComponent;
     @ViewChild(TabBarComponent) private tabBar: TabBarComponent;
     @ViewChild('editorPanel') editorPanel: ElementRef;
     @ViewChild('leftPanelsGroup') leftPanelsGroup: ElementRef;
@@ -162,8 +162,8 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     private onNewProgram = (program: Program) => {
-        this.testComponent.program = program;
-        this.inputPanel.program = program;
+        // this.testComponent.program = program;
+        // this.inputPanel.program = program;
     }
 
 
@@ -214,14 +214,14 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         // TODO: Fix everything
         if (this._context) {
             const f = (element: CoreElement) => {
-                for (let bridge of this._context.graph.bridges.entries()) {
+                for (let bridge of this._context!.graph.bridges.entries()) {
                     if (bridge.core.uuid === element as any /*element.uuid*/) {
                         if (bridge.drawable instanceof DrawableElement) {
                             toSelect.push(bridge.drawable);
                         }
                     }
                 };
-            }
+            };
 
             const toSelect: DrawableElement[] = [];
             elements.forEach(f);
