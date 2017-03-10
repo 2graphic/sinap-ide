@@ -109,9 +109,9 @@ function createNewWindow(selector: string, type: ModalType, data: any): ModalInf
             resizable: true,
             show: false,
         });
-        if (process.env.NODE_ENV === "production") {
-            newWindow.setMenu(null as any);
-        }
+
+        // The convenience this provides is worth an ugly menu since otherwise devtools is unavailable.
+        newWindow.setMenu(null as any);
 
         let info: ModalInfo = {
             id: newWindow.id,
