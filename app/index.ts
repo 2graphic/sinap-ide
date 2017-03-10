@@ -16,9 +16,9 @@
 //
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import { ModalInfo, ModalType } from './models/modal-window';
+import * as process from "process";
 
 app.setName('Sinap');
-
 
 /**
  * win
@@ -109,7 +109,7 @@ function createNewWindow(selector: string, type: ModalType, data: any): ModalInf
             resizable: true,
             show: false,
         });
-        if (process.env.ENV === 'production') {
+        if (process.env.NODE_ENV === "production") {
             newWindow.setMenu(null as any);
         }
 

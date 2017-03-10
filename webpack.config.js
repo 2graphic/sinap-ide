@@ -43,7 +43,7 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
         plugins: [
             new webpack.DefinePlugin({
                 'process.env': {
-                    'ENV': JSON.stringify(ENV)
+                    'NODE_ENV': JSON.stringify(ENV)
                 }
             }),
         ]

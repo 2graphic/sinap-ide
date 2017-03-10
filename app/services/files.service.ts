@@ -9,6 +9,7 @@
 
 import { Injectable } from '@angular/core';
 import { FileService, AppLocations, Directory, File } from 'sinap-core';
+import { IS_PRODUCTION } from "../main";
 
 // TODO: Add in a service that does not use electron for static website.
 import { remote } from 'electron';
@@ -52,23 +53,40 @@ function ensureNull(shouldBeNull: any): Promise<void> {
 @Injectable()
 export class LocalFileService implements FileService {
     getAppLocations(): Promise<AppLocations> {
-        const currentDirectory = new LocalDirectory(app.getAppPath());
-        const pluginPath = process.env.ENV !== 'production' ? path.join('.', 'plugins') : path.join(app.getPath("userData"), 'plugins');
+        const currentDirectory = new LocalDirectory(this.joinPath(app.getAppPath(), ".."));
+        const pluginPath = path.join(app.getPath("userData"), 'plugins');
         const pluginDirectory = new LocalDirectory(pluginPath);
+
+        let originDir: LocalDirectory;
+        if (IS_PRODUCTION) {
+            originDir = currentDirectory.subdirByName("plugins");
+            // originDir = currentDirectory.subdirByName("resources").subdirByName("app").subdirByName("plugins");
+        } else {
+            originDir = currentDirectory.subdirByName("plugins");
+        }
+
         const result: AppLocations = {
             currentDirectory: currentDirectory,
             pluginDirectory: pluginDirectory
         };
 
+        const _this = this;
+
+        function copyPlugins(): Promise<{}> {
+            return originDir.copyDirectory(pluginDirectory);
+        }
+
         return new Promise<AppLocations>((resolve, reject) => {
             fs.stat(pluginDirectory.fullName, (err: any, stats: any) => {
                 ensureNull(err)
-                    .then(() => resolve(result))
-                    .catch(() => {
-                        // TODO: Copy instead of symlink.
-                        return this.directoryByName(path.join('.', 'plugins'))
-                            .then((concreteDir: LocalDirectory) => concreteDir.copyDirectory(pluginDirectory));
+                    .then(() => {
+                        if (!IS_PRODUCTION) {
+                            return copyPlugins();
+                        } else {
+                            return Promise.resolve({});
+                        }
                     })
+                    .catch(() => copyPlugins())
                     .then(() => resolve(result))
                     .catch((err) => reject(err));
             });
@@ -253,6 +271,13 @@ class LocalDirectory implements Directory {
     public ensureCreated(): Promise<{}> {
         return new Promise<{}>((resolve, reject) => {
             fs.mkdir(this.fullName, makeVoidPromise(resolve, reject));
+        }).catch((err) => {
+            if (err.code === "EEXIST") {
+                // Directory already exists.
+                return Promise.resolve({});
+            } else {
+                return Promise.reject(err);
+            }
         });
     }
 
