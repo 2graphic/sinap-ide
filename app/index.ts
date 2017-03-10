@@ -108,10 +108,8 @@ function createNewWindow(selector: string, type: ModalType, data: any): ModalInf
             center: true,
             resizable: true,
             show: false,
+            frame: false
         });
-
-        // The convenience this provides is worth an ugly menu since otherwise devtools is unavailable.
-        // newWindow.setMenu(null as any);
 
         let info: ModalInfo = {
             id: newWindow.id,
