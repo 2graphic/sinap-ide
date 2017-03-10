@@ -243,16 +243,11 @@ if (process.platform === 'darwin') {
     ]);
 }
 
-/**
- * Only allow the Developer Tools to be triggered in a development build.
- */
-if (!IS_PRODUCTION) {
-    let viewSubmenu = viewMenu.submenu;
-    if (viewSubmenu && viewSubmenu instanceof Array) {
-        viewSubmenu.push({
-            role: 'toggledevtools',
-        });
-    }
+let viewSubmenu = viewMenu.submenu;
+if (viewSubmenu && viewSubmenu instanceof Array) {
+    viewSubmenu.push({
+        role: 'toggledevtools',
+    });
 }
 
 /**********************************************************************************/
