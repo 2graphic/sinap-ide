@@ -12,7 +12,7 @@ import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, SerialJSO 
 
 import { GraphEditorComponent, DrawableElement } from "../graph-editor/graph-editor.component";
 // import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
-import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
+// import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 import { FilesPanelComponent } from "../files-panel/files-panel.component";
 // import { TestPanelComponent } from "../test-panel/test-panel.component";
@@ -83,7 +83,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     // Setup references to child components. These are setup by angular once ngAfterViewInit is called.
     @ViewChild(GraphEditorComponent) private graphEditor: GraphEditorComponent;
     // @ViewChild(InputPanelComponent) private inputPanel: InputPanelComponent;
-    @ViewChild(PropertiesPanelComponent) private propertiesPanel: PropertiesPanelComponent;
+    // @ViewChild(PropertiesPanelComponent) private propertiesPanel: PropertiesPanelComponent;
     @ViewChild(ToolsPanelComponent) private toolsPanel: ToolsPanelComponent;
     @ViewChild(FilesPanelComponent) private filesPanel: FilesPanelComponent;
     @ViewChild("leftPanelBar") private leftPanelBar: SideBarComponent;
@@ -210,26 +210,26 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
 
 
-    selectElement(...elements: CoreElement[]) {
-        // TODO: Fix everything
-        if (this._context) {
-            const f = (element: CoreElement) => {
-                for (let bridge of this._context!.graph.bridges.entries()) {
-                    if (bridge.core.uuid === element as any /*element.uuid*/) {
-                        if (bridge.drawable instanceof DrawableElement) {
-                            toSelect.push(bridge.drawable);
-                        }
-                    }
-                };
-            };
+    // selectElement(...elements: CoreElement[]) {
+    //     // TODO: Fix everything
+    //     if (this._context) {
+    //         const f = (element: CoreElement) => {
+    //             for (let bridge of this._context!.graph.bridges.entries()) {
+    //                 if (bridge.core.uuid === element as any /*element.uuid*/) {
+    //                     if (bridge.drawable instanceof DrawableElement) {
+    //                         toSelect.push(bridge.drawable);
+    //                     }
+    //                 }
+    //             };
+    //         };
 
-            const toSelect: DrawableElement[] = [];
-            elements.forEach(f);
+    //         const toSelect: DrawableElement[] = [];
+    //         elements.forEach(f);
 
-            this._context.graph.drawable.clearSelection();
-            this._context.graph.drawable.select(...toSelect);
-        }
-    }
+    //         this._context.graph.drawable.clearSelection();
+    //         this._context.graph.drawable.select(...toSelect);
+    //     }
+    // }
 
     /**
      * Return true if the focused element is a child of an element with an `id` of `childOf`

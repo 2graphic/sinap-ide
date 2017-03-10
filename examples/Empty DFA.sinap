@@ -1,0 +1,9 @@
+{
+    "format": "sinap-file-format",
+    "kind": [
+        "Formal Languages",
+        "DFA"
+    ],
+    "version": "0.0.8",
+    "elements": []
+}
