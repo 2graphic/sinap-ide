@@ -9,10 +9,8 @@ import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
 import { enableProdMode } from '@angular/core';
 
 import { MainModule } from "./main.module";
-import { remote } from "electron";
-const process = remote.require("process");
 
-export const IS_PRODUCTION = process.env.NODE_ENV === "production";
+import { IS_PRODUCTION } from "./constants";
 
 import "file-loader?name=index.html!extract-loader!./index.html";
 

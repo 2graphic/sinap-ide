@@ -1,6 +1,6 @@
 import { remote } from 'electron';
 let { app } = remote;
-import { IS_PRODUCTION } from "../main";
+import { IS_PRODUCTION } from "../constants";
 
 export enum MenuEventAction {
     NEW_FILE,

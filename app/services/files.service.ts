@@ -9,7 +9,7 @@
 
 import { Injectable } from '@angular/core';
 import { FileService, AppLocations, Directory, File } from 'sinap-core';
-import { IS_PRODUCTION } from "../main";
+import { IS_PRODUCTION } from "../constants";
 
 // TODO: Add in a service that does not use electron for static website.
 import { remote } from 'electron';
