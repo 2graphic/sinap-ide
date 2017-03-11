@@ -1,4 +1,5 @@
 export class DFANode {
+    /** Start State */
     isStartState: boolean;
     /** Accept State */
     isAcceptState: boolean;

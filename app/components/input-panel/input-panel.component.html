@@ -36,10 +36,15 @@
                     </table>
                 </div>
             </div>
-            <div id="left-panel-input">
-                <form (ngSubmit)="onSubmit(inputForPlugin)">
-                    <sinap-type [value]="inputForPlugin" [readonly]="false" [focus]="true" [disabled]="!this.program"></sinap-type>
-                </form>
+            <div id="left-panel-input" (keyup.enter)="onSubmit(inputForPlugin)">
+                <div id="input-value">
+                    <sinap-type [readonly]="false" [focus]="true" [disabled]="!this.program" [value]="inputForPlugin"></sinap-type>                    
+                </div>
+                <div id="input-button">
+                    <button (click)="onSubmit(inputForPlugin)">
+                        <div [inlineSVG]="'${require('../../images/play.svg')}'"></div>
+                    </button>
+                </div>
             </div>
         </div>
 
