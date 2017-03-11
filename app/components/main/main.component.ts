@@ -341,4 +341,17 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         }
     }
     /* -------------------------------------- */
+
+
+    /* ---------- Resizable Panels ---------- */
+
+
+    private updateZoom(value: number) {
+        if (this._context) {
+            this._context.graph.drawable.scale = value;
+        }
+    }
+
+
+    /* -------------------------------------- */
 }

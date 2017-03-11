@@ -22,7 +22,7 @@
         <div id="graph-editor-container">
           <sinap-graph-editor [graph]="_context ? _context.graph.drawable : null" id="graph-editor"></sinap-graph-editor>
         </div>
-        <sinap-status-bar id="status-bar"></sinap-status-bar>
+        <sinap-status-bar id="status-bar" [zoom]="_context ? _context.graph.drawable.scale : 1" (zoomChange)="updateZoom($event)"></sinap-status-bar>
       </div>
       <div [hidden]="(this.tabs.size > 0)" class="full-size">
         <div (click)="promptNewFile()" id="empty-background" class="full-size">
