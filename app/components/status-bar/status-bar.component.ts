@@ -3,7 +3,7 @@
 // Date created: December 1, 2016
 
 
-import { Component, Input } from "@angular/core";
+import { Component, EventEmitter, Output, Input } from "@angular/core";
 
 
 @Component({
@@ -12,7 +12,40 @@ import { Component, Input } from "@angular/core";
     styleUrls: ["./status-bar.component.scss"]
 })
 export class StatusBarComponent {
+    constructor() {
+        this.zoom = 1;
+    }
+
     @Input() info: StatusBarInfo | undefined;
+    @Input() zoom: number;
+    @Output() zoomChange = new EventEmitter<number>();
+
+    private onZoomIn() {
+        this.zoom = Math.min(this.zoom * 1.05, 8);
+    }
+
+    private onZoomOut() {
+        this.zoom = Math.max(this.zoom / 1.05, 0.125);
+    }
+
+    private onZoomChange() {
+        this.zoomChange.emit(this.zoom);
+    }
+
+    private updateZoom(evt: FocusEvent) {
+        const target = evt.currentTarget as HTMLInputElement;
+        let text: string | number = target.value.trim();
+        if (text.endsWith("%"))
+            text = text.substr(0, text.length - 1).trim();
+        let value = Number.parseFloat(text);
+        if (Number.isNaN(value))
+            target.value = (this.zoom * 100).toFixed(3) + ' %';
+        else {
+            value = Math.max(12.5, value);
+            value = Math.min(800, value);
+            this.zoom = value / 100;
+        }
+    }
 }
 
 export interface StatusBarInfo {

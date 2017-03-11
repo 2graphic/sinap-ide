@@ -46,8 +46,19 @@ p {
     height: .75em;
 }
 
-button, button:active {
+button, button:focus {
     border-width: 0;
     background-color: #0067b3;
     color: white;
+}
+
+input.zoomText {
+    border-width: 0;
+    background-color: #0067b3;
+    color: white;
+}
+
+input.zoomText:focus {
+    background-color: white;
+    color: black;
 }
