@@ -1,6 +1,8 @@
 // File: status-bar.component.ts
 // Created by: Daniel James
 // Date created: December 1, 2016
+// Contributors:
+// - CJ Dimaano
 
 
 import { Component, EventEmitter, Output, Input } from "@angular/core";
@@ -22,13 +24,19 @@ export class StatusBarComponent {
 
     private onZoomIn() {
         this.zoom = Math.min(this.zoom * 1.05, 8);
+        this.onZoomChange();
     }
 
     private onZoomOut() {
         this.zoom = Math.max(this.zoom / 1.05, 0.125);
+        this.onZoomChange();
     }
 
-    private onZoomChange() {
+    private onZoomChange(evt?: Event) {
+        if (evt) {
+            const target = evt.currentTarget as HTMLInputElement;
+            this.zoom = Number.parseFloat(target.value);
+        }
         this.zoomChange.emit(this.zoom);
     }
 
@@ -44,7 +52,14 @@ export class StatusBarComponent {
             value = Math.max(12.5, value);
             value = Math.min(800, value);
             this.zoom = value / 100;
+            this.onZoomChange();
         }
+    }
+
+    private enterZoom(evt: KeyboardEvent) {
+        const target = evt.currentTarget as HTMLInputElement;
+        if (evt.key === "Enter")
+            target.blur();
     }
 }
 
