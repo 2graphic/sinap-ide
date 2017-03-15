@@ -42,6 +42,7 @@ export const SQRT3 = Math.sqrt(3);
 
 export const NOOP = () => { };
 
+
 // Functions ///////////////////////////////////////////////////////////////////
 
 
@@ -75,12 +76,21 @@ export function normal(v: point): point {
     return { x: v.y / d, y: v.x / d };
 }
 
-export function add(a: point, b: point): point {
-    return { x: a.x + b.x, y: a.y + b.y };
+export function unit(v: point): point {
+    const d = mag(v);
+    return { x: v.x / d, y: v.y / d };
 }
 
-export function subtract(a: point, b: point): point {
-    return { x: a.x - b.x, y: a.y - b.y };
+export function sum(a: point, b: point, ...c: point[]): point {
+    const v = { x: a.x + b.x, y: a.y + b.y };
+    c.forEach(u => { v.x += u.x; v.y += u.y; });
+    return v;
+}
+
+export function diff(a: point, b: point, ...c: point[]): point {
+    const v = { x: a.x - b.x, y: a.y - b.y };
+    c.forEach(u => { v.x -= u.x; v.y -= u.y; });
+    return v;
 }
 
 export function quadBezIntersect(

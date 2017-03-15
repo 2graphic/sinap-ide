@@ -1,4 +1,4 @@
-_Last updated: February 20, 2017_
+_Last updated: March 15, 2017_
 
 # Remarks
 The graph editor component is a custom Angular2 component that is intended to be
@@ -33,25 +33,26 @@ export class MyComponent {
 ```
 
 The `DrawableGraph` object is a container that houses `DrawableEdge` and
-`DrawableNode` entities. All drawable classes raise `PropertyChanged` events.
-The `DrawableGraph` class also raises `Creating`, `Created`, `Deleted`, and
-`SelectionChanged` events. Users of the drawable objects can subscribe to these
-events by invoking the `addListener` methods. The `Creating`, `Created`, and
-`Deleted` event payloads include a reference to the `DrawableElement` that is
-being created, has been created, or has been deleted. Listeners of these events
-can then add event listeners to the `PropertyChanged` events of these drawables.
+`DrawableNode` entities. All drawable classes raise `change` events. The
+`DrawableGraph` class also raises `creating`, `created`, `moved`, `deleted`, and
+`select` custom events. Users of the drawable objects can subscribe to these
+events by invoking the `addEventListener` method in the same way as any other
+DOM event. The `creating`, `created`, and `deleted` event payloads include a
+reference to the `DrawableElement` collection in the `detail` field. Listeners
+of these events can then add event listeners to the `change` events of these
+drawables.
 
 ## Example
 The following example code is an extension of the previous example. As with the
 first example, `MyComponent` binds to `graph` and initializes `myGraph` to a new
 `DrawableGraph` object with a default edge validator. Then, in the constructor
 of `MyComponent`, event listeners are added to the `DrawableGraph` for the
-`CreatedNode` and `DeletedNode` events.
+`created` and `deleted` events.
 
-In the event listener for the `CreatedNode` event, a `PropertyChanged` event is
-registered for the created `DrawableNode`. This event handler just logs the
-event payload of the `PropertyChanged` event to the console. The `DeletedNode`
-event handler removes the `PropertyChanged` event handler from the node.
+In the event listener for the `created` event, a `change` event is registered
+for the created `DrawableElement`. This event handler just logs the event
+payload of the `change` event to the console. The `deleted` event handler
+removes the `change` event handler from the element.
 
 Note that the event listeners are not methods of the `MyComponent` class. This
 is because the event emitters currently do not properly bind to `this` when
@@ -73,19 +74,21 @@ export class MyComponent {
   
   constructor() {
     this.myGraph = new DrawableGraph((src, dst?, like?) => { return true; });
-    this.myGraph.addCreatedNodeListener(this.registerNode);
-    this.myGraph.addDeletedNodeListener(this.unregisterNode);
+    this.myGraph.addEventListener("created", this.registerNode);
+    this.myGraph.addEventListener("deleted", this.unregisterNode);
   }
 
-  private registerNode = (evt) {
-    evt.drawable.addPropertyChangedListener(this.nodePropertyChanged);
+  private registerElements = (evt) {
+    for (const element of evt.detail.drawables)
+      element.addEventListener("change", this.propertyChanged)
   }
 
-  private unregisterNode = (evt) {
-    evt.drawable.removePropertyChangedListener(this.nodePropertyChanged);
+  private unregisterElements = (evt) {
+    for (const element of evt.detail.drawables)
+      element.removeEventListener("change", this.propertyChanged)
   }
 
-  private nodePropertyChanged = (evt) {
+  private propertyChanged = (evt) {
     console.log(evt);
   }
 }
@@ -101,21 +104,42 @@ should be imported into other modules. It can be found in
 other `ts` files are intended to be used solely within the graph editor module.
 
 ### Drawing Behavior
-The graph editor contains a list of drawable elements which maintains the order
-in which elements should be drawn. Drawable elements are watched for property
-changes so that the editor can give the drawable a canvas in order to update
-itself.
+Drawables are now decoupled from draw logic. The graph editor wraps drawables
+to deal with drawing and hit detection without exposing draw and update methods.
+
+A list of nodes is maintained, and drawing is performed by graph traversal
+beginning at each node.
+
+Two canvases are used to separate the graph from the grid. Now the grid no
+longer needs to be redrawn with the graph.
 
 Certain areas of the editor flood property changed events. For these cases,
 public methods are provided to suspend and resume redrawing of the canvas.
 Invoking the `resumeRedraw` method will force a redraw of the canvas.
 
 ### Hit Detection
-The graph editor gives priority to nodes when processing hit detection. The
-first drawable node that is successfully hit by a point is captured; if no nodes
-are captured, then the first drawable edge is captured. Drawable elements handle
-their own hit detection logic for both point hit detection and rectangle hit
-detection.
+Hit detection gives precedence to the hovered element if there is any.
+Otherwise, the collection of elements is tested. Hit detection is not guaranteed
+to occur in any order between elements.
+
+Hit detection comes in two varieties: hit detection by coordinate and hit
+detection by rectangle (or intersection).
+
+Hit detection by point will either provide a vector or null. If a vector is
+provided, it is either the anchor point of a node or its origin. If it is not
+the origin of the node, it is assumed to be an anchor point and is drawn
+accordingly.
+
+Hit detection by point on an edge is approximated for bezier curves. Linear
+algebra is used to test straight line segments. For bezier curves, the curve is
+interpolated into straight line segments, and hit detection is performed on the
+segments.
+
+Hit detection by rectangle for nodes just assumes the node is a rectangle and
+checks if any corner of the rectangle is within the selection box. For edges,
+certain points along the edge line is checked to be within the selection box;
+if none are in the box, then the boundaries of the box are tested for
+intersections with the edge geometry.
 
 ### Input Handling
 Input to the graph editor is handled through mouse events. The `mousedown` event
@@ -131,8 +155,7 @@ editor, event handler methods and public methods that depend on the graph are
 set to be delegates. Events are just registered and unregistered as needed.
 
 ### Clipboard Events
-Handling clipboard events uses some techniques outlined in this blog post:
-https://www.lucidchart.com/techblog/2014/12/02/definitive-guide-copying-pasting-javascript/
+[Needs discussion].
 
 ## graph-editor-canvas.ts
 The `GraphEditorCanvas` class separates the majority of the drawing logic from
@@ -140,74 +163,56 @@ the component class. Note that the trace functions manually add the origin
 coordinates to each point. This is by design to accomodate the `drawGrid`
 methods.
 
+## graph-editor-element.ts
+The `GraphEditorElement` class wraps around a `DrawableElement` and provides
+common fields and functionality for the `GraphEditorNode` and `GraphEditorEdge`
+classes.
+
+## graph-editor-edge.ts
+The `GraphEditorEdge` wraps around a `DrawableEdge` and provides draw, update,
+and hit detection logic.
+
+Each `GraphEditorEdge` maintains its own list of vectors. A distinction is made
+between a vector and a coordinate. A coordinate is a point on the canvas,
+wherease a vector is some arbitrary point relative to some coordinate or other
+vector. The first two vectors are the source and destination vectors relative
+to the source and destination nodes, respectively; the third vector is the
+midpoint vector relative to the source vector; for quadratic bezier curves, the
+fourth point is the control vector relative to the source; for cubic bezier
+curves, the fourth and fifth vectors are vectors along the curve at t = 1/3 and
+t = 2/3 relative to the source vector, and the sixth and seventh vectors are the
+control vectors relative to the source vector and destination vector,
+respectively.
+
+## graph-editor-node.ts
+The `GraphEditorNode` wraps around a `DrawableNode` and provides draw, update,
+and hit detection logic.
+
+A special `HIDDEN_NODE` constant is defined for dragging either endpoint of an
+edge with the cursor.
+
 ## drawable-graph.ts
-`DrawableGraph` is no longer an interface. It everything it needs in order to
-create a visual representation of a graph. The only thing a third party must
-supply when constructing a `DrawableGraph` is a validator function for checking
-if an edge is valid.
+The `DrawableGraph` class contains everything it needs in order to create a
+visual representation of a graph. The only thing a third party must supply when
+constructing a `DrawableGraph` is a validator function for checking if an edge
+is valid.
 
 The `DrawableGraph` triggers its own events. Events can be registered by adding
-listeners to the object via the `addListener` methods.
+listeners to the object via the `addEventListener` method.
 
-## drawable-element.ts
-The `DrawableElement` class maintains common functionality between the
-`DrawableEdge` and `DrawableNode` classes as well abstract methods that must
-be defined for drawable edges and nodes.
-
-The idea is to have each drawable element be in charge of its own hit detection,
-update, and draw logic. Updates require a `GraphEditorCanvas` for measuring
-text. This is unfortunately unavoidable, so the `GraphEditorComponent` must call
-update on an element when any of its properties change.
-
-Point hit detection for drawable elements takes a point as its argument and
-returns a point or null. If null is returned, then the element was not hit by
-the point of interest. Otherwise, the returned point represents the anchor point
-of the element that was hit by the point of interest. For edges, this anchor
-point is either its source or destination points. For nodes, this point is
-either its origin or some other valid anchor point. If a node returns its,
-then the node itself is considered to be captured by the point of interest.
-Otherwise, it is assumed that the user is attempting to create an edge.
-
-## drawable-edge.ts
-This file contains the `DrawableEdge` class. Each drawable edge contains a list
-of points. The first two points are the points that refer to the edge's source
-and destination nodes respectively. The third point is the midpoint of the line.
-This third point is computed based on the geometry of the line (whether it is
-straight, quadratic, or cubic). For cubic curves, the fourth and fifth points
-are more points on the line that are used for point hit detection. The remaining
-points of the list are control points for bezier curves. For the quadratic, the
-control point would be the fourth point; for the cubic, the sixth and seventh
-points are the control points.
-
-Point hit detection uses the extra points along the line to essentially perform
-linear hit detection across line segments. Hit detection for straight lines is
-quite simple; we take an arbitrary point, project it onto the line segment, make
-sure that is between the endpoints of the segment, then measure the rejection
-vector distance to determine if the point of interest is within acceptible
-thresholds.
-
-Hit detection with rectangles is challenging. The goal is to reduce complexity.
-First, the edge cheats by checking if any of its points along its like are
-within the bounds of the rectangle. If that failes, then the edge checks for
-line intersections along its path. These checks become difficult when dealing
-with quadratic and cubic bezier curves.
-
-## drawable-node.ts
-This file contains the `DrawableNode` class as well as a `HiddenNode` class.
-There are two layers of point hit detection on drawable nodes. The first layer
-checks if the point is within the outer threshold of the node. The second checks
-if it is outside of the inner threshold. If both conditions are true, the the
-node will display an anchor point nearest to the point of interest. In the
-future, when nodes have their own set of valid anchor points, the closest anchor
-point in the set to the point of interest will be returned. If only the outer
-threshold check is true, then the origin point of the node is returned.
-
-Rectangle hit detection on nodes just assumes that all nodes are rectangles, and
-if any of its corners are within the rectangle, then it is considered hit.
+## drawable-element.ts, drawable-edge.ts, and drawable-node.ts
+The `DrawableElement` class maintains common properties between the
+`DrawableEdge` and `DrawableNode` classes. The `DrawableEdge` and `DrawableNode`
+classes maintain extra properties unique to each element.
 
 ## events.ts
-This file contains some definitions for event emitters, listeners, and
-arguments.
+This file contains a typed generic wrapper around the `CustomEvent` DOM class.
+The typed generic is then used to emit custom events. The other classes are
+for the `detail` field of the `CustomEvent` payload, which provide relevant
+data for its associated event.
+
+## generic-functions.ts
+This file contains generic functions.
 
 ## defaults.ts
 This file contains default constants for various graph editor properties. In the
@@ -226,14 +231,13 @@ This file contains useful constants and linear algebra functions.
 
 
 # Discussion
-The graph editor no longer emits events `@Output`. Hook into the events on the
-`DrawableGraph` object by supplying a listener to any of its `addListener`
-methods.
+The graph editor no longer emits events through `@Output`. Hook into the events
+on the `DrawableGraph` object by supplying a listener to its `addEventListener`
+method.
 
 
 # TODO
 - Make sure to handle hit testing of custom shapes.
-- Reorder drawable elements on `addSelectedItem`.
 - Zoom and Pan need to be mapped to two-touch gestures.
   - pinch to zoom/two-touch drag to pan
 - Snap to grid.

@@ -3,58 +3,51 @@
 // Date created: February 7, 2017
 
 
-export type Listener<A extends EventArgs> = (evt?: A) => void;
+import { DrawableElement } from "./drawable-element";
+import { DrawableEdge } from "./drawable-edge";
 
-export type PropertyChangedEventListener<T> = Listener<PropertyChangedEventArgs<T>>;
 
-export class EventArgs {
-    constructor(public readonly source: any) { }
-}
+export type DrawableEvent<D extends DrawableElement>
+    = TypedCustomEvent<DrawableEventDetail<D>>;
 
-export class CancellableEventArgs extends EventArgs {
-    constructor(source: any, public isCancelled: boolean = false) {
-        super(source);
-    }
-}
+export type MoveEdgeEvent
+    = TypedCustomEvent<MoveEdgeEventDetail>;
 
-export class PropertyChangedEventArgs<T> extends EventArgs {
+export type PropertyChangedEvent<T>
+    = TypedCustomEvent<PropertyChangedEventDetail<T>>;
+
+
+export class PropertyChangedEventDetail<T> {
     constructor(
-        source: any,
-        public readonly key: string,
+        public readonly source: any,
+        public readonly key: PropertyKey,
         public readonly prev: T,
         public readonly curr: T
-    ) {
-        super(source);
-    }
+    ) { }
 }
 
-export class EventEmitter<A extends EventArgs, L extends Listener<A>> {
-    protected listeners: Set<L>
-    = new Set<L>();
-    addListener(l: L) {
-        this.listeners.add(l);
-    }
-    removeListener(l: L) {
-        return this.listeners.delete(l);
-    }
-    emit(args: A) {
-        this.listeners.forEach(v => v(args));
-    }
+export class DrawableEventDetail<D extends DrawableElement> {
+    constructor(
+        public readonly source: any,
+        public readonly drawables: D[],
+        public readonly like?: D
+    ) { }
 }
 
-export class CancellableEventEmitter<A extends CancellableEventArgs, L extends Listener<A>>
-    extends EventEmitter<A, L> {
-    emit(args: A) {
-        for (const l of this.listeners) {
-            l(args);
-            if (args.isCancelled)
-                return;
-        }
-    }
+export class MoveEdgeEventDetail {
+    constructor(
+        public readonly source: any,
+        public readonly original: DrawableEdge,
+        public readonly replacement: DrawableEdge
+    ) { }
 }
 
-export class PropertyChangedEventEmitter<T>
-    extends EventEmitter<
-    PropertyChangedEventArgs<T>,
-    Listener<PropertyChangedEventArgs<T>>
-    > { };
+export class TypedCustomEvent<T> extends CustomEvent {
+    constructor(type: string, detail: T) {
+        super(type, { detail: detail });
+    }
+
+    get detail(): T {
+        return super.detail;
+    }
+}

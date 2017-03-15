@@ -57,22 +57,25 @@ export type LineStyles = "solid" | "dotted" | "dashed" | "double";
 /**
  * Shapes
  */
-export type Shapes = "circle" | "square" | "image";
+export type Shapes = "circle" | "square" | "ellipse" | "rectangle" | "image";
 
 /**
  * point
+ *
  *   Represents a coordinate.
  */
 export type point = { x: number, y: number };
 
 /**
  * size
+ *
  *   Represents rectangle dimensions.
  */
-export type size = { h: number, w: number };
+export type size = { height: number, width: number };
 
 /**
  * rect
+ *
  *   Represents a rectangle with the top-left coordinate and height and width.
  */
 export type rect = point & size;
@@ -83,6 +86,7 @@ export type rect = point & size;
 
 /**
  * IMAGES
+ *
  *   Contains a map of cached images.
  */
 export const IMAGES = new Map<string, HTMLImageElement>();
@@ -97,9 +101,8 @@ export const IMAGES = new Map<string, HTMLImageElement>();
  */
 export class GraphEditorCanvas {
     constructor(private g: CanvasRenderingContext2D) {
-        // These probably do nothing.
-        this.g.mozImageSmoothingEnabled = true;
-        this.g.oImageSmoothingEnabled = true;
+        // g.imageSmoothingEnabled = true;
+        g.webkitImageSmoothingEnabled = true;
     }
 
 
@@ -157,30 +160,17 @@ export class GraphEditorCanvas {
         );
     }
 
-    /**
-     * traceRect
-     *   Traces a rectangle.
-     */
-    traceRect(rect: rect) {
+    traceRectangle(rect: rect) {
         this.g.beginPath();
-        this.tracePath(
-            { x: rect.x, y: rect.y },
-            { x: rect.x + rect.w, y: rect.y },
-            { x: rect.x + rect.w, y: rect.y + rect.h },
-            { x: rect.x, y: rect.y + rect.h }
-        );
-        this.g.closePath();
+        this.g.rect(rect.x + this.origin.x, rect.y + this.origin.y, rect.width, rect.height);
     }
 
-    /**
-     * traceCircle
-     *   Traces a circle.
-     */
-    traceCircle(origin: point, radius: number) {
+    traceEllipse(origin: point, rx: number, ry: number) {
         this.g.beginPath();
-        this.g.arc(
+        this.g.ellipse(
             origin.x + this.origin.x, origin.y + this.origin.y,
-            radius,
+            rx, ry,
+            0,
             0, 2 * Math.PI
         );
     }
@@ -198,7 +188,7 @@ export class GraphEditorCanvas {
         dst: point
     ): void {
         // Get the unit vector from the source point to the destination point.
-        const v: point = MathEx.subtract(dst, src);
+        const v: point = MathEx.diff(dst, src);
         const d = MathEx.mag(v);
         const u = { x: v.x / d, y: v.y / d };
 
@@ -241,90 +231,28 @@ export class GraphEditorCanvas {
      *   Draws the selection box.
      */
     drawSelectionBox(rect: rect): void {
-        this.traceRect(rect);
+        this.traceRectangle(rect);
         this.g.strokeStyle = DEFAULT.SELECTION_COLOR;
         this.g.fillStyle = DEFAULT.SELECTION_COLOR;
         this.g.globalAlpha = 0.1;
         this.g.fill();
         this.g.globalAlpha = 1.0;
         this.g.lineWidth = 1;
-        this.lineStyle = { style: "solid" };
+        this.lineStyle = "solid";
         this.g.stroke();
-    }
-
-    /**
-     * drawCircle
-     *   Draws a circle.
-     */
-    drawCircle(
-        o: point,
-        r: number,
-        borderStyle: string,
-        borderWidth: number,
-        borderColor: string,
-        fillColor: string,
-        shadowColor?: string
-    ) {
-        this.traceCircle(o, r);
-        this.g.fillStyle = fillColor;
-        if (shadowColor) {
-            this.shadowBlur = 20;
-            this.g.shadowColor = shadowColor;
-        }
-        this.g.fill();
-        this.shadowBlur = 0;
-        if (borderWidth > 0) {
-            this.lineStyle = { style: borderStyle, dotSize: borderWidth };
-            this.g.lineWidth = borderWidth;
-            this.g.strokeStyle = borderColor;
-            this.g.stroke();
-        }
-    }
-
-    /**
-     * drawSquare
-     *   Draws a square.
-     */
-    drawSquare(
-        p: point,
-        s: number,
-        borderStyle: string,
-        borderWidth: number,
-        borderColor: string,
-        fillColor: string,
-        shadowColor?: string
-    ) {
-        this.traceRect({ x: p.x - s / 2, y: p.y - s / 2, h: s, w: s });
-        this.g.fillStyle = fillColor;
-        if (shadowColor) {
-            this.shadowBlur = 20;
-            this.g.shadowColor = shadowColor;
-        }
-        this.g.fill();
-        this.shadowBlur = 0;
-        if (borderWidth > 0) {
-            this.lineStyle = { style: borderStyle, dotSize: borderWidth };
-            this.g.lineWidth = borderWidth;
-            this.g.strokeStyle = borderColor;
-            this.g.stroke();
-        }
     }
 
     /**
      * drawImage
      *   Draws an image.
      */
-    drawImage(p: point, img: HTMLImageElement, shadowColor?: string) {
-        if (shadowColor) {
-            this.shadowBlur = 20;
-            this.g.shadowColor = shadowColor;
-        }
+    drawImage(p: point, img: string) {
+        const image = IMAGES.get(img) !;
         this.g.drawImage(
-            img,
-            this._origin.x + p.x - img.width / 2,
-            this._origin.y + p.y - img.height / 2
+            image,
+            this._origin.x + p.x - image.width / 2,
+            this._origin.y + p.y - image.height / 2,
         );
-        this.shadowBlur = 0;
     }
 
     /**
@@ -342,15 +270,15 @@ export class GraphEditorCanvas {
         };
 
         // Major grid.
-        this.g.strokeStyle = DEFAULT.GRID_MAJOR_COLOR;
-        this.g.lineWidth = DEFAULT.GRID_MAJOR_WIDTH;
-        this.lineStyle = { style: DEFAULT.GRID_MAJOR_STYLE };
+        this.strokeColor = DEFAULT.GRID_MAJOR_COLOR;
+        this.lineWidth = DEFAULT.GRID_MAJOR_WIDTH;
+        this.lineStyle = DEFAULT.GRID_MAJOR_STYLE;
         this.drawGridLines(o, h, w);
 
         // Minor grid.
-        this.g.strokeStyle = DEFAULT.GRID_MINOR_COLOR;
-        this.g.lineWidth = DEFAULT.GRID_MINOR_WIDTH;
-        this.lineStyle = { style: DEFAULT.GRID_MINOR_STYLE };
+        this.strokeColor = DEFAULT.GRID_MINOR_COLOR;
+        this.lineWidth = DEFAULT.GRID_MINOR_WIDTH;
+        this.lineStyle = DEFAULT.GRID_MINOR_STYLE;
         o.x += DEFAULT.GRID_MINOR_OFFSET;
         o.y += DEFAULT.GRID_MINOR_OFFSET;
         this.drawGridLines(o, h, w);
@@ -373,42 +301,6 @@ export class GraphEditorCanvas {
             this.g.moveTo(0, y);
             this.g.lineTo(w, y);
             this.g.stroke();
-        }
-    }
-
-    /**
-     * drawText
-     *   Draws text.
-     */
-    drawText(
-        p: point,
-        height: number,
-        lines: Array<string>,
-        color: string,
-        borderWidth?: number,
-        borderColor?: string
-    ) {
-        const x = p.x + this.origin.x;
-        let y = p.y + this.origin.y - (height - 1.5 * DEFAULT.FONT_SIZE) / 2;
-        this.g.font = DEFAULT.FONT_SIZE + "pt " + DEFAULT.FONT_FAMILY;
-        this.g.textAlign = "center";
-        this.g.textBaseline = "middle";
-        this.g.fillStyle = color;
-        if (borderWidth && borderColor) {
-            this.g.lineWidth = 2;
-            this.g.strokeStyle = "#000";
-            this.lineStyle = { style: "solid" };
-            for (let l = 0; l < lines.length; l++) {
-                this.g.strokeText(lines[l], x, y);
-                this.g.fillText(lines[l], x, y);
-                y += 1.5 * DEFAULT.FONT_SIZE;
-            }
-        }
-        else {
-            for (let l = 0; l < lines.length; l++) {
-                this.g.fillText(lines[l], x, y);
-                y += 1.5 * DEFAULT.FONT_SIZE;
-            }
         }
     }
 
@@ -463,15 +355,15 @@ export class GraphEditorCanvas {
      * lineStyle
      *   Sets the line style of the rendering context.
      */
-    set lineStyle(value: { style: string, dotSize?: number }) {
-        value.dotSize = (value.dotSize ? value.dotSize : this.g.lineWidth);
-        switch (value.style) {
+    set lineStyle(value: LineStyles) {
+        const dotSize = this.g.lineWidth;
+        switch (value) {
             case "dashed":
-                this.g.setLineDash([6 * value.dotSize, 3 * value.dotSize]);
+                this.g.setLineDash([6 * dotSize, 3 * dotSize]);
                 break;
 
             case "dotted":
-                this.g.setLineDash([value.dotSize, 2 * value.dotSize]);
+                this.g.setLineDash([dotSize, 2 * dotSize]);
                 break;
 
             default:
@@ -511,7 +403,7 @@ export class GraphEditorCanvas {
      * strokeStyle
      *   Sets the stroke color.
      */
-    set strokeStyle(value: string) {
+    set strokeColor(value: string) {
         this.g.strokeStyle = value;
     }
 
@@ -519,7 +411,7 @@ export class GraphEditorCanvas {
      * fillStyle
      *   Sets the fill color.
      */
-    set fillStyle(value: string) {
+    set fillColor(value: string) {
         this.g.fillStyle = value;
     }
 
@@ -554,7 +446,7 @@ export class GraphEditorCanvas {
     }
 
 
-    // Redirects ///////////////////////////////////////////////////////////////
+    // Wrappers ////////////////////////////////////////////////////////////////
 
 
     /**
@@ -581,6 +473,20 @@ export class GraphEditorCanvas {
         this.g.fill();
     }
 
+    strokeText(text: string, x: number, y: number) {
+        this.g.font = "bold " + DEFAULT.FONT_SIZE + "pt " + DEFAULT.FONT_FAMILY;
+        this.g.textAlign = "center";
+        this.g.textBaseline = "middle";
+        this.g.strokeText(text, x + this._origin.x, y + this._origin.y);
+    }
+
+    fillText(text: string, x: number, y: number) {
+        this.g.font = "bold " + DEFAULT.FONT_SIZE + "pt " + DEFAULT.FONT_FAMILY;
+        this.g.textAlign = "center";
+        this.g.textBaseline = "middle";
+        this.g.fillText(text, x + this._origin.x, y + this._origin.y);
+    }
+
 }
 
 
@@ -596,7 +502,7 @@ export function makeRect(pt1: point, pt2: point): rect {
     return {
         x: Math.min(pt2.x, pt1.x),
         y: Math.min(pt2.y, pt1.y),
-        w: Math.abs(pt2.x - pt1.x),
-        h: Math.abs(pt2.y - pt1.y)
+        width: Math.abs(pt2.x - pt1.x),
+        height: Math.abs(pt2.y - pt1.y)
     };
 }

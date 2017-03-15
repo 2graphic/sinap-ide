@@ -1,4 +1,5 @@
 div {
+	position: relative;
   background-color: #eee;
   padding: 0;
   margin: 0;
@@ -8,9 +9,20 @@ div {
 }
 
 canvas {
+	position: absolute;
+	left: 0;
+	top: 0;
   outline: none;
   height: 100%;
   width: 100%;
+}
+
+#gridLayer {
+	z-index: 0;
+}
+
+#graphLayer {
+	z-index: 1;
 }
 
 input {
@@ -30,6 +42,6 @@ input {
 	margin: 0;
 	resize: none;
 	outline: none;
-	-webkit-user-select: text;
-	user-select: text; /* Because for user-select:none, Safari won't allow input */
+	-webkit-user-select: none;
+	user-select: none;
 }

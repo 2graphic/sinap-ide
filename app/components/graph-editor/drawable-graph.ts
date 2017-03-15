@@ -3,25 +3,25 @@
 // Date created: January 9, 2016
 
 
+import { filterSet, move } from "./generic-functions";
 import { point } from "./graph-editor-canvas";
 import { Drawable } from "./drawable";
 import { DrawableElement } from "./drawable-element";
 import { DrawableEdge } from "./drawable-edge";
 import { DrawableNode } from "./drawable-node";
 import {
-    CancellableEventArgs,
-    CancellableEventEmitter,
-    Listener,
-    EventArgs,
-    EventEmitter,
-    PropertyChangedEventArgs,
-    PropertyChangedEventEmitter,
-    PropertyChangedEventListener
+    TypedCustomEvent,
+    DrawableEventDetail,
+    MoveEdgeEventDetail,
+    PropertyChangedEventDetail
 } from "./events";
 
 
 // Typedefs ////////////////////////////////////////////////////////////////////
 
+
+export type SelectionChangedEvent
+    = TypedCustomEvent<PropertyChangedEventDetail<Iterable<DrawableElement>>>;
 
 /**
  * EdgeValidator
@@ -44,84 +44,24 @@ export type EdgeValidator = (
     like?: DrawableEdge
 ) => boolean;
 
-type DrawableEventListener<D extends DrawableElement>
-    = Listener<DrawableEventArgs<D>>;
-
-export type DrawableEdgeEventListener = DrawableEventListener<DrawableEdge>;
-export type DrawableNodeEventListener = DrawableEventListener<DrawableNode>;
-
-export type DrawableEdgeEventArgs = DrawableEventArgs<DrawableEdge>;
-export type DrawableNodeEventArgs = DrawableEventArgs<DrawableNode>;
-
-export type CreatedOrDeletedEvent = ["created" | "deleted", DrawableElement];
-export class CreatedOrDeletedEventArgs extends EventArgs {
-    constructor(source: any, public readonly events: CreatedOrDeletedEvent[]) {
-        super(source);
-    };
-}
-
-type DrawableEdgeEventEmitter = DrawableEventEmitter<DrawableEdge>;
-type DrawableNodeEventEmitter = DrawableEventEmitter<DrawableNode>;
-type CreatedOrDeletedEventEmitter = EventEmitter<CreatedOrDeletedEventArgs, Listener<CreatedOrDeletedEventArgs>>;
-
-
 
 // Classes /////////////////////////////////////////////////////////////////////
 
 
 /**
  * DrawableGraph
+ *
  *   Exposes drawable graph properties and methods.
+ *
+ * <p>
+ *   Raises `change`, `creating`, `created`, `moved`, `deleted`, and `select`
+ *   events.
+ * </p>
  */
 export class DrawableGraph extends Drawable {
     constructor(public readonly isValidEdge: EdgeValidator) {
         super();
         Object.defineProperties(this, {
-            _createdOrDeletedElementEmitter: {
-                enumerable: false,
-                writable: false,
-                value: new EventEmitter<CreatedOrDeletedEventArgs, Listener<CreatedOrDeletedEventArgs>>()
-            },
-            _creatingNodeEmitter: {
-                enumerable: false,
-                writable: false,
-                value: new DrawableEventEmitter<DrawableNode>()
-            },
-            _createdNodeEmitter: {
-                enumerable: false,
-                writable: false,
-                value: new DrawableEventEmitter<DrawableNode>()
-            },
-            _creatingEdgeEmitter: {
-                enumerable: false,
-                writable: false,
-                value: new DrawableEventEmitter<DrawableEdge>()
-            },
-            _createdEdgeEmitter: {
-                enumerable: false,
-                writable: false,
-                value: new DrawableEventEmitter<DrawableEdge>()
-            },
-            _deletedNodeEmitter: {
-                enumerable: false,
-                writable: false,
-                value: new DrawableEventEmitter<DrawableNode>()
-            },
-            _deletedEdgeEmitter: {
-                enumerable: false,
-                writable: false,
-                value: new DrawableEventEmitter<DrawableEdge>()
-            },
-            _selectionChangedEmitter: {
-                enumerable: false,
-                writable: false,
-                value: new PropertyChangedEventEmitter<Iterable<DrawableElement>>()
-            },
-            _deleted: {
-                enumerable: false,
-                writable: false,
-                value: new Set<DrawableElement>()
-            },
             _nodes: {
                 enumerable: false,
                 writable: false,
@@ -169,8 +109,20 @@ export class DrawableGraph extends Drawable {
                 enumerable: false,
                 get: () => this._selected.size
             },
-            origin: {
+            selectedNodes: {
                 enumerable: false,
+                get: () => filterSet(this._selected, DrawableNode)
+            },
+            selectedEdges: {
+                enumerable: false,
+                get: () => filterSet(this._selected, DrawableEdge)
+            },
+            unselectedItems: {
+                enumerable: false,
+                get: () => this._unselected
+            },
+            origin: {
+                enumerable: true,
                 get: () => this._origin,
                 set: (value: point) => {
                     let old = this.origin;
@@ -182,7 +134,7 @@ export class DrawableGraph extends Drawable {
                 }
             },
             scale: {
-                enumerable: false,
+                enumerable: true,
                 get: () => this._scale,
                 set: (value: number) => {
                     let old = this._scale;
@@ -200,82 +152,44 @@ export class DrawableGraph extends Drawable {
     // Private fields //////////////////////////////////////////////////////////
 
 
-    private _createdOrDeletedElementEmitter: CreatedOrDeletedEventEmitter;
-
-    /**
-     * _creatingNodeEmitter
-     *   The event emitter for creating nodes.
-     */
-    private _creatingNodeEmitter: DrawableNodeEventEmitter;
-
-    /**
-     * _createdNodeEmitter
-     *   The event emitter for created nodes.
-     */
-    private _createdNodeEmitter: DrawableNodeEventEmitter;
-
-    /**
-     * _creatingEdgeEmitter
-     *   The event emitter for creating edges.
-     */
-    private _creatingEdgeEmitter: DrawableEdgeEventEmitter;
-
-    /**
-     * _createdEdgeEmitter
-     *   The event emitter for created edges.
-     */
-    private _createdEdgeEmitter: DrawableEdgeEventEmitter;
-
-    /**
-     * _deletedNodeEmitter
-     *   The event emitter for deleted nodes.
-     */
-    private _deletedNodeEmitter: DrawableNodeEventEmitter;
-
-    /**
-     * _deletedEdgeEmitter
-     *   The event emitter for deleted edges.
-     */
-    private _deletedEdgeEmitter: DrawableEdgeEventEmitter;
-
-    /**
-     * _selectionChangedEmitter
-     *   The event emitter for selection changes.
-     */
-    private _selectionChangedEmitter: PropertyChangedEventEmitter<Iterable<DrawableElement>>;
-
     /**
      * _nodes
+     *
      *   The set of nodes.
      */
     private _nodes: Set<DrawableNode>;
 
     /**
      * _edges
+     *
      *   The set of edges.
      */
     private _edges: Set<DrawableEdge>;
 
     /**
      * _selected
+     *
      *   The set of selected elements.
      */
     private _selected: Set<DrawableElement>;
 
     /**
      * _unselected
+     *
      *   The set of unselected elements.
      */
     private _unselected: Set<DrawableElement>;
 
     /**
      * _origin
+     *
      *   The origin point of the graph.
      */
     private _origin: { x: number, y: number };
 
     /**
      * _scale
+     *
      *   The zoom scale of the graph.
      */
     private _scale: number;
@@ -286,37 +200,75 @@ export class DrawableGraph extends Drawable {
 
     /**
      * nodes
-     *   The iterable collection of drawable nodes that are part of the graph.
+     *
+     *   Gets the iterable collection of drawable nodes that are part of the
+     *   graph.
      */
     readonly nodes: Iterable<DrawableNode>;
 
     /**
      * edges
-     *   The iterable collection of drawable edges that are part of the graph.
+     *
+     *   Gets the iterable collection of drawable edges that are part of the
+     *   graph.
      */
     readonly edges: Iterable<DrawableEdge>;
 
     /**
      * selectedItems
-     *   The iterable collection of selected drawable elements.
+     *
+     *   Gets a collection of selected drawable elements.
      */
     readonly selectedItems: Iterable<DrawableElement>;
 
     /**
      * selectedItemCount
-     *   The number of selected items.
+     *
+     *   Gets the number of selected items.
      */
     readonly selectedItemCount: number;
 
     /**
+     * selectedNodes
+     *
+     *   Gets a collection of selected drawable nodes.
+     */
+    readonly selectedNodes: Iterable<DrawableNode>;
+
+    /**
+     * selectedEdges
+     *
+     *   Gets a collection of selected drawable edges.
+     */
+    readonly selectedEdges: Iterable<DrawableEdge>;
+
+    /**
+     * unselectedItems
+     *
+     *   Gets the iterable collection of unselected drawable elements.
+     */
+    readonly unselectedItems: Iterable<DrawableElement>;
+
+    /**
      * origin
-     *   The displacement of the origin point of the graph editor canvas.
+     *
+     *   Gets or sets he displacement of the origin point of the graph editor
+     *   canvas.
+     *
+     * <p>
+     *   Raises the `change` event.
+     * </p>
      */
     origin: point;
 
     /**
      * scale
-     *   The zoom scale of the graph editor canvas.
+     *
+     *   Gets or sets the zoom scale of the graph editor canvas.
+     *
+     * <p>
+     *   Raises the `change` event.
+     * </p>
      */
     scale: number;
 
@@ -326,98 +278,154 @@ export class DrawableGraph extends Drawable {
 
     /**
      * createNode
+     *
      *   Creates a drawable node.
      *
+     * <p>
      *   If `like` is specified, a `DrawableNode` with a matching type of `like`
      *   is created.
+     * </p>
+     *
+     * <p>
+     *   Raises the `creating` and `created` events.
+     * </p>
      */
     createNode(like?: DrawableNode): DrawableNode | null {
-        return this.createItem(
-            this._creatingNodeEmitter,
-            this._createdNodeEmitter,
-            "nodes",
-            this._nodes,
-            new DrawableNode(this, like),
-            like
-        );
+        return this.createItem(this._nodes, new DrawableNode(this, like), like);
     }
 
     /**
      * createEdge
+     *
      *   Creates a drawable edge with a source and destination node.
      *
+     * <p>
      *   If `like` is specified, a `DrawableEdge` with a matching type of `like`
      *   is created.
+     * </p>
      *
+     * <p>
      *   The `isValidEdge` method must be called to check if creating the edge
      *   is valid.
+     * </p>
+     *
+     * <p>
+     *   Raises the `creating` and `created` events.
+     * </p>
      */
     createEdge(
         src: DrawableNode,
         dst: DrawableNode,
         like?: DrawableEdge
     ): DrawableEdge | null {
-        return this.createItem(
-            this._creatingEdgeEmitter,
-            this._createdEdgeEmitter,
-            "edges",
-            this._edges,
-            new DrawableEdge(this, src, dst, like),
-            like
-        );
+        return this.createItem(this._edges, new DrawableEdge(this, src, dst, like), like);
     }
 
+
+    /**
+     * moveEdge
+     *
+     *   Moves a drawable edge to a new pair of source and destination nodes.
+     *
+     * <p>
+     *   The `isValidEdge` method must be called to check if moving the edge is
+     *   valid.
+     * </p>
+     *
+     * <p>
+     *   Raises the `moved` event.
+     * </p>
+     */
     moveEdge(
         src: DrawableNode,
         dst: DrawableNode,
         edge: DrawableEdge
-    ): DrawableEdge | null {
+    ): DrawableEdge {
         this.deselect(edge);
-        this.deleteInternal([edge]);
-
-        const replacement = this.createItem(
-            this._creatingEdgeEmitter,
-            this._createdEdgeEmitter,
-            "edges",
-            this._edges,
-            new DrawableEdge(this, src, dst, edge),
-            edge,
-            true
+        this._edges.delete(edge);
+        this._unselected.delete(edge);
+        const replacement = new DrawableEdge(this, src, dst, edge);
+        this.dispatchEvent(
+            new TypedCustomEvent(
+                "moved",
+                new MoveEdgeEventDetail(
+                    this,
+                    edge,
+                    replacement
+                )
+            )
         );
-
-        if (replacement) {
-            this._createdOrDeletedElementEmitter.emit(
-                new CreatedOrDeletedEventArgs(this, [["deleted", edge], ["created", replacement]])
-            );
-        }
-
         return replacement;
     }
 
     /**
+     * recreateItems
+     *
+     *   Recreates previously deleted items from the graph.
+     *
+     * <p>
+     *   Raises the `created` event.
+     * </p>
+     */
+    recreateItems(...items: DrawableElement[]) {
+        const created: DrawableElement[] = [];
+        items.forEach(d => {
+            if (d instanceof DrawableEdge) {
+                this._edges.add(d);
+                d.source.addEdge(d);
+                d.destination.addEdge(d);
+            }
+            else if (d instanceof DrawableNode)
+                this._nodes.add(d);
+            created.push(d);
+            this._unselected.add(d);
+        });
+        if (created.length > 0) {
+            this.dispatchEvent(
+                new TypedCustomEvent(
+                    "created",
+                    new DrawableEventDetail(
+                        this,
+                        items
+                    )
+                )
+            );
+        }
+    }
+
+    /**
      * createItem
+     *
      *   Creates a drawable element.
      */
     private createItem<D extends DrawableElement>(
-        creatingEmitter: DrawableEventEmitter<D>,
-        createdEmitter: DrawableEventEmitter<D>,
-        key: keyof this,
         items: Set<D>,
         item: D,
-        like?: D,
-        suppress: boolean = false
+        like?: D
     ) {
-        let old = [...items];
-        let args = new DrawableEventArgs<D>(this, [item], like);
-        creatingEmitter.emit(args);
-        if (args.isCancelled)
+        if (!this.dispatchEvent(
+            new TypedCustomEvent(
+                "creating",
+                new DrawableEventDetail(
+                    this,
+                    [item],
+                    like
+                )
+            )
+        ))
             return null;
         items.add(item);
-        createdEmitter.emit(args);
-        if (!suppress) {
-            this._createdOrDeletedElementEmitter.emit(new CreatedOrDeletedEventArgs(this, [["created", item]]));
-        }
-        this.onPropertyChanged(key, old);
+        this._unselected.add(item);
+        this.dispatchEvent(
+            new TypedCustomEvent(
+                "created",
+                new DrawableEventDetail(
+                    this,
+                    [item],
+                    like
+                )
+            )
+        );
         return item;
     }
 
@@ -425,35 +433,19 @@ export class DrawableGraph extends Drawable {
     // Deletion methods ////////////////////////////////////////////////////////
 
 
-    undo(events: CreatedOrDeletedEvent[]) {
-        const toDelete = events.filter((e) => e[0] === "created").map((e) => e[1]);
-        const toUndelete = events.filter((e) => e[0] === "deleted").map((e) => e[1]);
-
-        const deleted = this.deleteInternal(toDelete)[1].map((e): CreatedOrDeletedEvent => ["deleted", e]);
-        const undeleted = this.undeleteInternal(toUndelete)[1].map((e): CreatedOrDeletedEvent => ["created", e]);
-
-        return deleted.concat(undeleted);
-    }
-
-    delete(...items: DrawableElement[]): boolean {
-        const r = this.deleteInternal(items);
-        this._createdOrDeletedElementEmitter.emit(
-            new CreatedOrDeletedEventArgs(this, r[1].map((e): CreatedOrDeletedEvent => ["deleted", e]))
-        );
-        return r[0];
-    }
-
     /**
      * delete
-     *   Deletes elements from the graph.
+     *
+     *   Deletes one or more elements from the graph.
+     *
+     * <p>
+     *   Raises the `deleted` event.
+     * </p>
      */
-    private deleteInternal(items: DrawableElement[]): [boolean, DrawableElement[]] {
-        let result = false;
-        let edges = [...this._edges];
-        let nodes = [...this._nodes];
-        let deletedNodes: DrawableNode[] = [];
-        let deletedEdges: DrawableEdge[] = [];
-        let deleteEdge = (d: DrawableEdge) => {
+    delete(...items: DrawableElement[]): boolean {
+        const deletedNodes: DrawableNode[] = [];
+        const deletedEdges: DrawableEdge[] = [];
+        const deleteEdge = (d: DrawableEdge) => {
             if (this._edges.delete(d)) {
                 d.source.removeEdge(d);
                 d.destination.removeEdge(d);
@@ -462,75 +454,34 @@ export class DrawableGraph extends Drawable {
         };
 
         this.deselect(...items);
-        items.forEach(v => {
-            if (v instanceof DrawableEdge) {
-                deleteEdge(v);
-                this._unselected.delete(v);
+        items.forEach(d => {
+            if (d instanceof DrawableEdge) {
+                deleteEdge(d);
+                this._unselected.delete(d);
             }
-            else if (v instanceof DrawableNode) {
-                let vedges = [...v.edges];
-                vedges.forEach(e => deleteEdge(e));
-                deletedNodes.push(v);
-                this._nodes.delete(v);
-                this._unselected.delete(v);
-            }
-        });
-
-        if (result = nodes.length !== this._nodes.size) {
-            this._deletedNodeEmitter.emit(
-                new DrawableEventArgs<DrawableNode>(this, deletedNodes)
-            );
-            this.onPropertyChanged("nodes", nodes);
-        }
-        if (result = (result || edges.length !== this._edges.size)) {
-            this._deletedEdgeEmitter.emit(
-                new DrawableEventArgs<DrawableEdge>(this, deletedEdges)
-            );
-            this.onPropertyChanged("edges", edges);
-        }
-
-        const elements = (deletedNodes as DrawableElement[]).concat(deletedEdges);
-        return [result, elements];
-    }
-
-    /**
-     * undelete
-     *   Undoes the deletion of elements.
-     */
-    private undeleteInternal(items: DrawableElement[]): [boolean, DrawableElement[]] {
-        const undeleteEdges: DrawableEdge[] = [];
-        const undeleteNodes: DrawableNode[] = [];
-        const oldNodes = [...this._nodes];
-        const oldEdges = [...this._edges];
-        let result = false;
-        items.forEach(v => {
-            this._unselected.add(v);
-            if (v instanceof DrawableNode) {
-                undeleteNodes.push(v);
-                this._nodes.add(v);
-            }
-            else if (v instanceof DrawableEdge) {
-                v.source.addEdge(v);
-                v.destination.addEdge(v);
-                undeleteEdges.push(v);
-                this._edges.add(v);
+            else if (d instanceof DrawableNode) {
+                const edges = [...d.edges];
+                edges.forEach(e => deleteEdge(e));
+                this._nodes.delete(d);
+                this._unselected.delete(d);
+                deletedNodes.push(d);
             }
         });
-        if (result = undeleteNodes.length > 0) {
-            this._createdNodeEmitter.emit(
-                new DrawableEventArgs<DrawableNode>(this, undeleteNodes)
-            );
-            this.onPropertyChanged("nodes", oldNodes);
-        }
-        if (result = (result || undeleteEdges.length > 0)) {
-            this._createdEdgeEmitter.emit(
-                new DrawableEventArgs<DrawableEdge>(this, undeleteEdges)
-            );
-            this.onPropertyChanged("edges", oldEdges);
-        }
 
-        const elements = (undeleteNodes as DrawableElement[]).concat(undeleteEdges);
-        return [result, elements];
+        const deleted = [...deletedNodes, ...deletedEdges];
+        if (deleted.length > 0) {
+            this.dispatchEvent(
+                new TypedCustomEvent(
+                    "deleted",
+                    new DrawableEventDetail(
+                        this,
+                        deleted
+                    )
+                )
+            );
+            return true;
+        }
+        return false;
     }
 
 
@@ -538,8 +489,23 @@ export class DrawableGraph extends Drawable {
 
 
     /**
+     * setSelected
+     *
+     *   Sets the collection of selected items.
+     */
+    setSelected<D extends DrawableElement>(...items: D[]) {
+        move(this._selected, this._unselected, [...this._selected], v => v.isSelected = false);
+        this.move(this._unselected, this._selected, ...items);
+    }
+
+    /**
      * select
+     *
      *   Adds items to the selection.
+     *
+     * <p>
+     *   Raises the `select` event.
+     * </p>
      */
     select<D extends DrawableElement>(...items: D[]) {
         this.move(this._unselected, this._selected, ...items);
@@ -547,7 +513,12 @@ export class DrawableGraph extends Drawable {
 
     /**
      * deselect
+     *
      *   Removes items from the selection.
+     *
+     * <p>
+     *   Raises the `select` event.
+     * </p>
      */
     deselect<D extends DrawableElement>(...items: D[]) {
         this.move(this._selected, this._unselected, ...items);
@@ -555,7 +526,12 @@ export class DrawableGraph extends Drawable {
 
     /**
      * clearSelection
+     *
      *   Clears the selection.
+     *
+     * <p>
+     *   Raises the `select` event.
+     * </p>
      */
     clearSelection() {
         this.move(
@@ -575,164 +551,20 @@ export class DrawableGraph extends Drawable {
         ...items: D[]
     ) {
         let oldSelection = [...this._selected];
-        items.forEach(v => {
-            if (!dst.has(v)) {
-                dst.add(v);
-                src.delete(v);
-                v.isSelected = (dst === this._selected);
-            }
-        });
+        move(src, dst, items, v => v.isSelected = (dst === this._selected));
         if (oldSelection.length !== this._selected.size) {
-            this._selectionChangedEmitter.emit(
-                new PropertyChangedEventArgs<Iterable<DrawableElement>>(
-                    this,
-                    "selectedItems",
-                    oldSelection,
-                    [...this._selected]
+            this.dispatchEvent(
+                new TypedCustomEvent(
+                    "select",
+                    new PropertyChangedEventDetail<Iterable<DrawableElement>>(
+                        this,
+                        "selectedItems",
+                        oldSelection,
+                        [...this._selected]
+                    )
                 )
             );
         }
     }
 
-
-    // Listener register methods ///////////////////////////////////////////////
-
-    addCreatedOrDeletedElementListener(listener: Listener<CreatedOrDeletedEventArgs>) {
-        this._createdOrDeletedElementEmitter.addListener(listener);
-    }
-
-    removeCreatedOrDeletedElementListener(listener: Listener<CreatedOrDeletedEventArgs>) {
-        this._createdOrDeletedElementEmitter.removeListener(listener);
-    }
-
-    /**
-     * addCreatingNodeListener
-     *   Adds a listener to the creating node event.
-     */
-    addCreatingNodeListener(listener: DrawableNodeEventListener) {
-        this._creatingNodeEmitter.addListener(listener);
-    }
-
-    /**
-     * removeCreatingNodeListener
-     *   Removes a listener from the creating node event.
-     */
-    removeCreatingNodeListener(listener: DrawableNodeEventListener) {
-        this._creatingNodeEmitter.removeListener(listener);
-    }
-
-    /**
-     * addCreatedNodeListener
-     *   Adds a listener to the created node event.
-     */
-    addCreatedNodeListener(listener: DrawableNodeEventListener) {
-        this._createdNodeEmitter.addListener(listener);
-    }
-
-    /**
-     * removeCreatedNodeListener
-     *   Removes a listener from the created node event.
-     */
-    removeCreatedNodeListener(listener: DrawableNodeEventListener) {
-        this._createdNodeEmitter.removeListener(listener);
-    }
-
-    /**
-     * addCreatingEdgeListener
-     *   Adds a listener to the creating edge event.
-     */
-    addCreatingEdgeListener(listener: DrawableEdgeEventListener) {
-        this._creatingEdgeEmitter.addListener(listener);
-    }
-
-    /**
-     * removeCreatingEdgeListener
-     *   Removes a listener from the creating edge event.
-     */
-    removeCreatingEdgeListener(listener: DrawableEdgeEventListener) {
-        this._creatingEdgeEmitter.removeListener(listener);
-    }
-
-    /**
-     * addCreatedEdgeListener
-     *   Adds a listener to the created edge event.
-     */
-    addCreatedEdgeListener(listener: DrawableEdgeEventListener) {
-        this._createdEdgeEmitter.addListener(listener);
-    }
-
-    /**
-     * removeCreatedEdgeListener
-     *   Removes a listener from the created event event.
-     */
-    removeCreatedEdgeListener(listener: DrawableEdgeEventListener) {
-        this._createdEdgeEmitter.removeListener(listener);
-    }
-
-    /**
-     * addDeletedNodeListener
-     *   Adds a listener for the deleted node event.
-     */
-    addDeletedNodeListener(listener: DrawableNodeEventListener) {
-        this._deletedNodeEmitter.addListener(listener);
-    }
-
-    /**
-     * removeDeletedNodeListener
-     *   Removes a listener from the deleted node event.
-     */
-    removeDeletedNodeListener(listener: DrawableNodeEventListener) {
-        this._deletedNodeEmitter.removeListener(listener);
-    }
-
-    /**
-     * addDeletedEdgeListener
-     *   Adds a listener to the deleted edge event.
-     */
-    addDeletedEdgeListener(listener: DrawableEdgeEventListener) {
-        this._deletedEdgeEmitter.addListener(listener);
-    }
-
-    /**
-     * removeDeletedEdgeListener
-     *   Removes a listener from the deleted edge event.
-     */
-    removeDeletedEdgeListener(listener: DrawableEdgeEventListener) {
-        this._deletedEdgeEmitter.removeListener(listener);
-    }
-
-    /**
-     * addSelectionChangedListener
-     *   Adds a listener to the selection changed event.
-     */
-    addSelectionChangedListener(listener: PropertyChangedEventListener<Iterable<DrawableElement>>) {
-        this._selectionChangedEmitter.addListener(listener);
-    }
-
-    /**
-     * removeSelectionChangedListener
-     *   Removes a listener from the selection changed event.
-     */
-    removeSelectionChangedListener(listener: PropertyChangedEventListener<Iterable<DrawableElement>>) {
-        this._selectionChangedEmitter.removeListener(listener);
-    }
-
-}
-
-/**
- * DrawableEventArgs
- *   Event arguments for a drawable event.
- */
-export class DrawableEventArgs<D extends DrawableElement> extends CancellableEventArgs {
-    constructor(source: any, public readonly drawables: Iterable<D>, public readonly like?: D) {
-        super(source);
-    }
-}
-
-/**
- * DrawableEventEmitter
- *   Event emitter for drawable events.
- */
-class DrawableEventEmitter<D extends DrawableElement>
-    extends CancellableEventEmitter<DrawableEventArgs<D>, DrawableEventListener<D>> {
 }

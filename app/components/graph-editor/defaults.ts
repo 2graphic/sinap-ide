@@ -39,7 +39,7 @@ export const GRID_MAJOR_COLOR: string = "#c3c3c3";
  * GRID_MAJOR_STYLE
  *   Linestyle of major grid tickmarks.
  */
-export const GRID_MAJOR_STYLE: string = "solid";
+export const GRID_MAJOR_STYLE: LineStyles = "solid";
 
 /**
  * GRID_MAJOR_WIDTH
@@ -63,7 +63,7 @@ export const GRID_MINOR_COLOR: string = "#c3c3c3";
  * GRID_MINOR_STYLE
  *   Linestyle of minor grid tickmarks.
  */
-export const GRID_MINOR_STYLE: string = "dotted";
+export const GRID_MINOR_STYLE: LineStyles = "dotted";
 
 /**
  * GRID_MINOR_WIDTH
@@ -101,15 +101,13 @@ export const STICKY_DELAY: number = 500;
  *   Default property values for drawable nodes.
  */
 export const NODE_PROPERTIES = {
-    get position() { return { get x() { return 0; }, get y() { return 0; } }; },
     get label() { return ""; },
-    get shape() { return "circle"; },
-    get image() { return ""; },
-    get anchorPoints() { return []; },
     get color() { return "#fff200"; },
+    get shape() { return "ellipse"; },
+    get image() { return ""; },
+    get borderWidth() { return 2; },
     get borderColor() { return "#000"; },
-    get borderStyle() { return "solid"; },
-    get borderWidth() { return 2; }
+    get borderStyle() { return "solid"; }
 };
 
 /**

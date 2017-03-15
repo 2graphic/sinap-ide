@@ -289,6 +289,12 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 }
                 break;
             case MenuEventAction.SELECT_ALL:
+                // TODO:
+                // Windows seems to be intercepting this call altogether
+                // regardless of what has focus; i.e., this code never gets
+                // executed when the user presses `ctrl+a`. Selecting the menu
+                // item on Windows, however, does trigger this event.
+                // console.log(e);
                 if (this.focusIsChildOf("editor-panel")) {
                     this.graphEditor.selectAll();
                     e.preventDefault();

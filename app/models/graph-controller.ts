@@ -12,9 +12,11 @@ import {
     DrawableEdge,
     DrawableNode,
     EdgeValidator,
-    CreatedOrDeletedEventArgs,
-    PropertyChangedEventArgs,
-    CreatedOrDeletedEvent as DrawableCreatedOrDeletedEvent
+    DrawableEvent,
+    MoveEdgeEvent,
+    PropertyChangedEvent,
+    PropertyChangedEventDetail,
+    SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
 
 import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType, WrappedScriptObjectType } from "sinap-core";
@@ -101,10 +103,17 @@ function coreFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingP
     return a;
 }
 
-export type UndoableEvent = UndoableChange | UndoableAddOrDelete;
-export type CreatedOrDeletedEvent = ["created" | "deleted", BridgingProxy];
-export class UndoableAddOrDelete {
-    constructor(public events: CreatedOrDeletedEvent[]) { }
+export type UndoableEvent = UndoableChange | UndoableCreate | UndoableDelete | UndoableMove;
+export class UndoableCreate {
+    constructor(public elements: BridgingProxy[]) { }
+}
+
+export class UndoableDelete {
+    constructor(public elements: BridgingProxy[]) { }
+}
+
+export class UndoableMove {
+    constructor(public original: BridgingProxy, public replacement: BridgingProxy) { }
 }
 
 // TODO: changes can also be adds or deletes
@@ -196,8 +205,8 @@ export class GraphController {
         // now make the drawable edges
         for (const edge of coreEdges) {
             // nulls will get copied in by copyCoreToDrawable
-            const source = this.bridges.getB(edge.data['source']) !.drawable as DrawableNode;
-            const destination = this.bridges.getB(edge.data['destination']) !.drawable as DrawableNode;
+            const source = this.bridges.getB(edge.data['source'])!.drawable as DrawableNode;
+            const destination = this.bridges.getB(edge.data['destination'])!.drawable as DrawableNode;
 
             const drawableEdge = this.drawable.createEdge(source, destination);
             if (drawableEdge === null) {
@@ -209,22 +218,28 @@ export class GraphController {
         }
 
         // finally set up all the listeners after we copy all the elements
-        this.drawable.addCreatedOrDeletedElementListener((n: CreatedOrDeletedEventArgs) => this.addOrDeleteDrawables(n.events));
-        this.drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
-        this.drawable.addSelectionChangedListener((a: PropertyChangedEventArgs<Iterable<DrawableElement>>) => {
-            this.setSelectedElements(a.curr);
+        this.drawable.addEventListener("created", (evt: DrawableEvent<DrawableElement>) => {
+            this.changed.emit(new UndoableCreate(
+                evt.detail.drawables.map(d => this.addDrawable(d))
+            ));
         });
+        this.drawable.addEventListener("deleted", (evt: DrawableEvent<DrawableElement>) => {
+            this.changed.emit(new UndoableDelete(
+                evt.detail.drawables.map(d => this.addDrawable(d))
+            ));
+        });
+        this.drawable.addEventListener("moved", (evt: MoveEdgeEvent) => {
+            this.changed.emit(new UndoableMove(
+                this.removeDrawable(evt.detail.original),
+                this.addDrawable(evt.detail.replacement)
+            ));
+        });
+        this.drawable.addEventListener("change", (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail));
+        this.drawable.addEventListener("select", (evt: SelectionChangedEvent) => this.setSelectedElements(evt.detail.curr));
         // side effect of selecting the graph
         this.setSelectedElements(undefined);
     }
 
-    private addOrDeleteDrawables(events: DrawableCreatedOrDeletedEvent[]) {
-        const mapped = events.map(([a, e]): CreatedOrDeletedEvent => {
-            return [a, (a === "created" ? this.addDrawable(e) : this.removeDrawable(e))];
-        });
-
-        this.changed.emit(new UndoableAddOrDelete(mapped));
-    }
     private addDrawable(drawable: Drawable, core?: CoreElement) {
         // if a core element to pair with this
         // drawable doesn't exist, make one
@@ -264,47 +279,38 @@ export class GraphController {
     }
 
     public applyUndoableEvent(event: UndoableEvent) {
-        if (event instanceof UndoableAddOrDelete) {
-            const toUndo = event.events
-                .map((e) => [e[0], e[1].drawable] as DrawableCreatedOrDeletedEvent);
-
-            const undoResults = this.drawable.undo(toUndo);
-
-            const mapped = undoResults.map(([createdOrDeleted, drawable]): CreatedOrDeletedEvent =>
-                [createdOrDeleted, (() => {
-                    if (createdOrDeleted === "created") {
-                        const found = event.events.find(([_, bridge]) => bridge.drawable === drawable);
-
-                        if (found) {
-                            // Reinsert the core element and bridge
-                            const [_, bridge] = found;
-
-                            this.core.elements.push(bridge.core);
-                            this.bridges.set(bridge.drawable, bridge.core, bridge);
-                            return bridge;
-                        } else {
-                            return this.addDrawable(drawable);
-                        }
-                    } else {
-                        return this.removeDrawable(drawable);
-                    }
-                })()]);
-            this.changed.emit(new UndoableAddOrDelete(mapped));
-        } else if (event instanceof UndoableChange) {
+        if (event instanceof UndoableCreate) {
+            this.drawable.delete(...event.elements.map(e => e.drawable as DrawableElement));
+        }
+        else if (event instanceof UndoableDelete) {
+            this.drawable.recreateItems(...event.elements.map(e => e.drawable as DrawableElement));
+        }
+        else if (event instanceof UndoableMove) {
+            const original = event.original.drawable as DrawableEdge;
+            const replacement = event.replacement.drawable as DrawableEdge;
+            this.drawable.moveEdge(original.source, original.destination, replacement);
+        }
+        else if (event instanceof UndoableChange) {
+            // TODO:
+            // This doesn't undo a change in node position, probably because events
+            // from drawable elements are not registered. We need to discuss what
+            // properties are appropriate undoable changes. For instance, do we want
+            // to track if `borderColor` has changed? Probably. What about `anchorPoints`?
+            // Probably not.
             event.target.set(event.key, event.oldValue, true);
         } else {
             throw "Unrecognized event";
         }
     }
 
-    private onPropertyChanged(a: PropertyChangedEventArgs<any>) {
+    private onPropertyChanged(a: PropertyChangedEventDetail<any>) {
         const bridge = this.bridges.getA(a.source);
         if (bridge !== undefined) {
             // TODO: maybe do an interface check to see if this matches
             // do we want the list of nodes/edges to show up in the properties panel?
             // probably not
             // maybe this filtering should occur downstream?
-            if (Object.keys(bridge.drawable).indexOf(a.key) !== -1) {
+            if (a.key in bridge.drawable) {
                 bridge.set(a.key, a.curr, false);
             }
         } else {
@@ -319,7 +325,12 @@ export class GraphController {
                 // TODO: deal with this better
                 if (key === "source") { continue; }
                 if (key === "destination") { continue; }
-                (dst as any)[key] = drawableFromAny(src.data[keyD], this.bridges);
+                const val = drawableFromAny(src.data[keyD], this.bridges);
+                // val can be undefined when loading from a file that does not
+                // define the associated field from dst. In this case, the
+                // drawable will just keep its default initialized value.
+                if (val)
+                    (dst as any)[key] = val;
             }
         }
         else if (src instanceof Drawable && dst instanceof CoreElement) {
