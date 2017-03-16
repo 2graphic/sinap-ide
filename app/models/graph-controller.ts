@@ -296,6 +296,8 @@ export class GraphController {
         else if (event instanceof UndoableDelete) {
             this.drawable.recreateItems(...event.elements.map(e => e.drawable as DrawableElement));
             const mapped = event.elements.map(e => {
+                // Remove the recreated drawable.
+                this.removeDrawable(e.drawable);
                 // Reinsert the core element and bridge.
                 this.core.elements.push(e.core);
                 this.bridges.set(e.drawable, e.core, e);
@@ -307,6 +309,7 @@ export class GraphController {
             const replacement = event.replacement;
             const original = event.original;
             this.drawable.recreateItems(original.drawable as DrawableEdge);
+            this.removeDrawable(original.drawable);
             this.core.elements.push(original.core);
             this.bridges.set(original.drawable, original.core, original);
             this.drawable.delete(replacement.drawable as DrawableEdge);
