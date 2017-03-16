@@ -660,7 +660,7 @@ export class GraphEditorComponent implements AfterViewInit {
             // Create a new node and set it as the drag object.
             const drawable = this.graph.createNode();
             this.dragObject = drawable ?
-                this.drawables.get(drawable)! as GraphEditorNode :
+                this.drawables.get(drawable) ! as GraphEditorNode :
                 null;
             if (this.dragObject) {
                 this.graph.clearSelection();
@@ -711,7 +711,7 @@ export class GraphEditorComponent implements AfterViewInit {
     = (evt: PropertyChangedEvent<any>) => {
         const drawable = evt.detail.source;
         if (drawable instanceof DrawableEdge) {
-            this.drawables.get(drawable)!.update(this.graphCanvas);
+            this.drawables.get(drawable) !.update(this.graphCanvas);
             this.redraw();
         }
         else if (drawable instanceof DrawableNode) {
@@ -720,7 +720,7 @@ export class GraphEditorComponent implements AfterViewInit {
                     drawable.shape === "image"))
                 this.loadImage(drawable);
             else {
-                this.drawables.get(drawable)!.update(this.graphCanvas);
+                this.drawables.get(drawable) !.update(this.graphCanvas);
                 this.redraw();
             }
         }
@@ -740,12 +740,12 @@ export class GraphEditorComponent implements AfterViewInit {
     = (evt: SelectionChangedEvent) => {
         const graph = evt.detail.source as DrawableGraph;
         for (const s of graph.selectedItems) {
-            const e = this.drawables.get(s)!;
+            const e = this.drawables.get(s) !;
             this.selected.add(e);
             this.unselected.delete(e);
         }
         for (const u of graph.unselectedItems) {
-            const e = this.drawables.get(u)!;
+            const e = this.drawables.get(u) !;
             this.selected.delete(e);
             this.unselected.add(e);
         }
@@ -820,10 +820,10 @@ export class GraphEditorComponent implements AfterViewInit {
         };
         this.selected.clear();
         for (const s of graph.selectedItems)
-            this.selected.add(this.drawables.get(s)!);
+            this.selected.add(this.drawables.get(s) !);
         this.unselected.clear();
         for (const u of graph.unselectedItems)
-            this.unselected.add(this.drawables.get(u)!);
+            this.unselected.add(this.drawables.get(u) !);
     }
 
     /**
@@ -871,7 +871,7 @@ export class GraphEditorComponent implements AfterViewInit {
             this.nodes.push(node);
         }
 
-        const e = this.drawables.get(d)!;
+        const e = this.drawables.get(d) !;
         if (d.isSelected)
             this.selected.add(e);
         else
@@ -896,7 +896,7 @@ export class GraphEditorComponent implements AfterViewInit {
         }
         else if (d instanceof DrawableNode)
             this.nodes = this.nodes.filter(v => v.drawable !== d);
-        const e = this.drawables.get(d)!;
+        const e = this.drawables.get(d) !;
         this.selected.delete(e);
         this.unselected.delete(e);
         this.drawables.delete(d);
@@ -975,7 +975,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.updateHoverObject(null);
                 if (this.dragObject.drawable.isSelected) {
                     for (const n of this.graph.selectedNodes)
-                        this.drawables.get(n)!.isDragging = true;
+                        this.drawables.get(n) !.isDragging = true;
                 }
                 else {
                     this.dragObject.isDragging = true;
@@ -988,7 +988,7 @@ export class GraphEditorComponent implements AfterViewInit {
         else if (this.hoverObject instanceof GraphEditorEdge) {
             const hoverEdge = this.hoverObject;
             const spt = hoverEdge.drawable.sourcePoint;
-            const apt = (this.drawables.get(hoverEdge.drawable.source)! as GraphEditorNode).anchor;
+            const apt = (this.drawables.get(hoverEdge.drawable.source) ! as GraphEditorNode).anchor;
             const isSrc = spt.x !== apt.x || spt.y !== apt.y;
             const edge = this.createDragEdge(
                 (isSrc ? hoverEdge.source : hoverEdge.destination),
@@ -1032,8 +1032,8 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.hoverObject.update(this.graphCanvas);
             }
             else if (this.hoverObject instanceof GraphEditorEdge) {
-                const src = this.drawables.get(this.hoverObject.drawable.source)! as GraphEditorNode;
-                const dst = this.drawables.get(this.hoverObject.drawable.destination)! as GraphEditorNode;
+                const src = this.drawables.get(this.hoverObject.drawable.source) ! as GraphEditorNode;
+                const dst = this.drawables.get(this.hoverObject.drawable.destination) ! as GraphEditorNode;
                 src.clearAnchor();
                 dst.clearAnchor();
                 src.update(this.graphCanvas);
@@ -1050,8 +1050,8 @@ export class GraphEditorComponent implements AfterViewInit {
             if (value.e instanceof GraphEditorEdge) {
                 const spt = value.e.drawable.sourcePoint;
                 const apt = value.pt;
-                const src = this.drawables.get(value.e.drawable.source)! as GraphEditorNode;
-                const dst = this.drawables.get(value.e.drawable.destination)! as GraphEditorNode;
+                const src = this.drawables.get(value.e.drawable.source) ! as GraphEditorNode;
+                const dst = this.drawables.get(value.e.drawable.destination) ! as GraphEditorNode;
                 if (spt.x === apt.x && spt.y === apt.y) {
                     dst.clearAnchor();
                     src.anchor = apt;
@@ -1089,7 +1089,7 @@ export class GraphEditorComponent implements AfterViewInit {
         const selectedNodes = [...this.graph.selectedNodes];
         if (dragNode.drawable.isSelected && selectedNodes.length > 0) {
             for (const n of selectedNodes)
-                this.updateDragNode(this.drawables.get(n)! as GraphEditorNode, dPt);
+                this.updateDragNode(this.drawables.get(n) ! as GraphEditorNode, dPt);
         }
         else
             this.updateDragNode(dragNode, dPt);
@@ -1103,7 +1103,7 @@ export class GraphEditorComponent implements AfterViewInit {
     private updateDragNode(n: GraphEditorNode, dPt: pt): void {
         n.position = MathEx.diff(n.position, dPt);
         for (const e of n.drawable.edges)
-            this.drawables.get(e)!.update(this.graphCanvas);
+            this.drawables.get(e) !.update(this.graphCanvas);
     }
 
 
@@ -1195,13 +1195,13 @@ export class GraphEditorComponent implements AfterViewInit {
             const img = new Image();
             IMAGES.set(node.image, img);
             img.onload = () => {
-                this.drawables.get(node)!.update(this.graphCanvas);
+                this.drawables.get(node) !.update(this.graphCanvas);
                 this.redraw();
             };
             img.src = node.image;
         }
         else if (IMAGES.has(node.image)) {
-            this.drawables.get(node)!.update(this.graphCanvas);
+            this.drawables.get(node) !.update(this.graphCanvas);
             this.redraw();
         }
     }
@@ -1346,7 +1346,7 @@ export class GraphEditorComponent implements AfterViewInit {
         this.updateDragNodes(dragNode, pt);
         if (dragNode.drawable.isSelected) {
             for (const n of this.graph.selectedNodes)
-                this.drawables.get(n)!.isDragging = false;
+                this.drawables.get(n) !.isDragging = false;
         }
         else
             dragNode.isDragging = false;
