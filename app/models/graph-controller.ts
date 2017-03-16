@@ -35,7 +35,7 @@ import { DoubleMap } from "./double-map";
 export class BridgingProxy {
     proxy: { [a: string]: any };
 
-    constructor(public core: CoreElement, public drawable: Drawable, public graph: GraphController) {
+    constructor(public core: CoreElement, public drawable: Drawable, public readonly graph: GraphController) {
         this.proxy = new Proxy(core.data, {
             set: (data, k, v) => this.set(k, v),
             get: (data, k) => this.get(k),
@@ -105,23 +105,25 @@ function coreFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingP
 
 export type UndoableEvent = UndoableChange | UndoableCreate | UndoableDelete | UndoableMove;
 export class UndoableCreate {
-    constructor(public elements: BridgingProxy[]) { }
+    constructor(public readonly elements: BridgingProxy[]) { }
 }
 
 export class UndoableDelete {
-    constructor(public elements: BridgingProxy[]) { }
+    constructor(public readonly elements: BridgingProxy[]) { }
 }
 
 export class UndoableMove {
-    constructor(public original: BridgingProxy, public replacement: BridgingProxy) { }
+    constructor(public readonly original: BridgingProxy, public readonly replacement: BridgingProxy) { }
 }
 
 // TODO: changes can also be adds or deletes
 export class UndoableChange {
-    constructor(public target: BridgingProxy,
-        public key: PropertyKey,
-        public oldValue: any,
-        public newValue: any) { }
+    constructor(
+        public readonly target: BridgingProxy,
+        public readonly key: PropertyKey,
+        public readonly oldValue: any,
+        public readonly newValue: any
+    ) { }
 }
 
 export class GraphController {
@@ -129,6 +131,7 @@ export class GraphController {
     activeNodeType: string;
     activeEdgeType: string;
     public changed = new EventEmitter<UndoableEvent>();
+    private isApplyingUndo = false;
 
     private selectedElements: Set<BridgingProxy>;
 
@@ -219,20 +222,20 @@ export class GraphController {
 
         // finally set up all the listeners after we copy all the elements
         this.drawable.addEventListener("created", (evt: DrawableEvent<DrawableElement>) => {
-            this.changed.emit(new UndoableCreate(
-                evt.detail.drawables.map(d => this.addDrawable(d))
-            ));
+            const bridges = evt.detail.drawables.map(d => this.addDrawable(d));
+            if (!this.isApplyingUndo)
+                this.changed.emit(new UndoableCreate(bridges));
         });
         this.drawable.addEventListener("deleted", (evt: DrawableEvent<DrawableElement>) => {
-            this.changed.emit(new UndoableDelete(
-                evt.detail.drawables.map(d => this.addDrawable(d))
-            ));
+            const bridges = evt.detail.drawables.map(d => this.removeDrawable(d));
+            if (!this.isApplyingUndo)
+                this.changed.emit(new UndoableDelete(bridges));
         });
         this.drawable.addEventListener("moved", (evt: MoveEdgeEvent) => {
-            this.changed.emit(new UndoableMove(
-                this.removeDrawable(evt.detail.original),
-                this.addDrawable(evt.detail.replacement)
-            ));
+            const original = this.removeDrawable(evt.detail.original);
+            const replacement = this.addDrawable(evt.detail.replacement);
+            if (!this.isApplyingUndo)
+                this.changed.emit(new UndoableMove(original, replacement));
         });
         this.drawable.addEventListener("change", (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail));
         this.drawable.addEventListener("select", (evt: SelectionChangedEvent) => this.setSelectedElements(evt.detail.curr));
@@ -279,28 +282,42 @@ export class GraphController {
     }
 
     public applyUndoableEvent(event: UndoableEvent) {
+        this.isApplyingUndo = true;
         if (event instanceof UndoableCreate) {
-            this.drawable.delete(...event.elements.map(e => e.drawable as DrawableElement));
+            const mapped: BridgingProxy[] = [];
+            this.drawable.delete(...event.elements.map(e => {
+                // `toBridges` because the deleted event is still captured and calls `removeDrawable`
+                const bridge = this.toBridges(e.drawable);
+                mapped.push(bridge);
+                return bridge.drawable as DrawableElement;
+            }));
+            this.changed.emit(new UndoableDelete(mapped));
         }
         else if (event instanceof UndoableDelete) {
             this.drawable.recreateItems(...event.elements.map(e => e.drawable as DrawableElement));
+            const mapped = event.elements.map(e => {
+                // Reinsert the core element and bridge.
+                this.core.elements.push(e.core);
+                this.bridges.set(e.drawable, e.core, e);
+                return this.toBridges(e.drawable);
+            });
+            this.changed.emit(new UndoableCreate(mapped));
         }
         else if (event instanceof UndoableMove) {
-            const original = event.original.drawable as DrawableEdge;
-            const replacement = event.replacement.drawable as DrawableEdge;
-            this.drawable.moveEdge(original.source, original.destination, replacement);
+            const replacement = event.replacement;
+            const original = event.original;
+            this.drawable.recreateItems(original.drawable as DrawableEdge);
+            this.core.elements.push(original.core);
+            this.bridges.set(original.drawable, original.core, original);
+            this.drawable.delete(replacement.drawable as DrawableEdge);
+            this.changed.emit(new UndoableMove(replacement, original));
         }
         else if (event instanceof UndoableChange) {
-            // TODO:
-            // This doesn't undo a change in node position, probably because events
-            // from drawable elements are not registered. We need to discuss what
-            // properties are appropriate undoable changes. For instance, do we want
-            // to track if `borderColor` has changed? Probably. What about `anchorPoints`?
-            // Probably not.
             event.target.set(event.key, event.oldValue, true);
         } else {
             throw "Unrecognized event";
         }
+        this.isApplyingUndo = false;
     }
 
     private onPropertyChanged(a: PropertyChangedEventDetail<any>) {

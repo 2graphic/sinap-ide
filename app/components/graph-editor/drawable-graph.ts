@@ -126,7 +126,7 @@ export class DrawableGraph extends Drawable {
                 get: () => this._origin,
                 set: (value: point) => {
                     let old = this.origin;
-                    if (this._origin.x !== value.x || this._origin.y !== value.y) {
+                    if (old.x !== value.x || old.y !== value.y) {
                         this._origin.x = value.x;
                         this._origin.y = value.y;
                         this.onPropertyChanged("origin", old);
@@ -318,7 +318,11 @@ export class DrawableGraph extends Drawable {
         dst: DrawableNode,
         like?: DrawableEdge
     ): DrawableEdge | null {
-        return this.createItem(this._edges, new DrawableEdge(this, src, dst, like), like);
+        return this.createItem(
+            this._edges,
+            new DrawableEdge(this, src, dst, like),
+            like
+        );
     }
 
 
@@ -344,15 +348,15 @@ export class DrawableGraph extends Drawable {
         this.deselect(edge);
         this._edges.delete(edge);
         this._unselected.delete(edge);
+        edge.source.removeEdge(edge);
+        edge.destination.removeEdge(edge);
         const replacement = new DrawableEdge(this, src, dst, edge);
+        this._edges.add(replacement);
+        this._unselected.add(replacement);
         this.dispatchEvent(
             new TypedCustomEvent(
                 "moved",
-                new MoveEdgeEventDetail(
-                    this,
-                    edge,
-                    replacement
-                )
+                new MoveEdgeEventDetail(this, edge, replacement)
             )
         );
         return replacement;
@@ -368,8 +372,8 @@ export class DrawableGraph extends Drawable {
      * </p>
      */
     recreateItems(...items: DrawableElement[]) {
-        const created: DrawableElement[] = [];
         items.forEach(d => {
+            console.assert(d.graph === this, "graph mismatch recreating item");
             if (d instanceof DrawableEdge) {
                 this._edges.add(d);
                 d.source.addEdge(d);
@@ -377,17 +381,13 @@ export class DrawableGraph extends Drawable {
             }
             else if (d instanceof DrawableNode)
                 this._nodes.add(d);
-            created.push(d);
             this._unselected.add(d);
         });
-        if (created.length > 0) {
+        if (items.length > 0) {
             this.dispatchEvent(
                 new TypedCustomEvent(
                     "created",
-                    new DrawableEventDetail(
-                        this,
-                        items
-                    )
+                    new DrawableEventDetail(this, items)
                 )
             );
         }
@@ -406,11 +406,7 @@ export class DrawableGraph extends Drawable {
         if (!this.dispatchEvent(
             new TypedCustomEvent(
                 "creating",
-                new DrawableEventDetail(
-                    this,
-                    [item],
-                    like
-                )
+                new DrawableEventDetail(this, [item], like)
             )
         ))
             return null;
@@ -419,11 +415,7 @@ export class DrawableGraph extends Drawable {
         this.dispatchEvent(
             new TypedCustomEvent(
                 "created",
-                new DrawableEventDetail(
-                    this,
-                    [item],
-                    like
-                )
+                new DrawableEventDetail(this, [item], like)
             )
         );
         return item;
@@ -473,10 +465,7 @@ export class DrawableGraph extends Drawable {
             this.dispatchEvent(
                 new TypedCustomEvent(
                     "deleted",
-                    new DrawableEventDetail(
-                        this,
-                        deleted
-                    )
+                    new DrawableEventDetail(this, deleted)
                 )
             );
             return true;
@@ -494,7 +483,12 @@ export class DrawableGraph extends Drawable {
      *   Sets the collection of selected items.
      */
     setSelected<D extends DrawableElement>(...items: D[]) {
-        move(this._selected, this._unselected, [...this._selected], v => v.isSelected = false);
+        move(
+            this._selected,
+            this._unselected,
+            [...this._selected],
+            v => v.isSelected = false
+        );
         this.move(this._unselected, this._selected, ...items);
     }
 

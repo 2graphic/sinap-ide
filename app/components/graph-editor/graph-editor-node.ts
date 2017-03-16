@@ -194,7 +194,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
         const drawable = this.drawable;
         const textRect = this.textRect;
         if (drawable.shape === "image") {
-            const img = IMAGES.get(drawable.image)!;
+            const img = IMAGES.get(drawable.image) !;
             drawable.size = {
                 height: img.height,
                 width: img.width

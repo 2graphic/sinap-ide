@@ -12,7 +12,7 @@ import { DrawableGraph } from "./drawable-graph";
  *   Contains common properties shared between drawable edges and nodes.
  */
 export class DrawableElement extends Drawable {
-    constructor(graph: DrawableGraph) {
+    constructor(public readonly graph: DrawableGraph) {
         super();
         Object.defineProperties(this, {
             _isSelected: {

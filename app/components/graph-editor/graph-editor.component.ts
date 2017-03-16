@@ -894,12 +894,12 @@ export class GraphEditorComponent implements AfterViewInit {
             d.source.removeEdge(d);
             d.destination.removeEdge(d);
         }
+        else if (d instanceof DrawableNode)
+            this.nodes = this.nodes.filter(v => v.drawable !== d);
         const e = this.drawables.get(d)!;
         this.selected.delete(e);
         this.unselected.delete(e);
         this.drawables.delete(d);
-        if (d instanceof DrawableNode)
-            this.nodes = this.nodes.filter(v => v.drawable !== d);
         d.removeEventListener("change", this.onDrawablePropertyChanged);
         this.redraw();
     }
