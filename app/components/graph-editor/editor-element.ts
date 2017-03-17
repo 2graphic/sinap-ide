@@ -1,4 +1,4 @@
-// File: graph-editor-element.ts
+// File: editor-element.ts
 // Created by: CJ Dimaano
 // Date created: March 11, 2017
 
@@ -6,7 +6,7 @@
 import { FONT_SIZE } from "./defaults";
 import { PropertyChangedEvent } from "./events";
 import { DrawableElement } from "./drawable-element";
-import { GraphEditorCanvas, LineStyles, point, size, rect } from "./graph-editor-canvas";
+import { EditorCanvas, LineStyles, point, size, rect } from "./editor-canvas";
 
 
 /**
@@ -25,7 +25,7 @@ export enum DrawableStates {
  *
  *   A wrapper around drawable elements.
  */
-export class GraphEditorElement<D extends DrawableElement> {
+export class EditorElement<D extends DrawableElement> {
     constructor(public readonly drawable: D) { }
 
     private _state: DrawableStates
@@ -82,28 +82,28 @@ export class GraphEditorElement<D extends DrawableElement> {
      *
      *   Draws the selection highlight on a given canvas.
      */
-    drawHighlight(g: GraphEditorCanvas) { }
+    drawHighlight(g: EditorCanvas) { }
 
     /**
      * draw
      *
      *   Draws the element on a given canvas.
      */
-    draw(g: GraphEditorCanvas) { }
+    draw(g: EditorCanvas) { }
 
     /**
      * update
      *
      *   Updates the element for a given canvas.
      */
-    update(g: GraphEditorCanvas) { }
+    update(g: EditorCanvas) { }
 
     /**
      * updateTextSize
      *
      *   Updates the text geometry for a given canvas.
      */
-    updateTextSize(g: GraphEditorCanvas) {
+    updateTextSize(g: EditorCanvas) {
         this.lines = this.drawable.label.split("\n");
         this.textRect.width = 0;
         this.lines.forEach(l => {

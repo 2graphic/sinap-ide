@@ -7,7 +7,7 @@ import { EDGE_PROPERTIES } from "./defaults";
 import { DrawableGraph } from "./drawable-graph";
 import { DrawableElement } from "./drawable-element";
 import { DrawableNode } from "./drawable-node";
-import { LineStyles, point } from "./graph-editor-canvas";
+import { LineStyles, point } from "./editor-canvas";
 
 
 type fnGetPoints = (src: DrawableNode, dst: DrawableNode, bspt: point | null, bdpt: point | null) => point[];

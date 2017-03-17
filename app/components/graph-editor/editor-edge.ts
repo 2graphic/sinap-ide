@@ -1,26 +1,26 @@
-// File: graph-editor-edge.ts
+// File: editor-edge.ts
 // Created by: CJ Dimaano
 // Date created: March 11, 2017
 
 
 import { FONT_SIZE, GRID_SPACING, SELECTION_COLOR, EDGE_HIT_MARGIN } from "./defaults";
 import { PropertyChangedEvent } from "./events";
-import { GraphEditorElement, DrawableStates } from "./graph-editor-element";
-import { GraphEditorNode } from "./graph-editor-node";
+import { EditorElement, DrawableStates } from "./editor-element";
+import { EditorNode } from "./editor-node";
 import { DrawableEdge } from "./drawable-edge";
 import { DrawableNode } from "./drawable-node";
-import { GraphEditorCanvas, point, rect } from "./graph-editor-canvas";
+import { EditorCanvas, point, rect } from "./editor-canvas";
 import * as MathEx from "./math";
 
 
-type fnGetPoints = (src: GraphEditorNode, dst: GraphEditorNode, bspt: point | null, bdpt: point | null) => point[];
+type fnGetPoints = (src: EditorNode, dst: EditorNode, bspt: point | null, bdpt: point | null) => point[];
 
 
-export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
+export class EditorEdge extends EditorElement<DrawableEdge> {
     constructor(
         drawable: DrawableEdge,
-        public readonly source: GraphEditorNode,
-        public readonly destination: GraphEditorNode
+        public readonly source: EditorNode,
+        public readonly destination: EditorNode
     ) {
         super(drawable);
         source.outgoingEdges.add(this);
@@ -55,14 +55,14 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
     private _dpt: point | null
     = null;
 
-    private trace: (g: GraphEditorCanvas) => void
-    = (g: GraphEditorCanvas) => { };
+    private trace: (g: EditorCanvas) => void
+    = (g: EditorCanvas) => { };
 
-    private drawLabelRect: (g: GraphEditorCanvas) => void
-    = (g: GraphEditorCanvas) => { };
+    private drawLabelRect: (g: EditorCanvas) => void
+    = (g: EditorCanvas) => { };
 
-    private drawSetup: (g: GraphEditorCanvas) => void
-    = (g: GraphEditorCanvas) => { };
+    private drawSetup: (g: EditorCanvas) => void
+    = (g: EditorCanvas) => { };
 
     /**
      * points
@@ -106,7 +106,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
      *
      *   Draws the selection highlight on a given canvas.
      */
-    drawHighlight(g: GraphEditorCanvas) {
+    drawHighlight(g: EditorCanvas) {
         this.trace(g);
         g.lineStyle = "solid";
         g.lineWidth = this.drawable.lineWidth + 6;
@@ -120,7 +120,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
      *
      *   Draws the label on a given canvas.
      */
-    drawText(g: GraphEditorCanvas) {
+    drawText(g: EditorCanvas) {
         const x = this.textRect.x;
         let y = this.textRect.y - (this.textRect.height - 1.5 * FONT_SIZE) / 2;
         g.fillColor = "#000";
@@ -135,7 +135,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
      *
      *   Draws the element on a given canvas.
      */
-    draw(g: GraphEditorCanvas) {
+    draw(g: EditorCanvas) {
         this.trace(g);
         this.drawSetup(g);
         g.stroke();
@@ -150,7 +150,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
      *
      *   Updates the element for a given canvas.
      */
-    update(g: GraphEditorCanvas) {
+    update(g: EditorCanvas) {
         this.updateTextSize(g);
         this.updateDrawLabelRect();
         const drawable = this.drawable;
@@ -354,8 +354,8 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
     }
 
     private filterEdges(
-        incoming: Set<GraphEditorEdge>,
-        outgoing: Set<GraphEditorEdge>,
+        incoming: Set<EditorEdge>,
+        outgoing: Set<EditorEdge>,
         spt: point | null,
         dpt: point | null) {
         const edges = [...outgoing].filter(v =>
@@ -371,7 +371,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
         return edges;
     }
 
-    private updatePoints(g: GraphEditorCanvas, makePoints: fnGetPoints, edges: GraphEditorEdge[]) {
+    private updatePoints(g: EditorCanvas, makePoints: fnGetPoints, edges: EditorEdge[]) {
         const first = edges.pop();
         if (first) {
             first.points = makePoints(first.source, first.destination, first._spt, first._dpt);
@@ -414,7 +414,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
             // Cubic
             case 7: {
                 if (showSrc && showDst)
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         const cp1 = MathEx.sum(spt, pts[5]);
@@ -425,7 +425,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
                         g.traceArrow(cp1, spt);
                     };
                 else if (showSrc && !showDst)
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         const cp1 = MathEx.sum(spt, pts[5]);
@@ -435,7 +435,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
                         g.traceArrow(cp1, spt);
                     };
                 else if (!showSrc && showDst)
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         const cp1 = MathEx.sum(spt, pts[5]);
@@ -445,7 +445,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
                         g.traceArrow(cp2, dpt);
                     };
                 else
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         const cp1 = MathEx.sum(spt, pts[5]);
@@ -458,7 +458,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
             // Quadratic
             case 4: {
                 if (showSrc && showDst)
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         const cpt = MathEx.sum(spt, pts[3]);
@@ -468,7 +468,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
                         g.traceArrow(cpt, spt);
                     };
                 else if (showSrc && !showDst)
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         const cpt = MathEx.sum(spt, pts[3]);
@@ -477,7 +477,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
                         g.traceArrow(cpt, spt);
                     };
                 else if (!showSrc && showDst)
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         const cpt = MathEx.sum(spt, pts[3]);
@@ -486,7 +486,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
                         g.traceArrow(cpt, dpt);
                     };
                 else
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         const cpt = MathEx.sum(spt, pts[3]);
@@ -498,7 +498,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
             // Linear
             default: {
                 if (showSrc && showDst)
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         g.beginPath();
@@ -507,7 +507,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
                         g.traceArrow(dpt, spt);
                     };
                 else if (showSrc && !showDst)
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         g.beginPath();
@@ -515,7 +515,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
                         g.traceArrow(dpt, spt);
                     };
                 else if (!showSrc && showDst)
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         g.beginPath();
@@ -523,7 +523,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
                         g.traceArrow(spt, dpt);
                     };
                 else
-                    this.trace = (g: GraphEditorCanvas) => {
+                    this.trace = (g: EditorCanvas) => {
                         const spt = MathEx.sum(src.position, pts[0]);
                         const dpt = MathEx.sum(dst.position, pts[1]);
                         g.beginPath();
@@ -536,7 +536,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
     private updateDrawSetup() {
         switch (this.state) {
             case DrawableStates.Dragging: {
-                this.drawSetup = (g: GraphEditorCanvas) => {
+                this.drawSetup = (g: EditorCanvas) => {
                     g.globalAlpha = 0.35;
                     g.strokeColor = this.drawable.color;
                     g.lineWidth = this.drawable.lineWidth;
@@ -545,7 +545,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
             } break;
 
             case DrawableStates.Hovered: {
-                this.drawSetup = (g: GraphEditorCanvas) => {
+                this.drawSetup = (g: EditorCanvas) => {
                     g.shadowBlur = GRID_SPACING;
                     g.shadowColor = SELECTION_COLOR;
                     g.strokeColor = SELECTION_COLOR;
@@ -557,7 +557,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
             } break;
 
             default:
-                this.drawSetup = (g: GraphEditorCanvas) => {
+                this.drawSetup = (g: EditorCanvas) => {
                     g.strokeColor = this.drawable.color;
                     g.lineWidth = this.drawable.lineWidth;
                     g.lineStyle = this.drawable.lineStyle;
@@ -569,7 +569,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
         if (this.textRect.height > 0 && this.textRect.width > 0) {
             const shiftX = this.textRect.width / 2;
             const shiftY = this.textRect.height / 2;
-            this.drawLabelRect = (g: GraphEditorCanvas) => {
+            this.drawLabelRect = (g: EditorCanvas) => {
                 const pt = MathEx.sum(this.source.position, this.textRect);
                 g.traceRectangle({
                     x: this.textRect.x - shiftX - 3,
@@ -584,7 +584,7 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
             };
         }
         else
-            this.drawLabelRect = (g: GraphEditorCanvas) => { };
+            this.drawLabelRect = (g: EditorCanvas) => { };
     }
 
 }
@@ -594,8 +594,8 @@ export class GraphEditorEdge extends GraphEditorElement<DrawableEdge> {
 
 
 const makeStraightPoints = (
-    src: GraphEditorNode,
-    dst: GraphEditorNode,
+    src: EditorNode,
+    dst: EditorNode,
     bspt: point | null,
     bdpt: point | null
 ) => {
@@ -638,8 +638,8 @@ const makeStraightPoints = (
 };
 
 const makeQuadraticPoints = (
-    src: GraphEditorNode,
-    dst: GraphEditorNode,
+    src: EditorNode,
+    dst: EditorNode,
     bspt: point | null,
     bdpt: point | null
 ) => {
@@ -693,8 +693,8 @@ const makeQuadraticPoints = (
 };
 
 const makeLoopPoints = (
-    src: GraphEditorNode,
-    dst: GraphEditorNode,
+    src: EditorNode,
+    dst: EditorNode,
     bspt: point | null,
     bdpt: point | null
 ) => {

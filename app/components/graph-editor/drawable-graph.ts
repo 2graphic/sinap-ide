@@ -4,7 +4,7 @@
 
 
 import { filterSet, move } from "./generic-functions";
-import { point } from "./graph-editor-canvas";
+import { point } from "./editor-canvas";
 import { Drawable } from "./drawable";
 import { DrawableElement } from "./drawable-element";
 import { DrawableEdge } from "./drawable-edge";
@@ -19,9 +19,6 @@ import {
 
 // Typedefs ////////////////////////////////////////////////////////////////////
 
-
-export type SelectionChangedEvent
-    = TypedCustomEvent<PropertyChangedEventDetail<Iterable<DrawableElement>>>;
 
 /**
  * EdgeValidator
@@ -473,6 +470,15 @@ export class DrawableGraph extends Drawable {
         return false;
     }
 
+    /**
+     * deleteSelected
+     *
+     *   Wrapper around `this.delete(...this.selectedItems)`.
+     */
+    deleteSelected() {
+        this.delete(...this._selected);
+    }
+
 
     // Selection methods ///////////////////////////////////////////////////////
 
@@ -528,11 +534,20 @@ export class DrawableGraph extends Drawable {
      * </p>
      */
     clearSelection() {
-        this.move(
-            this._selected,
-            this._unselected,
-            ...this._selected
-        );
+        this.move(this._selected, this._unselected, ...this._selected);
+    }
+
+    /**
+     * selectAll
+     *
+     *   Selects all graph elements.
+     *
+     * <p>
+     *   Raises the `select` event.
+     * </p>
+     */
+    selectAll() {
+        this.move(this._unselected, this._selected, ...this._unselected);
     }
 
     /**

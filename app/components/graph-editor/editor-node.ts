@@ -1,4 +1,4 @@
-// File: graph-editor-node.ts
+// File: editor-node.ts
 // Created by: CJ Dimaano
 // Date created: March 11, 2017
 
@@ -12,16 +12,16 @@ import {
     NODE_DRAG_SHADOW_COLOR
 } from "./defaults";
 import { PropertyChangedEvent } from "./events";
-import { IMAGES, GraphEditorCanvas, point, size, rect } from "./graph-editor-canvas";
-import { GraphEditorElement, DrawableStates } from "./graph-editor-element";
-import { GraphEditorEdge } from "./graph-editor-edge";
+import { IMAGES, EditorCanvas, point, size, rect } from "./editor-canvas";
+import { EditorElement, DrawableStates } from "./editor-element";
+import { EditorEdge } from "./editor-edge";
 import { DrawableGraph } from "./drawable-graph";
 import { DrawableNode } from "./drawable-node";
 import { DrawableEdge } from "./drawable-edge";
 import * as MathEx from "./math";
 
 
-export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
+export class EditorNode extends EditorElement<DrawableNode> {
     constructor(drawable: DrawableNode) {
         super(drawable);
         this.clearAnchor();
@@ -53,31 +53,31 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
 
     private outerBound: size;
 
-    private trace = (g: GraphEditorCanvas) => { };
+    private trace = (g: EditorCanvas) => { };
 
-    private stroke = (g: GraphEditorCanvas, extraLineWidth: number = 0) => { };
+    private stroke = (g: EditorCanvas, extraLineWidth: number = 0) => { };
 
-    private fill = (g: GraphEditorCanvas) => { };
+    private fill = (g: EditorCanvas) => { };
 
-    private shadow = (g: GraphEditorCanvas) => { };
+    private shadow = (g: EditorCanvas) => { };
 
-    private drawAnchor = (g: GraphEditorCanvas) => { };
+    private drawAnchor = (g: EditorCanvas) => { };
 
     /**
      * incomingEdges
      *
      *   Gets the set of edges whose destination node is this node.
      */
-    readonly incomingEdges: Set<GraphEditorEdge>
-    = new Set<GraphEditorEdge>();
+    readonly incomingEdges: Set<EditorEdge>
+    = new Set<EditorEdge>();
 
     /**
      * outgoingEdges
      *
      *   Gets the set of edges whose source node is this node.
      */
-    readonly outgoingEdges: Set<GraphEditorEdge>
-    = new Set<GraphEditorEdge>();
+    readonly outgoingEdges: Set<EditorEdge>
+    = new Set<EditorEdge>();
 
     /**
      * edges
@@ -85,7 +85,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
      *   Gets the set of edges connected to this node.
      */
     get edges() {
-        return new Set<GraphEditorEdge>([...this.incomingEdges, ...this.outgoingEdges]);
+        return new Set<EditorEdge>([...this.incomingEdges, ...this.outgoingEdges]);
     }
 
     /**
@@ -146,7 +146,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
      *
      *   Draws the selection shadow on a given canvas.
      */
-    drawHighlight(g: GraphEditorCanvas) {
+    drawHighlight(g: EditorCanvas) {
         this.trace(g);
         this.stroke(g, 6);
     }
@@ -156,7 +156,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
      *
      *   Draws the label on a given canvas.
      */
-    drawText(g: GraphEditorCanvas) {
+    drawText(g: EditorCanvas) {
         const x = this.textRect.x;
         let y = this.textRect.y - (this.textRect.height - 1.5 * FONT_SIZE) / 2;
         g.fillColor = "#fff";
@@ -174,7 +174,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
      *
      *   Draws the element on a given canvas.
      */
-    draw(g: GraphEditorCanvas) {
+    draw(g: EditorCanvas) {
         this.trace(g);
         this.shadow(g);
         this.fill(g);
@@ -188,7 +188,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
      *
      *   Updates the element for a given canvas.
      */
-    update(g: GraphEditorCanvas) {
+    update(g: EditorCanvas) {
         // Update the node dimensions.
         this.updateTextSize(g);
         const drawable = this.drawable;
@@ -223,7 +223,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
                 drawable.size.height = Math.max(drawable.size.height, drawable.size.width);
                 drawable.size.width = Math.max(drawable.size.height, drawable.size.width);
             case "ellipse": {
-                this.trace = (g: GraphEditorCanvas) => {
+                this.trace = (g: EditorCanvas) => {
                     const r = { x: drawable.size.width / 2, y: drawable.size.height / 2 };
                     g.traceEllipse(MathEx.diff(this._position, this.drawable.origin), r.x, r.y);
                 };
@@ -233,7 +233,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
                 drawable.size.height = Math.max(drawable.size.height, drawable.size.width);
                 drawable.size.width = Math.max(drawable.size.height, drawable.size.width);
             case "rectangle": {
-                this.trace = (g: GraphEditorCanvas) => {
+                this.trace = (g: EditorCanvas) => {
                     const pt = MathEx.diff(this._position, this.drawable.origin);
                     g.traceRectangle({
                         x: pt.x - drawable.size.width / 2, y: pt.y - drawable.size.height / 2,
@@ -245,7 +245,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
             case "image": {
                 switch (this.state) {
                     case DrawableStates.Dragging: {
-                        this.trace = (g: GraphEditorCanvas) => {
+                        this.trace = (g: EditorCanvas) => {
                             const pt = MathEx.diff(this._position, drawable.origin);
                             g.shadowBlur = GRID_SPACING;
                             g.shadowColor = NODE_DRAG_SHADOW_COLOR;
@@ -255,7 +255,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
                     } break;
 
                     case DrawableStates.Hovered: {
-                        this.trace = (g: GraphEditorCanvas) => {
+                        this.trace = (g: EditorCanvas) => {
                             const pt = MathEx.diff(this._position, drawable.origin);
                             g.shadowBlur = GRID_SPACING;
                             g.shadowColor = SELECTION_COLOR;
@@ -265,7 +265,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
                     } break;
 
                     default:
-                        this.trace = (g: GraphEditorCanvas) => {
+                        this.trace = (g: EditorCanvas) => {
                             const pt = MathEx.diff(this._position, drawable.origin);
                             g.drawImage(pt, drawable.image);
                         };
@@ -277,9 +277,9 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
     private updateStroke() {
         const drawable = this.drawable;
         if (drawable.shape === "image" || drawable.borderWidth === 0)
-            this.stroke = (g: GraphEditorCanvas, extraLineWidth: number = 0) => { };
+            this.stroke = (g: EditorCanvas, extraLineWidth: number = 0) => { };
         else
-            this.stroke = (g: GraphEditorCanvas, extraLineWidth: number = 0) => {
+            this.stroke = (g: EditorCanvas, extraLineWidth: number = 0) => {
                 g.lineWidth = this.drawable.borderWidth + extraLineWidth;
                 g.lineStyle = this.drawable.borderStyle;
                 g.strokeColor = this.drawable.borderColor;
@@ -290,9 +290,9 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
     private updateFill() {
         const drawable = this.drawable;
         if (drawable.shape === "image")
-            this.fill = (g: GraphEditorCanvas) => { };
+            this.fill = (g: EditorCanvas) => { };
         else {
-            this.fill = (g: GraphEditorCanvas) => {
+            this.fill = (g: EditorCanvas) => {
                 g.fillColor = this.drawable.color;
                 g.fill();
             };
@@ -301,13 +301,13 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
 
     private updateShadow() {
         if (this.drawable.shape === "image") {
-            this.shadow = (g: GraphEditorCanvas) => { };
+            this.shadow = (g: EditorCanvas) => { };
             this.updateTrace();
         }
         else {
             switch (this.state) {
                 case DrawableStates.Dragging: {
-                    this.shadow = (g: GraphEditorCanvas) => {
+                    this.shadow = (g: EditorCanvas) => {
                         g.shadowBlur = GRID_SPACING;
                         g.shadowColor = NODE_DRAG_SHADOW_COLOR;
                         g.strokeColor = NODE_DRAG_SHADOW_COLOR;
@@ -319,7 +319,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
                 } break;
 
                 case DrawableStates.Hovered: {
-                    this.shadow = (g: GraphEditorCanvas) => {
+                    this.shadow = (g: EditorCanvas) => {
                         g.shadowBlur = GRID_SPACING;
                         g.shadowColor = SELECTION_COLOR;
                         g.strokeColor = SELECTION_COLOR;
@@ -331,14 +331,14 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
                 } break;
 
                 default:
-                    this.shadow = (g: GraphEditorCanvas) => { };
+                    this.shadow = (g: EditorCanvas) => { };
             }
         }
     }
 
     private updateAnchor() {
         if (this.isAnchorVisible)
-            this.drawAnchor = (g: GraphEditorCanvas) => {
+            this.drawAnchor = (g: EditorCanvas) => {
                 // const position = MathEx.sum(this._position, this.drawable.origin);
                 g.traceEllipse(MathEx.sum(this._position, this._anchor), 5, 5);
                 g.fillColor = "#fff";
@@ -348,7 +348,7 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
                 g.stroke();
             };
         else
-            this.drawAnchor = (g: GraphEditorCanvas) => { };
+            this.drawAnchor = (g: EditorCanvas) => { };
     }
 
     /**
@@ -520,16 +520,16 @@ export class GraphEditorNode extends GraphEditorElement<DrawableNode> {
  * HiddenNode
  *   Creates an invisible drawable node.
  */
-class HiddenNode extends GraphEditorNode {
+class HiddenNode extends EditorNode {
 
     constructor(g: DrawableGraph) {
         super(new DrawableNode(g));
     }
 
-    update(g: GraphEditorCanvas) { }
+    update(g: EditorCanvas) { }
 
-    drawHighlight(g: GraphEditorCanvas) { }
-    draw(g: GraphEditorCanvas) { }
+    drawHighlight(g: EditorCanvas) { }
+    draw(g: EditorCanvas) { }
 
     getBoundaryPoint(u: point) {
         return this.drawable.origin;

@@ -7,7 +7,7 @@ import { GRID_SPACING, NODE_PROPERTIES } from "./defaults";
 import { DrawableElement } from "./drawable-element";
 import { DrawableEdge } from "./drawable-edge";
 import { DrawableGraph } from "./drawable-graph";
-import { point, size, rect, LineStyles, Shapes } from "./graph-editor-canvas";
+import { point, size, rect, LineStyles, Shapes } from "./editor-canvas";
 import * as MathEx from "./math";
 
 

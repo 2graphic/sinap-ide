@@ -13,6 +13,9 @@ export type DrawableEvent<D extends DrawableElement>
 export type MoveEdgeEvent
     = TypedCustomEvent<MoveEdgeEventDetail>;
 
+export type SelectionChangedEvent
+    = TypedCustomEvent<PropertyChangedEventDetail<Iterable<DrawableElement>>>;
+
 export type PropertyChangedEvent<T>
     = TypedCustomEvent<PropertyChangedEventDetail<T>>;
 

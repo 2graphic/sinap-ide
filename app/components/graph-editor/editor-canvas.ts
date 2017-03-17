@@ -1,4 +1,4 @@
-// File: graph-editor-canvas.ts
+// File: editor-canvas.ts
 // Created by: CJ Dimaano
 // Date created: January 9, 2016
 
@@ -99,7 +99,7 @@ export const IMAGES = new Map<string, HTMLImageElement>();
  * GraphEditorCanvas
  *   Object that handles all of the drawing logic of the graph editor.
  */
-export class GraphEditorCanvas {
+export class EditorCanvas {
     constructor(private g: CanvasRenderingContext2D) {
         // g.imageSmoothingEnabled = true;
         g.webkitImageSmoothingEnabled = true;
@@ -436,7 +436,7 @@ export class GraphEditorCanvas {
      * getPt
      *   Gets the canvas coordinates from a DOM event.
      */
-    getPt(pt: point): point {
+    getCoordinates(pt: point): point {
         const canvas = this.g.canvas;
         const r = canvas.getBoundingClientRect();
         return {

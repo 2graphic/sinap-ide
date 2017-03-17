@@ -1,4 +1,4 @@
-_Last updated: March 15, 2017_
+_Last updated: March 16, 2017_
 
 # Remarks
 The graph editor component is a custom Angular2 component that is intended to be
@@ -162,6 +162,11 @@ The `GraphEditorCanvas` class separates the majority of the drawing logic from
 the component class. Note that the trace functions manually add the origin
 coordinates to each point. This is by design to accomodate the `drawGrid`
 methods.
+
+A note about terminology: a "coordinate" or "point" refers to an actual location
+on the canvas, whereas a "vector" is relative to some coordinate or some other
+vector. [Currently, this termonology is not guaranteed to be consistent
+throughout the documentation].
 
 ## graph-editor-element.ts
 The `GraphEditorElement` class wraps around a `DrawableElement` and provides

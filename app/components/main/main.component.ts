@@ -284,7 +284,8 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 break;
             case MenuEventAction.DELETE:
                 if (this.focusIsChildOf("editor-panel")) {
-                    this.graphEditor.deleteSelected();
+                    if (this.graphEditor.graph)
+                        this.graphEditor.graph.deleteSelected();
                     e.preventDefault();
                 }
                 break;
@@ -296,7 +297,8 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 // item on Windows, however, does trigger this event.
                 // console.log(e);
                 if (this.focusIsChildOf("editor-panel")) {
-                    this.graphEditor.selectAll();
+                    if (this.graphEditor.graph)
+                        this.graphEditor.graph.selectAll();
                     e.preventDefault();
                 }
                 break;

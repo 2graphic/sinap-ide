@@ -8,7 +8,7 @@
 //
 
 
-import { LineStyles } from "./graph-editor-canvas";
+import { LineStyles } from "./editor-canvas";
 
 
 /**
