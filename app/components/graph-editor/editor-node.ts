@@ -503,7 +503,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
         this.drawable.anchorPoints.forEach(a => {
             const v = MathEx.diff(pt, a);
             let dot = MathEx.dot(v, v);
-            if (dot <= min) {
+            if (dot < min) {
                 min = dot;
                 apt = a;
             }

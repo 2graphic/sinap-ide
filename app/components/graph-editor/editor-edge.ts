@@ -51,6 +51,10 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         super(drawable);
         source.outgoingEdges.add(this);
         destination.incomingEdges.add(this);
+        if (source.drawable.anchorPoints.length > 0)
+            this.bindSourceAnchor(drawable.sourcePoint);
+        if (destination.drawable.anchorPoints.length > 0)
+            this.bindDestinationAnchor(drawable.destinationPoint);
         this.updateDrawSetup();
     }
 

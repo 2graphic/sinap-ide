@@ -155,11 +155,10 @@ export class DrawableNode extends DrawableElement {
                 set: (value: point[]) => {
                     this._anchorPoints = [];
                     value.forEach(v => {
-                        const pt = MathEx.diff(v, this._origin);
                         if (this._anchorPoints
-                            .filter(a => a.x === pt.x && a.y === pt.y)
+                            .filter(a => a.x === v.x && a.y === v.y)
                             .length === 0)
-                            this._anchorPoints.push(pt);
+                            this._anchorPoints.push(v);
                     });
                 }
             },
