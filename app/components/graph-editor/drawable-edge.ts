@@ -1,6 +1,10 @@
-// File: drawable-edge.ts
-// Created by: CJ Dimaano
-// Date created: February 4, 2017
+/**
+ * @file `drawable-edge.ts`
+ *   Created on February 4, 2017
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ */
 
 
 import { EDGE_PROPERTIES } from "./defaults";
@@ -10,12 +14,14 @@ import { DrawableNode } from "./drawable-node";
 import { LineStyles, point } from "./editor-canvas";
 
 
-type fnGetPoints = (src: DrawableNode, dst: DrawableNode, bspt: point | null, bdpt: point | null) => point[];
-
-
 /**
- * DrawableEdge
- *   Represents an edge that is drawn on the graph editor canvas.
+ * `DrawableEdge`
+ *
+ *   Represents an edge that is drawn on the `GraphEditorComponent`.
+ *
+ *   Emits `change` events.
+ *
+ * @extends DrawableElement
  */
 export class DrawableEdge extends DrawableElement {
     constructor(
@@ -65,7 +71,10 @@ export class DrawableEdge extends DrawableElement {
                 enumerable: false,
                 writable: false,
                 value: like ?
-                    { x: like._destinationPoint.x, y: like._destinationPoint.y } :
+                    {
+                        x: like._destinationPoint.x,
+                        y: like._destinationPoint.y
+                    } :
                     { x: destination.origin.x, y: destination.origin.y }
             },
             source: {
@@ -150,15 +159,10 @@ export class DrawableEdge extends DrawableElement {
 
 
     private _showSourceArrow: boolean;
-
     private _showDestinationArrow: boolean;
-
     private _lineStyle: LineStyles;
-
     private _lineWidth: number;
-
     private _sourcePoint: point;
-
     private _destinationPoint: point;
 
 
@@ -166,44 +170,52 @@ export class DrawableEdge extends DrawableElement {
 
 
     /**
-     * showSourceArrow
+     * `showSourceArrow`
      *
      *   Gets or sets whether or not an arrow should be displayed towards the
      *   source node.
+     *
+     * @emits Drawable#change
      */
     showSourceArrow: boolean;
 
     /**
-     * showDestinationArrow
+     * `showDestinationArrow`
      *
      *   Gets or sets whether or not an arrow should be displayed towards the
      *   destination node.
+     *
+     * @emits Drawable#change
      */
     showDestinationArrow: boolean;
 
     /**
-     * lineStyle
+     * `lineStyle`
      *
      *   Gets or sets the line style of the edge.
+     *
+     * @emits Drawable#change
      */
     lineStyle: LineStyles;
 
     /**
-     * lineWidth
+     * `lineWidth`
      *
      *   Gets or sets the width of the line of the edge.
+     *
+     * @emits Drawable#change
      */
     lineWidth: number;
 
     /**
-     * sourcePoint
+     * `sourcePoint`
      *
      *   Gets or sets the endpoint of the edge relative to its source node.
      */
     sourcePoint: point;
 
     /**
-     * destinationPoint
+     * `destinationPoint`
      *
      *   Gets or sets the endpoint of the edge relative to its destination node.
      */

@@ -1,15 +1,24 @@
-// File: drawable-element.ts
-// Created by: CJ Dimaano
-// Date created: February 4, 2017
+/**
+ * @file `drawable-element.ts`
+ *   Created on February 4, 2017
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ */
 
 
 import { Drawable } from "./drawable";
 import { DrawableGraph } from "./drawable-graph";
 
 /**
- * DrawableElement
+ * `DrawableElement`
  *
- *   Contains common properties shared between drawable edges and nodes.
+ *   Contains common properties shared between `DrawableEdge` and
+ *   `DrawableNode`.
+ *
+ *   Emits `change` events.
+ *
+ * @extends Drawable
  */
 export class DrawableElement extends Drawable {
     constructor(public readonly graph: DrawableGraph) {
@@ -37,7 +46,7 @@ export class DrawableElement extends Drawable {
                 get: () => this._label,
                 set: (value: string) => {
                     const old = this._label;
-                    if (value !== this._label) {
+                    if (value !== old) {
                         this._label = value.trim();
                         this.onPropertyChanged("label", old);
                     }
@@ -48,7 +57,7 @@ export class DrawableElement extends Drawable {
                 get: () => this._color,
                 set: (value: string) => {
                     const old = this._color;
-                    if (this._color !== value) {
+                    if (value !== old) {
                         this._color = value;
                         this.onPropertyChanged("color", old);
                     }
@@ -59,7 +68,7 @@ export class DrawableElement extends Drawable {
                 get: () => this._isSelected,
                 set: (value: boolean) => {
                     const old = this._isSelected;
-                    if (this._isSelected !== value) {
+                    if (value !== old) {
                         this._isSelected = value;
                         this.onPropertyChanged("isSelected", old);
                     }
@@ -73,9 +82,7 @@ export class DrawableElement extends Drawable {
 
 
     private _label: string;
-
     private _color: string;
-
     private _isSelected: boolean;
 
 
@@ -83,25 +90,30 @@ export class DrawableElement extends Drawable {
 
 
     /**
-     * label
+     * `label`
      *
      *   Gets or sets the label of the element.
+     *
+     * @emits Drawable#change
      */
     label: string;
 
     /**
-     * color
-     *   Gets or sets the main color of the element.
+     * `color`
      *
-     * <p>
-     *   Can be any valid CSS color string.
-     * </p>
+     *   Gets or sets the main color of the element. Its value can by any valid
+     *   CSS color string.
+     *
+     * @emits Drawable#change
      */
     color: string;
 
     /**
-     * isSelected
+     * `isSelected`
+     *
      *   Gets or sets the selected state of the element.
+     *
+     * @emits Drawable#change
      */
     isSelected: boolean;
 

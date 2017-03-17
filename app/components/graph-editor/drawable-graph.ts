@@ -1,8 +1,13 @@
-// File: drawable-graph.ts
-// Created by: CJ Dimaano
-// Date created: January 9, 2016
+/**
+ * @file `drawable-graph.ts`
+ *   Created on January 9, 2017
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ */
 
 
+import { SCALE_MIN, SCALE_MAX } from "./defaults";
 import { filterSet, move } from "./generic-functions";
 import { point } from "./editor-canvas";
 import { Drawable } from "./drawable";
@@ -21,19 +26,16 @@ import {
 
 
 /**
- * EdgeValidator
+ * `EdgeValidator`
+ *
  *   Determines whether or not an edge is valid for a given source and
  *   destination node.
  *
- * <p>
  *   If `dst` is not specified, the validator should check if an edge can be
  *   created from the source node.
- * </p>
  *
- * <p>
  *   If `like` is specified, a drawable edge with a matching type of `like`
  *   should be checked against the given source and destination nodes.
- * </p>
  */
 export type EdgeValidator = (
     src: DrawableNode,
@@ -46,14 +48,15 @@ export type EdgeValidator = (
 
 
 /**
- * DrawableGraph
+ * `DrawableGraph`
  *
- *   Exposes drawable graph properties and methods.
+ *   Represents a collection of nodes and edges that are drawn on the
+ *   `GraphEditorComponent`.
  *
- * <p>
- *   Raises `change`, `creating`, `created`, `moved`, `deleted`, and `select`
+ *   Emits `change`, `creating`, `created`, `moved`, `deleted`, and `select`
  *   events.
- * </p>
+ *
+ * @extends Drawable
  */
 export class DrawableGraph extends Drawable {
     constructor(public readonly isValidEdge: EdgeValidator) {
@@ -122,8 +125,8 @@ export class DrawableGraph extends Drawable {
                 enumerable: true,
                 get: () => this._origin,
                 set: (value: point) => {
-                    let old = this.origin;
-                    if (old.x !== value.x || old.y !== value.y) {
+                    const old = this.origin;
+                    if (value.x !== old.x || value.y !== old.y) {
                         this._origin.x = value.x;
                         this._origin.y = value.y;
                         this.onPropertyChanged("origin", old);
@@ -134,8 +137,10 @@ export class DrawableGraph extends Drawable {
                 enumerable: true,
                 get: () => this._scale,
                 set: (value: number) => {
-                    let old = this._scale;
-                    if (this._scale !== value) {
+                    value = Math.min(SCALE_MAX, value);
+                    value = Math.max(SCALE_MIN, value);
+                    const old = this._scale;
+                    if (value !== old) {
                         this._scale = value;
                         this.onPropertyChanged("scale", old);
                     }
@@ -149,46 +154,11 @@ export class DrawableGraph extends Drawable {
     // Private fields //////////////////////////////////////////////////////////
 
 
-    /**
-     * _nodes
-     *
-     *   The set of nodes.
-     */
     private _nodes: Set<DrawableNode>;
-
-    /**
-     * _edges
-     *
-     *   The set of edges.
-     */
     private _edges: Set<DrawableEdge>;
-
-    /**
-     * _selected
-     *
-     *   The set of selected elements.
-     */
     private _selected: Set<DrawableElement>;
-
-    /**
-     * _unselected
-     *
-     *   The set of unselected elements.
-     */
     private _unselected: Set<DrawableElement>;
-
-    /**
-     * _origin
-     *
-     *   The origin point of the graph.
-     */
     private _origin: { x: number, y: number };
-
-    /**
-     * _scale
-     *
-     *   The zoom scale of the graph.
-     */
     private _scale: number;
 
 
@@ -196,76 +166,70 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * nodes
+     * `nodes`
      *
-     *   Gets the iterable collection of drawable nodes that are part of the
-     *   graph.
+     *   Gets the iterable `DrawableNode` collection that is part of the graph.
      */
     readonly nodes: Iterable<DrawableNode>;
 
     /**
-     * edges
+     * `edges`
      *
-     *   Gets the iterable collection of drawable edges that are part of the
-     *   graph.
+     *   Gets the iterable `DrawableEdge` collection that is part of the graph.
      */
     readonly edges: Iterable<DrawableEdge>;
 
     /**
-     * selectedItems
+     * `selectedItems`
      *
-     *   Gets a collection of selected drawable elements.
+     *   Gets the iterable `DrawableElement` collection that is selected.
      */
     readonly selectedItems: Iterable<DrawableElement>;
 
     /**
-     * selectedItemCount
+     * `selectedItemCount`
      *
-     *   Gets the number of selected items.
+     *   Gets the number of `selectedItems`.
      */
     readonly selectedItemCount: number;
 
     /**
-     * selectedNodes
+     * `selectedNodes`
      *
-     *   Gets a collection of selected drawable nodes.
+     *   Gets the iterable `DrawableNode` collection that is selected.
      */
     readonly selectedNodes: Iterable<DrawableNode>;
 
     /**
-     * selectedEdges
+     * `selectedEdges`
      *
-     *   Gets a collection of selected drawable edges.
+     *   Gets the iterable `DrawableEdge` collection that is selected.
      */
     readonly selectedEdges: Iterable<DrawableEdge>;
 
     /**
-     * unselectedItems
+     * `unselectedItems`
      *
-     *   Gets the iterable collection of unselected drawable elements.
+     *   Gets the iterable `DrawableElement` collection that is unselected.
      */
     readonly unselectedItems: Iterable<DrawableElement>;
 
     /**
-     * origin
+     * `origin`
      *
-     *   Gets or sets he displacement of the origin point of the graph editor
-     *   canvas.
+     *   Gets or sets he displacement of the origin point of the
+     *   `GraphEditorComponent`
      *
-     * <p>
-     *   Raises the `change` event.
-     * </p>
+     * @emits DrawableGraph#change
      */
     origin: point;
 
     /**
-     * scale
+     * `scale`
      *
-     *   Gets or sets the zoom scale of the graph editor canvas.
+     *   Gets or sets the zoom scale of the `GraphEditorComponent`.
      *
-     * <p>
-     *   Raises the `change` event.
-     * </p>
+     * @emits DrawableGraph#change
      */
     scale: number;
 
@@ -274,41 +238,57 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * createNode
+     * `createNode`
      *
-     *   Creates a drawable node.
+     *   Creates a `DrawableNode` and adds it to the graph.
      *
-     * <p>
-     *   If `like` is specified, a `DrawableNode` with a matching type of `like`
-     *   is created.
-     * </p>
+     *   If `like` is specified, a `DrawableNode` with matching properties is
+     *   created.
      *
-     * <p>
-     *   Raises the `creating` and `created` events.
-     * </p>
+     * @param like
+     *   The node to be copied.
+     *
+     * @returns
+     *   The created node if successfull; otherwise, null. Creating a node can
+     *   be cancelled if any of the event listeners call `preventDefault` during
+     *   the `creating` event phase.
+     *
+     * @emits DrawableGraph#creating
+     * @emits DrawableGraph#created
      */
     createNode(like?: DrawableNode): DrawableNode | null {
         return this.createItem(this._nodes, new DrawableNode(this, like), like);
     }
 
     /**
-     * createEdge
+     * `createEdge`
      *
-     *   Creates a drawable edge with a source and destination node.
+     *   Creates a `DrawableEdge` with a source and destination node.
      *
-     * <p>
-     *   If `like` is specified, a `DrawableEdge` with a matching type of `like`
-     *   is created.
-     * </p>
+     *   If `like` is specified, a `DrawableEdge` with matching properties is
+     *   created.
      *
-     * <p>
      *   The `isValidEdge` method must be called to check if creating the edge
      *   is valid.
-     * </p>
      *
-     * <p>
-     *   Raises the `creating` and `created` events.
-     * </p>
+     * @param src
+     *   The source node. It is assumed that the node has been created by this
+     *   graph.
+     *
+     * @param dst
+     *   The destination node. It is assumed that the node has been created by
+     *   this graph.
+     *
+     * @param like
+     *   The edge to be copied.
+     *
+     * @returns
+     *   The created edge if successfull; otherwise, null. Creating an edge can
+     *   be cancelled if any of the event listeners call `preventDefault` during
+     *   the `creating` event phase.
+     *
+     * @emits DrawableGraph#creating
+     * @emits DrawableGraph#created
      */
     createEdge(
         src: DrawableNode,
@@ -324,18 +304,30 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * moveEdge
+     * `moveEdge`
      *
-     *   Moves a drawable edge to a new pair of source and destination nodes.
+     *   Moves a `DrawableEdge` to a new pair of source and destination nodes.
      *
-     * <p>
+     *   The original edge is deleted, and a new edge is created in its place.
+     *
      *   The `isValidEdge` method must be called to check if moving the edge is
      *   valid.
-     * </p>
      *
-     * <p>
-     *   Raises the `moved` event.
-     * </p>
+     * @param src
+     *   The source node. It is assumed that the node has been created by this
+     *   graph.
+     *
+     * @param dst
+     *   The destination node. It is assumed that the node has been created by
+     *   this graph.
+     *
+     * @param like
+     *   The edge to be moved.
+     *
+     * @returns
+     *   The moved edge.
+     *
+     * @emits DrawableGraph#moved
      */
     moveEdge(
         src: DrawableNode,
@@ -360,13 +352,17 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * recreateItems
+     * `recreateItems`
      *
      *   Recreates previously deleted items from the graph.
      *
-     * <p>
-     *   Raises the `created` event.
-     * </p>
+     *   The console will be bombarded with assertion messages for each item
+     *   that was not created with this graph.
+     *
+     * @param items
+     *   The list of items to be recreated.
+     *
+     * @emits DrawableGraph#created
      */
     recreateItems(...items: DrawableElement[]) {
         items.forEach(d => {
@@ -391,9 +387,11 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * createItem
+     * `createItem`
      *
-     *   Creates a drawable element.
+     *   Creates a `DrawableElement`.
+     *
+     * @private
      */
     private createItem<D extends DrawableElement>(
         items: Set<D>,
@@ -423,13 +421,17 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * delete
+     * `delete`
      *
      *   Deletes one or more elements from the graph.
      *
-     * <p>
-     *   Raises the `deleted` event.
-     * </p>
+     * @param items
+     *   The list of items to be deleted.
+     *
+     * @returns
+     *   True if anything was deleted; otherwise, false.
+     *
+     * @emits DrawableGraph#deleted
      */
     delete(...items: DrawableElement[]): boolean {
         const deletedNodes: DrawableNode[] = [];
@@ -471,12 +473,12 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * deleteSelected
+     * `deleteSelected`
      *
-     *   Wrapper around `this.delete(...this.selectedItems)`.
+     *   Wrapper around `delete(...this.selectedItems)`.
      */
     deleteSelected() {
-        this.delete(...this._selected);
+        return this.delete(...this._selected);
     }
 
 
@@ -484,9 +486,14 @@ export class DrawableGraph extends Drawable {
 
 
     /**
-     * setSelected
+     * `setSelected`
      *
-     *   Sets the collection of selected items.
+     *   Sets the collection of `selectedItems`.
+     *
+     * @param items
+     *   The list of items to be set as the selection.
+     *
+     * @emits DrawableGraph#select
      */
     setSelected<D extends DrawableElement>(...items: D[]) {
         move(
@@ -499,67 +506,68 @@ export class DrawableGraph extends Drawable {
     }
 
     /**
-     * select
+     * `select`
      *
      *   Adds items to the selection.
      *
-     * <p>
-     *   Raises the `select` event.
-     * </p>
+     * @param items
+     *   The list of items to be added to the selection.
+     *
+     * @emits DrawableGraph#select
      */
     select<D extends DrawableElement>(...items: D[]) {
         this.move(this._unselected, this._selected, ...items);
     }
 
     /**
-     * deselect
+     * `deselect`
      *
      *   Removes items from the selection.
      *
-     * <p>
-     *   Raises the `select` event.
-     * </p>
+     * @param items
+     *   The list of items to be removed from the selection.
+     *
+     * @emits DrawableGraph#select
      */
     deselect<D extends DrawableElement>(...items: D[]) {
         this.move(this._selected, this._unselected, ...items);
     }
 
     /**
-     * clearSelection
+     * `clearSelection`
      *
      *   Clears the selection.
      *
-     * <p>
-     *   Raises the `select` event.
-     * </p>
+     * @emits DrawableGraph#select
      */
     clearSelection() {
         this.move(this._selected, this._unselected, ...this._selected);
     }
 
     /**
-     * selectAll
+     * `selectAll`
      *
      *   Selects all graph elements.
      *
-     * <p>
-     *   Raises the `select` event.
-     * </p>
+     * @emits DrawableGraph#select
      */
     selectAll() {
         this.move(this._unselected, this._selected, ...this._unselected);
     }
 
     /**
-     * move
+     * `move`
+     *
      *   Moves items from one set to the other.
+     *
+     * @private
      */
     private move<D extends DrawableElement>(
         src: Set<D>,
         dst: Set<D>,
         ...items: D[]
     ) {
-        let oldSelection = [...this._selected];
+        const oldSelection = [...this._selected];
         move(src, dst, items, v => v.isSelected = (dst === this._selected));
         if (oldSelection.length !== this._selected.size) {
             this.dispatchEvent(

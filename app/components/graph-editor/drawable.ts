@@ -1,14 +1,24 @@
-// File: drawable.ts
-// Created by: CJ Dimaano
-// Date created: February 13, 2017
-//
-// Resources:
-// https://www.w3.org/TR/2000/REC-DOM-Level-2-Events-20001113/events.html
+/**
+ * @file `drawable.ts`
+ *   Created on February 13, 2017
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ *
+ * @see {@link https://www.w3.org/TR/2000/REC-DOM-Level-2-Events-20001113/events.html}
+ */
 
 
 import { TypedCustomEvent, PropertyChangedEventDetail } from "./events";
 
 
+/**
+ * `Drawable`
+ *
+ *   Provides `EventTarget` implementation for drawables.
+ *
+ * @implements {EventTarget}
+ */
 export class Drawable implements EventTarget {
     constructor() {
         Object.defineProperties(this, {
@@ -30,9 +40,15 @@ export class Drawable implements EventTarget {
                         this.eventListenerMap.set("change", []);
                     const listeners = this.eventListenerMap.get("change") !;
                     if (value)
-                        this.eventListenerMap.set("change", [value, ...listeners]);
+                        this.eventListenerMap.set(
+                            "change",
+                            [value, ...listeners]
+                        );
                     else
-                        this.eventListenerMap.set("change", listeners.filter(v => v !== this.changeListener));
+                        this.eventListenerMap.set(
+                            "change",
+                            listeners.filter(v => v !== this.changeListener)
+                        );
                     this.changeListener = value;
                 }
             }
@@ -40,28 +56,28 @@ export class Drawable implements EventTarget {
     }
 
     /**
-     * eventListenerMap
+     * `eventListenerMap`
      *
      *   The map of event listeners.
      */
     private eventListenerMap: Map<string, EventListener[]>;
 
     /**
-     * changeListener
+     * `changeListener`
      *
      *   The registered onchange listener.
      */
     private changeListener: EventListener | null;
 
     /**
-     * onchange
+     * `onchange`
      *
      *   Gets or sets the registered change event listener.
      */
     onchange: EventListener | null;
 
     /**
-     * addEventListener
+     * `addEventListener`
      *
      *   Adds an event listener to the specified event type.
      */
@@ -74,18 +90,21 @@ export class Drawable implements EventTarget {
     }
 
     /**
-     * removeEventListener
+     * `removeEventListener`
      *
      *   Removes an event listener from the specified event type.
      */
     removeEventListener(type: string, listener: EventListener) {
         const listeners = this.eventListenerMap.get(type);
         if (listeners)
-            this.eventListenerMap.set(type, listeners.filter(v => v !== listener));
+            this.eventListenerMap.set(
+                type,
+                listeners.filter(v => v !== listener)
+            );
     }
 
     /**
-     * dispatchEvent
+     * `dispatchEvent`
      *
      *   Dispatches an event.
      */
@@ -102,9 +121,11 @@ export class Drawable implements EventTarget {
     }
 
     /**
-     * onPropertyChanged
+     * `onPropertyChanged`
      *
      *   Emits the property changed event.
+     *
+     * @protected
      */
     protected onPropertyChanged(key: keyof this, oldVal: any) {
         this.dispatchEvent(

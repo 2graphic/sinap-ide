@@ -1,9 +1,18 @@
-// File: editor-edge.ts
-// Created by: CJ Dimaano
-// Date created: March 11, 2017
+/**
+ * @file `editor-edge.ts`
+ *   Created on March 11, 2017
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ */
 
 
-import { FONT_SIZE, GRID_SPACING, SELECTION_COLOR, EDGE_HIT_MARGIN } from "./defaults";
+import {
+    FONT_SIZE,
+    GRID_SPACING,
+    SELECTION_COLOR,
+    EDGE_HIT_MARGIN
+} from "./defaults";
 import { PropertyChangedEvent } from "./events";
 import { EditorElement, DrawableStates } from "./editor-element";
 import { EditorNode } from "./editor-node";
@@ -13,9 +22,26 @@ import { EditorCanvas, point, rect } from "./editor-canvas";
 import * as MathEx from "./math";
 
 
-type fnGetPoints = (src: EditorNode, dst: EditorNode, bspt: point | null, bdpt: point | null) => point[];
+/**
+ * `fnGetPoints`
+ *
+ *   Type definition for functions that return a list of edge points.
+ */
+type fnGetPoints = (
+    src: EditorNode,
+    dst: EditorNode,
+    bspt: point | null,
+    bdpt: point | null
+) => point[];
 
 
+/**
+ * `EditorEdge`
+ *
+ *   Provides draw, hit, and update logic for drawable edges.
+ *
+ * @extends EditorElement
+ */
 export class EditorEdge extends EditorElement<DrawableEdge> {
     constructor(
         drawable: DrawableEdge,
@@ -33,40 +59,63 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
 
 
     /**
-     * _pts
+     * `_pts`
      *
      *   Keeps track of points-of-interest related to the edge.
      *
-     * <p>
      *   The first two points represent the boundary points along the source and
-     *   destination nodes respectively; the third point is the center point of
-     *   the label; the fourth point is the midpoint along the edge geometry;
-     *   for cubic bezier curves, the fifth and sixth points are the t/3 and
-     *   2t/3 points of the line; all other points are control points for
-     *   bezier curves.
-     * </p>
+     *   destination nodes respectively; the third point is the midpoint along
+     *   the edge geometry; for cubic bezier curves, the fifth and sixth points
+     *   are the t/3 and 2t/3 points of the line; all other points are control
+     *   points for bezier curves.
      */
     private _pts: point[]
     = [];
 
+    /**
+     * `_spt`
+     *
+     *   The bound source anchor point.
+     */
     private _spt: point | null
     = null;
 
+    /**
+     * `_dpt`
+     *
+     *   The bound destination anchor point.
+     */
     private _dpt: point | null
     = null;
 
+    /**
+     * `trace`
+     *
+     *   Traces the edge.
+     */
     private trace: (g: EditorCanvas) => void
     = (g: EditorCanvas) => { };
 
+    /**
+     * `drawLabelRect`
+     *
+     *   Draws the label rectangle.
+     */
     private drawLabelRect: (g: EditorCanvas) => void
     = (g: EditorCanvas) => { };
 
+    /**
+     * `drawSetup`
+     *
+     *   Sets up the canvas for drawing the edge.
+     */
     private drawSetup: (g: EditorCanvas) => void
     = (g: EditorCanvas) => { };
 
     /**
-     * points
-     *   Updates the points-of-interest related to the edge.
+     * `points`
+     *
+     *   Sets the points-of-interest related to the edge.
      */
     private set points(value: point[]) {
         if (this._pts.length === value.length) {
@@ -101,11 +150,6 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
     // Public Methods //////////////////////////////////////////////////////////
 
 
-    /**
-     * drawHighlight
-     *
-     *   Draws the selection highlight on a given canvas.
-     */
     drawHighlight(g: EditorCanvas) {
         this.trace(g);
         g.lineStyle = "solid";
@@ -116,7 +160,7 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
     }
 
     /**
-     * drawText
+     * `drawText`
      *
      *   Draws the label on a given canvas.
      */
@@ -130,11 +174,6 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         });
     }
 
-    /**
-     * draw
-     *
-     *   Draws the element on a given canvas.
-     */
     draw(g: EditorCanvas) {
         this.trace(g);
         this.drawSetup(g);
@@ -145,11 +184,6 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         g.globalAlpha = 1;
     }
 
-    /**
-     * update
-     *
-     *   Updates the element for a given canvas.
-     */
     update(g: EditorCanvas) {
         this.updateTextSize(g);
         this.updateDrawLabelRect();
@@ -173,13 +207,13 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
     }
 
     /**
-     * hitPoint
+     * `hitPoint`
      *
-     *   Tests whether a given point is within the element region.
+     *   Tests whether a given coordinate is within the element region.
      *
      * @returns
-     *   An anchor point if the given point is within the threshold of the edge;
-     *   otherwise, null.
+     *   An anchor vector if the given coordinate is within the threshold of the
+     *   edge; otherwise, null.
      */
     hitPoint(pt: point): point | null {
         const pts = this._pts;
@@ -191,11 +225,15 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
             const dpt = MathEx.sum(dst.position, pts[1]);
             if (textRect.height > 0 && inside(
                 pt,
-                textRect.x - textRect.width / 2 - 3, textRect.y - textRect.height / 2,
-                textRect.x + textRect.width / 2 + 3, textRect.y + textRect.height / 2))
+                textRect.x - textRect.width / 2 - 3,
+                textRect.y - textRect.height / 2,
+                textRect.x + textRect.width / 2 + 3,
+                textRect.y + textRect.height / 2
+            ))
                 return ((pt.x - textRect.x) > 0 ? pts[1] : pts[0]);
             const mpt = MathEx.sum(spt, this._pts[2]);
-            const margin = this.drawable.lineWidth * this.drawable.lineWidth + EDGE_HIT_MARGIN * EDGE_HIT_MARGIN;
+            const margin = this.drawable.lineWidth * this.drawable.lineWidth
+                + EDGE_HIT_MARGIN * EDGE_HIT_MARGIN;
             const topleft = {
                 x: Math.min(spt.x, dpt.x, mpt.x) - margin,
                 y: Math.min(spt.y, dpt.y, mpt.y) - margin
@@ -204,7 +242,8 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
                 x: Math.max(spt.x, dpt.x, mpt.x) + margin,
                 y: Math.max(spt.y, dpt.y, mpt.y) + margin
             };
-            if (pt.x >= topleft.x && pt.y >= topleft.y && pt.x <= bottomright.x && pt.y <= bottomright.y) {
+            if (pt.x >= topleft.x && pt.y >= topleft.y &&
+                pt.x <= bottomright.x && pt.y <= bottomright.y) {
                 switch (this._pts.length) {
                     // Cubic Bezier.
                     case 7: {
@@ -253,11 +292,6 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         return null;
     }
 
-    /**
-     * hitRect
-     *
-     *   Tests whether the element is hit by a rectangle.
-     */
     hitRect(r: rect): boolean {
         const L = r.x;
         const R = r.x + r.width;
@@ -268,7 +302,8 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         const dpt = MathEx.sum(this.destination.position, pts[1]);
         const mpt = MathEx.sum(this.source.position, pts[2]);
         const lpt = this.textRect;
-        if (inside(spt, L, T, R, B) || inside(dpt, L, T, R, B) || inside(mpt, L, T, R, B) || inside(lpt, L, T, R, B))
+        if (inside(spt, L, T, R, B) || inside(dpt, L, T, R, B) ||
+            inside(mpt, L, T, R, B) || inside(lpt, L, T, R, B))
             return true;
 
         switch (pts.length) {
@@ -276,20 +311,29 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
             case 7: {
                 const cp1 = MathEx.sum(spt, pts[5]);
                 const cp2 = MathEx.sum(dpt, pts[6]);
-                return inside(pts[4], L, T, R, B) || inside(pts[5], L, T, R, B) ||
-                    MathEx.cubBezIntersect(spt, cp1, cp2, dpt, { x: L, y: T }, { x: L, y: B }) ||
-                    MathEx.cubBezIntersect(spt, cp1, cp2, dpt, { x: R, y: T }, { x: R, y: B }) ||
-                    MathEx.cubBezIntersect(spt, cp1, cp2, dpt, { x: L, y: T }, { x: R, y: T }) ||
-                    MathEx.cubBezIntersect(spt, cp1, cp2, dpt, { x: L, y: B }, { x: R, y: B });
+                return inside(pts[4], L, T, R, B) ||
+                    inside(pts[5], L, T, R, B) ||
+                    MathEx.cubBezIntersect(spt, cp1, cp2, dpt,
+                        { x: L, y: T }, { x: L, y: B }) ||
+                    MathEx.cubBezIntersect(spt, cp1, cp2, dpt,
+                        { x: R, y: T }, { x: R, y: B }) ||
+                    MathEx.cubBezIntersect(spt, cp1, cp2, dpt,
+                        { x: L, y: T }, { x: R, y: T }) ||
+                    MathEx.cubBezIntersect(spt, cp1, cp2, dpt,
+                        { x: L, y: B }, { x: R, y: B });
             }
 
             // Quadratic.
             case 4: {
                 const cpt = MathEx.sum(spt, pts[3]);
-                return MathEx.quadBezIntersect(spt, cpt, dpt, { x: L, y: T }, { x: L, y: B }) ||
-                    MathEx.quadBezIntersect(spt, cpt, dpt, { x: R, y: T }, { x: R, y: B }) ||
-                    MathEx.quadBezIntersect(spt, cpt, dpt, { x: L, y: T }, { x: R, y: T }) ||
-                    MathEx.quadBezIntersect(spt, cpt, dpt, { x: L, y: B }, { x: R, y: B });
+                return MathEx.quadBezIntersect(spt, cpt, dpt,
+                    { x: L, y: T }, { x: L, y: B }) ||
+                    MathEx.quadBezIntersect(spt, cpt, dpt,
+                        { x: R, y: T }, { x: R, y: B }) ||
+                    MathEx.quadBezIntersect(spt, cpt, dpt,
+                        { x: L, y: T }, { x: R, y: T }) ||
+                    MathEx.quadBezIntersect(spt, cpt, dpt,
+                        { x: L, y: B }, { x: R, y: B });
             }
 
             // Straight.
@@ -299,7 +343,7 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
     }
 
     /**
-     * bindSourceAnchor
+     * `bindSourceAnchor`
      *
      *   Binds the source vector of the edge to the nearest anchor vector of its
      *   source node from the given vector relative to the node position.
@@ -309,7 +353,7 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
     }
 
     /**
-     * bindDestinationAnchor
+     * `bindDestinationAnchor`
      *
      *   Binds the destination vector of the edge to the nearest anchor vector
      *   of its destination node from the given vector relative to the node
@@ -320,7 +364,7 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
     }
 
     /**
-     * unbindAnchor
+     * `unbindAnchor`
      *
      *   Unbinds an anchor vector from the given anchor vector.
      */
@@ -335,6 +379,11 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
     // Private methods /////////////////////////////////////////////////////////
 
 
+    /**
+     * `getAdjacent`
+     *
+     *   Gets the list of adjacent edges.
+     */
     private getAdjacent() {
         return this.filterEdges(
             this.destination.incomingEdges,
@@ -344,6 +393,11 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         );
     }
 
+    /**
+     * `getOpposing`
+     *
+     *   Gets the list of opposing edges.
+     */
     private getOpposing() {
         return this.filterEdges(
             this.source.incomingEdges,
@@ -353,6 +407,11 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         );
     }
 
+    /**
+     * `filterEdges`
+     *
+     *   Returns a list of filtered edges.
+     */
     private filterEdges(
         incoming: Set<EditorEdge>,
         outgoing: Set<EditorEdge>,
@@ -371,39 +430,75 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         return edges;
     }
 
-    private updatePoints(g: EditorCanvas, makePoints: fnGetPoints, edges: EditorEdge[]) {
+    /**
+     * `updatePoints`
+     *
+     *   Updates the points of the edge and any other edges parallel to this
+     *   one.
+     *
+     * @param g
+     *   The canvas with which to update the points.
+     *
+     * @param makePoints
+     *   The function to generate the points.
+     *
+     * @param edges
+     *   The list of parallel edges.
+     */
+    private updatePoints(
+        g: EditorCanvas,
+        makePoints: fnGetPoints,
+        edges: EditorEdge[]
+    ) {
         const first = edges.pop();
         if (first) {
-            first.points = makePoints(first.source, first.destination, first._spt, first._dpt);
+            first.points = makePoints(
+                first.source, first.destination,
+                first._spt, first._dpt
+            );
             const norm = MathEx.normal(
                 MathEx.diff(
                     MathEx.sum(first.source.position, first._pts[0]),
                     MathEx.sum(first.destination.position, first._pts[1])
                 )
             );
-            const dir = (first.source === first.destination ? -1 : MathEx.sgn(norm.y));
-            norm.x *= (first.source === first.destination ? 0 : GRID_SPACING / 2);
+            const dir = first.source === first.destination ?
+                -1 :
+                MathEx.sgn(norm.y);
+            norm.x *= first.source === first.destination ?
+                0 :
+                GRID_SPACING / 2;
             norm.y *= GRID_SPACING / 2;
-            first.textRect.x = first.source.position.x + first._pts[0].x + first._pts[2].x - norm.x;
-            first.textRect.y = first.source.position.y + first._pts[0].y + first._pts[2].y + norm.y;
+            first.textRect.x = first.source.position.x + first._pts[0].x
+                + first._pts[2].x - norm.x;
+            first.textRect.y = first.source.position.y + first._pts[0].y
+                + first._pts[2].y + norm.y;
             let yOffset = first.textRect.height > 0 ?
                 dir * (first.textRect.height + first.drawable.lineWidth) :
                 0;
             for (const edge of edges) {
                 edge.points = first._pts;
-                edge.textRect.x = edge._pts[2].x - norm.x + edge._pts[0].x + edge.source.position.x;
-                edge.textRect.y = edge._pts[2].y + norm.y + edge._pts[0].y + edge.source.position.y + yOffset;
+                edge.textRect.x = edge.source.position.x + edge._pts[0].x
+                    + edge._pts[2].x - norm.x;
+                edge.textRect.y = edge.source.position.y + edge._pts[0].y
+                    + edge._pts[2].y + norm.y + yOffset;
                 yOffset += edge.textRect.height > 0 ?
                     dir * (edge.textRect.height + edge.drawable.lineWidth) :
                     0;
                 // TODO:
-                // How do we want to deal with adjacent edges of different types?
+                // How do we want to deal with adjacent edges of different
+                // types?
                 // edge._draw = MathEx.NOOP;
             }
             edges.push(first);
         }
     }
 
+    /**
+     * `updateTrace`
+     *
+     *   Updates the `trace` function.
+     */
     private updateTrace() {
         const showSrc = this.drawable.showSourceArrow;
         const showDst = this.drawable.showDestinationArrow;
@@ -533,6 +628,11 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         }
     }
 
+    /**
+     * `updateDrawSetup`
+     *
+     *   Updates the `drawSetup` function.
+     */
     private updateDrawSetup() {
         switch (this.state) {
             case DrawableStates.Dragging: {
@@ -565,6 +665,11 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         }
     }
 
+    /**
+     * `updateDrawLabelRect`
+     *
+     *   Updates the `drawLabelRect` function.
+     */
     private updateDrawLabelRect() {
         if (this.textRect.height > 0 && this.textRect.width > 0) {
             const shiftX = this.textRect.width / 2;
@@ -593,6 +698,11 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
 // Static functions ////////////////////////////////////////////////////////////
 
 
+/**
+ * `makeStraightPoints`
+ *
+ *   Generates points for a linear edge.
+ */
 const makeStraightPoints = (
     src: EditorNode,
     dst: EditorNode,
@@ -637,6 +747,11 @@ const makeStraightPoints = (
     return pts;
 };
 
+/**
+ * `makeQuadraticPoints`
+ *
+ *   Generates points for a quadratic edge.
+ */
 const makeQuadraticPoints = (
     src: EditorNode,
     dst: EditorNode,
@@ -647,19 +762,32 @@ const makeQuadraticPoints = (
     let spt = bspt ? MathEx.sum(src.position, bspt) : src.position;
     let dpt = bdpt ? MathEx.sum(dst.position, bdpt) : dst.position;
 
-    // Get the vector and magnitude between the source and destination coordinates.
+    // Get the vector and magnitude between the source and destination
+    // coordinates.
     let v = MathEx.diff(dpt, spt);
     let d = MathEx.mag(v);
 
     // Shift the source and destination coordinates.
-    spt = bspt ? spt : MathEx.sum(src.position, src.getBoundaryPoint({ x: v.x / d, y: v.y / d }));
-    dpt = bdpt ? dpt : MathEx.sum(dst.position, dst.getBoundaryPoint({ x: -v.x / d, y: -v.y / d }));
+    spt = bspt ?
+        spt :
+        MathEx.sum(
+            src.position,
+            src.getBoundaryPoint({ x: v.x / d, y: v.y / d })
+        );
+    dpt = bdpt ?
+        dpt :
+        MathEx.sum(
+            dst.position,
+            dst.getBoundaryPoint({ x: -v.x / d, y: -v.y / d })
+        );
 
-    // Update the vector and magnitude between the source and destination coordinates.
+    // Update the vector and magnitude between the source and destination
+    // coordinates.
     v = MathEx.diff(dpt, spt);
     d = MathEx.mag(v);
 
-    // Get the control vector and magnitude between the source and destination coordinates.
+    // Get the control vector and magnitude between the source and destination
+    // coordinates.
     let cpt = {
         x: v.x / 2 + v.y / d * GRID_SPACING,
         y: v.y / 2 - v.x / d * GRID_SPACING
@@ -670,8 +798,12 @@ const makeQuadraticPoints = (
     cpt = MathEx.sum(spt, cpt);
 
     // Set the source and destination vectors.
-    const p0 = bspt ? bspt : src.getBoundaryPoint(MathEx.unit(MathEx.diff(cpt, src.position)));
-    const p2 = bdpt ? bdpt : dst.getBoundaryPoint(MathEx.unit(MathEx.diff(cpt, dst.position)));
+    const p0 = bspt ?
+        bspt :
+        src.getBoundaryPoint(MathEx.unit(MathEx.diff(cpt, src.position)));
+    const p2 = bdpt ?
+        bdpt :
+        dst.getBoundaryPoint(MathEx.unit(MathEx.diff(cpt, dst.position)));
 
     // Update the source and destination coordinates.
     spt = MathEx.sum(src.position, p0);
@@ -692,19 +824,17 @@ const makeQuadraticPoints = (
     return [p0, p2, mp, p1];
 };
 
+/**
+ * `makeLoopPoints`
+ *
+ *   Generates points for a cubic loopback edge.
+ */
 const makeLoopPoints = (
     src: EditorNode,
     dst: EditorNode,
     bspt: point | null,
     bdpt: point | null
 ) => {
-    // TODO:
-    // Make sure the edge goes from left to right if the source and destination
-    // points of the edge are not bound to any anchor points.
-    // Otherwise, make sure that the control points go in the appropriate
-    // direction relative to the positions of the end points.
-
-
     // Get the source and destination coordinates.
     let spt = bspt ? MathEx.sum(src.position, bspt) : src.position;
     let dpt = bdpt ? MathEx.sum(dst.position, bdpt) : dst.position;
@@ -757,8 +887,13 @@ const makeLoopPoints = (
 };
 
 /**
- * hitPtTestLine
+ * `hitPtTestLine`
+ *
  *   Tests if a point is within the threshold of a straight line segment.
+ *
+ *   The test is performed by projecting the point onto the line segment, then
+ *   calculating the dot product of its rejection vector to determine if the
+ *   length of the rejection vector is within the margin.
  */
 function hitPtTestLine(
     src: point,
@@ -792,7 +927,8 @@ function hitPtTestLine(
 }
 
 /**
- * hitRectTestStraighEdge
+ * `hitRectTestStraighEdge`
+ *
  *   Test whether any part of a straight line has been captured by a rectangle.
  */
 function hitRectTestStraighEdge(
@@ -833,6 +969,12 @@ function hitRectTestStraighEdge(
     );
 }
 
-const inside = (p: point, left: number, top: number, right: number, bottom: number) => {
-    return (p.x >= left && p.x <= right && p.y >= top && p.y <= bottom);
-};
+/**
+ * `inside`
+ *
+ *   Tests whether the given point is inside a rectangle.
+ */
+const inside
+    = (p: point, left: number, top: number, right: number, bottom: number) => {
+        return (p.x >= left && p.x <= right && p.y >= top && p.y <= bottom);
+    };

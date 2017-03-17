@@ -1,6 +1,14 @@
-// File: editor-graph.ts
-// Created by: CJ Dimaano
-// Date created: March 16, 2017
+/**
+ * @file `editor-graph.ts`
+ *   Created on March 16, 2017
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ *
+ * @todo
+ *   Remove draw calls and only have the editor component make calls to draw
+ *   (except for events).
+ */
 
 
 import { NUDGE, SELECTION_COLOR, STICKY_DELAY } from "./defaults";
@@ -27,6 +35,11 @@ export { DrawableGraph } from "./drawable-graph";
 type callback = () => void;
 
 
+/**
+ * `EditorGraph`
+ *
+ *   Provides draw, hit, and update logic for a drawable graph.
+ */
 export class EditorGraph {
     constructor(
         public readonly drawable: DrawableGraph,
@@ -47,46 +60,60 @@ export class EditorGraph {
             this.unselected.add(this.drawables.get(u) !);
     }
 
+
+    // Private fields //////////////////////////////////////////////////////////
+
+
     /**
-     * dragObect
+     * `dragObect`
+     *
      *   The node being dragged by the cursor.
      */
     private dragObject: EditorNode | null
     = null;
 
     /**
-     * downPt
-     *   The previous down event point.
+     * `dragPt`
+     *
+     *   The previous drag event point.
      */
     private dragPoint: point | null
     = null;
 
+    /**
+     * `selectionPoint`
+     *
+     *   The starting point of the selection rectangle.
+     */
     private selectionPoint: point | null
     = null;
 
     /**
-     * hoverObject
-     *   The graph component over which the cursor is hovering.
+     * `hoverObject`
+     *
+     *   The graph element over which the cursor is hovering.
      */
     private hoverObject: EditorElement<DrawableElement> | null
     = null;
 
     /**
-     * moveEdge
+     * `moveEdge`
+     *
      *   The edge to be replaced once the new edge has been created.
      */
     private moveEdge: EditorEdge | null
     = null;
 
     /**
-     * stickyTimeout
+     * `stickyTimeout`
+     *
      *   Timer reference for the sticky delay.
      */
     private stickyTimeout: NodeJS.Timer | number | null
     = null;
 
     /**
-     * selected
+     * `selected`
      *
      *   The set of selected elements to prevent live selection from bombarding
      *   the `select` event on the drawable graph.
@@ -94,34 +121,85 @@ export class EditorGraph {
     private readonly selected: Set<EditorElement<DrawableElement>>
     = new Set<EditorElement<DrawableElement>>();
 
+    /**
+     * `uselected`
+     *
+     *   The set of unselected elements to prevent live selection from
+     *   bombarding the `select` event on the drawable graph.
+     */
     private readonly unselected: Set<EditorElement<DrawableElement>>
     = new Set<EditorElement<DrawableElement>>();
 
-    private readonly drawables: Map<DrawableElement, EditorElement<DrawableElement>>
+    /**
+     * `drawables`
+     *
+     *   The map of drawable elements to editor elements.
+     */
+    private readonly drawables:
+    Map<DrawableElement, EditorElement<DrawableElement>>
     = new Map<DrawableElement, EditorElement<DrawableElement>>();
 
+    /**
+     * `nodes`
+     *
+     *   The list of nodes.
+     */
     private nodes: EditorNode[]
     = [];
 
+    /**
+     * `_draw`
+     *
+     *   The `draw` delegate.
+     */
     private _draw: callback
     = MathEx.NOOP;
 
+    /**
+     * `_drawSelectionBox`
+     *
+     *   The `drawSelectionBox` delegate.
+     */
     private _drawSelectionBox: callback
     = MathEx.NOOP;
 
 
+    // Public fields ///////////////////////////////////////////////////////////
+
+
+    /**
+     * `isDragging`
+     *
+     *   Gets whether or not an object is currently being dragged.
+     */
     get isDragging() {
         return this.dragPoint !== null;
     }
 
+
+    /**
+     * `draw`
+     *
+     *   Draws the graph.
+     */
     get draw() {
         return this._draw;
     }
 
+    /**
+     * `suspendDraw`
+     *
+     *   Suspends drawing of the graph.
+     */
     suspendDraw() {
         this._draw = MathEx.NOOP;
     }
 
+    /**
+     * `resumeDraw`
+     *
+     *   Resumes drawing of the graph.
+     */
     resumeDraw() {
         this._draw = () => {
             // Selection highlights.
@@ -144,6 +222,14 @@ export class EditorGraph {
         this.draw();
     }
 
+    /**
+     * `dragStart`
+     *
+     *   Starts dragging on the graph.
+     *
+     * @param pt
+     *   The canvas coordinates of the cursor.
+     */
     dragStart(pt: point) {
         // Save the mouse point in canvas coordinates.
         this.dragPoint = pt;
@@ -159,6 +245,14 @@ export class EditorGraph {
         }
     }
 
+    /**
+     * `drag`
+     *
+     *   Performs a drag on the graph.
+     *
+     * @param pt
+     *   The canvas coordinates of the cursor.
+     */
     drag(pt: point) {
         // Make sure the graph is being dragged.
         if (this.dragPoint) {
@@ -197,6 +291,17 @@ export class EditorGraph {
         }
     }
 
+    /**
+     * `drop`
+     *
+     *   Finishes dragging on the graph.
+     *
+     * @param pt
+     *   The canvas coordinates of the cursor.
+     *
+     * @returns
+     *   True if the graph was previously being dragged; otherwise, false.
+     */
     drop(pt: point) {
         // Make sure a down event was previously captured.
         if (this.dragPoint) {
@@ -243,12 +348,11 @@ export class EditorGraph {
 
     /**
      * `updateHoverObject`
-     *   Updates the hovered object and hover anchor.
      *
+     *   Updates the hovered object and hover anchor.
      *
      * @param pt
      *   The canvas coordinate used for hit detection.
-     *
      *
      * @returns
      *   True if the hover object is set to anything; otherwise, false.
@@ -263,8 +367,10 @@ export class EditorGraph {
                 this.hoverObject.update(this.g);
             }
             else if (this.hoverObject instanceof EditorEdge) {
-                const src = this.drawables.get(this.hoverObject.drawable.source) ! as EditorNode;
-                const dst = this.drawables.get(this.hoverObject.drawable.destination) ! as EditorNode;
+                const src = this.drawables
+                    .get(this.hoverObject.drawable.source) as EditorNode;
+                const dst = this.drawables
+                    .get(this.hoverObject.drawable.destination) as EditorNode;
                 src.clearAnchor();
                 dst.clearAnchor();
                 src.update(this.g);
@@ -333,8 +439,10 @@ export class EditorGraph {
             if (hit.e instanceof EditorEdge) {
                 const spt = hit.e.drawable.sourcePoint;
                 const apt = hit.pt;
-                const src = this.drawables.get(hit.e.drawable.source) ! as EditorNode;
-                const dst = this.drawables.get(hit.e.drawable.destination) ! as EditorNode;
+                const src = this.drawables
+                    .get(hit.e.drawable.source) as EditorNode;
+                const dst = this.drawables
+                    .get(hit.e.drawable.destination) as EditorNode;
                 if (spt.x === apt.x && spt.y === apt.y) {
                     dst.clearAnchor();
                     src.anchor = apt;
@@ -365,6 +473,7 @@ export class EditorGraph {
 
     /**
      * `updateDragObject`
+     *
      *   Updates the object being dragged depending on the hovered object.
      */
     private updateDragObject() {
@@ -379,7 +488,8 @@ export class EditorGraph {
                 edge.update(this.g);
             }
 
-            // Set the drag object to the node if no anchor point is being displayed.
+            // Set the drag object to the node if no anchor point is being
+            // displayed.
             else {
                 this.dragObject = this.hoverObject;
                 this.updateHoverObject();
@@ -398,15 +508,20 @@ export class EditorGraph {
         else if (this.hoverObject instanceof EditorEdge) {
             const hoverEdge = this.hoverObject;
             const spt = hoverEdge.drawable.sourcePoint;
-            const apt = (this.drawables.get(hoverEdge.drawable.source) ! as EditorNode).anchor;
+            const apt = (this.drawables
+                .get(hoverEdge.drawable.source) as EditorNode).anchor;
             const isSrc = spt.x !== apt.x || spt.y !== apt.y;
             const edge = this.createDragEdge(
                 (isSrc ? hoverEdge.source : hoverEdge.destination),
                 isSrc,
                 hoverEdge
             );
-            const n = (isSrc ? hoverEdge.drawable.source : hoverEdge.drawable.destination);
-            const pt = (isSrc ? hoverEdge.drawable.sourcePoint : hoverEdge.drawable.destinationPoint);
+            const n = isSrc ?
+                hoverEdge.drawable.source :
+                hoverEdge.drawable.destination;
+            const pt = isSrc ?
+                hoverEdge.drawable.sourcePoint :
+                hoverEdge.drawable.destinationPoint;
             if (n.anchorPoints.length > 0) {
                 if (isSrc)
                     edge.bindSourceAnchor(pt);
@@ -430,8 +545,8 @@ export class EditorGraph {
 
     /**
      * `updateSelectionBox`
-     *   Updates the selection box.
      *
+     *   Updates the selection box.
      *
      * @param pt
      *   The canvas coordinate of the cursor.
@@ -461,7 +576,8 @@ export class EditorGraph {
     }
 
     /**
-     * updateSelected
+     * `updateSelected`
+     *
      *   Updates the selected graph element.
      */
     private updateSelected(drawable: DrawableElement) {
@@ -471,7 +587,8 @@ export class EditorGraph {
     }
 
     /**
-     * updateDragNodes
+     * `updateDragNodes`
+     *
      *   Updates the collection of nodes being dragged.
      */
     private updateDragNodes(dragNode: EditorNode, dpt: point) {
@@ -490,7 +607,8 @@ export class EditorGraph {
     }
 
     /**
-     * updateDragNode
+     * `updateDragNode`
+     *
      *   Updates a single node being dragged.
      */
     private updateDragNode(n: EditorNode, dpt: point): void {
@@ -499,6 +617,11 @@ export class EditorGraph {
             this.drawables.get(e) !.update(this.g);
     }
 
+    /**
+     * `drawTree`
+     *
+     *   Performs a graph traversal in order to draw the graph.
+     */
     private drawTree(
         e: EditorElement<DrawableElement>,
         visited: Set<EditorElement<DrawableElement>>
@@ -519,7 +642,8 @@ export class EditorGraph {
     }
 
     /**
-     * hitPtTest
+     * `hitPtTest`
+     *
      *   Gets the first graph component that is hit by a pt.
      *
      * TODO:
@@ -545,7 +669,8 @@ export class EditorGraph {
     }
 
     /**
-     * createDragEdge
+     * `createDragEdge`
+     *
      *   Creates a ghost edge to be dragged.
      */
     private createDragEdge(
@@ -557,7 +682,12 @@ export class EditorGraph {
         const src = (isSrc ? node : HIDDEN_NODE);
         const dst = (isSrc ? HIDDEN_NODE : node);
         const edge = new EditorEdge(
-            new DrawableEdge(this.drawable, src.drawable, dst.drawable, (like ? like.drawable : undefined)),
+            new DrawableEdge(
+                this.drawable,
+                src.drawable,
+                dst.drawable,
+                like ? like.drawable : undefined
+            ),
             src,
             dst
         );
@@ -570,7 +700,8 @@ export class EditorGraph {
     }
 
     /**
-     * dropEdge
+     * `dropEdge`
+     *
      *   Drops the dragged edge when the mouse is released.
      */
     private dropEdge(pt: point): void {
@@ -581,11 +712,17 @@ export class EditorGraph {
         // Move or create the edge if it was dropped on a node.
         if (hoverNode instanceof EditorNode) {
             this.suspendDraw();
-            const src = dragEdge.source === HIDDEN_NODE ? hoverNode : dragEdge.source;
-            const dst = dragEdge.destination === HIDDEN_NODE ? hoverNode : dragEdge.destination;
+            const src = dragEdge.source === HIDDEN_NODE ?
+                hoverNode :
+                dragEdge.source;
+            const dst = dragEdge.destination === HIDDEN_NODE ?
+                hoverNode :
+                dragEdge.destination;
             const drawable = like ?
-                this.drawable.moveEdge(src.drawable, dst.drawable, like.drawable) :
-                this.drawable.createEdge(src.drawable, dst.drawable);
+                this.drawable
+                    .moveEdge(src.drawable, dst.drawable, like.drawable) :
+                this.drawable
+                    .createEdge(src.drawable, dst.drawable);
             if (drawable) {
                 const edge = this.drawables.get(drawable) as EditorEdge;
                 if (src.drawable.anchorPoints.length > 0)
@@ -611,7 +748,8 @@ export class EditorGraph {
     }
 
     /**
-     * dropNodes
+     * `dropNodes`
+     *
      *   Drops the collection of nodes or single node that is being dragged
      *   when the mouse is released.
      */
@@ -631,8 +769,9 @@ export class EditorGraph {
     }
 
     /**
-     * registerDrawable
-     *   Registers event listeners for a drawable and adds it to the draw list.
+     * `registerDrawable`
+     *
+     *   Registers event listeners for a drawable.
      */
     private registerDrawable(d: DrawableElement) {
         if (d instanceof DrawableEdge) {
@@ -664,9 +803,9 @@ export class EditorGraph {
     }
 
     /**
-     * unregisterDrawable
-     *   Unregisters event listeners for a drawable and removes it from the draw
-     *   list.
+     * `unregisterDrawable`
+     *
+     *   Unregisters event listeners for a drawable.
      */
     private unregisterDrawable(d: DrawableElement) {
         if (d instanceof DrawableEdge) {
@@ -687,7 +826,8 @@ export class EditorGraph {
     }
 
     /**
-     * loadImage
+     * `loadImage`
+     *
      *   Loads a node image.
      */
     private loadImage(node: DrawableNode) {
@@ -709,7 +849,8 @@ export class EditorGraph {
     }
 
     /**
-     * resetState
+     * `resetState`
+     *
      *   Resets input states.
      */
     private resetState() {
@@ -726,8 +867,9 @@ export class EditorGraph {
     }
 
     /**
-     * onCreated
-     *   Registers the edges for drawing and listening for property changed
+     * `onCreated`
+     *
+     *   Registers the element for drawing and listening for property changed
      *   events.
      */
     private onCreated
@@ -737,8 +879,9 @@ export class EditorGraph {
     }
 
     /**
-     * onDeleted
-     *   Unregisters the edges from drawing and removes the event listener for
+     * `onDeleted`
+     *
+     *   Unregisters the element from drawing and removes the event listener for
      *   property changed events.
      */
     private onDeleted
@@ -748,6 +891,11 @@ export class EditorGraph {
         }
     }
 
+    /**
+     * `onMovedEdge`
+     *
+     *   Unregisters the original edge and registers the replacement edge.
+     */
     private onMovedEdge
     = (evt: MoveEdgeEvent) => {
         this.unregisterDrawable(evt.detail.original);
@@ -755,7 +903,7 @@ export class EditorGraph {
     }
 
     /**
-     * onDrawablePropertyChanged
+     * `onDrawablePropertyChanged`
      *
      *   Updates the drawable and refreshes the canvas if the event source is
      *   a drawable element; otherwise, updates the scale or origin of the
@@ -780,6 +928,11 @@ export class EditorGraph {
         }
     }
 
+    /**
+     * `onGraphSelectionChanged`
+     *
+     *   Updates the lists of selected and unselected elements.
+     */
     private onGraphSelectionChanged
     = (evt: SelectionChangedEvent) => {
         const graph = evt.detail.source as DrawableGraph;
@@ -797,6 +950,7 @@ export class EditorGraph {
 
     /**
      * `onSticky`
+     *
      *   Delayed drag event for creating nodes.
      */
     private onSticky

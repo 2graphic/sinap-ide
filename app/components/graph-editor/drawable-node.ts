@@ -1,6 +1,10 @@
-// File: drawable-node.ts
-// Created by: CJ Dimaano
-// Date created: February 4, 2017
+/**
+ * @file `drawable-node.ts`
+ *   Created on February 4, 2017
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ */
 
 
 import { GRID_SPACING, NODE_PROPERTIES } from "./defaults";
@@ -12,9 +16,13 @@ import * as MathEx from "./math";
 
 
 /**
- * DrawableNode
+ * `DrawableNode`
  *
- *   Contains drawable properties for a node.
+ *   Represents a node that is drawn on the `GraphEditorComponent`.
+ *
+ *   Emits `change` events.
+ *
+ * @extends DrawableElement
  */
 export class DrawableNode extends DrawableElement {
     constructor(graph: DrawableGraph, like?: DrawableNode) {
@@ -24,7 +32,10 @@ export class DrawableNode extends DrawableElement {
                 enumerable: false,
                 writable: false,
                 value: like ?
-                    { x: like._rect.x, y: like._rect.y, height: like._rect.height, width: like._rect.width } :
+                    {
+                        x: like._rect.x, y: like._rect.y,
+                        height: like._rect.height, width: like._rect.width
+                    } :
                     { x: 0, y: 0, height: GRID_SPACING, width: GRID_SPACING }
             },
             _origin: {
@@ -92,8 +103,12 @@ export class DrawableNode extends DrawableElement {
                 enumerable: true,
                 get: () => this._rect as size,
                 set: (value: size) => {
-                    const old = { height: this._rect.height, width: this._rect.width };
-                    if (value.height !== old.height || value.width !== old.width) {
+                    const old = {
+                        height: this._rect.height,
+                        width: this._rect.width
+                    };
+                    if (value.height !== old.height ||
+                        value.width !== old.width) {
                         this._rect.height = value.height;
                         this._rect.width = value.width;
                         this.onPropertyChanged("size", old);
@@ -141,7 +156,9 @@ export class DrawableNode extends DrawableElement {
                     this._anchorPoints = [];
                     value.forEach(v => {
                         const pt = MathEx.diff(v, this._origin);
-                        if (this._anchorPoints.filter(a => a.x === pt.x && a.y === pt.y).length === 0)
+                        if (this._anchorPoints
+                            .filter(a => a.x === pt.x && a.y === pt.y)
+                            .length === 0)
                             this._anchorPoints.push(pt);
                     });
                 }
@@ -192,7 +209,9 @@ export class DrawableNode extends DrawableElement {
             },
             edges: {
                 enumerable: false,
-                get: () => new Set<DrawableEdge>([...this.incomingEdges, ...this.outgoingEdges])
+                get: () => new Set<DrawableEdge>(
+                    [...this.incomingEdges, ...this.outgoingEdges]
+                )
             }
         });
         Object.seal(this);
@@ -205,19 +224,12 @@ export class DrawableNode extends DrawableElement {
 
 
     private _rect: rect;
-
     private _origin: point;
-
     private _shape: Shapes;
-
     private _image: string;
-
     private _borderWidth: number;
-
     private _borderColor: string;
-
     private _borderStyle: LineStyles;
-
     private _anchorPoints: point[];
 
 
@@ -225,78 +237,94 @@ export class DrawableNode extends DrawableElement {
 
 
     /**
-     * position
+     * `position`
      *
      *   Gets or sets the position of the node.
+     *
+     * @emits Drawable#change
      */
     position: point;
 
     /**
-     * size
+     * `size`
      *
      *   Gets or sets the size of the node.
+     *
+     * @emits Drawable#change
      */
     size: size;
 
     /**
-     * origin
+     * `origin`
      *
      *   Gets or sets the location of the node origin relative to its position.
      *
-     * <p>
      *   The origin point is subtracted from the node position prior to being
      *   drawn. The point (0, 0) is the center of the node geometry; in the case
      *   of an image, it is the center of its height and width.
-     * </p>
+     *
+     * @emits Drawable#change
      */
     origin: point;
 
     /**
-     * shape
+     * `shape`
      *
      *   Gets or sets the shape of the node.
+     *
+     * @emits Drawable#change
      */
     shape: Shapes;
 
     /**
-     * image
+     * `image`
      *
      *   Gets or sets the file path to a custom SVG image.
+     *
+     * @emits Drawable#change
      */
     image: string;
 
     /**
-     * anchorPoints
+     * `anchorPoints`
+     *
      *   Gets or sets the anchor points.
      *
-     * <p>
-     *   Anchor points are relative to the node origin point. Duplicates are
+     *   Anchor points are relative to the node position. Duplicates are
      *   ignored. If no anchor points are defined, the boundary of the shape is
      *   used to determine where to draw the anchor point.
-     * </p>
      */
     anchorPoints: point[];
 
     /**
-     * borderWidth
+     * `borderWidth`
+     *
      *   Gets or sets the line width of the border.
+     *
+     * @emits Drawable#change
      */
     borderWidth: number;
 
     /**
-     * borderColor
+     * `borderColor`
+     *
      *   Gets or sets the color of the node border.
+     *
+     * @emits Drawable#change
      */
     borderColor: string;
 
     /**
-     * borderStyle
+     * `borderStyle`
+     *
      *   Gets or sets the line style of the border.
+     *
+     * @emits Drawable#change
      */
     borderStyle: LineStyles;
 
     /**
-     * incomingEdges
+     * `incomingEdges`
      *
      *   Gets the set of edges whose destination node is this node.
      */
@@ -321,9 +349,13 @@ export class DrawableNode extends DrawableElement {
 
 
     /**
-     * addEdge
+     * `addEdge`
      *
-     *   Adds an edge to the node.
+     *   Adds an edge to the node. This method is intended to be used only by
+     *   `DrawableEdge` and `DrawableGraph`.
+     *
+     * @param edge
+     *   The edge to be added.
      */
     addEdge(edge: DrawableEdge) {
         if (this === edge.source)
@@ -333,9 +365,13 @@ export class DrawableNode extends DrawableElement {
     }
 
     /**
-     * removeEdge
+     * `removeEdge`
      *
-     *   Removes an edge from the node.
+     *   Removes an edge from the node. This method is intended to be used only
+     *   by `DrawableEdge` and `DrawableGraph`.
+     *
+     * @param edge
+     *   The edge to be removed.
      */
     removeEdge(edge: DrawableEdge) {
         this.outgoingEdges.delete(edge);

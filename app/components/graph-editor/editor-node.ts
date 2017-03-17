@@ -1,6 +1,10 @@
-// File: editor-node.ts
-// Created by: CJ Dimaano
-// Date created: March 11, 2017
+/**
+ * @file `editor-node.ts`
+ *   Created on March 11, 2017
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ */
 
 
 import {
@@ -21,6 +25,13 @@ import { DrawableEdge } from "./drawable-edge";
 import * as MathEx from "./math";
 
 
+/**
+ * `EditorNode`
+ *
+ *   Provides draw, hit, and update logic for drawable nodes.
+ *
+ * @extends EditorElement
+ */
 export class EditorNode extends EditorElement<DrawableNode> {
     constructor(drawable: DrawableNode) {
         super(drawable);
@@ -44,6 +55,10 @@ export class EditorNode extends EditorElement<DrawableNode> {
         this.updateShadow();
     }
 
+
+    // Private fields //////////////////////////////////////////////////////////
+
+
     private readonly _position: point
     = { x: 0, y: 0 };
 
@@ -63,8 +78,12 @@ export class EditorNode extends EditorElement<DrawableNode> {
 
     private drawAnchor = (g: EditorCanvas) => { };
 
+
+    // Public fields ///////////////////////////////////////////////////////////
+
+
     /**
-     * incomingEdges
+     * `incomingEdges`
      *
      *   Gets the set of edges whose destination node is this node.
      */
@@ -72,7 +91,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
     = new Set<EditorEdge>();
 
     /**
-     * outgoingEdges
+     * `outgoingEdges`
      *
      *   Gets the set of edges whose source node is this node.
      */
@@ -80,16 +99,18 @@ export class EditorNode extends EditorElement<DrawableNode> {
     = new Set<EditorEdge>();
 
     /**
-     * edges
+     * `edges`
      *
      *   Gets the set of edges connected to this node.
      */
     get edges() {
-        return new Set<EditorEdge>([...this.incomingEdges, ...this.outgoingEdges]);
+        return new Set<EditorEdge>(
+            [...this.incomingEdges, ...this.outgoingEdges]
+        );
     }
 
     /**
-     * anchor
+     * `anchor`
      *
      *   Gets or sets the visible anchor point.
      */
@@ -102,6 +123,14 @@ export class EditorNode extends EditorElement<DrawableNode> {
         this.updateAnchor();
     }
 
+    /**
+     * `position`
+     *
+     *   Gets or sets the node position.
+     *
+     *   The backing drawable node is not actually updated by setting this
+     *   property. It is updated when `isDragging` is set to false.
+     */
     get position() {
         return this._position;
     }
@@ -126,7 +155,8 @@ export class EditorNode extends EditorElement<DrawableNode> {
     }
 
     /**
-     * isHidden
+     * `isHidden`
+     *
      *   Gets whether or not this node is hidden.
      */
     get isHidden() {
@@ -134,25 +164,21 @@ export class EditorNode extends EditorElement<DrawableNode> {
     }
 
     /**
-     * isAnchorVisible
+     * `isAnchorVisible`
+     *
      *   Gets whether or not the anchor point should be visible.
      */
     get isAnchorVisible() {
         return this._anchor !== this.drawable.origin;
     }
 
-    /**
-     * drawShadow
-     *
-     *   Draws the selection shadow on a given canvas.
-     */
     drawHighlight(g: EditorCanvas) {
         this.trace(g);
         this.stroke(g, 6);
     }
 
     /**
-     * drawText
+     * `drawText`
      *
      *   Draws the label on a given canvas.
      */
@@ -169,11 +195,6 @@ export class EditorNode extends EditorElement<DrawableNode> {
         });
     }
 
-    /**
-     * draw
-     *
-     *   Draws the element on a given canvas.
-     */
     draw(g: EditorCanvas) {
         this.trace(g);
         this.shadow(g);
@@ -183,11 +204,6 @@ export class EditorNode extends EditorElement<DrawableNode> {
         this.drawAnchor(g);
     }
 
-    /**
-     * update
-     *
-     *   Updates the element for a given canvas.
-     */
     update(g: EditorCanvas) {
         // Update the node dimensions.
         this.updateTextSize(g);
@@ -204,8 +220,10 @@ export class EditorNode extends EditorElement<DrawableNode> {
             // TODO:
             // Do we want dynamically sized nodes?
             drawable.size = {
-                height: Math.max(GRID_SPACING, textRect.height + 1.5 * FONT_SIZE),
-                width: Math.max(GRID_SPACING, textRect.width + FONT_SIZE)
+                height: Math
+                    .max(GRID_SPACING, textRect.height + 1.5 * FONT_SIZE),
+                width: Math
+                    .max(GRID_SPACING, textRect.width + FONT_SIZE)
             };
         }
         this.innerBound.height = drawable.size.height - 2 * NODE_THRESHOLD_IN;
@@ -216,28 +234,47 @@ export class EditorNode extends EditorElement<DrawableNode> {
             e.update(g);
     }
 
+    /**
+     * `updateTrace`
+     *
+     *   Updates the trace function.
+     */
     private updateTrace() {
         const drawable = this.drawable;
         switch (this.drawable.shape) {
             case "circle":
-                drawable.size.height = Math.max(drawable.size.height, drawable.size.width);
-                drawable.size.width = Math.max(drawable.size.height, drawable.size.width);
+                drawable.size.height = Math
+                    .max(drawable.size.height, drawable.size.width);
+                drawable.size.width = Math
+                    .max(drawable.size.height, drawable.size.width);
             case "ellipse": {
                 this.trace = (g: EditorCanvas) => {
-                    const r = { x: drawable.size.width / 2, y: drawable.size.height / 2 };
-                    g.traceEllipse(MathEx.diff(this._position, this.drawable.origin), r.x, r.y);
+                    const r = {
+                        x: drawable.size.width / 2,
+                        y: drawable.size.height / 2
+                    };
+                    g.traceEllipse(
+                        MathEx.diff(this._position, this.drawable.origin),
+                        r.x,
+                        r.y
+                    );
                 };
             } break;
 
             case "square":
-                drawable.size.height = Math.max(drawable.size.height, drawable.size.width);
-                drawable.size.width = Math.max(drawable.size.height, drawable.size.width);
+                drawable.size.height = Math
+                    .max(drawable.size.height, drawable.size.width);
+                drawable.size.width = Math
+                    .max(drawable.size.height, drawable.size.width);
             case "rectangle": {
                 this.trace = (g: EditorCanvas) => {
-                    const pt = MathEx.diff(this._position, this.drawable.origin);
+                    const pt = MathEx
+                        .diff(this._position, this.drawable.origin);
                     g.traceRectangle({
-                        x: pt.x - drawable.size.width / 2, y: pt.y - drawable.size.height / 2,
-                        height: drawable.size.height, width: drawable.size.width
+                        x: pt.x - drawable.size.width / 2,
+                        y: pt.y - drawable.size.height / 2,
+                        height: drawable.size.height,
+                        width: drawable.size.width
                     });
                 };
             } break;
@@ -246,7 +283,8 @@ export class EditorNode extends EditorElement<DrawableNode> {
                 switch (this.state) {
                     case DrawableStates.Dragging: {
                         this.trace = (g: EditorCanvas) => {
-                            const pt = MathEx.diff(this._position, drawable.origin);
+                            const pt = MathEx
+                                .diff(this._position, drawable.origin);
                             g.shadowBlur = GRID_SPACING;
                             g.shadowColor = NODE_DRAG_SHADOW_COLOR;
                             g.drawImage(pt, drawable.image);
@@ -256,7 +294,8 @@ export class EditorNode extends EditorElement<DrawableNode> {
 
                     case DrawableStates.Hovered: {
                         this.trace = (g: EditorCanvas) => {
-                            const pt = MathEx.diff(this._position, drawable.origin);
+                            const pt = MathEx
+                                .diff(this._position, drawable.origin);
                             g.shadowBlur = GRID_SPACING;
                             g.shadowColor = SELECTION_COLOR;
                             g.drawImage(pt, drawable.image);
@@ -266,7 +305,8 @@ export class EditorNode extends EditorElement<DrawableNode> {
 
                     default:
                         this.trace = (g: EditorCanvas) => {
-                            const pt = MathEx.diff(this._position, drawable.origin);
+                            const pt = MathEx
+                                .diff(this._position, drawable.origin);
                             g.drawImage(pt, drawable.image);
                         };
                 }
@@ -274,6 +314,11 @@ export class EditorNode extends EditorElement<DrawableNode> {
         }
     }
 
+    /**
+     * `updateStroke`
+     *
+     *   Updates the stroke function.
+     */
     private updateStroke() {
         const drawable = this.drawable;
         if (drawable.shape === "image" || drawable.borderWidth === 0)
@@ -287,6 +332,11 @@ export class EditorNode extends EditorElement<DrawableNode> {
             };
     }
 
+    /**
+     * `updateFill`
+     *
+     *   Updates the fill function.
+     */
     private updateFill() {
         const drawable = this.drawable;
         if (drawable.shape === "image")
@@ -299,6 +349,11 @@ export class EditorNode extends EditorElement<DrawableNode> {
         }
     }
 
+    /**
+     * `updateShadow`
+     *
+     *   Updates the shadow function.
+     */
     private updateShadow() {
         if (this.drawable.shape === "image") {
             this.shadow = (g: EditorCanvas) => { };
@@ -336,10 +391,14 @@ export class EditorNode extends EditorElement<DrawableNode> {
         }
     }
 
+    /**
+     * `updateAnchor`
+     *
+     *   Updates the drawAnchor function.
+     */
     private updateAnchor() {
         if (this.isAnchorVisible)
             this.drawAnchor = (g: EditorCanvas) => {
-                // const position = MathEx.sum(this._position, this.drawable.origin);
                 g.traceEllipse(MathEx.sum(this._position, this._anchor), 5, 5);
                 g.fillColor = "#fff";
                 g.strokeColor = "#000";
@@ -352,7 +411,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
     }
 
     /**
-     * hitPoint
+     * `hitPoint`
      *
      *   Tests whether a given point is within the element region.
      *
@@ -400,7 +459,9 @@ export class EditorNode extends EditorElement<DrawableNode> {
                 const ay = Math.abs(v.y);
                 if (ax < inner.width / 2 && ay < inner.height / 2)
                     return this.drawable.origin;
-                if (apts.length === 0 && ax <= outer.width / 2 && ay <= outer.height / 2) {
+                if (apts.length === 0 &&
+                    ax <= outer.width / 2 &&
+                    ay <= outer.height / 2) {
                     const d = MathEx.mag(v);
                     return this.getBoundaryPoint({ x: v.x / d, y: v.y / d });
                 }
@@ -409,11 +470,6 @@ export class EditorNode extends EditorElement<DrawableNode> {
         return null;
     }
 
-    /**
-     * hitRect
-     *
-     *   Tests whether the element is hit by a rectangle.
-     */
     hitRect(r: rect): boolean {
         const posn = this._position;
         const size = this.drawable.size;
@@ -426,7 +482,8 @@ export class EditorNode extends EditorElement<DrawableNode> {
     }
 
     /**
-     * clearAnchor
+     * `clearAnchor`
+     *
      *   Clears the anchor visibility.
      */
     clearAnchor() {
@@ -434,7 +491,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
     }
 
     /**
-     * getNearestAnchor
+     * `getNearestAnchor`
      *
      *   Gets the nearest anchor vector or the origin vector of the node if
      *   there are no predefined anchor vectors from the vector relative to the
@@ -455,10 +512,13 @@ export class EditorNode extends EditorElement<DrawableNode> {
     }
 
     /**
-     * getBoundaryPoint
+     * `getBoundaryPoint`
      *
      *   Gets the vector in the direction of `u` that is on the boundary of a
      *   node based on its geometry relative to its position.
+     *
+     * @param u
+     *   The unit vector poiting away from the node origin.
      */
     getBoundaryPoint(u: point) {
         const v: point = { x: 0, y: 0 };
@@ -497,6 +557,11 @@ export class EditorNode extends EditorElement<DrawableNode> {
         return v;
     }
 
+    /**
+     * `onDrawableChange`
+     *
+     *   Handles change events from the drawable node.
+     */
     private onDrawableChange
     = (evt: PropertyChangedEvent<any>) => {
         switch (evt.detail.key) {
@@ -517,7 +582,8 @@ export class EditorNode extends EditorElement<DrawableNode> {
 
 
 /**
- * HiddenNode
+ * `HiddenNode`
+ *
  *   Creates an invisible drawable node.
  */
 class HiddenNode extends EditorNode {
@@ -536,4 +602,10 @@ class HiddenNode extends EditorNode {
     }
 }
 
+/**
+ * `HIDDEN_NODE`
+ *
+ *   The hidden drawable node. This is used primarily for dragging the endpoint
+ *   of an edge.
+ */
 export const HIDDEN_NODE = new HiddenNode(new DrawableGraph(() => true));

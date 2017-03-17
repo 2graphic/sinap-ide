@@ -1,10 +1,14 @@
-// File: generic-functions.ts
-// Created by: CJ Dimaano
-// Date created: March 12, 2017
+/**
+ * @file `generic-functions.ts`
+ *   Created on March 12, 2017
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ */
 
 
 /**
- * move
+ * `move`
  *
  *   Moves items from one set to the other.
  */
@@ -26,12 +30,11 @@ export function move<T>(
 
 
 /**
- * filterSet
+ * `filterSet`
  *
  *   Gets a collection of filtered items from a set.
  *
- * @see
- *   https://github.com/Microsoft/TypeScript/issues/5236
+ * @see {@link https://github.com/Microsoft/TypeScript/issues/5236}
  */
 export function filterSet<S, F extends S>(set: Set<S>, constructor: { new (...args: any[]): F }) {
     const items: F[] = [];

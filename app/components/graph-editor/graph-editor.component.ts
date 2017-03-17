@@ -1,6 +1,10 @@
-// File: graph-editor.component.ts
-// Created by: CJ Dimaano
-// Date created: October 10, 2016
+/**
+ * @file `graph-editor.component.ts`
+ *   Created on October 10, 2016
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ */
 
 
 // Imports /////////////////////////////////////////////////////////////////////
@@ -47,8 +51,6 @@ export { LineStyles, Shapes } from "./editor-canvas";
 // Type aliases ////////////////////////////////////////////////////////////////
 
 
-type num = number;
-type pt = point;
 type callback = () => void;
 
 
@@ -63,7 +65,8 @@ type callback = () => void;
     ]
 })
 /**
- * GraphEditorComponent
+ * `GraphEditorComponent`
+ *
  *   Angular2 component that provides a canvas for drawing nodes and edges.
  */
 export class GraphEditorComponent implements AfterViewInit {
@@ -74,7 +77,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
     /**
-     * containerElementRef
+     * `containerElementRef`
      *
      *   Reference to the container div element.
      */
@@ -82,7 +85,7 @@ export class GraphEditorComponent implements AfterViewInit {
     private containerElementRef: ElementRef;
 
     /**
-     * gridLayerElementRef
+     * `gridLayerElementRef`
      *
      *   Reference to the grid layer canvas element.
      */
@@ -90,7 +93,7 @@ export class GraphEditorComponent implements AfterViewInit {
     private gridLayerElementRef: ElementRef;
 
     /**
-     * graphLayerElementRef
+     * `graphLayerElementRef`
      *
      *   Reference to the graph layer canvas element.
      */
@@ -98,34 +101,48 @@ export class GraphEditorComponent implements AfterViewInit {
     private graphLayerElementRef: ElementRef;
 
     /**
-     * gridCanvas
+     * `gridCanvas`
+     *
      *   The graph editor canvas for the grid.
      */
     private gridCanvas: EditorCanvas;
 
     /**
-     * graphCanvas
+     * `graphCanvas`
+     *
      *   The graph editor canvas for the graph.
      */
     private graphCanvas: EditorCanvas;
 
     /**
-     * graph
+     * `_graph`
+     *
      *   The graph object.
      */
     private _graph: EditorGraph | null
     = null;
 
     /**
-     * panPt
+     * `panPt`
+     *
      *   The previous pt from panning the canvas.
      */
-    private panPt: pt | null
+    private panPt: point | null
     = null;
 
+    /**
+     * `drawGridDelegate`
+     *
+     *   Delegate for drawing the grid.
+     */
     private drawGridDelegate: callback
     = NOOP;
 
+    /**
+     * `drawGraphDelegate`
+     *
+     *   Delegate for drawing the graph.
+     */
     private drawGraphDelegate: callback
     = NOOP;
 
@@ -134,9 +151,16 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
     /**
-     * setGraph
-     *   Input property for the graph.
+     * `graph`
+     *
+     *   Gets or sets the current drawable graph.
      */
+    get graph() {
+        return this._graph ?
+            this._graph.drawable :
+            null;
+    }
+
     @Input()
     set graph(value: DrawableGraph | null) {
         this.suspendRedraw();
@@ -155,17 +179,12 @@ export class GraphEditorComponent implements AfterViewInit {
         }
     }
 
-    get graph() {
-        return this._graph ?
-            this._graph.drawable :
-            null;
-    }
-
     /**
-     * scale
+     * `scale`
+     *
      *   Sets the scaling factor of the canvas.
      */
-    set scale(value: num) {
+    set scale(value: number) {
         if (this.gridCanvas) {
             this.gridCanvas.scale = value;
             this.drawGridDelegate();
@@ -177,10 +196,11 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * origin
+     * `origin`
+     *
      *   Sets the origin pt of the canvas.
      */
-    set origin(value: pt) {
+    set origin(value: point) {
         if (this.gridCanvas) {
             this.gridCanvas.origin = value;
             this.drawGridDelegate();
@@ -192,15 +212,16 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * dragNode
+     * `dragNode`
+     *
      *   Sets the node being dragged by the cursor.
      *
      * Note:
-     * The intent of this function is to be able to set the drag node from the
-     * components panel.
+     *   The intent of this function is to be able to set the drag node from the
+     *   components panel.
      *
-     * TODO:
-     * Maybe we can use the standard drop event for this instead.
+     * @todo
+     *   Maybe we can use the standard drop event for this instead.
      */
     // @Input()
     // dragNode(value: DrawableNode) {
@@ -215,17 +236,23 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
     /**
-     * ngAfterViewInit
+     * `ngAfterViewInit`
+     *
      *   Gets the canvas rendering context and resizes the canvas element.
      */
     ngAfterViewInit() {
-        this.gridCanvas = new EditorCanvas(this.gridLayerElementRef.nativeElement.getContext("2d"));
-        this.graphCanvas = new EditorCanvas(this.graphLayerElementRef.nativeElement.getContext("2d"));
+        this.gridCanvas = new EditorCanvas(
+            this.gridLayerElementRef.nativeElement.getContext("2d")
+        );
+        this.graphCanvas = new EditorCanvas(
+            this.graphLayerElementRef.nativeElement.getContext("2d")
+        );
         this.resize();
     }
 
     /**
-     * resize
+     * `resize`
+     *
      *   Resizes the canvas.
      */
     resize(): void {
@@ -244,7 +271,8 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * suspendRedraw
+     * `suspendRedraw`
+     *
      *   Suspends updates to the canvas.
      */
     suspendRedraw() {
@@ -254,7 +282,8 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * resumeRedraw
+     * `resumeRedraw`
+     *
      *   Resumes updates to the canvas and forces a redraw.
      */
     resumeRedraw() {
@@ -275,7 +304,8 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * redraw
+     * `redraw`
+     *
      *   Redraws the graph.
      */
     redraw() {
@@ -287,7 +317,8 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
     /**
-     * registerEventListeners
+     * `registerEventListeners`
+     *
      *   Registers input event listeners.
      */
     private registerEventListeners() {
@@ -306,7 +337,8 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * unregisterEventListeners
+     * `unregisterEventListeners`
+     *
      *   Unregisters event listeners.
      */
     private unregisterEventListeners() {
@@ -323,7 +355,8 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * registerGraph
+     * `registerGraph`
+     *
      *   Registers event listeners for the newly bound graph.
      */
     private registerGraph(graph: DrawableGraph) {
@@ -334,7 +367,8 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * unregisterGraph
+     * `unregisterGraph`
+     *
      *   Unregisters event listeners for the previously bound graph.
      */
     private unregisterGraph(graph: DrawableGraph) {
@@ -344,12 +378,13 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
     /**
-     * pan
+     * `pan`
+     *
      *   Repositions the origin point of the canvas.
      */
-    private pan(p: pt) {
+    private pan(p: point) {
         const prev = this.panPt;
-        const curr: pt = p;
+        const curr: point = p;
         if (prev) {
             const dp = diff(curr, prev);
             this._graph!.drawable.origin = {
@@ -361,10 +396,11 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * zoom
+     * `zoom`
+     *
      *   Updates the scale of the canvas.
      */
-    private zoom(p: pt, s: number) {
+    private zoom(p: point, s: number) {
         // Get the canvas coordinates before zoom.
         const pt1 = this.graphCanvas.getCoordinates(p);
         // Apply zoom.
@@ -382,6 +418,11 @@ export class GraphEditorComponent implements AfterViewInit {
     // Event handlers //////////////////////////////////////////////////////////
 
 
+    /**
+     * `onCopy`
+     *
+     *   Handles the copy event.
+     */
     private onCopy
     = (evt: ClipboardEvent) => {
         const dt = evt.clipboardData;
@@ -397,6 +438,11 @@ export class GraphEditorComponent implements AfterViewInit {
         evt.preventDefault();
     }
 
+    /**
+     * `onCut`
+     *
+     *   Handles the cut event.
+     */
     private onCut
     = (evt: ClipboardEvent) => {
         const dt = evt.clipboardData;
@@ -413,6 +459,11 @@ export class GraphEditorComponent implements AfterViewInit {
         evt.preventDefault();
     }
 
+    /**
+     * `onPaste`
+     *
+     *   Handles the paste event.
+     */
     private onPaste
     = (evt: ClipboardEvent) => {
         const dt = evt.clipboardData;
@@ -429,7 +480,8 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onMouseDown
+     * `onMouseDown`
+     *
      *   Handles the mousedown event.
      */
     private onMouseDown
@@ -460,12 +512,13 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onMouseMove
+     * `onMouseMove`
+     *
      *   Handles the mousemove event.
      */
     private onMouseMove
     = (evt: MouseEvent): void => {
-        let ept = this.graphCanvas.getCoordinates(evt);
+        const ept = this.graphCanvas.getCoordinates(evt);
 
         // Capture the down event if the drag object has been set.
         // if (this.dragObject && e.buttons === 1 && !this.dragPt)
@@ -494,7 +547,8 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onMouseUp
+     * `onMouseUp`
+     *
      *   Handles the mouseup event.
      */
     private onMouseUp
@@ -513,7 +567,8 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onWheel
+     * `onWheel`
+     *
      *   Handles the mouse wheel event for devices that do not register touch
      *   events for zooming.
      */
@@ -527,7 +582,7 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
-     * onDrawablePropertyChanged
+     * `onDrawablePropertyChanged`
      *
      *   Updates the scale or origin of canvas.
      */
