@@ -54,10 +54,10 @@ export class EditorGraph {
             this.registerDrawable(d);
         this.selected.clear();
         for (const s of drawable.selectedItems)
-            this.selected.add(this.drawables.get(s)!);
+            this.selected.add(this.drawables.get(s) !);
         this.unselected.clear();
         for (const u of drawable.unselectedItems)
-            this.unselected.add(this.drawables.get(u)!);
+            this.unselected.add(this.drawables.get(u) !);
     }
 
 
@@ -495,7 +495,7 @@ export class EditorGraph {
                 this.updateHoverObject();
                 if (this.dragObject.drawable.isSelected) {
                     for (const n of this.drawable.selectedNodes)
-                        this.drawables.get(n)!.isDragging = true;
+                        this.drawables.get(n) !.isDragging = true;
                 }
                 else {
                     this.dragObject.isDragging = true;
@@ -614,7 +614,7 @@ export class EditorGraph {
     private updateDragNode(n: EditorNode, dpt: point): void {
         n.position = MathEx.diff(n.position, dpt);
         for (const e of n.drawable.edges)
-            this.drawables.get(e)!.update(this.g);
+            this.drawables.get(e) !.update(this.g);
     }
 
     /**
@@ -773,7 +773,7 @@ export class EditorGraph {
         this.updateDragNodes(dragNode, pt);
         if (dragNode.drawable.isSelected) {
             for (const n of this.drawable.selectedNodes)
-                this.drawables.get(n)!.isDragging = false;
+                this.drawables.get(n) !.isDragging = false;
         }
         else
             dragNode.isDragging = false;
@@ -814,7 +814,7 @@ export class EditorGraph {
             }
         }
 
-        const e = this.drawables.get(d)!;
+        const e = this.drawables.get(d) !;
         if (d.isSelected)
             this.selected.add(e);
         else
@@ -839,7 +839,7 @@ export class EditorGraph {
         }
         else if (d instanceof DrawableNode)
             this.nodes = this.nodes.filter(v => v.drawable !== d);
-        const e = this.drawables.get(d)!;
+        const e = this.drawables.get(d) !;
         this.selected.delete(e);
         this.unselected.delete(e);
         this.drawables.delete(d);
@@ -859,13 +859,13 @@ export class EditorGraph {
             const img = new Image();
             IMAGES.set(node.image, img);
             img.onload = () => {
-                this.drawables.get(node)!.update(this.g);
+                this.drawables.get(node) !.update(this.g);
                 this.draw();
             };
             img.src = node.image;
         }
         else if (IMAGES.has(node.image)) {
-            this.drawables.get(node)!.update(this.g);
+            this.drawables.get(node) !.update(this.g);
             this.draw();
         }
     }
@@ -935,7 +935,7 @@ export class EditorGraph {
     = (evt: PropertyChangedEvent<any>) => {
         const drawable = evt.detail.source;
         if (drawable instanceof DrawableEdge) {
-            this.drawables.get(drawable)!.update(this.g);
+            this.drawables.get(drawable) !.update(this.g);
             this.draw();
         }
         else if (drawable instanceof DrawableNode) {
@@ -944,7 +944,7 @@ export class EditorGraph {
                     drawable.shape === "image"))
                 this.loadImage(drawable);
             else {
-                this.drawables.get(drawable)!.update(this.g);
+                this.drawables.get(drawable) !.update(this.g);
                 this.draw();
             }
         }
@@ -959,12 +959,12 @@ export class EditorGraph {
     = (evt: SelectionChangedEvent) => {
         const graph = evt.detail.source as DrawableGraph;
         for (const s of graph.selectedItems) {
-            const e = this.drawables.get(s)!;
+            const e = this.drawables.get(s) !;
             this.selected.add(e);
             this.unselected.delete(e);
         }
         for (const u of graph.unselectedItems) {
-            const e = this.drawables.get(u)!;
+            const e = this.drawables.get(u) !;
             this.selected.delete(e);
             this.unselected.add(e);
         }
@@ -986,7 +986,7 @@ export class EditorGraph {
             // Create a new node and set it as the drag object.
             const drawable = this.drawable.createNode();
             this.dragObject = drawable ?
-                this.drawables.get(drawable)! as EditorNode :
+                this.drawables.get(drawable) ! as EditorNode :
                 null;
             if (this.dragObject) {
                 this.drawable.clearSelection();
