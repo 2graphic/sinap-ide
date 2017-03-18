@@ -319,8 +319,7 @@ export class GraphController {
     private onPropertyChanged(a: PropertyChangedEventArgs<any>) {
         const bridge = this.bridges.getB(a.source);
         if (bridge !== undefined) {
-            // TODO: only copy changed property
-            this.copyPropertiesToCore(bridge.drawable, bridge.core);
+            this.copyPropertiesToCore(bridge.drawable, bridge.core, a.key);
         } else {
             throw "Nodes/edges list out of sync";
         }
@@ -352,8 +351,9 @@ export class GraphController {
         }
     }
 
-    copyPropertiesToCore(drawable: Drawable, core: CoreElement) {
+    copyPropertiesToCore(drawable: Drawable, core: CoreElement, k?: string) {
         for (const key in drawable) {
+            if (k !== undefined && key != k) continue; 
             if (key == "source" || key == "destination") {
                 const bridge = this.bridges.getB((drawable as any)[key]);
                 if (!bridge) {

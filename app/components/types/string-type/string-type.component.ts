@@ -30,4 +30,10 @@ export class StringTypeComponent {
             this.input.nativeElement.focus();
         }
     }
+
+    set(e: any) {
+        console.log(e);
+        this._value.data = e;
+        console.log(this._value);
+    }
 }

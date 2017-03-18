@@ -86,6 +86,11 @@ export class TypeInjectorComponent {
             return;
         }
 
+        if (!value.mutable) {
+            value.mutable = true; // TODO: Fix this
+            console.log(value);
+        }
+
         // console.log(value, componentType);
 
         let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);

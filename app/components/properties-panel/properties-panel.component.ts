@@ -5,7 +5,7 @@
 
 import { Component, Input } from "@angular/core";
 import { Bridge } from "../../models/graph-controller";
-import { Type, UnionType, WrappedScriptObjectType, isUnionType, PluginTypeEnvironment, CoreValue } from "sinap-core";
+import { Type, UnionType, WrappedScriptObjectType, isUnionType, PluginTypeEnvironment, CoreValue, CoreObjectValue } from "sinap-core";
 
 @Component({
     selector: "sinap-properties-panel",
@@ -21,7 +21,7 @@ export class PropertiesPanelComponent {
     private lookupPluginType: (a: string) => Type<PluginTypeEnvironment>;
     private isUnionType = isUnionType;
 
-    private pluginValue: CoreValue<PluginTypeEnvironment> | undefined;
+    private pluginValue: CoreObjectValue<PluginTypeEnvironment> | undefined;
 
 
     unionValues(t: UnionType<PluginTypeEnvironment>) {
@@ -42,9 +42,9 @@ export class PropertiesPanelComponent {
         if (elements === undefined) {
             this.clear();
         } else {
-            this.pluginValue = (elements.values().next().value.core.values).values().next().value;
+            this.pluginValue = (elements.values().next().value.core.values).values().next().value  as CoreObjectValue<PluginTypeEnvironment>;
             this.isEmpty = false;
-            console.log(this.pluginValue);
+            
             // const bridge = elements.values().next().value;
             // const drawableType = bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind) !;
 

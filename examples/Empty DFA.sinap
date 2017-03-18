@@ -19,10 +19,10 @@
             "type": "DFANode",
             "uuid": "910406dc-2b56-4d4a-8a3f-f2a08bfd29b6",
             "data": {
-                "isStartState": false,
+                "isStartState": true,
                 "isAcceptState": false,
                 "children": [],
-                "label": "",
+                "label": "0",
                 "color": "#fff200",
                 "position": {
                     "x": 128,
@@ -41,14 +41,14 @@
             "type": "DFANode",
             "uuid": "e3e80d54-21ca-4e0c-914c-2d3041202147",
             "data": {
-                "isStartState": true,
+                "isStartState": false,
                 "isAcceptState": true,
                 "children": [],
-                "label": "",
+                "label": "1",
                 "color": "#fff200",
                 "position": {
-                    "x": 344,
-                    "y": 329.99999999999994
+                    "x": 391,
+                    "y": 219.99999999999991
                 },
                 "shape": "circle",
                 "image": "",
@@ -56,6 +56,27 @@
                 "borderColor": "#000",
                 "borderStyle": "solid",
                 "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "DFAEdge",
+            "uuid": "e249abc6-70d3-4f2f-8c01-b09d2c86875b",
+            "data": {
+                "label": "1",
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "uuid": "e3e80d54-21ca-4e0c-914c-2d3041202147"
+                },
+                "color": "#000",
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "source": {
+                    "kind": "sinap-pointer",
+                    "uuid": "910406dc-2b56-4d4a-8a3f-f2a08bfd29b6"
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true
             }
         }
     ]
