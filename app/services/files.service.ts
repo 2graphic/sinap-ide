@@ -98,7 +98,11 @@ export class LocalFileService implements FileService {
     }
 
     getModuleFile(file: string): string {
-        return fs.readFileSync(path.join('node_modules', file), "utf-8") as any;
+        try {
+            return fs.readFileSync(path.join('node_modules', file), "utf-8") as any;
+        } catch (err) {
+            return null as any;
+        }
     }
 
     getCurrentDirectory(): Promise<Directory> {
