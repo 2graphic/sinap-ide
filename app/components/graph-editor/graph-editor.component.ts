@@ -278,8 +278,10 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Sets the scaling factor of the canvas.
      */
     set scale(value: num) {
-        if (this.canvas)
+        if (this.canvas) {
             this.canvas.scale = value;
+            this.redraw();
+        }
     }
 
     /**
@@ -287,8 +289,10 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Sets the origin pt of the canvas.
      */
     set origin(value: pt) {
-        if (this.canvas)
+        if (this.canvas) {
             this.canvas.origin = value;
+            this.redraw();
+        }
     }
 
 
@@ -567,9 +571,9 @@ export class GraphEditorComponent implements AfterViewInit {
     = (e: WheelEvent) => {
         // Apply zoom.
         if (e.deltaY > 0)
-            this.zoom(e, 1 / 1.1);
+            this.zoom(e, 1 / 1.05);
         else if (e.deltaY < 0)
-            this.zoom(e, 1.1);
+            this.zoom(e, 1.05);
     }
 
     /**
