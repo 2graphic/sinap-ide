@@ -56,6 +56,7 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         if (destination.drawable.anchorPoints.length > 0)
             this.bindDestinationAnchor(drawable.destinationPoint);
         this.updateDrawSetup();
+        drawable.addEventListener("change", this.onDrawableChange);
     }
 
 
@@ -694,6 +695,12 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         }
         else
             this.drawLabelRect = (g: EditorCanvas) => { };
+    }
+
+    private onDrawableChange = (evt: PropertyChangedEvent<any>) => {
+        if (evt.detail.key === "showSourceArrow" ||
+            evt.detail.key === "showDestinationArrow")
+            this.updateTrace();
     }
 
 }
