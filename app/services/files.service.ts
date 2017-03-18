@@ -54,43 +54,17 @@ function ensureNull(shouldBeNull: any): Promise<void> {
 export class LocalFileService implements FileService {
     getAppLocations(): Promise<AppLocations> {
         const currentDirectory = new LocalDirectory(this.joinPath(app.getAppPath(), ".."));
-        const pluginPath = path.join(app.getPath("userData"), 'plugins');
-        const pluginDirectory = new LocalDirectory(pluginPath);
 
-        let originDir: LocalDirectory;
-        if (IS_PRODUCTION) {
-            originDir = currentDirectory.subdirByName("plugins");
-            // originDir = currentDirectory.subdirByName("resources").subdirByName("app").subdirByName("plugins");
-        } else {
-            originDir = currentDirectory.subdirByName("plugins");
-        }
+        const pluginDirectory = IS_PRODUCTION ?
+            currentDirectory.subdirByName("app").subdirByName("plugins") :
+            currentDirectory.subdirByName("plugins");
 
         const result: AppLocations = {
             currentDirectory: currentDirectory,
             pluginDirectory: pluginDirectory
         };
 
-        const _this = this;
-
-        function copyPlugins(): Promise<{}> {
-            return originDir.copyDirectory(pluginDirectory);
-        }
-
-        return new Promise<AppLocations>((resolve, reject) => {
-            fs.stat(pluginDirectory.fullName, (err: any, stats: any) => {
-                ensureNull(err)
-                    .then(() => {
-                        if (!IS_PRODUCTION) {
-                            return copyPlugins();
-                        } else {
-                            return Promise.resolve({});
-                        }
-                    })
-                    .catch(() => copyPlugins())
-                    .then(() => resolve(result))
-                    .catch((err) => reject(err));
-            });
-        });
+        return pluginDirectory.ensureCreated().then(() => result);
     }
 
     joinPath(...paths: string[]): string {
