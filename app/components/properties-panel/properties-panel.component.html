@@ -3,7 +3,8 @@
         <p>empty</p>
     </div>
     <div *ngIf="!isEmpty">
-        <table *ngFor="let name of fieldNames" class="group-table">
+        <sinap-type [readonly]="false" [value]="pluginValue"></sinap-type>
+        <!--<table *ngFor="let name of fieldNames" class="group-table">
             <template [ngIf]="fields[name]">
                 <tr>
                     <th colspan="2">{{name}}</th>
@@ -46,6 +47,6 @@
                     </td>
                 </tr>
             </template>
-        </table>
+        </table>-->
     </div>
 </div>

@@ -128,18 +128,12 @@ export class GraphController {
     activeEdgeType: string;
     public changed = new EventEmitter<UndoableEvent>();
 
-    private selectedElements: Set<Bridge>;
+    private _selectedElements: Set<Bridge>;
+    private get selectedElements() {
+        return this._selectedElements;
+    }
 
     public bridges = new DoubleMap<CoreElement, Drawable, Bridge>();
-
-    private bind(core: CoreElement, drawable: Drawable) {
-        core.values.forEach((coreValue, type) => {
-            coreValue.listeners.add((value, newValue) => {
-                console.log(coreValue, value, newValue);
-                // ...
-            });
-        });
-    }
 
     validateEdgeHandler = (src: DrawableNode, dst?: DrawableNode, like?: DrawableEdge) => {
         const sourceBridge = this.bridges.getB(src);
@@ -256,7 +250,6 @@ export class GraphController {
         this.bridges.set(core, drawable, bridge);
 
         drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
-        this.bind(core, drawable);
 
         return bridge;
     }
@@ -406,9 +399,9 @@ export class GraphController {
             if (br === undefined) {
                 throw "no graph element";
             }
-            this.selectedElements = new Set([br]);
+            this._selectedElements = new Set([br]);
         } else {
-            this.selectedElements = new Set(values.map((d) => {
+            this._selectedElements = new Set(values.map((d) => {
                 const bridge = this.bridges.getB(d);
                 if (bridge) {
                     return bridge;

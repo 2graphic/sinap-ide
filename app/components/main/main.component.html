@@ -5,8 +5,8 @@
     <sinap-side-bar #leftPanelBar class="panel-bar-horizontal" [vertical]="false" [title]="true" [icons]="leftPanelIcons">
       </sinap-side-bar>
       <div id="left-panels">
-        <!--<sinap-properties-panel [hidden]="!(leftPanelBar.active == 'Properties')" [selectedElements]="_context ? _context.graph.selectedElements : null">
-        </sinap-properties-panel>-->
+        <sinap-properties-panel [hidden]="!(leftPanelBar.active == 'Properties')" [selectedElements]="_context ? _context.graph.selectedElements : undefined">
+        </sinap-properties-panel>
         <sinap-tools-panel [hidden]="!(leftPanelBar.active == 'Tools')">
         </sinap-tools-panel>
         <sinap-files-panel [hidden]="!(leftPanelBar.active == 'Files')" (openFile)="openFile($event)">

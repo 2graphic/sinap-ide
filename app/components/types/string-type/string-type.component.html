@@ -1,2 +1,2 @@
-<input *ngIf="!readonly" [(ngModel)]="value.value" type="text" #input [disabled]="disabled" />
-<span *ngIf="readonly">{{value.value}}</span>
+<input *ngIf="!readonly" [(ngModel)]="_value.data" type="text" #input [disabled]="disabled" />
+<span *ngIf="readonly">{{_value.data}}</span>

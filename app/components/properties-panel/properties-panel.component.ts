@@ -1,69 +1,74 @@
-// // File: properties-panel.component.ts
-// // Created by: Daniel James
-// // Date created: November 26, 2016
+// File: properties-panel.component.ts
+// Created by: Daniel James
+// Date created: November 26, 2016
 
 
-// import { Component, Input } from "@angular/core";
-// import { BridgingProxy } from "../../models/graph-controller";
-// import { Type, UnionType, WrappedScriptObjectType, isUnionType, PluginTypeEnvironment } from "sinap-core";
+import { Component, Input } from "@angular/core";
+import { Bridge } from "../../models/graph-controller";
+import { Type, UnionType, WrappedScriptObjectType, isUnionType, PluginTypeEnvironment, CoreValue } from "sinap-core";
 
-// @Component({
-//     selector: "sinap-properties-panel",
-//     templateUrl: "./properties-panel.component.html",
-//     styleUrls: ["./properties-panel.component.scss"],
-// })
-// export class PropertiesPanelComponent {
-//     private isEmpty = true;
-//     private fieldNames: string[];
-//     private fields: { [a: string]: [string, string, Type<PluginTypeEnvironment>][] };
-//     private element: { [a: string]: any };
-//     private lookupSinapType: (a: string) => Type<PluginTypeEnvironment>;
-//     private lookupPluginType: (a: string) => Type<PluginTypeEnvironment>;
-//     private isUnionType = isUnionType;
+@Component({
+    selector: "sinap-properties-panel",
+    templateUrl: "./properties-panel.component.html",
+    styleUrls: ["./properties-panel.component.scss"],
+})
+export class PropertiesPanelComponent {
+    private isEmpty = true;
+    private fieldNames: string[];
+    private fields: { [a: string]: [string, string, Type<PluginTypeEnvironment>][] };
+    private element: { [a: string]: any };
+    private lookupSinapType: (a: string) => Type<PluginTypeEnvironment>;
+    private lookupPluginType: (a: string) => Type<PluginTypeEnvironment>;
+    private isUnionType = isUnionType;
+
+    private pluginValue: CoreValue<PluginTypeEnvironment> | undefined;
 
 
-//     unionValues(t: UnionType<PluginTypeEnvironment>) {
-//         // substring necessary to strip the quote marks off the types
-//         // that is, the union.types looks like ['"option a"', '"option b"', ...]
-//         return [...t.types].map(t => t.name.substring(1, t.name.length - 1));
-//     }
+    unionValues(t: UnionType<PluginTypeEnvironment>) {
+        // substring necessary to strip the quote marks off the types
+        // that is, the union.types looks like ['"option a"', '"option b"', ...]
+        return [...t.types].map(t => t.name.substring(1, t.name.length - 1));
+    }
 
-//     private clear() {
-//         this.isEmpty = true;
-//         this.fields = {};
-//         this.fieldNames = [];
-//     }
+    private clear() {
+        this.isEmpty = true;
+        this.fields = {};
+        this.fieldNames = [];
+        this.pluginValue = undefined;
+    }
 
-//     @Input()
-//     set selectedElements(elements: Set<BridgingProxy> | null) {
-//         if (elements === null) {
-//             this.clear();
-//         } else {
-//             this.isEmpty = false;
-//             const bridge = elements.values().next().value;
-//             const drawableType = bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind) !;
+    @Input()
+    set selectedElements(elements: Set<Bridge> | undefined) {
+        if (elements === undefined) {
+            this.clear();
+        } else {
+            this.pluginValue = (elements.values().next().value.core.values).values().next().value;
+            this.isEmpty = false;
+            console.log(this.pluginValue);
+            // const bridge = elements.values().next().value;
+            // const drawableType = bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind) !;
 
-//             if (bridge.core.type instanceof WrappedScriptObjectType) {
-//                 const pluginType = bridge.core.type;
+            // if (bridge.core.type instanceof WrappedScriptObjectType) {
+            //     const pluginType = bridge.core.type;
 
-//                 // TODO: move this to function
-//                 const pluginFields = [...pluginType.members.entries()].map(([n, t]) => [n, pluginType.prettyNames.get(n), t] as [string, string, Type<PluginTypeEnvironment>]);
-//                 const drawableFields = [...drawableType.members.entries()]
-//                     .filter(([n, _]) => !pluginType.members.has(n))
-//                     .map(([n, t]) => [n, drawableType.prettyNames.get(n), t] as [string, string, Type<PluginTypeEnvironment>]);
+            //     // TODO: move this to function
+            //     const pluginFields = [...pluginType.members.entries()].map(([n, t]) => [n, pluginType.prettyNames.get(n), t] as [string, string, Type<PluginTypeEnvironment>]);
+            //     const drawableFields = [...drawableType.members.entries()]
+            //         .filter(([n, _]) => !pluginType.members.has(n))
+            //         .map(([n, t]) => [n, drawableType.prettyNames.get(n), t] as [string, string, Type<PluginTypeEnvironment>]);
 
-//                 this.fields = {
-//                     "General": pluginFields,
-//                     "Drawable": drawableFields
-//                 };
-//                 this.fieldNames = Object.keys(this.fields);
-//                 this.element = bridge.proxy;
+            //     this.fields = {
+            //         "General": pluginFields,
+            //         "Drawable": drawableFields
+            //     };
+            //     this.fieldNames = Object.keys(this.fields);
+            //     this.element = bridge.proxy;
 
-//                 this.lookupSinapType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupSinapType(a);
-//                 this.lookupPluginType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupPluginType(a);
-//             } else {
-//                 this.clear();
-//             }
-//         }
-//     }
-// }
+            //     this.lookupSinapType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupSinapType(a);
+            //     this.lookupPluginType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupPluginType(a);
+            // } else {
+            //     this.clear();
+            // }
+        }
+    }
+}

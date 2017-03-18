@@ -41,8 +41,8 @@
             "type": "DFANode",
             "uuid": "e3e80d54-21ca-4e0c-914c-2d3041202147",
             "data": {
-                "isStartState": false,
-                "isAcceptState": false,
+                "isStartState": true,
+                "isAcceptState": true,
                 "children": [],
                 "label": "",
                 "color": "#fff200",
