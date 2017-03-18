@@ -5,5 +5,58 @@
         "DFA"
     ],
     "version": "0.0.8",
-    "elements": []
+    "elements": [
+        {
+            "kind": "Graph",
+            "type": "DFAGraph",
+            "uuid": "1730de68-0d82-47a5-adfb-0c73fb3b8df4",
+            "data": {
+                "nodes": []
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "DFANode",
+            "uuid": "910406dc-2b56-4d4a-8a3f-f2a08bfd29b6",
+            "data": {
+                "isStartState": false,
+                "isAcceptState": false,
+                "children": [],
+                "label": "",
+                "color": "#fff200",
+                "position": {
+                    "x": 128,
+                    "y": 189
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "DFANode",
+            "uuid": "e3e80d54-21ca-4e0c-914c-2d3041202147",
+            "data": {
+                "isStartState": false,
+                "isAcceptState": false,
+                "children": [],
+                "label": "",
+                "color": "#fff200",
+                "position": {
+                    "x": 344,
+                    "y": 329.99999999999994
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        }
+    ]
 }
