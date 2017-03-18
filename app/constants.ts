@@ -1,4 +1,4 @@
 import { remote } from "electron";
-const process = remote.require("process");
+declare const sinap: any;
 
-export const IS_PRODUCTION = process.env.NODE_ENV === "production";
+export const IS_PRODUCTION = sinap.ENV === "production";
