@@ -17,6 +17,9 @@ To build and package the apps inside of electron use: `npm run package`
 
 > Note: There are some combinations of these such as `npm run build:start`, `npm run build:watch:start`, `npm run clean`, `npm run package:linux`, etc... Refer to `package.json` for a list of all available scripts.
 
+### System Dependencies
+
+You must have a version of npm >= 4.2 and a version of node >= 6.9.1.
 
 ## Starting Points
 `app/index.ts` = Starting point for Electron application.  
