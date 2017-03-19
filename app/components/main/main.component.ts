@@ -107,9 +107,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
             this.toolsPanel.graph = context.graph;
             this.filesPanel.selectedFile = context.file;
-            this.statusBar.title = context.title;
-            this.statusBar.items = context.barMessages;
-
+            this.statusBar.info = context.statusBarInfo;
 
             if (this.toolsPanel.shouldDisplay()) {
                 this.leftPanelIcons = [PROPERTIES_ICON, TOOLS_ICON, FILES_ICON];
@@ -121,8 +119,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
             this.leftPanelIcons = [FILES_ICON];
             this.filesPanel.selectedFile = undefined;
-            this.statusBar.title = "";
-            this.statusBar.items = [];
+            this.statusBar.info = undefined;
             this.toolsPanel.graph = undefined;
         }
     };
@@ -171,8 +168,8 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
 
     promptNewFile() {
-        this.pluginService.pluginKinds.then((pluginKinds) => {
-            let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginKinds);
+        this.pluginService.pluginData.then((pluginData) => {
+            let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginData);
             result.then((result: NewFileResult) => {
                 this.newFile(new UntitledFile(result.name), result.kind);
             });
@@ -216,12 +213,23 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     selectNode(a: any) {
         // TODO: Fix everything
         if (this._context) {
-            for (let n of this._context.graph.drawable.nodes) {
-                if (n.label === a.label) {
-                    this._context.graph.drawable.clearSelection();
-                    this._context.graph.drawable.select(n);
+            let f = (element: any) => {
+                for (let n of this._context!.graph.drawable.nodes) {
+                    if (n.label === element.label) {
+                        toSelect.push(n);
+                    }
                 }
+            };
+
+            const toSelect: any[] = [];
+            if (Array.isArray(a)) {
+                a.forEach(f);
+            } else {
+                f(a);
             }
+
+            this._context.graph.drawable.clearSelection();
+            this._context.graph.drawable.select(...toSelect);
         }
     }
 
@@ -332,5 +340,18 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             }
         }
     }
+    /* -------------------------------------- */
+
+
+    /* ---------- Resizable Panels ---------- */
+
+
+    private updateZoom(value: number) {
+        if (this._context) {
+            this._context.graph.drawable.scale = value;
+        }
+    }
+
+
     /* -------------------------------------- */
 }

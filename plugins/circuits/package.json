@@ -1,0 +1,29 @@
+{
+  "name": "circuits",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/2graphic/sinap-ide.git"
+  },
+  "keywords": [
+    "Sinap",
+    "circuit-design",
+    "digital-logic"
+  ],
+  "author": "2graphic",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/2graphic/sinap-ide/issues"
+  },
+  "sinap": {
+    "kind": ["Circuits", "Digital Logic"],
+    "plugin-file": "interpreter.ts",
+    "description": "A plugin for designing rudimentary circuits involving digital logic."
+  },
+  "homepage": "https://github.com/2graphic/sinap-ide#readme"
+}

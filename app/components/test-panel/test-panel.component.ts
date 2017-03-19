@@ -4,7 +4,7 @@
 
 
 import { Component, Input } from "@angular/core";
-import { Program, CoreValue } from "sinap-core";
+import { Program, CoreValue, FakeObjectType, Type } from "sinap-core";
 
 @Component({
     selector: "sinap-test-panel",
@@ -69,8 +69,8 @@ export class TestPanelComponent {
     private newTest() {
         if (this.program) {
             const test = {
-                input: new CoreValue(this.program.plugin.typeEnvironment.getStringType(), ""),
-                expected: new CoreValue(this.program.plugin.typeEnvironment.getBooleanType(), true),
+                input: this.getInput(this.program),
+                expected: this.getExpected(this.program),
                 output: new CoreValue(this.program.plugin.typeEnvironment.getStringType(), "Not ran")
             };
 
@@ -78,6 +78,52 @@ export class TestPanelComponent {
 
             this.tests.push(test);
             this.runTest(test);
+        }
+    }
+
+    private getInput(program: Program) {
+        let type = program.runArguments[0][0];
+
+        if (type.name === "InputType") {
+            const members = new Map<string, Type>();
+            members.set("a", program.plugin.typeEnvironment.getBooleanType());
+            members.set("b", program.plugin.typeEnvironment.getBooleanType());
+            return new CoreValue(new FakeObjectType(program.plugin.typeEnvironment, members), {
+                "a": false,
+                "b": false
+            });
+        } else {
+            return new CoreValue(type, "");
+        }
+    }
+
+    private getExpected(program: Program) {
+        if (program.plugin.pluginKind[1] === "Digital Logic") {
+            const members = new Map<string, Type>();
+            members.set("Cout", program.plugin.typeEnvironment.getBooleanType());
+            members.set("S", program.plugin.typeEnvironment.getBooleanType());
+            return new CoreValue(new FakeObjectType(program.plugin.typeEnvironment, members), {
+                "Cout": false,
+                "S": false
+            });
+        } else {
+            return new CoreValue(program.plugin.typeEnvironment.getBooleanType(), true);
+        }
+    }
+
+    private areEqual(a: any, b: any) {
+        if (typeof a === "object" && typeof b === "object") {
+            for (let p in a) {
+                if (b.hasOwnProperty(p)) {
+                    if (a[p] !== b[p]) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        } else {
+            return a === b;
         }
     }
 

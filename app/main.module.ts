@@ -32,6 +32,7 @@ import { StringTypeComponent } from "./components/types/string-type/string-type.
 import { BooleanTypeComponent } from "./components/types/boolean-type/boolean-type.component";
 import { ObjectTypeComponent } from "./components/types/object-type/object-type.component";
 import { NodeTypeComponent } from "./components/types/node-type/node-type.component";
+import { ListTypeComponent } from "./components/types/list-type/list-type.component";
 
 @NgModule({
     imports: [
@@ -57,6 +58,7 @@ import { NodeTypeComponent } from "./components/types/node-type/node-type.compon
         BooleanTypeComponent,
         ObjectTypeComponent,
         NodeTypeComponent,
+        ListTypeComponent,
     ],
     bootstrap: [MainComponent]
 })

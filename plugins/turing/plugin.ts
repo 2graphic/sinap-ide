@@ -32,7 +32,7 @@ export class Tape {
         return this.data[this.head];
     }
 
-    update(nv: string, dir: "Right" |  "Left") {
+    update(nv: string, dir: "Right" | "Left") {
         this.data[this.head] = nv;
         this.head += dir === 'Left' ? -1 : 1;
         if (this.head === this.data.length) {
@@ -49,13 +49,30 @@ export class Tape {
         t.head = this.head;
         return t;
     }
+
+    toString() {
+        let r = "... " + this.blank + " ";
+        let i = 0;
+        for (let i = 0; i < this.data.length; i++) {
+            if (i === this.head) {
+                r += "[" + this.data[i] + "]";
+            } else {
+                r += " " + this.data[i] + " ";
+            }
+        }
+
+        r += " " + this.blank + " ...";
+        return r;
+    }
 }
 
 export class State {
-    get active() {
-        return this.states[0][1];
-    }
+    active: Nodes;
+    message: string;
+
     constructor(public states: [Tape, Nodes][]) {
+        this.active = states[0][1];
+        this.message = states[0][0].toString();
     }
 }
 
@@ -69,11 +86,7 @@ export function start(input: Graph, data: string): State | boolean {
 }
 
 export function step(current: State): State | boolean {
-    if (current.states.length === 0) {
-        return false;
-    }
-
-    const nextState = new State([]);
+    const nextStates: [Tape, Nodes][] = [];
 
     for (const [tapeOriginal, node] of current.states) {
         if (node.isAcceptState) {
@@ -85,9 +98,13 @@ export function step(current: State): State | boolean {
         for (const edge of edges) {
             const tape = tapeOriginal.copy();
             tape.update(edge.write, edge.move);
-            nextState.states.push([tape, edge.destination]);
+            nextStates.push([tape, edge.destination]);
         }
     }
 
-    return nextState;
+    if (nextStates.length === 0) {
+        return false;
+    }
+
+    return new State(nextStates);
 }

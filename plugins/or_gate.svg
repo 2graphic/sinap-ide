@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="50" width="50">
+<path d="
+M 0 15 H 10
+M 0 35 H 10
+M 40 25 H 50
+M 5 10 Q 30 10 40 25
+M 5 40 Q 30 40 40 25
+M 5 10 Q 20 25 5 40"
+stroke="black"
+stroke-width="2"
+fill="transparent"
+/>
+</svg>

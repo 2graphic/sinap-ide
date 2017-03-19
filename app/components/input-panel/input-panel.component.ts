@@ -25,7 +25,7 @@ export class InputPanelComponent implements AfterViewChecked {
 
     private results: ProgramResult[] = [];
     private selected: ProgramResult;
-    private selectedState: CoreValue;
+    private selectedState: State;
 
     private inputForPlugin?: CoreValue;
 
@@ -45,11 +45,9 @@ export class InputPanelComponent implements AfterViewChecked {
         return t.isAssignableTo((t.env as any).lookupPluginType("Error"));
     }
 
-    private selectState(state: CoreValue) {
+    private selectState(state: State) {
         this.selectedState = state;
-        if (isObjectType(state.type) && state.value.active) {
-            this.delegate.selectNode(state.value.active);
-        }
+        this.delegate.selectNode(state.state.value.active);
     }
 
     private scrollToBottom() {
@@ -60,44 +58,22 @@ export class InputPanelComponent implements AfterViewChecked {
         return program.plugin.typeEnvironment.getStringType();
     }
 
-    private getInputType() {
-        if (this.program) {
-            return this.getStringType(this.program);
-        }
-
-        throw "No program";
-    }
-
     private setupInput() {
-        this.inputForPlugin = new CoreValue(this.getInputType(), "");
-    }
-
-    /**
-     * Returns a new object value that doesn't have a message property.
-     */
-    private stripMessage(state: CoreValue) {
-        if (isObjectType(state.type)) {
-            const members = new Map(state.type.members);
-            members.delete("message");
-            return new CoreValue(new FakeObjectType(state.type.env, members), state.value);
-        } else {
-            return state;
-        }
-    }
-
-    getMessage(state: CoreValue) {
         if (this.program) {
-            if (isObjectType(state.type)) {
-                const type = state.type.members.get("message");
-                if (type) {
-                    return new CoreValue(type, state.value.message);
-                }
+            let type = this.program.runArguments[0][0];
+
+            if (type.name === "InputType") {
+                const members = new Map<string, Type>();
+                members.set("a", this.program.plugin.typeEnvironment.getBooleanType());
+                members.set("b", this.program.plugin.typeEnvironment.getBooleanType());
+                this.inputForPlugin = new CoreValue(new FakeObjectType(this.program.plugin.typeEnvironment, members), {
+                    "a": false,
+                    "b": false
+                });
             } else {
-                return new CoreValue(this.getStringType(this.program), "");
+                this.inputForPlugin = new CoreValue(type, "");
             }
         }
-
-        return undefined;
     }
 
     private selectResult(c: ProgramResult) {
@@ -113,6 +89,14 @@ export class InputPanelComponent implements AfterViewChecked {
         }
 
         return false;
+    }
+
+    private stepFinish() {
+        if (this.selected) {
+            this.selected.steps = this.selected.output.states.length - 1;
+            this.selectState(this.selected.output.states[this.selected.steps++]);
+            this.scrollToBottom();
+        }
     }
 
     /**
@@ -136,14 +120,10 @@ export class InputPanelComponent implements AfterViewChecked {
     }
 
     private onSubmit(input: CoreValue) {
-        console.log(input, this.inputForPlugin);
         const output = this.run(input);
-        console.log(input, output);
-
-
-
         if (output) {
-            let result = new ProgramResult(input, output);
+            const states = output.states.map(s => new State(s));
+            const result = new ProgramResult(input, new Output(states, output.result));
             console.log(result);
 
             this.selected = result;
@@ -152,6 +132,7 @@ export class InputPanelComponent implements AfterViewChecked {
             if (result.output.states.length > 0) {
                 this.selectedState = result.output.states[0];
                 result.steps++;
+                this.selectState(result.output.states[0]);
             }
 
             this.setupInput();
@@ -174,9 +155,42 @@ export interface InputPanelDelegate {
     selectNode(n: any): void;
 }
 
-interface Output {
-    states: CoreValue[];
-    result: CoreValue;
+class Output {
+    constructor(public readonly states: State[], public readonly result: CoreValue) { };
+}
+
+class State {
+    message: CoreValue | undefined;
+    state: CoreValue;
+
+    constructor(value: CoreValue) {
+        this.message = this.getMessage(value);
+        this.state = this.stripMessage(value);
+    }
+
+    /**
+     * Returns a new object value that doesn't have a message property.
+     */
+    private stripMessage(state: CoreValue) {
+        if (isObjectType(state.type)) {
+            const members = new Map(state.type.members);
+            members.delete("message");
+            return new CoreValue(new FakeObjectType(state.type.env, members), state.value);
+        } else {
+            return state;
+        }
+    }
+
+    private getMessage(state: CoreValue) {
+        if (isObjectType(state.type)) {
+            const type = state.type.members.get("message");
+            if (type) {
+                return new CoreValue(type, state.value.message);
+            }
+        }
+
+        return undefined;
+    }
 }
 
 class ProgramResult {
