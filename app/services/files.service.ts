@@ -53,14 +53,12 @@ function ensureNull(shouldBeNull: any): Promise<void> {
 @Injectable()
 export class LocalFileService implements FileService {
     getAppLocations(): Promise<AppLocations> {
-        const currentDirectory = new LocalDirectory(this.joinPath(app.getAppPath(), ".."));
-
         const pluginDirectory = IS_PRODUCTION ?
-            currentDirectory.subdirByName("app").subdirByName("plugins") :
-            currentDirectory.subdirByName("plugins");
+            new LocalDirectory(this.joinPath(app.getAppPath(), "..", "app", "plugins")) :
+            new LocalDirectory("./plugins");
 
         const result: AppLocations = {
-            currentDirectory: currentDirectory,
+            currentDirectory: new LocalDirectory("."),
             pluginDirectory: pluginDirectory
         };
 
