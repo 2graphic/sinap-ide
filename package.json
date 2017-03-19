@@ -20,7 +20,7 @@
     "start": "electron build",
     "build:start": "npm run build && npm run start",
     "build:watch:start": "concurrently \"npm run build:watch\" \"npm run start\"",
-    "electron-packager": "electron-packager build Sinap --out=dist --no-prune --arch=all --overwrite --icon=./app/images/icons/icon",
+    "electron-packager": "electron-packager build Sinap --out=dist --no-prune --arch=all --overwrite --icon=./app/images/icons/icon && rimraf ./build",
     "prepackage": "npm run clean && npm run build:dll && npm run build:prod && cpx package.json build && ncp ./plugins ./build/plugins",
     "package": "npm run prepackage && npm run electron-packager -- --platform=all",
     "package:darwin": "npm run prepackage && npm run electron-packager -- --platform=darwin",
