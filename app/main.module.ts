@@ -34,6 +34,7 @@ import { ObjectTypeComponent } from "./components/types/object-type/object-type.
 import { NodeTypeComponent } from "./components/types/node-type/node-type.component";
 import { ListTypeComponent } from "./components/types/list-type/list-type.component";
 import { UnionTypeComponent } from "./components/types/union-type/union-type.component";
+import { NumberTypeComponent } from "./components/types/number-type/number-type.component";
 
 @NgModule({
     imports: [
@@ -61,6 +62,7 @@ import { UnionTypeComponent } from "./components/types/union-type/union-type.com
         NodeTypeComponent,
         ListTypeComponent,
         UnionTypeComponent,
+        NumberTypeComponent,
     ],
     bootstrap: [MainComponent]
 })

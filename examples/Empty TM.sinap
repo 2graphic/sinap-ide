@@ -26,15 +26,15 @@
                 "label": "",
                 "color": "#fff200",
                 "position": {
-                    "x": 298,
-                    "y": 384
+                    "x": 142.00000000000003,
+                    "y": 153
                 },
                 "shape": "circle",
                 "image": "",
                 "anchorPoints": [],
                 "borderColor": "#000",
                 "borderStyle": "solid",
-                "borderWidth": 2
+                "borderWidth": 2.4
             }
         },
         {

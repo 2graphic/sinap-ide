@@ -4,6 +4,7 @@
     </div>
     <div *ngIf="!isEmpty">
         <sinap-type [readonly]="false" [value]="pluginValue"></sinap-type>
+        <sinap-type [readonly]="false" [value]="drawableValue"></sinap-type>
         <!--<table *ngFor="let name of fieldNames" class="group-table">
             <template [ngIf]="fields[name]">
                 <tr>

@@ -22,7 +22,7 @@ export class PropertiesPanelComponent {
     private isUnionType = isUnionType;
 
     private pluginValue: CoreObjectValue<PluginTypeEnvironment> | undefined;
-
+    private drawableValue: CoreObjectValue<PluginTypeEnvironment> | undefined;
 
     unionValues(t: UnionType<PluginTypeEnvironment>) {
         // substring necessary to strip the quote marks off the types
@@ -35,6 +35,7 @@ export class PropertiesPanelComponent {
         this.fields = {};
         this.fieldNames = [];
         this.pluginValue = undefined;
+        this.drawableValue = undefined;
     }
 
     @Input()
@@ -42,7 +43,9 @@ export class PropertiesPanelComponent {
         if (elements === undefined) {
             this.clear();
         } else {
-            this.pluginValue = (elements.values().next().value.core.values).values().next().value  as CoreObjectValue<PluginTypeEnvironment>;
+            const values = [...(elements.values().next().value.core.values).values()];
+            this.pluginValue = values[0] as CoreObjectValue<PluginTypeEnvironment>;
+            this.drawableValue = values[1] as CoreObjectValue<PluginTypeEnvironment>;
             this.isEmpty = false;
             
             // const bridge = elements.values().next().value;

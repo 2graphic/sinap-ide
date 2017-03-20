@@ -18,10 +18,10 @@ export class BooleanTypeComponent {
     @Input() set value(v: CoreValue<PluginTypeEnvironment>) {
         if (v instanceof CorePrimitiveValue) {
             this._value = v;
-        } if (v.type.name === "true | false") {
+        } else if (v.type.name === "true | false") {
             this._value = v as CoreUnionValue<PluginTypeEnvironment>;
         } else {
-            console.log(v, " is not a CorePrimitiveValue");
+            console.log(v, " is not a CorePrimitiveValue or \"true | false\"");
         }
     }
 }

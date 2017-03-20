@@ -12,6 +12,7 @@ import { ObjectTypeComponent } from "./../object-type/object-type.component";
 import { NodeTypeComponent } from "./../node-type/node-type.component";
 import { ListTypeComponent } from "./../list-type/list-type.component";
 import { UnionTypeComponent } from "./../union-type/union-type.component";
+import { NumberTypeComponent } from "./../number-type/number-type.component";
 
 
 /**
@@ -22,7 +23,7 @@ import { UnionTypeComponent } from "./../union-type/union-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent, UnionTypeComponent],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent],
     template: `<template #container></template>`,
 })
 export class TypeInjectorComponent {
@@ -71,7 +72,6 @@ export class TypeInjectorComponent {
     }
 
     private inject(value: CoreValue<PluginTypeEnvironment>, readonly: boolean, disabled: boolean) {
-        console.log("Creating new component");
         this._value = value;
 
         let componentType = this.getComponentType(value);
@@ -81,10 +81,9 @@ export class TypeInjectorComponent {
 
         if (!value.mutable) {
             value.mutable = true; // TODO: Fix this
-            console.log(value);
         }
 
-        // console.log(value, componentType);
+        console.log(value, componentType);
 
         let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
         let factory = this.resolver.resolveComponentFactory(componentType);
@@ -114,8 +113,6 @@ export class TypeInjectorComponent {
                 return ListTypeComponent;
             }
 
-            console.log(value);
-
             if (type.name === "true | false" || type.isAssignableTo(env.getBooleanType())) {
                 return BooleanTypeComponent;
             }
@@ -130,6 +127,10 @@ export class TypeInjectorComponent {
 
             if (type.isAssignableTo(env.lookupPluginType("Error"))) {
                 return StringTypeComponent; // TODO: Make error component
+            }
+
+            if (type.isAssignableTo(env.getNumberType())) {
+                return NumberTypeComponent;
             }
 
             if (type.isAssignableTo(env.getStringType())) {
