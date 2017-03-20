@@ -4,7 +4,7 @@
 //
 
 import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type } from "@angular/core";
-import { CoreValue, Type as CoreType, isObjectType, PluginTypeEnvironment, isUnionType } from "sinap-core";
+import { CoreValue, Type as CoreType, isObjectType, PluginTypeEnvironment, isUnionType, CorePrimitiveValue} from "sinap-core";
 
 import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
@@ -13,6 +13,7 @@ import { NodeTypeComponent } from "./../node-type/node-type.component";
 import { ListTypeComponent } from "./../list-type/list-type.component";
 import { UnionTypeComponent } from "./../union-type/union-type.component";
 import { NumberTypeComponent } from "./../number-type/number-type.component";
+import { ColorTypeComponent } from "./../color-type/color-type.component";
 
 
 /**
@@ -23,7 +24,7 @@ import { NumberTypeComponent } from "./../number-type/number-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent, ColorTypeComponent],
     template: `<template #container></template>`,
 })
 export class TypeInjectorComponent {
@@ -127,6 +128,11 @@ export class TypeInjectorComponent {
 
             if (type.isAssignableTo(env.lookupPluginType("Error"))) {
                 return StringTypeComponent; // TODO: Make error component
+            }
+
+            // TODO: fix
+            if (type.isAssignableTo(env.lookupSinapType("Color")) || (value instanceof CorePrimitiveValue && value.data !== undefined && (value.data as any).toString().charAt(0) === "#")) {
+                return ColorTypeComponent;
             }
 
             if (type.isAssignableTo(env.getNumberType())) {

@@ -24,10 +24,10 @@
                 "isAcceptState": false,
                 "children": [],
                 "label": "",
-                "color": "#fff200",
+                "color": "#ff2600",
                 "position": {
-                    "x": 142.00000000000003,
-                    "y": 153
+                    "x": 181.00000000000003,
+                    "y": 397
                 },
                 "shape": "circle",
                 "image": "",
@@ -48,8 +48,30 @@
                 "label": "",
                 "color": "#fff200",
                 "position": {
-                    "x": 490,
-                    "y": 399
+                    "x": 570,
+                    "y": 266
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "uuid": "05d2bbe0-68e9-4706-bab7-e09764a06e2d",
+            "data": {
+                "isStartState": false,
+                "isAcceptState": false,
+                "children": [],
+                "label": "",
+                "color": "#fff200",
+                "position": {
+                    "x": 460,
+                    "y": 464.99999999999994
                 },
                 "shape": "circle",
                 "image": "",
@@ -62,10 +84,34 @@
         {
             "kind": "Edge",
             "type": "Edges",
-            "uuid": "c74dccf7-54e5-4acf-a839-ed1bd4a0eb4e",
+            "uuid": "48d66a99-df2e-46e4-bc62-519d7b49d075",
             "data": {
-                "read": "O",
-                "write": "O",
+                "read": "",
+                "write": "",
+                "move": "Right",
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "uuid": "05d2bbe0-68e9-4706-bab7-e09764a06e2d"
+                },
+                "label": "",
+                "color": "#000",
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "source": {
+                    "kind": "sinap-pointer",
+                    "uuid": "0320c705-1c3d-4e93-a609-6cf88cd84399"
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "uuid": "bc6919e7-ae74-4b9e-bed6-08bb459876ef",
+            "data": {
+                "read": "",
+                "write": "",
                 "move": "Right",
                 "destination": {
                     "kind": "sinap-pointer",
@@ -77,9 +123,173 @@
                 "lineWidth": 2,
                 "source": {
                     "kind": "sinap-pointer",
-                    "uuid": "0320c705-1c3d-4e93-a609-6cf88cd84399"
+                    "uuid": "05d2bbe0-68e9-4706-bab7-e09764a06e2d"
                 },
                 "showSourceArrow": false,
+                "showDestinationArrow": true
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "uuid": "518cf577-c7a3-4d8b-98a7-8f7f525e144c",
+            "data": {
+                "isStartState": false,
+                "isAcceptState": false,
+                "children": [],
+                "label": "",
+                "color": "#fff200",
+                "position": {
+                    "x": 391,
+                    "y": 341
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "uuid": "970714c8-0eb9-48bc-849c-f1926a77a4ea",
+            "data": {
+                "read": "",
+                "write": "",
+                "move": "Right",
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "uuid": "518cf577-c7a3-4d8b-98a7-8f7f525e144c"
+                },
+                "label": "",
+                "color": "#000",
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "source": {
+                    "kind": "sinap-pointer",
+                    "uuid": "22466d7b-3194-47ff-9d95-149e55e65198"
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "uuid": "9fd3d404-9d7d-4546-8981-589299214a03",
+            "data": {
+                "read": "",
+                "write": "",
+                "move": "Right",
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "uuid": "0320c705-1c3d-4e93-a609-6cf88cd84399"
+                },
+                "label": "",
+                "color": "#000",
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "source": {
+                    "kind": "sinap-pointer",
+                    "uuid": "518cf577-c7a3-4d8b-98a7-8f7f525e144c"
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "uuid": "c0b06473-ae50-4b60-9af9-9ff14f4f8a0e",
+            "data": {
+                "isStartState": false,
+                "isAcceptState": false,
+                "children": [],
+                "label": "",
+                "color": "#fff200",
+                "position": {
+                    "x": 339,
+                    "y": 188
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "uuid": "ded3736b-850a-4c4e-aa0d-927aeaa0289e",
+            "data": {
+                "read": "",
+                "write": "",
+                "move": "Right",
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "uuid": "c0b06473-ae50-4b60-9af9-9ff14f4f8a0e"
+                },
+                "label": "",
+                "color": "#000",
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "source": {
+                    "kind": "sinap-pointer",
+                    "uuid": "518cf577-c7a3-4d8b-98a7-8f7f525e144c"
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "uuid": "fa571699-490c-445d-8e0b-19b2b0caca59",
+            "data": {
+                "read": "",
+                "write": "",
+                "move": "Right",
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "uuid": "22466d7b-3194-47ff-9d95-149e55e65198"
+                },
+                "label": "",
+                "color": "#000",
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "source": {
+                    "kind": "sinap-pointer",
+                    "uuid": "c0b06473-ae50-4b60-9af9-9ff14f4f8a0e"
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "uuid": "313c4b3d-ce44-495e-986a-ff80b66e8338",
+            "data": {
+                "read": "",
+                "write": "",
+                "move": "Right",
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "uuid": "0320c705-1c3d-4e93-a609-6cf88cd84399"
+                },
+                "label": "",
+                "color": "#000",
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "source": {
+                    "kind": "sinap-pointer",
+                    "uuid": "c0b06473-ae50-4b60-9af9-9ff14f4f8a0e"
+                },
+                "showSourceArrow": true,
                 "showDestinationArrow": true
             }
         }
