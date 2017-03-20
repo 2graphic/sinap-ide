@@ -353,8 +353,8 @@ export class GraphController {
 
     copyPropertiesToCore(drawable: Drawable, core: CoreElement, k?: string) {
         for (const key in drawable) {
-            if (k !== undefined && key != k) continue; 
-            if (key == "source" || key == "destination") {
+            if (k !== undefined && key !== k) continue;
+            if (key === "source" || key === "destination") {
                 const bridge = this.bridges.getB((drawable as any)[key]);
                 if (!bridge) {
                     throw new Error("Edge is referencing a nonexistent node");

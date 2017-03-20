@@ -4,7 +4,7 @@
 //
 
 import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type } from "@angular/core";
-import { CoreValue, Type as CoreType, isObjectType, PluginTypeEnvironment, isUnionType, CorePrimitiveValue} from "sinap-core";
+import { CoreValue, Type as CoreType, isObjectType, PluginTypeEnvironment, isUnionType, CorePrimitiveValue } from "sinap-core";
 
 import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";

@@ -34,6 +34,6 @@ export class NumberTypeComponent {
     }
 
     round(n: number) {
-        return Math.round(n * 10 ) / 10;
+        return Math.round(n * 10) / 10;
     }
 }

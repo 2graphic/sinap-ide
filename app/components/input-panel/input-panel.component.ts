@@ -44,7 +44,7 @@ export class InputPanelComponent implements AfterViewChecked {
     private isErrorType(t: Type<PluginTypeEnvironment>) {
         try {
             return t.isAssignableTo(t.env.lookupPluginType("Error"));
-        } catch(e) {
+        } catch (e) {
             // TODO:
             return false;
         }
@@ -52,7 +52,7 @@ export class InputPanelComponent implements AfterViewChecked {
 
     private selectState(state: State) {
         this.selectedState = state;
-        //this.delegate.selectNode(state.state.value.active);
+        // this.delegate.selectNode(state.state.value.active);
     }
 
     private scrollToBottom() {
@@ -182,7 +182,7 @@ class State {
         if (state instanceof CoreObjectValue) {
             try {
                 return state.get("message");
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
                 return undefined;
             }

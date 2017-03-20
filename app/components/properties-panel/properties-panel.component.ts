@@ -23,6 +23,7 @@ export class PropertiesPanelComponent {
 
     private pluginValue: CoreObjectValue<PluginTypeEnvironment> | undefined;
     private drawableValue: CoreObjectValue<PluginTypeEnvironment> | undefined;
+    private elementKind: string | undefined;
 
     unionValues(t: UnionType<PluginTypeEnvironment>) {
         // substring necessary to strip the quote marks off the types
@@ -36,6 +37,7 @@ export class PropertiesPanelComponent {
         this.fieldNames = [];
         this.pluginValue = undefined;
         this.drawableValue = undefined;
+        this.elementKind = undefined;
     }
 
     @Input()
@@ -43,11 +45,13 @@ export class PropertiesPanelComponent {
         if (elements === undefined) {
             this.clear();
         } else {
-            const values = [...(elements.values().next().value.core.values).values()];
+            const bridge = elements.values().next().value;
+            const values = [...(bridge.core.values).values()];
             this.pluginValue = values[0] as CoreObjectValue<PluginTypeEnvironment>;
+            this.elementKind = bridge.core.pluginType.name;
             this.drawableValue = values[1] as CoreObjectValue<PluginTypeEnvironment>;
             this.isEmpty = false;
-            
+
             // const bridge = elements.values().next().value;
             // const drawableType = bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind) !;
 
