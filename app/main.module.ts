@@ -21,7 +21,7 @@ import { SideBarComponent } from "./components/side-bar/side-bar.component";
 import { PropertiesPanelComponent } from "./components/properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "./components/tools-panel/tools-panel.component";
 import { FilesPanelComponent } from "./components/files-panel/files-panel.component";
-// import { InputPanelComponent } from "./components/input-panel/input-panel.component";
+import { InputPanelComponent } from "./components/input-panel/input-panel.component";
 // import { TestPanelComponent } from "./components/test-panel/test-panel.component";
 import { GraphEditorComponent } from "./components/graph-editor/graph-editor.component";
 import { StatusBarComponent } from "./components/status-bar/status-bar.component";
@@ -33,6 +33,7 @@ import { BooleanTypeComponent } from "./components/types/boolean-type/boolean-ty
 import { ObjectTypeComponent } from "./components/types/object-type/object-type.component";
 import { NodeTypeComponent } from "./components/types/node-type/node-type.component";
 import { ListTypeComponent } from "./components/types/list-type/list-type.component";
+import { UnionTypeComponent } from "./components/types/union-type/union-type.component";
 
 @NgModule({
     imports: [
@@ -48,7 +49,7 @@ import { ListTypeComponent } from "./components/types/list-type/list-type.compon
         PropertiesPanelComponent,
         ToolsPanelComponent,
         FilesPanelComponent,
-        // InputPanelComponent,
+        InputPanelComponent,
         // TestPanelComponent,
         GraphEditorComponent,
         StatusBarComponent,
@@ -59,6 +60,7 @@ import { ListTypeComponent } from "./components/types/list-type/list-type.compon
         ObjectTypeComponent,
         NodeTypeComponent,
         ListTypeComponent,
+        UnionTypeComponent,
     ],
     bootstrap: [MainComponent]
 })

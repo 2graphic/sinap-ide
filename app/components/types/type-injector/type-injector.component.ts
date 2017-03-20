@@ -4,13 +4,14 @@
 //
 
 import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type } from "@angular/core";
-import { CoreValue, Type as CoreType, isObjectType, PluginTypeEnvironment } from "sinap-core";
+import { CoreValue, Type as CoreType, isObjectType, PluginTypeEnvironment, isUnionType } from "sinap-core";
 
 import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
 import { ObjectTypeComponent } from "./../object-type/object-type.component";
 import { NodeTypeComponent } from "./../node-type/node-type.component";
 import { ListTypeComponent } from "./../list-type/list-type.component";
+import { UnionTypeComponent } from "./../union-type/union-type.component";
 
 
 /**
@@ -21,7 +22,7 @@ import { ListTypeComponent } from "./../list-type/list-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent, UnionTypeComponent],
     template: `<template #container></template>`,
 })
 export class TypeInjectorComponent {
@@ -42,14 +43,6 @@ export class TypeInjectorComponent {
      * Whether the component should try to be focused when injected.
      */
     @Input() focus: boolean = false;
-
-
-    private componentMap = new Map<string, Type<any>>(
-        [
-            ["getStringType", StringTypeComponent],
-            ["getBooleanType", BooleanTypeComponent],
-        ]
-    );
 
     @Input()
     set disabled(disabled: boolean) {
@@ -112,7 +105,7 @@ export class TypeInjectorComponent {
         }
     }
 
-    private getComponentType(value: CoreValue<PluginTypeEnvironment>) {
+    private getComponentType(value: CoreValue<PluginTypeEnvironment>): Type<any> | undefined {
         try {
             const type = value.type;
             const env = type.env;
@@ -121,18 +114,26 @@ export class TypeInjectorComponent {
                 return ListTypeComponent;
             }
 
-            if (type.isAssignableTo((env as any).lookupPluginType("Nodes"))) {
+            console.log(value);
+
+            if (type.name === "true | false" || type.isAssignableTo(env.getBooleanType())) {
+                return BooleanTypeComponent;
+            }
+
+            if (isUnionType(type)) {
+                return UnionTypeComponent;
+            }
+
+            if (type.isAssignableTo(env.lookupPluginType("Nodes"))) {
                 return NodeTypeComponent;
             }
 
-            if (type.isAssignableTo((env as any).lookupPluginType("Error"))) {
+            if (type.isAssignableTo(env.lookupPluginType("Error"))) {
                 return StringTypeComponent; // TODO: Make error component
             }
 
-            for (let [func, componentType] of this.componentMap) {
-                if (type.isAssignableTo(((env as any)[func])() as CoreType<PluginTypeEnvironment>)) {
-                    return componentType;
-                }
+            if (type.isAssignableTo(env.getStringType())) {
+                return StringTypeComponent;
             }
 
             if (isObjectType(type)) {
@@ -151,7 +152,7 @@ export class TypeInjectorComponent {
             // }
 
             console.log("Unknown type for Value: ", value);
-            return StringTypeComponent;
+            return undefined;
         } catch (e) {
             console.log(e);
             return undefined;
