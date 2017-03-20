@@ -712,17 +712,20 @@ export class EditorGraph {
         // Move or create the edge if it was dropped on a node.
         if (hoverNode instanceof EditorNode) {
             this.suspendDraw();
+            // Get the source and destination nodes.
             const src = dragEdge.source === HIDDEN_NODE ?
                 hoverNode :
                 dragEdge.source;
             const dst = dragEdge.destination === HIDDEN_NODE ?
                 hoverNode :
                 dragEdge.destination;
+            // Get the created or moved edge.
             const drawable = like ?
                 this.drawable
                     .moveEdge(src.drawable, dst.drawable, like.drawable) :
                 this.drawable
                     .createEdge(src.drawable, dst.drawable);
+            // Bind edge anchors.
             if (drawable) {
                 const edge = this.drawables.get(drawable) as EditorEdge;
                 if (src.drawable.anchorPoints.length > 0)

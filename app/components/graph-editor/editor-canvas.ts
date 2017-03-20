@@ -561,7 +561,7 @@ export class EditorCanvas {
     }
 
     /**
-     * `getPt`
+     * `getCoordinates`
      *
      *   Gets the canvas coordinates from a DOM event.
      *

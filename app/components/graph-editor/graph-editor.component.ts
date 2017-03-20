@@ -123,12 +123,14 @@ export class GraphEditorComponent implements AfterViewInit {
     = null;
 
     /**
-     * `panPt`
+     * `isPanning`
      *
-     *   The previous pt from panning the canvas.
+     *   Whether or not the canvas is currently panning. This is to prevent
+     *   panning from occuring if the user started dragging the right mouse
+     *   button outside of the editor.
      */
-    private panPt: point | null
-    = null;
+    private isPanning: boolean
+    = false;
 
     /**
      * `drawGridDelegate`
@@ -171,7 +173,6 @@ export class GraphEditorComponent implements AfterViewInit {
         }
         else {
             this.unregisterEventListeners();
-            this.panPt = null;
             if (this.gridCanvas)
                 this.gridCanvas.clear();
             if (this.graphCanvas)
@@ -382,16 +383,12 @@ export class GraphEditorComponent implements AfterViewInit {
      *
      *   Repositions the origin point of the canvas.
      */
-    private pan(p: point) {
-        const prev = this.panPt;
-        const curr: point = p;
-        if (prev) {
-            const dp = diff(curr, prev);
-            this._graph!.drawable.origin = {
-                x: this._graph!.drawable.origin.x + dp.x / this.graphCanvas.scale,
-                y: this._graph!.drawable.origin.y + dp.y / this.graphCanvas.scale
-            };
-        }
+    private pan(evt: MouseEvent) {
+        const canvas = this.graphCanvas;
+        this.origin = {
+            x: canvas.origin.x + evt.movementX / canvas.scale,
+            y: canvas.origin.y + evt.movementY / canvas.scale
+        };
         this.redraw();
     }
 
@@ -486,27 +483,25 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private onMouseDown
     = (evt: MouseEvent): void => {
+        // Swap up and down events.
+        this.el.nativeElement.removeEventListener(
+            "mousedown",
+            this.onMouseDown
+        );
+        this.el.nativeElement.addEventListener(
+            "mouseup",
+            this.onMouseUp
+        );
         switch (evt.buttons) {
             // Handle the left mouse button event.
             case 1: {
-                // Swap up and down events.
-                this.el.nativeElement.removeEventListener(
-                    "mousedown",
-                    this.onMouseDown
-                );
-                this.el.nativeElement.addEventListener(
-                    "mouseup",
-                    this.onMouseUp
-                );
-
                 // Start dragging the graph.
                 this._graph!.dragStart(this.graphCanvas.getCoordinates(evt));
             } break;
 
             // Handle the right mouse button event.
             case 2: {
-                // Capture the down pt.
-                this.panPt = evt;
+                this.isPanning = true;
             } break;
         }
     }
@@ -521,6 +516,9 @@ export class GraphEditorComponent implements AfterViewInit {
         const ept = this.graphCanvas.getCoordinates(evt);
 
         // Capture the down event if the drag object has been set.
+        // TODO:
+        // When the user can drag components onto the canvas from the tools
+        // panel.
         // if (this.dragObject && e.buttons === 1 && !this.dragPt)
         //     this.dragPt = this.graphCanvas.getCoordinates(e);
 
@@ -538,10 +536,8 @@ export class GraphEditorComponent implements AfterViewInit {
 
             // Pan.
             case 2: {
-                if (this.panPt) {
+                if (this.isPanning)
                     this.pan(evt);
-                    this.panPt = evt;
-                }
             } break;
         }
     }
@@ -553,17 +549,14 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private onMouseUp
     = (e: MouseEvent): void => {
-        if (this.panPt) {
-            this.pan(e);
-            this.panPt = null;
-        }
-        else if (this._graph!.drop(this.graphCanvas.getCoordinates(e))) {
-            // Swap up and down events.
-            this.el.nativeElement
-                .removeEventListener("mouseup", this.onMouseUp);
-            this.el.nativeElement
-                .addEventListener("mousedown", this.onMouseDown);
-        }
+        this.isPanning = false;
+        // Swap up and down events.
+        this.el.nativeElement
+            .removeEventListener("mouseup", this.onMouseUp);
+        this.el.nativeElement
+            .addEventListener("mousedown", this.onMouseDown);
+        // Drop the graph.
+        this._graph!.drop(this.graphCanvas.getCoordinates(e));
     }
 
     /**

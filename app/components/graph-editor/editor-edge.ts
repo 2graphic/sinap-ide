@@ -27,7 +27,7 @@ import * as MathEx from "./math";
  *
  *   Type definition for functions that return a list of edge points.
  */
-type fnGetPoints = (
+type fnMakePoints = (
     src: EditorNode,
     dst: EditorNode,
     bspt: point | null,
@@ -354,7 +354,8 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
      *   source node from the given vector relative to the node position.
      */
     bindSourceAnchor(pt: point) {
-        this._spt = this.source.getNearestAnchor(pt);
+        const anchor = this.source.getNearestAnchor(pt);
+        this._spt = { x: anchor.x, y: anchor.y };
     }
 
     /**
@@ -365,7 +366,8 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
      *   position.
      */
     bindDestinationAnchor(pt: point) {
-        this._dpt = this.destination.getNearestAnchor(pt);
+        const anchor = this.destination.getNearestAnchor(pt);
+        this._dpt = { x: anchor.x, y: anchor.y };
     }
 
     /**
@@ -423,7 +425,14 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
         spt: point | null,
         dpt: point | null) {
         const edges = [...outgoing].filter(v =>
-            incoming.has(v) && (spt === v._spt && dpt === v._dpt)
+            incoming.has(v) && (
+                (!(spt || v._spt) ||
+                    (spt && v._spt &&
+                        spt.x === v._spt.x && spt.y === v._spt.y)) &&
+                (!(dpt || v._dpt) ||
+                    (dpt && v._dpt &&
+                        dpt.x === v._dpt.x && dpt.y === v._dpt.y))
+            )
         );
         edges.sort((a, b) => {
             if (a.drawable.label > b.drawable.label)
@@ -452,7 +461,7 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
      */
     private updatePoints(
         g: EditorCanvas,
-        makePoints: fnGetPoints,
+        makePoints: fnMakePoints,
         edges: EditorEdge[]
     ) {
         const first = edges.pop();
@@ -482,7 +491,10 @@ export class EditorEdge extends EditorElement<DrawableEdge> {
                 dir * (first.textRect.height + first.drawable.lineWidth) :
                 0;
             for (const edge of edges) {
-                edge.points = first._pts;
+                edge.points = makePoints(
+                    edge.source, edge.destination,
+                    edge._spt, edge._dpt
+                );
                 edge.textRect.x = edge.source.position.x + edge._pts[0].x
                     + edge._pts[2].x - norm.x;
                 edge.textRect.y = edge.source.position.y + edge._pts[0].y
