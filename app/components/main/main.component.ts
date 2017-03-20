@@ -15,7 +15,7 @@ import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-pa
 import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 import { FilesPanelComponent } from "../files-panel/files-panel.component";
-// import { TestPanelComponent } from "../test-panel/test-panel.component";
+import { TestPanelComponent } from "../test-panel/test-panel.component";
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
@@ -88,7 +88,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     @ViewChild(FilesPanelComponent) private filesPanel: FilesPanelComponent;
     @ViewChild("leftPanelBar") private leftPanelBar: SideBarComponent;
     @ViewChild("bottomPanelBar") private bottomPanelBar: SideBarComponent;
-    // @ViewChild(TestPanelComponent) private testComponent: TestPanelComponent;
+    @ViewChild(TestPanelComponent) private testComponent: TestPanelComponent;
     @ViewChild(TabBarComponent) private tabBar: TabBarComponent;
     @ViewChild('editorPanel') editorPanel: ElementRef;
     @ViewChild('leftPanelsGroup') leftPanelsGroup: ElementRef;
@@ -162,7 +162,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     private onNewProgram = (program: Program) => {
-        // this.testComponent.program = program;
+        this.testComponent.program = program;
         this.inputPanel.program = program;
     }
 

@@ -22,7 +22,7 @@ import { PropertiesPanelComponent } from "./components/properties-panel/properti
 import { ToolsPanelComponent } from "./components/tools-panel/tools-panel.component";
 import { FilesPanelComponent } from "./components/files-panel/files-panel.component";
 import { InputPanelComponent } from "./components/input-panel/input-panel.component";
-// import { TestPanelComponent } from "./components/test-panel/test-panel.component";
+import { TestPanelComponent } from "./components/test-panel/test-panel.component";
 import { GraphEditorComponent } from "./components/graph-editor/graph-editor.component";
 import { StatusBarComponent } from "./components/status-bar/status-bar.component";
 import { TabBarComponent } from "./components/tab-bar/tab-bar.component";
@@ -52,7 +52,7 @@ import { ColorTypeComponent } from "./components/types/color-type/color-type.com
         ToolsPanelComponent,
         FilesPanelComponent,
         InputPanelComponent,
-        // TestPanelComponent,
+        TestPanelComponent,
         GraphEditorComponent,
         StatusBarComponent,
         TabBarComponent,
