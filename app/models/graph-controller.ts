@@ -17,7 +17,7 @@ import {
     CreatedOrDeletedEvent as DrawableCreatedOrDeletedEvent
 } from "../components/graph-editor/graph-editor.component";
 
-import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType, isObjectType, WrappedScriptObjectType, PluginTypeEnvironment, valueWrap, CoreValue, makeValue, Type, CorePrimitiveValue, CoreUnionValue, CoreObjectValue } from "sinap-core";
+import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType, isObjectType, WrappedScriptObjectType, PluginTypeEnvironment, valueWrap, CoreValue, makeValue, Type, CorePrimitiveValue, CoreUnionValue, CoreObjectValue, CoreArrayValue } from "sinap-core";
 import { DoubleMap } from "./double-map";
 
 /**
@@ -319,7 +319,7 @@ export class GraphController {
     private onPropertyChanged(a: PropertyChangedEventArgs<any>) {
         const bridge = this.bridges.getB(a.source);
         if (bridge !== undefined) {
-            this.copyPropertiesToCore(bridge.drawable, bridge.core, a.key);
+            this.copyPropertyToCore(bridge.drawable, bridge.core, a.key);
         } else {
             throw "Nodes/edges list out of sync";
         }
@@ -334,6 +334,12 @@ export class GraphController {
                 raw[key] = this.getData(v.get(key));
             }
             return raw;
+        } else if(v instanceof CoreArrayValue) {
+            const raw:any[] = [];
+            v.values.forEach((value) => {
+                raw.push(this.getData(value));
+            });
+            return raw;
         } else {
             throw new Error();
         }
@@ -342,50 +348,53 @@ export class GraphController {
     copyPropertiesToDrawable(core: CoreElement, drawable: Drawable) {
         for (const key in drawable) {
             try {
+                if (key === "source" || key === "destination") continue;
                 const value = core.get(key) as CoreValue<PluginTypeEnvironment>;
                 const data = this.getData(value);
                 (drawable as any)[key] = data;
             } catch (e) {
+                console.log(e);
                 console.log("Not copying " + key);
             }
         }
     }
 
-    copyPropertiesToCore(drawable: Drawable, core: CoreElement, k?: string) {
-        for (const key in drawable) {
-            if (k !== undefined && key !== k) continue;
-            if (key === "source" || key === "destination") {
-                const bridge = this.bridges.getB((drawable as any)[key]);
-                if (!bridge) {
-                    throw new Error("Edge is referencing a nonexistent node");
-                }
+    copyPropertiesToCore(drawable: Drawable, core: CoreElement) {
+        Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
+    }
 
-                core.set(key, bridge.core);
-                continue;
+    copyPropertyToCore(drawable: Drawable, core: CoreElement, key: string) {
+        if (key === "source" || key === "destination") {
+            const bridge = this.bridges.getB((drawable as any)[key]);
+            if (!bridge) {
+                throw new Error("Edge is referencing a nonexistent node");
             }
 
-            const kind = CoreElementKind[core.kind];
-            const drawableType = core.type.env.lookupSinapType("Drawable" + kind);
-            if (!isObjectType(drawableType)) {
-                throw new Error("Expected ObjectType");
-            }
-
-            let type = drawableType.members.get(key) as Type<PluginTypeEnvironment> | undefined;
-
-            if (type === undefined) {
-                console.log("Not copying " + key);
-                continue;
-            }
-
-            if (type.isAssignableTo(core.type.env.lookupSinapType("WrappedString"))) {
-                type = type.env.getStringType();
-            }
-
-            const typeEnvironment = this.plugin.typeEnvironment;
-            const value = makeValue(type, (drawable as any)[key], false);
-
-            core.set(key, value);
+            core.set(key, bridge.core);
+            return;
         }
+
+        const kind = CoreElementKind[core.kind];
+        const drawableType = core.type.env.lookupSinapType("Drawable" + kind);
+        if (!isObjectType(drawableType)) {
+            throw new Error("Expected ObjectType");
+        }
+
+        let type = drawableType.members.get(key) as Type<PluginTypeEnvironment> | undefined;
+
+        if (type === undefined) {
+            //console.log("Not copying " + key);
+            return;
+        }
+
+        if (type.isAssignableTo(core.type.env.lookupSinapType("WrappedString"))) {
+            type = type.env.getStringType();
+        }
+
+        const typeEnvironment = this.plugin.typeEnvironment;
+        const value = makeValue(type, (drawable as any)[key], false);
+
+        core.set(key, value);
     }
 
     setSelectedElements(se: Iterable<Drawable> | undefined) {
