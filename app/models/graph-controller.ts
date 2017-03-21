@@ -326,23 +326,7 @@ export class GraphController {
     }
 
     private getData = (v: CoreValue<PluginTypeEnvironment>) => {
-        if (v instanceof CorePrimitiveValue || v instanceof CoreUnionValue) {
-            return v.data;
-        } else if (v instanceof CoreObjectValue) {
-            let raw = {} as any;
-            for (const [key, _] of v.type.members) {
-                raw[key] = this.getData(v.get(key));
-            }
-            return raw;
-        } else if(v instanceof CoreArrayValue) {
-            const raw:any[] = [];
-            v.values.forEach((value) => {
-                raw.push(this.getData(value));
-            });
-            return raw;
-        } else {
-            throw new Error();
-        }
+        return v.jsonify(() => {return {result:false, value: undefined}});
     }
 
     copyPropertiesToDrawable(core: CoreElement, drawable: Drawable) {
