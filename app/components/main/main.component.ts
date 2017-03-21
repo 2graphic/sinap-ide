@@ -11,7 +11,7 @@ import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDe
 import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, SerialJSO } from "sinap-core";
 
 import { GraphEditorComponent, DrawableElement } from "../graph-editor/graph-editor.component";
-import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
+import { InputPanelComponent } from "../input-panel/input-panel.component";
 import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
 import { FilesPanelComponent } from "../files-panel/files-panel.component";
@@ -43,7 +43,7 @@ import { ResizeEvent } from 'angular-resizable-element';
     providers: [MenuService, PluginService, WindowService, LocalFileService, SandboxService]
 })
 
-export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, /*InputPanelDelegate,*/ TabDelegate {
+export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
@@ -210,30 +210,6 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             });
         }
     }
-
-
-
-
-    // selectElement(...elements: CoreElement[]) {
-    //     // TODO: Fix everything
-    //     if (this._context) {
-    //         const f = (element: CoreElement) => {
-    //             for (let bridge of this._context!.graph.bridges.entries()) {
-    //                 if (bridge.core.uuid === element as any /*element.uuid*/) {
-    //                     if (bridge.drawable instanceof DrawableElement) {
-    //                         toSelect.push(bridge.drawable);
-    //                     }
-    //                 }
-    //             };
-    //         };
-
-    //         const toSelect: DrawableElement[] = [];
-    //         elements.forEach(f);
-
-    //         this._context.graph.drawable.clearSelection();
-    //         this._context.graph.drawable.select(...toSelect);
-    //     }
-    // }
 
     /**
      * Return true if the focused element is a child of an element with an `id` of `childOf`

@@ -2,8 +2,9 @@
 //
 
 import { Component, ElementRef, ViewChild, AfterViewChecked } from "@angular/core";
-import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType, WrappedScriptType, PluginTypeEnvironment, CoreObjectValue, CorePrimitiveValue, CoreElement, makeValue } from "sinap-core";
+import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType, WrappedScriptType, PluginTypeEnvironment, CoreObjectValue, CorePrimitiveValue, CoreElement, makeValue, CoreArrayValue } from "sinap-core";
 import { GraphController } from "../../models/graph-controller";
+import { DrawableElement } from "../graph-editor/graph-editor.component";
 
 @Component({
     selector: "sinap-input-panel",
@@ -23,11 +24,9 @@ export class InputPanelComponent implements AfterViewChecked {
             this.program = undefined;
             this.graph = undefined;
         }
-        
+
         this.setupInput();
     }
-
-    public delegate: InputPanelDelegate;
 
     private results: ProgramResult[] = [];
     private selected: ProgramResult;
@@ -58,7 +57,36 @@ export class InputPanelComponent implements AfterViewChecked {
 
     private selectState(state: State) {
         this.selectedState = state;
-        // this.delegate.selectNode(state.state.value.active);
+        if (state.state instanceof CoreObjectValue && state.state.type.members.has("active")) {
+            const active = state.state.get("active");
+
+            // TODO: Check to make sure they are actually CoreElements. Do Sets also...
+            if (active instanceof CoreArrayValue) {
+                this.selectElements(active.values);
+            } else {
+                this.selectElements([active]);
+            }
+        }
+    }
+
+    private selectElements(elements: CoreValue<PluginTypeEnvironment>[]) {
+        if (this.graph) {
+            const f = (element: CoreElement) => {
+                for (let bridge of this.graph!.bridges.entries()) {
+                    if (bridge.core.uuid === element as any /*element.uuid*/) {
+                        if (bridge.drawable instanceof DrawableElement) {
+                            toSelect.push(bridge.drawable);
+                        }
+                    }
+                };
+            };
+
+            const toSelect: DrawableElement[] = [];
+            elements.forEach(f);
+
+            this.graph.drawable.clearSelection();
+            this.graph.drawable.select(...toSelect);
+        }
     }
 
     private scrollToBottom() {
@@ -173,10 +201,6 @@ export class InputPanelComponent implements AfterViewChecked {
     }
 }
 
-export interface InputPanelDelegate {
-    selectElement(element: CoreElement): void;
-}
-
 class Output {
     constructor(public readonly states: State[], public readonly result: CoreValue<PluginTypeEnvironment>) { };
 }
@@ -201,13 +225,8 @@ class State {
     }
 
     private getMessage(state: CoreValue<PluginTypeEnvironment>) {
-        if (state instanceof CoreObjectValue) {
-            try {
-                return state.get("message");
-            } catch (e) {
-                console.log(e);
-                return undefined;
-            }
+        if (state instanceof CoreObjectValue && state.type.members.has("message")) {
+            return state.get("message");
         }
 
         return undefined;

@@ -84,7 +84,7 @@ export class TypeInjectorComponent {
             value.mutable = true; // TODO: Fix this
         }
 
-        console.log(value, componentType);
+        // console.log(value, componentType);
 
         let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
         let factory = this.resolver.resolveComponentFactory(componentType);
@@ -161,7 +161,7 @@ export class TypeInjectorComponent {
             console.log("Unknown type for Value: ", value);
             return undefined;
         } catch (e) {
-            console.log(e);
+            // TODO: No errors
             return undefined;
         }
 

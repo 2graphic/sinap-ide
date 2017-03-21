@@ -16,8 +16,6 @@ export class ColorTypeComponent {
     @Input() readonly: boolean = true;
 
     @Input() set value(v: CoreValue<PluginTypeEnvironment>) {
-        console.log(v);
-
         if (v instanceof CorePrimitiveValue) {
             this._value = v;
         } else {

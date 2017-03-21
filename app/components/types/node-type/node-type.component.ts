@@ -19,6 +19,7 @@ export class NodeTypeComponent {
 
     @Input()
     set value(v: CoreValue<PluginTypeEnvironment>) {
+        // TODO: Nodes that come from the plugin are just UUID's
         this._value = v;
         this.label = "NOT IMPLEMENTED";
     }
