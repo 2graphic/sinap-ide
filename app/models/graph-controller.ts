@@ -326,7 +326,7 @@ export class GraphController {
     }
 
     private getData = (v: CoreValue<PluginTypeEnvironment>) => {
-        return v.jsonify(() => {return {result:false, value: undefined}});
+        return v.jsonify(() => { return { result: false, value: undefined }; });
     }
 
     copyPropertiesToDrawable(core: CoreElement, drawable: Drawable) {
@@ -367,7 +367,7 @@ export class GraphController {
         let type = drawableType.members.get(key) as Type<PluginTypeEnvironment> | undefined;
 
         if (type === undefined) {
-            //console.log("Not copying " + key);
+            // console.log("Not copying " + key);
             return;
         }
 
