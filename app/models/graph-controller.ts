@@ -264,7 +264,11 @@ export class GraphController {
         };
 
         const g = (a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a);
-        // deepListen(core, f);
+        deepListen([...core.values][0][1], () => {
+            setTimeout(() => {
+                this.changed.emit();
+            }, 0);
+        });
         deepListen([...core.values][1][1], f);
         drawable.addPropertyChangedListener(g);
 
