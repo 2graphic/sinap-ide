@@ -65,8 +65,8 @@
                     "x": 356,
                     "y": 281
                 },
-                "shape": "circle",
-                "image": "",
+                "shape": "image",
+                "image": "./../plugins/and_gate.svg",
                 "anchorPoints": [],
                 "borderColor": "#000",
                 "borderStyle": "solid",

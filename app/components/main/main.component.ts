@@ -103,7 +103,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     private set context(context: TabContext | undefined) {
         this._context = context;
         if (context) {
-            context.compileProgram().then(this.onNewProgram);
+            context.compileProgram().then((program) => {
+                this.onNewProgram(program, context.graph);
+            });
 
             this.toolsPanel.graph = context.graph;
             this.filesPanel.selectedFile = context.file;
@@ -157,13 +159,15 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     private makeChangeNotifier(context: TabContext) {
         return (change: UndoableEvent) => {
-            context.compileProgram().then(this.onNewProgram);
+            context.compileProgram().then((program) => {
+                this.onNewProgram(program, context.graph);
+            });
         };
     }
 
-    private onNewProgram = (program: Program) => {
+    private onNewProgram = (program: Program, graph: GraphController) => {
         this.testComponent.program = program;
-        this.inputPanel.program = program;
+        this.inputPanel.info = [program, graph];
     }
 
 

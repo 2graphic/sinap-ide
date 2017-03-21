@@ -2,7 +2,8 @@
 //
 
 import { Component, ElementRef, ViewChild, AfterViewChecked } from "@angular/core";
-import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType, PluginTypeEnvironment, CoreObjectValue, CorePrimitiveValue, CoreElement, makeValue } from "sinap-core";
+import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType, WrappedScriptType, PluginTypeEnvironment, CoreObjectValue, CorePrimitiveValue, CoreElement, makeValue } from "sinap-core";
+import { GraphController } from "../../models/graph-controller";
 
 @Component({
     selector: "sinap-input-panel",
@@ -10,15 +11,20 @@ import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType, PluginT
     styleUrls: ["./input-panel.component.scss"]
 })
 export class InputPanelComponent implements AfterViewChecked {
-    public _program?: Program;
+    public program?: Program;
+    private graph?: GraphController;
 
-    set program(program: Program | undefined) {
-        this._program = program;
+    set info(info: [Program, GraphController] | undefined) {
+        if (info) {
+            const [program, graph] = info;
+            this.program = program;
+            this.graph = graph;
+        } else {
+            this.program = undefined;
+            this.graph = undefined;
+        }
+        
         this.setupInput();
-    }
-
-    get program() {
-        return this._program;
     }
 
     public delegate: InputPanelDelegate;
@@ -64,9 +70,30 @@ export class InputPanelComponent implements AfterViewChecked {
     }
 
     private setupInput() {
-        if (this.program) {
+        if (this.program && this.graph) {
             let type = this.program.runArguments[0][0];
-            this.inputForPlugin = makeValue(type, undefined, true);
+            let initialValue: any | undefined = undefined;
+
+            // TODO: improve this
+            if (type instanceof WrappedScriptType && type.env.lookupGlobalType("Map").type.symbol === type.type.symbol) {
+                const types = (type as any).typeArguments as Type<PluginTypeEnvironment>[];
+                const keyType = types[0];
+                const valueType = types[1];
+
+                const map = new Map<CoreValue<PluginTypeEnvironment>, CoreValue<PluginTypeEnvironment>>();
+
+                if (keyType.isAssignableTo(keyType.env.lookupPluginType("Node"))) {
+                    [...this.graph.bridges.values()].map((b) => b.core).forEach((core) => {
+                        if (core.type.types.values().next().value.isAssignableTo(keyType)) {
+                            map.set(core, makeValue(valueType, undefined, true));
+                        }
+                    });
+                }
+
+                initialValue = map;
+            }
+
+            this.inputForPlugin = makeValue(type, initialValue, true);
         }
     }
 
@@ -160,22 +187,17 @@ class State {
 
     constructor(value: CoreValue<PluginTypeEnvironment>) {
         this.message = this.getMessage(value);
-        this.state = this.stripMessage(value);
+        this.stripMessage(value);
+        this.state = value;
     }
 
     /**
      * Returns a new object value that doesn't have a message property.
      */
     private stripMessage(state: CoreValue<PluginTypeEnvironment>) {
-        // if (state instanceof CoreObjectValue) {
-        //     const members = new Map(state.type.members);
-        //     members.delete("message");
-        //     const type = new FakeObjectType(state.type.env, members)
-        //     return makeValue(type, state.values, false);
-        // } else {
-        //     return state;
-        // }
-        return state;
+        if (state instanceof CoreObjectValue) {
+            state.type.members.delete("message");
+        }
     }
 
     private getMessage(state: CoreValue<PluginTypeEnvironment>) {

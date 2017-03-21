@@ -75,6 +75,7 @@ export class TestPanelComponent {
             };
 
             test.input.listeners.add(() => {
+                // TODO: fix this (change notification after change has been made with previous value, booleans)
                 setTimeout(this.testChanged.bind(this, test), 0);
             });
 
@@ -90,7 +91,7 @@ export class TestPanelComponent {
 
     private getExpected(program: Program) {
         // TODO: fix
-        const type = program.plugin.typeEnvironment.getBooleanType();
+        const type = program.runReturn[0];
         return makeValue<PluginTypeEnvironment>(type, undefined, true);
     }
 

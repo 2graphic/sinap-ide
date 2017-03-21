@@ -83,11 +83,11 @@ function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init:
     return easyReduce(node.parents, (parent, current) => op(parent.source.getValue(), current), init);
 }
 
-export function start(start: Circuit, input: InputType): State | string {
+export function start(start: Circuit, input: Map<InputGate, boolean>): State | string {
     const toVisit = getTraversalOrder(start);
     const active = toVisit[0];
     active.setValue(input[active.label]);
-    return new State(toVisit.slice(1), {}, active, active.getValue(), input);
+    return new State(toVisit.slice(1), {}, active, active.getValue(), input as any);
 }
 
 export function step(state: State): State | string {
