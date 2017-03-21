@@ -42,7 +42,7 @@
     "reflect-metadata": "^0.1.x",
     "reset-css": "2.2.x",
     "rxjs": "5.0.x",
-    "sinap-core": "https://github.com/2graphic/sinap-core/releases/download/beta/sinap-core-0.0.0-development.tgz?2",
+    "sinap-core": "https://github.com/2graphic/sinap-core/releases/download/beta/sinap-core-0.0.0-development.tgz?3",
     "zone.js": "0.7.4"
   },
   "devDependencies": {

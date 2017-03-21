@@ -17,7 +17,7 @@ import {
     CreatedOrDeletedEvent as DrawableCreatedOrDeletedEvent
 } from "../components/graph-editor/graph-editor.component";
 
-import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType, isObjectType, WrappedScriptObjectType, PluginTypeEnvironment, valueWrap, CoreValue, makeValue, Type, CorePrimitiveValue, CoreUnionValue, CoreObjectValue, CoreArrayValue } from "sinap-core";
+import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType, isObjectType, WrappedScriptObjectType, PluginTypeEnvironment, valueWrap, CoreValue, makeValue, Type, CorePrimitiveValue, CoreUnionValue, CoreObjectValue, CoreArrayValue, deepListen } from "sinap-core";
 import { DoubleMap } from "./double-map";
 
 /**
@@ -249,7 +249,24 @@ export class GraphController {
         const bridge = new Bridge(core, drawable);
         this.bridges.set(core, drawable, bridge);
 
-        drawable.addPropertyChangedListener((a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a));
+        const toBind = [...core.values][0][1];
+        console.log(toBind);
+        const f = (_: any, nv: any) => {
+            console.log("here", _, nv, drawable);
+            for (const key in nv) {
+                if (key === "source" || key === "destination" || key === "position") continue;
+                drawable.removePropertyChangedListener(g);
+                (drawable as any)[key] = nv[key];
+                setTimeout(() => {
+                    drawable.addPropertyChangedListener(g);
+                }, 0);
+            }
+        };
+
+        const g = (a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a);
+        // deepListen(core, f);
+        deepListen([...core.values][1][1], f);
+        drawable.addPropertyChangedListener(g);
 
         return bridge;
     }
@@ -330,16 +347,17 @@ export class GraphController {
     }
 
     copyPropertiesToDrawable(core: CoreElement, drawable: Drawable) {
-        for (const key in drawable) {
-            try {
-                if (key === "source" || key === "destination") continue;
-                const value = core.get(key) as CoreValue<PluginTypeEnvironment>;
-                const data = this.getData(value);
-                (drawable as any)[key] = data;
-            } catch (e) {
-                console.log(e);
-                console.log("Not copying " + key);
-            }
+        Object.keys(drawable).forEach(this.copyPropertyToDrawable.bind(this, core, drawable));
+    }
+
+    copyPropertyToDrawable(core: CoreElement, drawable: Drawable, key: string) {
+        try {
+            if (key === "source" || key === "destination") return;
+            const value = core.get(key) as CoreValue<PluginTypeEnvironment>;
+            const data = this.getData(value);
+            (drawable as any)[key] = data;
+        } catch (e) {
+            console.log("Not copying " + key);
         }
     }
 
@@ -355,6 +373,17 @@ export class GraphController {
             }
 
             core.set(key, bridge.core);
+            return;
+        }
+
+        if (key === "position") {
+            const pos = core.get("position") as CoreObjectValue<PluginTypeEnvironment>;
+            const x = pos.get("x") as CorePrimitiveValue<PluginTypeEnvironment>;
+            const y = pos.get("y") as CorePrimitiveValue<PluginTypeEnvironment>;
+
+            x.data = (drawable as DrawableNode).position.x;
+            y.data = (drawable as DrawableNode).position.y;
+
             return;
         }
 

@@ -25,8 +25,8 @@
                 "label": "0",
                 "color": "#fff200",
                 "position": {
-                    "x": 190,
-                    "y": 300.99999999999994
+                    "x": 192.2,
+                    "y": 309.99999999999994
                 },
                 "shape": "circle",
                 "image": "",
@@ -76,7 +76,15 @@
                     "uuid": "910406dc-2b56-4d4a-8a3f-f2a08bfd29b6"
                 },
                 "showSourceArrow": false,
-                "showDestinationArrow": true
+                "showDestinationArrow": true,
+                "sourcePoint": {
+                    "x": 0,
+                    "y": 0
+                },
+                "destinationPoint": {
+                    "x": 0,
+                    "y": 0
+                }
             }
         },
         {
@@ -97,7 +105,15 @@
                     "uuid": "910406dc-2b56-4d4a-8a3f-f2a08bfd29b6"
                 },
                 "showSourceArrow": false,
-                "showDestinationArrow": true
+                "showDestinationArrow": true,
+                "sourcePoint": {
+                    "x": 0,
+                    "y": 0
+                },
+                "destinationPoint": {
+                    "x": 0,
+                    "y": 0
+                }
             }
         }
     ]
