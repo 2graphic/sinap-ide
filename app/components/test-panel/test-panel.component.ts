@@ -4,7 +4,7 @@
 
 
 import { Component, Input } from "@angular/core";
-import { Program, CoreValue, valueWrap, PluginTypeEnvironment, FakeObjectType, Type, makeValue } from "sinap-core";
+import { Program, CoreValue, valueWrap, PluginTypeEnvironment, FakeObjectType, Type, makeValue, deepListen } from "sinap-core";
 
 @Component({
     selector: "sinap-test-panel",
@@ -74,7 +74,7 @@ export class TestPanelComponent {
                 output: makeValue<PluginTypeEnvironment>(this.program.plugin.typeEnvironment.getStringType(), "Not ran", false)
             };
 
-            test.input.listeners.add(() => {
+            deepListen(test.input, () => {
                 // TODO: fix this (change notification after change has been made with previous value, booleans)
                 setTimeout(this.testChanged.bind(this, test), 0);
             });
@@ -92,7 +92,9 @@ export class TestPanelComponent {
     private getExpected(program: Program) {
         // TODO: fix
         const type = program.runReturn[0];
-        return makeValue<PluginTypeEnvironment>(type, undefined, true);
+        const value = makeValue<PluginTypeEnvironment>(type, undefined, true);
+
+        return value;
     }
 
     private areEqual(a: CoreValue<any>, b: CoreValue<any>) {

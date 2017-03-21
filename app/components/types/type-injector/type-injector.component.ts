@@ -127,7 +127,8 @@ export class TypeInjectorComponent {
             }
 
             if (type.isAssignableTo(env.lookupPluginType("Error"))) {
-                return StringTypeComponent; // TODO: Make error component
+                return undefined;
+                // return StringTypeComponent; // TODO: Make error component
             }
 
             // TODO: fix

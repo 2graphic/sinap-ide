@@ -249,10 +249,7 @@ export class GraphController {
         const bridge = new Bridge(core, drawable);
         this.bridges.set(core, drawable, bridge);
 
-        const toBind = [...core.values][0][1];
-        console.log(toBind);
         const f = (_: any, nv: any) => {
-            console.log("here", _, nv, drawable);
             for (const key in nv) {
                 if (key === "source" || key === "destination" || key === "position") continue;
                 drawable.removePropertyChangedListener(g);
