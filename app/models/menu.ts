@@ -1,5 +1,6 @@
 import { remote } from 'electron';
 let { app } = remote;
+import { IS_DEBUG, IS_PRODUCTION } from "./../constants";
 
 export enum MenuEventAction {
     NEW_FILE,
@@ -242,11 +243,13 @@ if (process.platform === 'darwin') {
     ]);
 }
 
-let viewSubmenu = viewMenu.submenu;
-if (viewSubmenu && viewSubmenu instanceof Array) {
-    viewSubmenu.push({
-        role: 'toggledevtools',
-    });
+if (IS_DEBUG || !IS_PRODUCTION) {
+    let viewSubmenu = viewMenu.submenu;
+    if (viewSubmenu && viewSubmenu instanceof Array) {
+        viewSubmenu.push({
+            role: 'toggledevtools',
+        });
+    }
 }
 
 /**********************************************************************************/
