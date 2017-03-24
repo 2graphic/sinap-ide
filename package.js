@@ -75,7 +75,10 @@ function main() {
     }
 
     const mainBuild = Promise.all([cleanBuild, buildDll]).then(() => webpackProm(mainConfig(env)));
-    mainBuild.then(() => runPackage(packageOpts)).then(() => deleteDir("./build"));
+    mainBuild.then(() => runPackage(packageOpts)).then(() => {
+        deleteDir("./build");
+        deleteDir("./dll");
+    });
 }
 
 main();
