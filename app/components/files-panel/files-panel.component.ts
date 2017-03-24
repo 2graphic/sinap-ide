@@ -44,8 +44,6 @@ export class FilesPanelComponent {
             if (value) {
                 this.fileService.directoryByName(value)
                     .then((directory: Directory) => {
-                        console.log(directory, directory instanceof LocalDirectory);
-
                         if (directory instanceof LocalDirectory) {
                             directory.exists().then(() => {
                                 this.directory = directory;
