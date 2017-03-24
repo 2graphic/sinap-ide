@@ -22,7 +22,7 @@ import { ListTypeComponent } from "./../list-type/list-type.component";
 @Component({
     selector: "sinap-type",
     entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent],
-    template: `<template #container></template>`,
+    template: `<ng-template #container></ng-template>`,
 })
 export class TypeInjectorComponent {
     constructor(private resolver: ComponentFactoryResolver) { }

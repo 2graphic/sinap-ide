@@ -41,7 +41,7 @@ export class PropertiesPanelComponent {
         } else {
             this.isEmpty = false;
             const bridge = elements.values().next().value;
-            const drawableType = bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind) !;
+            const drawableType = bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind)!;
 
             if (bridge.core.type instanceof WrappedScriptObjectType) {
                 const pluginType = bridge.core.type;
