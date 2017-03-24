@@ -237,7 +237,7 @@ class OpenedFile extends AbstractFile implements LocalFile {
     }
 }
 
-class LocalDirectory implements Directory {
+export class LocalDirectory implements Directory {
     readonly name: string;
 
     constructor(readonly fullName: string) {
@@ -254,6 +254,18 @@ class LocalDirectory implements Directory {
             } else {
                 return Promise.reject(err);
             }
+        });
+    }
+
+    public exists(): Promise<{}> {
+        return new Promise<{}>((resolve, reject) => {
+            fs.access(this.fullName, fs.F_OK, (err: any) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
         });
     }
 
