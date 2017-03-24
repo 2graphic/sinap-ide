@@ -15,7 +15,7 @@ You can watch for file changes and quickly rebuild using: `npm run build:watch`
 Quickly run the project without packaging it with: `npm run start`   
 To build and package the apps inside of electron use: `node package.js`
 
-In order to build for a single platform, simply run `node package.js PLATFORM` where PLATFORM is one of "linux", "win32" (Windows), "darwin" (OSX), "mas", or "all" for all systems (default). For debugging capabilities, run "node PLATFORM debug".
+In order to build for a single platform, simply run `node package.js PLATFORM` where PLATFORM is one of "linux", "win32" (Windows), "darwin" (OSX), "mas", or "all" for all systems (default). For debugging capabilities, run `node package.js PLATFORM debug`.
 
 > Note: There are some combinations of these such as `npm run build:start`, `npm run build:watch:start`, `npm run clean`, etc... Refer to `package.json` for a list of all available scripts.
 
