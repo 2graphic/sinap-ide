@@ -60,7 +60,7 @@ function main() {
         packageOpts.arch = "all";
     }
 
-    const cleanBuild = deleteDir("./build").then(createDir("./build"));
+    const cleanBuild = deleteDir("./build").then(() => {createDir("./build")});
     const cleanDll = deleteDir("./dll");
     const cleanDist = deleteDir("./dist");
     const copyStuff = cleanBuild.then(() => Promise.all([copyProm("./package.json", "./build/package.json"), copyProm("./plugins", "./build/plugins")]));
