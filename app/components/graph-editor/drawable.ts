@@ -38,7 +38,7 @@ export class Drawable implements EventTarget {
                 set: (value: EventListener | null) => {
                     if (!this.eventListenerMap.has("change"))
                         this.eventListenerMap.set("change", []);
-                    const listeners = this.eventListenerMap.get("change") !;
+                    const listeners = this.eventListenerMap.get("change")!;
                     if (value)
                         this.eventListenerMap.set(
                             "change",
@@ -84,7 +84,7 @@ export class Drawable implements EventTarget {
     addEventListener(type: string, listener: EventListener) {
         if (!this.eventListenerMap.has(type))
             this.eventListenerMap.set(type, []);
-        const listeners = this.eventListenerMap.get(type) !;
+        const listeners = this.eventListenerMap.get(type)!;
         if (listeners.findIndex(v => v === listener) < 0)
             listeners.push(listener);
     }

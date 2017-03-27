@@ -347,7 +347,7 @@ export class EditorCanvas {
      *   Path to the image. This is used as the lookup key in `IMAGES`.
      */
     drawImage(p: point, img: string) {
-        const image = IMAGES.get(img) !;
+        const image = IMAGES.get(img)!;
         this.g.drawImage(
             image,
             this._origin.x + p.x - image.width / 2,
