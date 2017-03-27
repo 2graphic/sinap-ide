@@ -1,60 +1,153 @@
-// File: events.ts
-// Created by: CJ Dimaano
-// Date created: February 7, 2017
+/**
+ * @file `events.ts`
+ *   Created on February 7, 2017
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ */
 
 
-export type Listener<A extends EventArgs> = (evt?: A) => void;
+import { DrawableElement } from "./drawable-element";
+import { DrawableEdge } from "./drawable-edge";
 
-export type PropertyChangedEventListener<T> = Listener<PropertyChangedEventArgs<T>>;
 
-export class EventArgs {
-    constructor(public readonly source: any) { }
-}
+// Types ///////////////////////////////////////////////////////////////////////
 
-export class CancellableEventArgs extends EventArgs {
-    constructor(source: any, public isCancelled: boolean = false) {
-        super(source);
-    }
-}
 
-export class PropertyChangedEventArgs<T> extends EventArgs {
+/**
+ * `DrawableEvent`
+ *
+ *   The drawable event payload.
+ */
+export type DrawableEvent<D extends DrawableElement>
+    = TypedCustomEvent<DrawableEventDetail<D>>;
+
+/**
+ * `MoveEdgeEvent`
+ *
+ *   The move edge event payload.
+ */
+export type MoveEdgeEvent
+    = TypedCustomEvent<MoveEdgeEventDetail>;
+
+/**
+ * `SelectionChangedEvent`
+ *
+ *   The selection change event payload.
+ */
+export type SelectionChangedEvent
+    = TypedCustomEvent<PropertyChangedEventDetail<Iterable<DrawableElement>>>;
+
+/**
+ * `PropertyChangedEvent`
+ *
+ *   The property changed event payload.
+ */
+export type PropertyChangedEvent<T>
+    = TypedCustomEvent<PropertyChangedEventDetail<T>>;
+
+
+// Classes /////////////////////////////////////////////////////////////////////
+
+
+/**
+ * `PropertyChangedEventDetail`
+ *
+ *   The property changed detail object of a custom event.
+ */
+export class PropertyChangedEventDetail<T> {
     constructor(
-        source: any,
-        public readonly key: string,
+        public readonly source: any,
+        public readonly key: PropertyKey,
         public readonly prev: T,
         public readonly curr: T
-    ) {
-        super(source);
+    ) { }
+}
+
+/**
+ * `DrawableEventDetail`
+ *
+ *   The drawable detail object of a custom event.
+ */
+export class DrawableEventDetail<D extends DrawableElement> {
+    constructor(
+        public readonly source: any,
+        public readonly drawables: D[],
+        public readonly like?: D
+    ) { }
+}
+
+/**
+ * `MoveEdgeEventDetail`
+ *
+ *   The move edge detail object of a custom event.
+ */
+export class MoveEdgeEventDetail {
+    constructor(
+        public readonly source: any,
+        public readonly original: DrawableEdge,
+        public readonly replacement: DrawableEdge
+    ) { }
+}
+
+/**
+ * `TypedCustomEvent`
+ *
+ *   Wrapper around the `CustomEvent` class for providing type information on
+ *   the `detail` field.
+ */
+export class TypedCustomEvent<T> extends CustomEvent {
+    constructor(type: string, detail: T) {
+        super(type, { detail: detail });
+    }
+
+    get detail(): T {
+        return super.detail;
     }
 }
 
-export class EventEmitter<A extends EventArgs, L extends Listener<A>> {
-    protected listeners: Set<L>
-    = new Set<L>();
-    addListener(l: L) {
-        this.listeners.add(l);
-    }
-    removeListener(l: L) {
-        return this.listeners.delete(l);
-    }
-    emit(args: A) {
-        this.listeners.forEach(v => v(args));
-    }
-}
 
-export class CancellableEventEmitter<A extends CancellableEventArgs, L extends Listener<A>>
-    extends EventEmitter<A, L> {
-    emit(args: A) {
-        for (const l of this.listeners) {
-            l(args);
-            if (args.isCancelled)
-                return;
-        }
-    }
-}
+// doclets /////////////////////////////////////////////////////////////////////
 
-export class PropertyChangedEventEmitter<T>
-    extends EventEmitter<
-    PropertyChangedEventArgs<T>,
-    Listener<PropertyChangedEventArgs<T>>
-    > { };
+
+/**
+ * Property changed event.
+ *
+ * @event Drawable#change
+ * @type {PropertyChangedEventDetail}
+ */
+
+/**
+ * Selection changed event.
+ *
+ * @event DrawableGraph#select
+ * @type {PropertyChangedEventDetail}
+ */
+
+/**
+ * Creating drawable event.
+ *
+ * @event DrawableGraph#creating
+ * @type {DrawableEventDetail}
+ */
+
+/**
+ * Created drawable event.
+ *
+ * @event DrawableGraph#created
+ * @type {DrawableEventDetail}
+ */
+
+/**
+ * Move edge event.
+ *
+ * @event DrawableGraph#moved
+ * @type {MoveEdgeEventDetail}
+ */
+
+/**
+ * Deleted drawable event.
+ *
+ * @event DrawableGraph#deleted
+ * @type {DrawableEventDetail}
+ */

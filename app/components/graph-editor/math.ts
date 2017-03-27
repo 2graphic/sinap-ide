@@ -1,88 +1,123 @@
-// File: math.ts
-// Created by: CJ Dimaano
-// Date created: January 9, 2016
-//
-// THIS FILE IS INTENDED TO BE IMPORTED ONLY INTO graph-editor.component.ts
+/**
+ * @file `math.ts`
+ *   Created on January 9, 2017
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ */
 
 
-// Imports /////////////////////////////////////////////////////////////////////
-
-
-import { point } from "./graph-editor-canvas";
+import { point } from "./editor-canvas";
 
 
 // Constants ///////////////////////////////////////////////////////////////////
 
 
 /**
- * COS_150
+ * `COS_150`
+ *
  *   Used in the rotation matrix for drawing edge arrows.
  */
 export const COS_150: number = Math.cos(5 * Math.PI / 6);
 
 /**
- * SIN_150
+ * `SIN_150`
+ *
  *   Used in the rotation matrix for drawing edge arrows.
  */
 export const SIN_150: number = Math.sin(5 * Math.PI / 6);
 
 /**
- * COS_22_5
+ * `COS_22_5`
+ *
  *   Used in the rotation matrix for calculating edge loopback points.
  */
 export const COS_22_5: number = Math.cos(Math.PI / 8);
 
 /**
- * SIN_22_5
+ * `SIN_22_5`
+ *
  *   Used in the rotation matrix for calculating edge loopback points.
  */
 export const SIN_22_5: number = Math.sin(Math.PI / 8);
 
-export const SQRT3 = Math.sqrt(3);
-
+/**
+ * `NOOP`
+ *
+ *   Noop function. Does nothing.
+ */
 export const NOOP = () => { };
+
 
 // Functions ///////////////////////////////////////////////////////////////////
 
 
 /**
- * dot
- *   Calculates the dot product of two points.
+ * `dot`
+ *
+ *   Calculates the dot product of two vectors.
  */
 export function dot(a: point, b: point): number {
     return a.x * b.x + a.y * b.y;
 }
 
 /**
- * mag
- *   Calculates the magnitude of a point.
+ * `mag`
+ *
+ *   Calculates the magnitude of a vector.
  */
 export function mag(v: point): number {
     return Math.sqrt(dot(v, v));
 }
 
 /**
- * normal
+ * `normal`
  *
- *   Gets the unit normal vector of the given vector.
- *
- *
- * @param v
- *   The vector with which to get the normal.
+ *   Calculates the unit normal vector of the given vector.
  */
 export function normal(v: point): point {
     const d = mag(v);
     return { x: v.y / d, y: v.x / d };
 }
 
-export function add(a: point, b: point): point {
-    return { x: a.x + b.x, y: a.y + b.y };
+/**
+ * `unit`
+ *
+ *   Calculates the unit vector of the given vector.
+ */
+export function unit(v: point): point {
+    const d = mag(v);
+    return { x: v.x / d, y: v.y / d };
 }
 
-export function subtract(a: point, b: point): point {
-    return { x: a.x - b.x, y: a.y - b.y };
+/**
+ * `sum`
+ *
+ *   Adds two or more vectors.
+ */
+export function sum(a: point, b: point, ...c: point[]): point {
+    const v = { x: a.x + b.x, y: a.y + b.y };
+    c.forEach(u => { v.x += u.x; v.y += u.y; });
+    return v;
 }
 
+/**
+ * `diff`
+ *
+ *   Subtracts one or more vector from an initial vector.
+ */
+export function diff(a: point, b: point, ...c: point[]): point {
+    const v = { x: a.x - b.x, y: a.y - b.y };
+    c.forEach(u => { v.x -= u.x; v.y -= u.y; });
+    return v;
+}
+
+/**
+ * `quadBezIntersect`
+ *
+ *   Determines whether or not a straight line intersects with a quadradic
+ *   bezier curve.
+ */
 export function quadBezIntersect(
     p0: point,
     p1: point,
@@ -99,7 +134,7 @@ export function quadBezIntersect(
     const b = A * coefs[1].x + B * coefs[1].y;
     const c = A * coefs[2].x + B * coefs[2].y + C;
 
-    const rts = getQuadraticRoots(a, b, c);
+    const rts = getQuadRoots(a, b, c);
     for (const t of rts) {
         const ipt = {
             x: coefs[0].x * t * t + coefs[1].x * t + coefs[2].x,
@@ -112,6 +147,15 @@ export function quadBezIntersect(
     return false;
 }
 
+/**
+ * `cubBezIntersect`
+ *
+ *   Determines whether or not a straight line intersects with a cubic bezier
+ *   curve.
+ *
+ * @see {@link https://www.particleincell.com/2013/cubic-line-intersection/}
+ * @see {@link https://www.particleincell.com/wp-content/uploads/2013/08/cubic-line.svg}
+ */
 export function cubBezIntersect(
     p0: point,
     p1: point,
@@ -120,9 +164,6 @@ export function cubBezIntersect(
     lp0: point,
     lp1: point
 ) {
-    // Source:
-    // https://www.particleincell.com/2013/cubic-line-intersection/
-    // https://www.particleincell.com/wp-content/uploads/2013/08/cubic-line.svg
     const A = lp1.y - lp0.y;
     const B = lp0.x - lp1.x;
     const C = -lp0.x * A - lp0.y * B;
@@ -133,11 +174,19 @@ export function cubBezIntersect(
     const c = A * coefs[2].x + B * coefs[2].y;
     const d = A * coefs[3].x + B * coefs[3].y + C;
 
-    const rts = (a === 0 ? getQuadraticRoots(b, c, d) : getCubicRoots(a, b, c, d));
+    const rts = a === 0 ?
+        getQuadRoots(b, c, d) :
+        getCubRoots(a, b, c, d);
     for (const t of rts) {
         const ip = {
-            x: coefs[0].x * t * t * t + coefs[1].x * t * t + coefs[2].x * t + coefs[3].x,
-            y: coefs[0].y * t * t * t + coefs[1].y * t * t + coefs[2].y * t + coefs[3].y
+            x: coefs[0].x * t * t * t
+            + coefs[1].x * t * t
+            + coefs[2].x * t
+            + coefs[3].x,
+            y: coefs[0].y * t * t * t
+            + coefs[1].y * t * t
+            + coefs[2].y * t
+            + coefs[3].y
         };
         const s = (B === 0 ? (ip.y - lp0.y) / A : (lp0.x - ip.x) / B);
         if (s >= 0 && s <= 1)
@@ -146,7 +195,12 @@ export function cubBezIntersect(
     return false;
 }
 
-function getQuadraticRoots(a: number, b: number, c: number) {
+/**
+ * `getQuadRoots`
+ *
+ *   Gets the roots of a quadratic bezier curve.
+ */
+function getQuadRoots(a: number, b: number, c: number) {
     a *= 2;
     const t = [];
     let d = b * b - 2 * a * c;
@@ -167,10 +221,15 @@ function getQuadraticRoots(a: number, b: number, c: number) {
     return t;
 }
 
-function getCubicRoots(a: number, b: number, c: number, d: number) {
-    // Source:
-    // https://www.particleincell.com/2013/cubic-line-intersection/
-    // https://www.particleincell.com/wp-content/uploads/2013/08/cubic-line.svg
+/**
+ * `getCubRoots`
+ *
+ *   Gets the roots of a cubic bezier curve.
+ *
+ * @see {@link https://www.particleincell.com/2013/cubic-line-intersection/}
+ * @see {@link https://www.particleincell.com/wp-content/uploads/2013/08/cubic-line.svg}
+ */
+function getCubRoots(a: number, b: number, c: number, d: number) {
     const t = [];
 
     const A = b / a;
@@ -219,6 +278,11 @@ function getCubicRoots(a: number, b: number, c: number, d: number) {
     return t;
 }
 
+/**
+ * `quadBezCoefs`
+ *
+ *   Gets the quadratic bezier curve coefficients.
+ */
 function quadBezCoefs(p0: point, p1: point, p2: point) {
     return [
         {
@@ -234,13 +298,14 @@ function quadBezCoefs(p0: point, p1: point, p2: point) {
 }
 
 /**
- * cubBezCoefs
+ * `cubBezCoefs`
+ *
  *   Gets the cubic bezier curve coefficients.
+ *
+ * @see {@link https://www.particleincell.com/2013/cubic-line-intersection/}
+ * @see {@link https://www.particleincell.com/wp-content/uploads/2013/08/cubic-line.svg}
  */
 function cubBezCoefs(p0: point, p1: point, p2: point, p3: point) {
-    // Source:
-    // https://www.particleincell.com/2013/cubic-line-intersection/
-    // https://www.particleincell.com/wp-content/uploads/2013/08/cubic-line.svg
     return [
         {
             x: (-p0.x + 3 * p1.x - 3 * p2.x + p3.x),
@@ -258,6 +323,11 @@ function cubBezCoefs(p0: point, p1: point, p2: point, p3: point) {
     ];
 }
 
+/**
+ * `sgn`
+ *
+ *   Returns -1 if the given number is less than 0; otherwise, returns 1.
+ */
 export function sgn(n: number) {
     return (n < 0 ? -1 : 1);
 }
