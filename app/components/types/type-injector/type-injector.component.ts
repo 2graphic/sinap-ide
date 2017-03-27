@@ -25,7 +25,7 @@ import { ColorTypeComponent } from "./../color-type/color-type.component";
 @Component({
     selector: "sinap-type",
     entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent, ColorTypeComponent],
-    template: `<template #container></template>`,
+    template: `<ng-template #container></ng-template>`,
 })
 export class TypeInjectorComponent {
     constructor(private resolver: ComponentFactoryResolver) { }

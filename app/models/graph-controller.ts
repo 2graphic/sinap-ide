@@ -12,9 +12,11 @@ import {
     DrawableEdge,
     DrawableNode,
     EdgeValidator,
-    CreatedOrDeletedEventArgs,
-    PropertyChangedEventArgs,
-    CreatedOrDeletedEvent as DrawableCreatedOrDeletedEvent
+    DrawableEvent,
+    MoveEdgeEvent,
+    PropertyChangedEvent,
+    PropertyChangedEventDetail,
+    SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
 
 import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType, isObjectType, WrappedScriptObjectType, PluginTypeEnvironment, valueWrap, CoreValue, makeValue, Type, CorePrimitiveValue, CoreUnionValue, CoreObjectValue, CoreArrayValue, deepListen } from "sinap-core";
@@ -215,8 +217,8 @@ export class GraphController {
 
         // now make the drawable edges
         for (const edge of coreEdges) {
-            const source = this.bridges.getA(edge.get('source') as any) !.drawable as DrawableNode;
-            const destination = this.bridges.getA(edge.get('destination') as any) !.drawable as DrawableNode;
+            const source = this.bridges.getA(edge.get('source') as any)!.drawable as DrawableNode;
+            const destination = this.bridges.getA(edge.get('destination') as any)!.drawable as DrawableNode;
 
             const drawableEdge = this.drawable.createEdge(source, destination);
             if (drawableEdge === null) {
@@ -228,18 +230,21 @@ export class GraphController {
         }
 
         // finally set up all the listeners after we copy all the elements
-        this.drawable.addCreatedOrDeletedElementListener((n: CreatedOrDeletedEventArgs) => this.addOrDeleteDrawables(n.events));
-        this.drawable.addSelectionChangedListener((a: PropertyChangedEventArgs<Iterable<DrawableElement>>) => {
-            this.setSelectedElements(a.curr);
+        this.drawable.addEventListener("created", (evt: DrawableEvent<DrawableElement>) => {
+            const bridges = evt.detail.drawables.map(d => this.addDrawable(d));
         });
+        this.drawable.addEventListener("deleted", (evt: DrawableEvent<DrawableElement>) => {
+            const bridges = evt.detail.drawables.map(d => this.removeDrawable(d));
+        });
+        this.drawable.addEventListener("moved", (evt: MoveEdgeEvent) => {
+            const original = this.removeDrawable(evt.detail.original);
+            const replacement = this.addDrawable(evt.detail.replacement);
+        });
+        this.drawable.addEventListener("change", (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail));
+        this.drawable.addEventListener("select", (evt: SelectionChangedEvent) => this.setSelectedElements(evt.detail.curr));
+
         // side effect of selecting the graph
         this.setSelectedElements(undefined);
-    }
-
-    private addOrDeleteDrawables(events: DrawableCreatedOrDeletedEvent[]) {
-        const mapped = events.forEach(([a, e]) => (a === "created" ? this.addDrawable(e) : this.removeDrawable(e)));
-
-        // this.changed.emit(new UndoableAddOrDelete(mapped));
     }
 
     private addDrawable(drawable: Drawable, core?: CoreElement) {
@@ -252,22 +257,22 @@ export class GraphController {
         const f = (_: any, nv: any) => {
             for (const key in nv) {
                 if (key === "source" || key === "destination" || key === "position") continue;
-                drawable.removePropertyChangedListener(g);
+                drawable.removeEventListener("change", g);
                 (drawable as any)[key] = nv[key];
                 setTimeout(() => {
-                    drawable.addPropertyChangedListener(g);
+                    drawable.addEventListener("change", g);
                 }, 0);
             }
         };
 
-        const g = (a: PropertyChangedEventArgs<any>) => this.onPropertyChanged(a);
+        const g = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
         deepListen([...core.values][0][1], () => {
             setTimeout(() => {
                 this.changed.emit();
             }, 0);
         });
         deepListen([...core.values][1][1], f);
-        drawable.addPropertyChangedListener(g);
+        drawable.addEventListener("change", g);
 
         return bridge;
     }
@@ -334,7 +339,7 @@ export class GraphController {
         // }
     }
 
-    private onPropertyChanged(a: PropertyChangedEventArgs<any>) {
+    private onPropertyChanged(a: PropertyChangedEventDetail<any>) {
         const bridge = this.bridges.getB(a.source);
         if (bridge !== undefined) {
             this.copyPropertyToCore(bridge.drawable, bridge.core, a.key);
@@ -366,7 +371,7 @@ export class GraphController {
         Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    copyPropertyToCore(drawable: Drawable, core: CoreElement, key: string) {
+    copyPropertyToCore(drawable: Drawable, core: CoreElement, key: PropertyKey) {
         if (key === "source" || key === "destination") {
             const bridge = this.bridges.getB((drawable as any)[key]);
             if (!bridge) {
@@ -394,7 +399,7 @@ export class GraphController {
             throw new Error("Expected ObjectType");
         }
 
-        let type = drawableType.members.get(key) as Type<PluginTypeEnvironment> | undefined;
+        let type = drawableType.members.get(key.toString()) as Type<PluginTypeEnvironment> | undefined;
 
         if (type === undefined) {
             // console.log("Not copying " + key);
@@ -408,7 +413,7 @@ export class GraphController {
         const typeEnvironment = this.plugin.typeEnvironment;
         const value = makeValue(type, (drawable as any)[key], false);
 
-        core.set(key, value);
+        core.set(key.toString(), value);
     }
 
     setSelectedElements(se: Iterable<Drawable> | undefined) {
