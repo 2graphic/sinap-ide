@@ -53,6 +53,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
         this.updateStroke();
         this.updateFill();
         this.updateShadow();
+        this.updateHighlight();
     }
 
 
@@ -77,6 +78,8 @@ export class EditorNode extends EditorElement<DrawableNode> {
     private shadow = (g: EditorCanvas) => { };
 
     private drawAnchor = (g: EditorCanvas) => { };
+
+    private _drawHighlight = (g: EditorCanvas) => { };
 
 
     // Public fields ///////////////////////////////////////////////////////////
@@ -173,8 +176,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
     }
 
     drawHighlight(g: EditorCanvas) {
-        this.trace(g);
-        this.stroke(g, 6);
+        this._drawHighlight(g);
     }
 
     /**
@@ -392,6 +394,46 @@ export class EditorNode extends EditorElement<DrawableNode> {
     }
 
     /**
+     * `updateHighlight`
+     *
+     *   Updates the draw highlight function.
+     *
+     * @private
+     *
+     * @memberOf EditorNode
+     */
+    private updateHighlight() {
+        if (this.drawable.shape === "image") {
+            const posn = this.drawable.position;
+            const offsets = [
+                -2, -2,
+                0, -2,
+                2, -2,
+                -2, 0,
+                2, 0,
+                -2, 2,
+                0, 2,
+                2, 2
+            ];
+            this._drawHighlight = (g: EditorCanvas) => {
+                for (let i = 0; i < offsets.length; i += 2) {
+                    const opt = {
+                        x: posn.x + offsets[i],
+                        y: posn.y + offsets[i + 1]
+                    };
+                    g.drawImage(opt, this.drawable.image);
+                }
+            };
+        }
+        else {
+            this._drawHighlight = (g: EditorCanvas) => {
+                this.trace(g);
+                this.stroke(g, 6);
+            };
+        }
+    }
+
+    /**
      * `updateAnchor`
      *
      *   Updates the drawAnchor function.
@@ -570,6 +612,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
                 this.updateStroke();
                 this.updateFill();
                 this.updateShadow();
+                this.updateHighlight();
             } break;
 
             case "position": {
