@@ -3,8 +3,6 @@ import { Type, ObjectType, CoreModel, Plugin, SerialJSO, loadPluginDir, Program,
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { LocalFileService } from "../services/files.service";
 
-type StubContext = { global: { "plugin-stub": { "Program": any } } };
-
 // Similar to Promise.all. However, this will always resolve and ignore rejected promises.
 function somePromises<T>(promises: Iterable<Promise<T>>): Promise<T[]> {
     let result: Promise<T[]> = Promise.resolve([]);
@@ -55,7 +53,7 @@ function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
 @Injectable()
 export class PluginService {
     readonly plugins: Promise<Plugin[]>;
-    private programs = new Map<Plugin, Promise<StubContext>>();
+    private programs = new Map<Plugin, Promise<any>>();
     private getResults: Script;
     private addGraph: Script;
 
@@ -91,8 +89,8 @@ export class PluginService {
 
     public getProgram(plugin: Plugin, m: CoreModel): Promise<Program> {
         return this.getProgramContext(plugin).then((context) => {
-            const programStub = new context.global['plugin-stub'].Program(m.serialize());
-            return new Program(programStub, plugin);
+            const programStub = context.global['plugin-stub'].Program;
+            return new Program(m, programStub);
         });
     }
 
@@ -106,9 +104,10 @@ export class PluginService {
         return contextPromise;
     }
 
-    private makeProgramContext(script: Script): Promise<StubContext> {
+    private makeProgramContext(script: Script) {
         let context: Context = this.sandboxService.createContext({
-            global: { "plugin-stub": { "Program": null } }
+            console: console,
+            global: {}
         });
         return script.runInContext(context).then((_) => context);
     }
