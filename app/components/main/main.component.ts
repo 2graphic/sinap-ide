@@ -166,7 +166,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     private onNewProgram = (program: Program, graph: GraphController) => {
-        this.testComponent.program = program;
+        this.testComponent.info = [program, graph];
         this.inputPanel.info = [program, graph];
     }
 
