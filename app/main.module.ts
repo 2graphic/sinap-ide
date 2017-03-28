@@ -36,6 +36,7 @@ import { ListTypeComponent } from "./components/types/list-type/list-type.compon
 import { UnionTypeComponent } from "./components/types/union-type/union-type.component";
 import { NumberTypeComponent } from "./components/types/number-type/number-type.component";
 import { ColorTypeComponent } from "./components/types/color-type/color-type.component";
+import { MapTypeComponent } from "./components/types/map-type/map-type.component";
 
 @NgModule({
     imports: [
@@ -65,6 +66,7 @@ import { ColorTypeComponent } from "./components/types/color-type/color-type.com
         UnionTypeComponent,
         NumberTypeComponent,
         ColorTypeComponent,
+        MapTypeComponent,
     ],
     bootstrap: [MainComponent]
 })

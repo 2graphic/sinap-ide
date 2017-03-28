@@ -2,7 +2,7 @@
 //
 
 import { Component, ElementRef, ViewChild, AfterViewChecked } from "@angular/core";
-import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType, WrappedScriptType, PluginTypeEnvironment, CoreObjectValue, CorePrimitiveValue, CoreElement, makeValue, CoreArrayValue } from "sinap-core";
+import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType, WrappedScriptType, PluginTypeEnvironment, CoreObjectValue, CorePrimitiveValue, CoreElement, makeValue, CoreArrayValue, CoreMapValue } from "sinap-core";
 import { GraphController } from "../../models/graph-controller";
 import { DrawableElement } from "../graph-editor/graph-editor.component";
 
@@ -73,7 +73,7 @@ export class InputPanelComponent implements AfterViewChecked {
         if (this.graph) {
             const f = (element: CoreElement) => {
                 for (let bridge of this.graph!.bridges.entries()) {
-                    if (bridge.core.uuid === element as any /*element.uuid*/) {
+                    if (bridge.core.uuid === (element as any).value.uuid) {
                         if (bridge.drawable instanceof DrawableElement) {
                             toSelect.push(bridge.drawable);
                         }
@@ -100,7 +100,6 @@ export class InputPanelComponent implements AfterViewChecked {
     private setupInput() {
         if (this.program && this.graph) {
             let type = this.program.runArguments[0][0];
-            let initialValue: any | undefined = undefined;
 
             // TODO: improve this
             if (type instanceof WrappedScriptType && type.env.lookupGlobalType("Map").type.symbol === type.type.symbol) {
@@ -118,10 +117,15 @@ export class InputPanelComponent implements AfterViewChecked {
                     });
                 }
 
-                initialValue = map;
-            }
+                let mapValue = makeValue(type, new Map(), false) as CoreMapValue<PluginTypeEnvironment>;
+                map.forEach((v, k) => {
+                    mapValue.map.set(k, v);
+                });
 
-            this.inputForPlugin = makeValue(type, initialValue, true);
+                this.inputForPlugin = mapValue;
+            } else {
+                this.inputForPlugin = makeValue(type, undefined, true)
+            }
         }
     }
 

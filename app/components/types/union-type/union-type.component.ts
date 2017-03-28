@@ -20,15 +20,19 @@ export class UnionTypeComponent {
     @Input() set value(v: CoreValue<PluginTypeEnvironment>) {
         if (isUnionType(v.type)) {
             this._value = v as CoreUnionValue<PluginTypeEnvironment>;
-            v.type.types.forEach((t) => {
+
+            for (const t of v.type.types) {
                 const option = makeValue(t, undefined, false);
                 if (option instanceof CorePrimitiveValue) {
                     this.options.push(option);
                     // TODO: Make this work with none primitive values
                 } else {
                     console.log(v, "Currently only support union's of primitive values.");
+                    this.options.length = 0;
+                    this._value = undefined as any;
+                    return;
                 }
-            });
+            }
         } else {
             console.log(v, " is not a CoreUnionValue");
         }

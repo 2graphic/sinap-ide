@@ -4,7 +4,7 @@
 //
 
 import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type } from "@angular/core";
-import { CoreValue, Type as CoreType, isObjectType, PluginTypeEnvironment, isUnionType, CorePrimitiveValue } from "sinap-core";
+import { CoreValue, Type as CoreType, isObjectType, PluginTypeEnvironment, isUnionType, CorePrimitiveValue, CoreMapValue, CoreElement, CoreArrayValue } from "sinap-core";
 
 import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
@@ -14,6 +14,7 @@ import { ListTypeComponent } from "./../list-type/list-type.component";
 import { UnionTypeComponent } from "./../union-type/union-type.component";
 import { NumberTypeComponent } from "./../number-type/number-type.component";
 import { ColorTypeComponent } from "./../color-type/color-type.component";
+import { MapTypeComponent } from "./../map-type/map-type.component";
 
 
 /**
@@ -24,7 +25,7 @@ import { ColorTypeComponent } from "./../color-type/color-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent, ColorTypeComponent],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent, ColorTypeComponent, MapTypeComponent],
     template: `<ng-template #container></ng-template>`,
 })
 export class TypeInjectorComponent {
@@ -77,6 +78,7 @@ export class TypeInjectorComponent {
 
         let componentType = this.getComponentType(value);
         if (!componentType) {
+            console.log("unknown type for: ", value);
             return;
         }
 
@@ -110,8 +112,16 @@ export class TypeInjectorComponent {
             const type = value.type;
             const env = type.env;
 
-            if (type.name === "NFANode[]") {
+            if (value instanceof CoreMapValue) {
+                return MapTypeComponent;
+            }
+
+            if (value instanceof CoreArrayValue) {
                 return ListTypeComponent;
+            }
+
+            if (value instanceof CoreElement || type.isAssignableTo(env.lookupPluginType("Nodes"))) {
+                return NodeTypeComponent;
             }
 
             if (type.name === "true | false" || type.isAssignableTo(env.getBooleanType())) {
@@ -120,10 +130,6 @@ export class TypeInjectorComponent {
 
             if (isUnionType(type)) {
                 return UnionTypeComponent;
-            }
-
-            if (type.isAssignableTo(env.lookupPluginType("Nodes"))) {
-                return NodeTypeComponent;
             }
 
             if (type.isAssignableTo(env.lookupPluginType("Error"))) {
@@ -159,10 +165,11 @@ export class TypeInjectorComponent {
             //     return ObjectTypeComponent;
             // }
 
-            console.log("Unknown type for Value: ", value);
+            // console.log("Unknown type for Value: ", value);
             return undefined;
         } catch (e) {
             // TODO: No errors
+            // console.log(e);
             return undefined;
         }
 

@@ -1,2 +1,2 @@
 <span *ngIf="readonly">{{label}}</span>
-<sinap-object-type [value]="_value" [readonly]="false"></sinap-object-type>
+<sinap-object-type *ngIf="!readonly" [value]="_value" [readonly]="false"></sinap-object-type>

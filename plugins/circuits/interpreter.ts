@@ -22,13 +22,13 @@ export class InputGate extends BasicGate {
 export class OutputGate extends BasicGate {
 }
 
+export class NotGate extends BasicGate {
+}
+
 export class AndGate extends BasicGate {
 }
 
 export class OrGate extends BasicGate {
-}
-
-export class NotGate extends BasicGate {
 }
 
 export class Wire {
@@ -69,12 +69,10 @@ function easyReduce<T, R>(arr: T[], func: (current: T, result: R) => R, initial:
     return result;
 }
 
-interface InputType {"a": boolean; "b": boolean; };
-
 export class State {
     message: string;
 
-    constructor(public toVisit: Nodes[], public output: Object, public active: Nodes, public value: boolean, public input: InputType) {
+    constructor(public toVisit: Nodes[], public output: Object, public active: Nodes, public value: boolean) {
         this.message = toVisit.map((n) => n.label).join();
     }
 }
@@ -84,10 +82,29 @@ function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init:
 }
 
 export function start(start: Circuit, input: Map<InputGate, boolean>): State | string {
+    if (!start.nodes.find((n)=>n instanceof InputGate)) {
+        throw new Error("Need at least one InputGate");
+    }
+    if (!start.nodes.find((n)=>n instanceof OutputGate)) {
+        throw new Error("Need at least one OutputGate");
+    }
+
+    if (!input) {
+        return "";
+    }
+
     const toVisit = getTraversalOrder(start);
-    const active = toVisit[0];
-    active.setValue(input[active.label]);
-    return new State(toVisit.slice(1), {}, active, active.getValue(), input as any);
+
+    while(toVisit[0] instanceof InputGate) {
+        let active = toVisit.shift();
+        active.setValue(input.get(active as InputGate));
+    }
+
+    if (toVisit.length > 0) {
+        return new State(toVisit, {}, toVisit[0], undefined);
+    } else {
+        throw new Error("Error running plugin.");
+    }
 }
 
 export function step(state: State): State | string {
@@ -98,10 +115,9 @@ export function step(state: State): State | string {
         const node: BasicGate = state.toVisit[0];
         let result: boolean;
 
-        if (node instanceof InputGate) {
-            node.setValue(state.input[node.label]);
-            result = node.getValue();
-        } else if (node instanceof AndGate) {
+        console.log(node);
+
+        if (node instanceof AndGate) {
             result = applyOp(node, (a, b) => a && b, true);
         } else if (node instanceof OrGate) {
             result = applyOp(node, (a, b) => a || b, false);
@@ -115,6 +131,6 @@ export function step(state: State): State | string {
         }
 
         node.setValue(result);
-        return new State(state.toVisit.slice(1), output, node, node.getValue(), state.input);
+        return new State(state.toVisit.slice(1), output, node, node.getValue());
     }
 }

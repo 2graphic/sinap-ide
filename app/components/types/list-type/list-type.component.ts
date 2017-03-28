@@ -4,7 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue, PluginTypeEnvironment } from "sinap-core";
+import { CoreValue, PluginTypeEnvironment, CoreArrayValue } from "sinap-core";
 
 @Component({
     selector: "sinap-list-type",
@@ -19,9 +19,10 @@ export class ListTypeComponent {
 
     @Input()
     set value(v: CoreValue<PluginTypeEnvironment>) {
-        // if (this.values.length === 0 && Array.isArray(v.value)) {
-        //     const type = (v.type.env as any).lookupPluginType("Nodes");
-        //     this.values = v.value.map((v) => new CoreValue(type, v));
-        // }
+        if (v instanceof CoreArrayValue) {
+            this.values = v.values;
+        } else {
+            console.log(v, " is not a CoreArrayValue");
+        }
     }
 }

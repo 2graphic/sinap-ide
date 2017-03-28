@@ -4,7 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue, PluginTypeEnvironment, CoreElement } from "sinap-core";
+import { CoreValue, PluginTypeEnvironment, CoreElement, CorePrimitiveValue, CoreReferenceValue } from "sinap-core";
 
 @Component({
     selector: "sinap-node-type",
@@ -21,6 +21,17 @@ export class NodeTypeComponent {
     set value(v: CoreValue<PluginTypeEnvironment>) {
         // TODO: Nodes that come from the plugin are just UUID's
         this._value = v;
-        this.label = "NOT IMPLEMENTED";
+        if (v instanceof CoreElement) {
+            this.label = (v.get("label") as CorePrimitiveValue<PluginTypeEnvironment>).data as any;
+            this.label = this.label?this.label:"No Label";
+        } else {
+            console.log(v);
+            const vs = v as any;
+            if (vs.value && vs.value instanceof CoreReferenceValue) {
+                this.label = vs.value.type.name;
+            } else {
+                this.label = "NOT IMPLEMENTED";
+            }
+        }
     }
 }
