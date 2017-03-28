@@ -173,7 +173,6 @@ export class InputPanelComponent implements AfterViewChecked {
     }
 
     private onSubmit(input: CoreValue<PluginTypeEnvironment>) {
-        console.log(input, this.inputForPlugin);
         const output = this.run(input);
         if (output) {
             const states = output.states.map(s => new State(s));
@@ -215,22 +214,16 @@ class State {
 
     constructor(value: CoreValue<PluginTypeEnvironment>) {
         this.message = this.getMessage(value);
-        this.stripMessage(value);
         this.state = value;
-    }
-
-    /**
-     * Returns a new object value that doesn't have a message property.
-     */
-    private stripMessage(state: CoreValue<PluginTypeEnvironment>) {
-        if (state instanceof CoreObjectValue) {
-            state.type.members.delete("message");
-        }
     }
 
     private getMessage(state: CoreValue<PluginTypeEnvironment>) {
         if (state instanceof CoreObjectValue && state.type.members.has("message")) {
-            return state.get("message");
+            const message = state.get("message");
+
+            // TODO:
+            // message.hidden = true;
+            return message;
         }
 
         return undefined;

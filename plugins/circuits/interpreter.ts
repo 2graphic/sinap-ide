@@ -73,9 +73,11 @@ export class State {
     message: string;
 
     constructor(public toVisit: Nodes[], public output: Map<OutputGate, boolean>,  public active: Nodes, public value: boolean) {
-        console.log(toVisit);
-        this.message = toVisit.map((n) => n.label).join();
-        console.log("message: ", this.message);
+        if (toVisit.length > 0) {
+            this.message = toVisit.map((n) => n.label).join();
+        } else {
+            this.message = "finished";
+        }
     }
 }
 

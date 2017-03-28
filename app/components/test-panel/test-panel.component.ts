@@ -53,7 +53,6 @@ export class TestPanelComponent {
                 let out = this.program.run([test.input]);
                 test.output = out.result;
             } catch (e) {
-                console.log(e);
                 test.output = valueWrap(this.program.plugin.typeEnvironment, e, false);
             }
         }
@@ -152,7 +151,6 @@ export class TestPanelComponent {
     }
 
     private areEqual(a: CoreValue<any>, b: CoreValue<any>) {
-        console.log(a, b);
         return a.deepEqual(b);
     }
 

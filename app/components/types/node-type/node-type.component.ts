@@ -25,7 +25,6 @@ export class NodeTypeComponent {
             this.label = (v.get("label") as CorePrimitiveValue<PluginTypeEnvironment>).data as any;
             this.label = this.label ? this.label : "No Label";
         } else {
-            console.log(v);
             const vs = v as any;
             if (vs.value && vs.value instanceof CoreReferenceValue) {
                 this.label = vs.value.type.name;
