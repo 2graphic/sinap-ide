@@ -23,7 +23,7 @@ export class NodeTypeComponent {
         this._value = v;
         if (v instanceof CoreElement) {
             this.label = (v.get("label") as CorePrimitiveValue<PluginTypeEnvironment>).data as any;
-            this.label = this.label?this.label:"No Label";
+            this.label = this.label ? this.label : "No Label";
         } else {
             console.log(v);
             const vs = v as any;

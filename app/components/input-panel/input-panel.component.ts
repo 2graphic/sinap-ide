@@ -124,7 +124,7 @@ export class InputPanelComponent implements AfterViewChecked {
 
                 this.inputForPlugin = mapValue;
             } else {
-                this.inputForPlugin = makeValue(type, undefined, true)
+                this.inputForPlugin = makeValue(type, undefined, true);
             }
         }
     }

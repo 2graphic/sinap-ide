@@ -82,10 +82,10 @@ function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init:
 }
 
 export function start(start: Circuit, input: Map<InputGate, boolean>): State | string {
-    if (!start.nodes.find((n)=>n instanceof InputGate)) {
+    if (!start.nodes.find((n) => n instanceof InputGate)) {
         throw new Error("Need at least one InputGate");
     }
-    if (!start.nodes.find((n)=>n instanceof OutputGate)) {
+    if (!start.nodes.find((n) => n instanceof OutputGate)) {
         throw new Error("Need at least one OutputGate");
     }
 
@@ -95,7 +95,7 @@ export function start(start: Circuit, input: Map<InputGate, boolean>): State | s
 
     const toVisit = getTraversalOrder(start);
 
-    while(toVisit[0] instanceof InputGate) {
+    while (toVisit[0] instanceof InputGate) {
         let active = toVisit.shift();
         active.setValue(input.get(active as InputGate));
     }
