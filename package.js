@@ -6,6 +6,7 @@ const dllConfig = require("./webpack.dll.config");
 const mainConfig = require("./webpack.config.js");
 const fs = require("fs");
 const process = require("process");
+const path = require("path");
 
 ncp.limit = 16;
 
@@ -43,6 +44,35 @@ function createDir(path) {
         });
 }
 
+function createMultDir(base, ...toMake) {
+    let current = Promise.resolve(base);
+    let curPath = base;
+    for(const part of toMake) {
+        const nextPath = path.join(curPath, part)
+        current = current.then(() => {
+            return createDir(nextPath).then(() => nextPath);
+        });
+        curPath = nextPath;
+    }
+
+    return current;
+}
+
+function moveTsFiles(buildLoc) {
+    const nodePath = ["node_modules", "typescript", "lib"];
+    const srcPath = path.join(".", ...nodePath);
+    return createMultDir(buildLoc, ...nodePath).then((destPath) => {
+        return copyProm(srcPath, destPath);
+    });
+}
+
+function afterExtract(buildPath, elecVersion, platform, arch, done) {
+    moveTsFiles(buildPath).then(() => done()).catch((err) => {
+        console.log(err);
+        done();
+    });
+}
+
 function main() {
     const args = process.argv;
     let packageOpts = {
@@ -52,7 +82,8 @@ function main() {
         overwrite: true,
         icon: "./app/images/icons/icon",
         prune: false,
-        name: "Sinap"
+        name: "Sinap",
+        afterExtract: [afterExtract]
     };
     if (args.length > 2) {
         packageOpts.platform = args[2];
@@ -71,6 +102,7 @@ function main() {
         DEBUG: false
     };
     if (args.length > 3) {
+        console.log("Debug enabled.");
         env.DEBUG = true;
     }
 
