@@ -28,7 +28,7 @@
                     "x": 321.0571428571428,
                     "y": 318
                 },
-                "shape": "circle",
+                "shape": "square",
                 "image": "",
                 "anchorPoints": [],
                 "borderColor": "#ff40ff",

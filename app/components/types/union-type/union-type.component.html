@@ -1,3 +1,3 @@
-<select [ngModel]="_value.data" (ngModelChange)="_value.data = $event">
+<select [ngModel]="getValue()" (ngModelChange)="setValue($event)">
     <option *ngFor="let option of options" [ngValue]="option.data">{{option.data}}</option>
 </select>
