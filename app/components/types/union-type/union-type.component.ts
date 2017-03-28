@@ -24,7 +24,7 @@ export class UnionTypeComponent {
                 const option = makeValue(t, undefined, false);
                 if (option instanceof CorePrimitiveValue) {
                     this.options.push(option);
-                    // TODO: Make this work with none primitive values                    
+                    // TODO: Make this work with none primitive values
                 } else {
                     console.log(v, "Currently only support union's of primitive values.");
                 }
