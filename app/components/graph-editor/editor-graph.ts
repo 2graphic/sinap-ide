@@ -971,6 +971,7 @@ export class EditorGraph {
             this.selected.delete(e);
             this.unselected.add(e);
         }
+        this.draw();
     }
 
     /**

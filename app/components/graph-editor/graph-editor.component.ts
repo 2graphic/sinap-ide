@@ -365,7 +365,6 @@ export class GraphEditorComponent implements AfterViewInit {
         this.scale = graph.scale;
         this.origin = graph.origin;
         graph.addEventListener("change", this.onDrawablePropertyChanged);
-        graph.addEventListener("select", this.onDrawableSelectionChanged);
     }
 
     /**
@@ -376,7 +375,6 @@ export class GraphEditorComponent implements AfterViewInit {
     private unregisterGraph(graph: DrawableGraph) {
         this._graph = null;
         graph.removeEventListener("change", this.onDrawablePropertyChanged);
-        graph.removeEventListener("select", this.onDrawableSelectionChanged);
     }
 
 
@@ -592,16 +590,6 @@ export class GraphEditorComponent implements AfterViewInit {
                 this.scale = drawable[evt.detail.key];
                 break;
         }
-    }
-
-    /**
-     * `onDrawableSelectionChanged`
-     *
-     *   Updates the selection highlight of selected nodes.
-     */
-    private onDrawableSelectionChanged
-    = (evt: PropertyChangedEvent<any>) => {
-        this.redraw();
     }
 
 }
