@@ -72,8 +72,10 @@ function easyReduce<T, R>(arr: T[], func: (current: T, result: R) => R, initial:
 export class State {
     message: string;
 
-    constructor(public toVisit: Nodes[], public output: Object, public active: Nodes, public value: boolean) {
+    constructor(public toVisit: Nodes[], public output: Map<OutputGate, boolean>,  public active: Nodes, public value: boolean) {
+        console.log(toVisit);
         this.message = toVisit.map((n) => n.label).join();
+        console.log("message: ", this.message);
     }
 }
 
@@ -81,7 +83,7 @@ function applyOp(node: BasicGate, op: (a: boolean, b: boolean) => boolean, init:
     return easyReduce(node.parents, (parent, current) => op(parent.source.getValue(), current), init);
 }
 
-export function start(start: Circuit, input: Map<InputGate, boolean>): State | string {
+export function start(start: Circuit, input: Map<InputGate, boolean>): State | Map<OutputGate, boolean> {
     if (!start.nodes.find((n) => n instanceof InputGate)) {
         throw new Error("Need at least one InputGate");
     }
@@ -90,7 +92,7 @@ export function start(start: Circuit, input: Map<InputGate, boolean>): State | s
     }
 
     if (!input) {
-        return "";
+        return new Map();
     }
 
     const toVisit = getTraversalOrder(start);
@@ -101,18 +103,17 @@ export function start(start: Circuit, input: Map<InputGate, boolean>): State | s
     }
 
     if (toVisit.length > 0) {
-        return new State(toVisit, {}, toVisit[0], undefined);
+        return new State(toVisit, new Map(), toVisit[0], undefined);
     } else {
         throw new Error("Error running plugin.");
     }
 }
 
-export function step(state: State): State | string {
+export function step(state: State): State | Map<OutputGate, boolean> {
     if (state.toVisit.length === 0) {
-        return JSON.stringify(state.output);
+        return state.output;
     } else {
-        let output = state.output;
-        const node: BasicGate = state.toVisit[0];
+        const node: BasicGate = state.toVisit.shift();
         let result: boolean;
 
         console.log(node);
@@ -125,12 +126,12 @@ export function step(state: State): State | string {
             result = !node.parents[0].source.getValue();
         } else if (node instanceof OutputGate) {
             result = node.parents[0].source.getValue();
-            output[node.label] = result;
+            state.output.set(node, result);
         } else {
             throw new Error(`Unknown type of node: ${Object.getPrototypeOf(node)}`);
         }
 
         node.setValue(result);
-        return new State(state.toVisit.slice(1), output, node, node.getValue());
+        return new State(state.toVisit, state.output, node, node.getValue());
     }
 }
