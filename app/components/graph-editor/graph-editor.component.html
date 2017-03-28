@@ -1,5 +1,6 @@
-<div>
-  <canvas #sinapGraphEditorCanvas tabindex="0" (window:resize)="resize()">
-    <input #hiddenInput type="text" value="" />
+<div #container (window:resize)="resize()">
+  <canvas #gridLayer id="gridLayer">
+  </canvas>
+  <canvas #graphLayer id="graphlayer" tabindex="0">
   </canvas>
 </div>
