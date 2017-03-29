@@ -21,6 +21,8 @@
   },
   "exclude": [
     "node_modules",
-    "plugins"
+    "plugins",
+    "build",
+    "dist"
   ]
 }

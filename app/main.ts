@@ -10,9 +10,11 @@ import { enableProdMode } from '@angular/core';
 
 import { MainModule } from "./main.module";
 
+import { IS_PRODUCTION } from "./constants";
+
 import "file-loader?name=index.html!extract-loader!./index.html";
 
-if (process.env.ENV === 'production') {
+if (IS_PRODUCTION) {
     enableProdMode();
 }
 

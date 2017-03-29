@@ -16,9 +16,10 @@
 //
 import { app, BrowserWindow, ipcMain, Menu } from "electron";
 import { ModalInfo, ModalType } from './models/modal-window';
+import { IS_DEBUG } from "./constants";
+import * as process from "process";
 
 app.setName('Sinap');
-
 
 /**
  * win
@@ -107,11 +108,8 @@ function createNewWindow(selector: string, type: ModalType, data: any): ModalInf
             height: 450,
             center: true,
             resizable: true,
-            show: false,
+            show: false
         });
-        if (process.env.ENV === 'production') {
-            newWindow.setMenu(null as any);
-        }
 
         let info: ModalInfo = {
             id: newWindow.id,
@@ -119,6 +117,10 @@ function createNewWindow(selector: string, type: ModalType, data: any): ModalInf
             type: type,
             data: data
         };
+
+        if (!IS_DEBUG) {
+            newWindow.setMenu(null as any);
+        }
         childWindows.set(info.id, [newWindow, info]);
 
         newWindow.loadURL(`file://${__dirname}/modal.html`);
