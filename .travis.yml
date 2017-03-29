@@ -11,7 +11,7 @@ install:
 script:
 - npm run lint
 - node package.js
-- node run build:dll
+- npm run build:dll
 - npm run build
 notifications:
   slack:
