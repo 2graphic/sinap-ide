@@ -349,7 +349,10 @@ export class GraphController {
                 // val can be undefined when loading from a file that does not
                 // define the associated field from dst. In this case, the
                 // drawable will just keep its default initialized value.
-                if (val)
+                //
+                // val must be explicitly checked if it is not undefined because
+                // it can be `false` as a value.
+                if (val !== undefined)
                     (dst as any)[key] = val;
             }
         }
