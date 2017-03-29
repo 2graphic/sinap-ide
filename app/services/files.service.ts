@@ -22,6 +22,8 @@ export const SINAP_FILE_FILTER = [
     { name: 'Sinap Files', extensions: ['sinap'] }
 ];
 
+export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app", "plugins") : "../plugins";
+
 function surroundSync<T>(func: () => T): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         try {
@@ -54,7 +56,7 @@ function ensureNull(shouldBeNull: any): Promise<void> {
 export class LocalFileService implements FileService {
     getAppLocations(): Promise<AppLocations> {
         const pluginDirectory = IS_PRODUCTION ?
-            new LocalDirectory(this.joinPath(app.getAppPath(), "..", "app", "plugins")) :
+            new LocalDirectory(PLUGIN_DIRECTORY) :
             new LocalDirectory("./plugins");
 
         const result: AppLocations = {
