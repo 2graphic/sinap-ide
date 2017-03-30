@@ -7,7 +7,7 @@
 
 
 import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
-import { LocalFileService, LocalFile } from "../../services/files.service";
+import { LocalFileService, LocalFile, LocalDirectory } from "../../services/files.service";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
 import { Directory } from "sinap-core";
 
@@ -40,20 +40,31 @@ export class FilesPanelComponent {
 
     @Input("directory")
     setDirectory(value: string | null) {
-        if (value) {
-            this.fileService.directoryByName(value)
-                .then((directory: Directory) => {
-                    this.directory = directory;
-                    directory.getFiles().then((files: LocalFile[]) => {
-                        this.files = files;
+        return new Promise<string[]>((resolve, reject) => {
+            if (value) {
+                this.fileService.directoryByName(value)
+                    .then((directory: Directory) => {
+                        if (directory instanceof LocalDirectory) {
+                            directory.exists().then(() => {
+                                this.directory = directory;
+                                directory.getFiles().then((files: LocalFile[]) => {
+                                    this.files = files;
+                                    resolve();
+                                });
+                            }).catch((e) => {
+                                reject(e);
+                            });
+                        } else {
+                            reject("not implemented");
+                        }
                     });
-                });
-        }
-        else {
-            this.directory = undefined;
-            this.directory = undefined;
-            this.files = [];
-        }
+            }
+            else {
+                this.directory = undefined;
+                this.directory = undefined;
+                this.files = [];
+            }
+        });
     }
 
     itemSelected(list: CollapsibleListComponent) {
@@ -63,6 +74,8 @@ export class FilesPanelComponent {
 
     constructor(private fileService: LocalFileService) {
         // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
-        this.setDirectory("./examples");
+        this.setDirectory("./examples").catch(() => {
+            this.setDirectory(".");
+        });
     }
 }

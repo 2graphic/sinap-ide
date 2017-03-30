@@ -10,6 +10,10 @@
  *   (except for events).
  */
 
+// TODO: Make sure to not rely on this dependency long term.
+import { PLUGIN_DIRECTORY } from "../../services/files.service";
+import { remote } from "electron";
+const path = remote.require("path");
 
 import { NUDGE, SELECTION_COLOR, STICKY_DELAY } from "./defaults";
 import {
@@ -865,7 +869,7 @@ export class EditorGraph {
                 this.drawables.get(node)!.update(this.g);
                 this.draw();
             };
-            img.src = node.image;
+            img.src = path.join(PLUGIN_DIRECTORY, node.image);
         }
         else if (IMAGES.has(node.image)) {
             this.drawables.get(node)!.update(this.g);

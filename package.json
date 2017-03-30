@@ -19,13 +19,7 @@
     "build:watch": "npm run format && npm run webpack -- --watch",
     "start": "electron build",
     "build:start": "npm run build && npm run start",
-    "build:watch:start": "concurrently \"npm run build:watch\" \"npm run start\"",
-    "electron-packager": "electron-packager build Sinap --out=dist --no-prune --arch=all --overwrite --icon=./app/images/icons/icon",
-    "prepackage": "npm run clean && npm run build:dll && npm run build:prod && cpx package.json build",
-    "package": "npm run prepackage && npm run electron-packager -- --platform=all",
-    "package:darwin": "npm run prepackage && npm run electron-packager -- --platform=darwin",
-    "package:win": "npm run prepackage && npm run electron-packager -- --platform=win32",
-    "package:linux": "npm run prepackage && npm run electron-packager -- --platform=linux"
+    "build:watch:start": "concurrently \"npm run build:watch\" \"npm run start\""
   },
   "dependencies": {
     "@angular/common": "4.0.0",
@@ -56,6 +50,7 @@
     "extract-loader": "0.1.0",
     "file-loader": "0.10.1",
     "html-loader": "0.4.5",
+    "ncp": "^2.0.0",
     "node-sass": "4.5.1",
     "rimraf": "2.6.1",
     "sass-loader": "6.0.3",

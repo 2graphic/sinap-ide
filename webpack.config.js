@@ -13,6 +13,7 @@ const webpackMerge = require('webpack-merge');
 
 module.exports = (env = {}) => { // pass command line arguments like `webpack ... --env.arg=value`
     const ENV = env.ENV ? env.ENV : 'development';
+    const DEBUG = env.DEBUG;
 
     /**
      * Common configuration for all targets
@@ -42,8 +43,9 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
 
         plugins: [
             new webpack.DefinePlugin({
-                'process.env': {
-                    'ENV': JSON.stringify(ENV)
+                "sinap": {
+                    "ENV": JSON.stringify(ENV),
+                    "DEBUG": JSON.stringify(DEBUG)
                 }
             }),
         ]

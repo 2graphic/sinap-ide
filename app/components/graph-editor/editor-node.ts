@@ -227,6 +227,12 @@ export class EditorNode extends EditorElement<DrawableNode> {
                 width: Math
                     .max(GRID_SPACING, textRect.width + FONT_SIZE)
             };
+            if (drawable.shape === "circle" || drawable.shape === "square") {
+                drawable.size.height = Math
+                    .max(drawable.size.height, drawable.size.width);
+                drawable.size.width = Math
+                    .max(drawable.size.height, drawable.size.width);
+            }
         }
         this.innerBound.height = drawable.size.height - 2 * NODE_THRESHOLD_IN;
         this.innerBound.width = drawable.size.width - 2 * NODE_THRESHOLD_IN;
@@ -245,10 +251,6 @@ export class EditorNode extends EditorElement<DrawableNode> {
         const drawable = this.drawable;
         switch (this.drawable.shape) {
             case "circle":
-                drawable.size.height = Math
-                    .max(drawable.size.height, drawable.size.width);
-                drawable.size.width = Math
-                    .max(drawable.size.height, drawable.size.width);
             case "ellipse": {
                 this.trace = (g: EditorCanvas) => {
                     const r = {
@@ -264,10 +266,6 @@ export class EditorNode extends EditorElement<DrawableNode> {
             } break;
 
             case "square":
-                drawable.size.height = Math
-                    .max(drawable.size.height, drawable.size.width);
-                drawable.size.width = Math
-                    .max(drawable.size.height, drawable.size.width);
             case "rectangle": {
                 this.trace = (g: EditorCanvas) => {
                     const pt = MathEx

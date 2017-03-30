@@ -2,25 +2,10 @@ import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { Type, ObjectType, CoreModel, Plugin, SerialJSO, loadPluginDir, Program, CoreValue } from "sinap-core";
 import { Context, SandboxService, Script } from "../services/sandbox.service";
 import { LocalFileService } from "../services/files.service";
+import { somePromises } from "../util";
 
-// Similar to Promise.all. However, this will always resolve and ignore rejected promises.
-function somePromises<T>(promises: Iterable<Promise<T>>): Promise<T[]> {
-    let result: Promise<T[]> = Promise.resolve([]);
 
-    for (const promise of promises) {
-        result = result.then((arr) => {
-            return promise.then((ele) => {
-                arr.push(ele);
-                return arr;
-            }).catch((err) => {
-                console.log(err);
-                return arr;
-            });
-        });
-    }
-
-    return result;
-}
+type StubContext = { global: { "plugin-stub": { "Program": any } } };
 
 export class PluginData {
     constructor(readonly path: string[], readonly description: string) {

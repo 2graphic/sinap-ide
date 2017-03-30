@@ -9,6 +9,7 @@
 
 import { Injectable } from '@angular/core';
 import { FileService, AppLocations, Directory, File } from 'sinap-core';
+import { IS_PRODUCTION } from "../constants";
 
 // TODO: Add in a service that does not use electron for static website.
 import { remote } from 'electron';
@@ -20,6 +21,8 @@ const process = remote.require('process');
 export const SINAP_FILE_FILTER = [
     { name: 'Sinap Files', extensions: ['sinap'] }
 ];
+
+export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app", "plugins") : "../plugins";
 
 function surroundSync<T>(func: () => T): Promise<T> {
     return new Promise<T>((resolve, reject) => {
@@ -52,27 +55,16 @@ function ensureNull(shouldBeNull: any): Promise<void> {
 @Injectable()
 export class LocalFileService implements FileService {
     getAppLocations(): Promise<AppLocations> {
-        const currentDirectory = new LocalDirectory(app.getAppPath());
-        const pluginPath = process.env.ENV !== 'production' ? path.join('.', 'plugins') : path.join(app.getPath("userData"), 'plugins');
-        const pluginDirectory = new LocalDirectory(pluginPath);
+        const pluginDirectory = IS_PRODUCTION ?
+            new LocalDirectory(PLUGIN_DIRECTORY) :
+            new LocalDirectory("./plugins");
+
         const result: AppLocations = {
-            currentDirectory: currentDirectory,
+            currentDirectory: new LocalDirectory("."),
             pluginDirectory: pluginDirectory
         };
 
-        return new Promise<AppLocations>((resolve, reject) => {
-            fs.stat(pluginDirectory.fullName, (err: any, stats: any) => {
-                ensureNull(err)
-                    .then(() => resolve(result))
-                    .catch(() => {
-                        // TODO: Copy instead of symlink.
-                        return this.directoryByName(path.join('.', 'plugins'))
-                            .then((concreteDir: LocalDirectory) => concreteDir.copyDirectory(pluginDirectory));
-                    })
-                    .then(() => resolve(result))
-                    .catch((err) => reject(err));
-            });
-        });
+        return pluginDirectory.ensureCreated().then(() => result);
     }
 
     joinPath(...paths: string[]): string {
@@ -80,7 +72,11 @@ export class LocalFileService implements FileService {
     }
 
     getModuleFile(file: string): string {
-        return fs.readFileSync(path.join('node_modules', file), "utf-8") as any;
+        try {
+            return fs.readFileSync(path.join('node_modules', file), "utf-8") as any;
+        } catch (err) {
+            return null as any;
+        }
     }
 
     getCurrentDirectory(): Promise<Directory> {
@@ -243,7 +239,7 @@ class OpenedFile extends AbstractFile implements LocalFile {
     }
 }
 
-class LocalDirectory implements Directory {
+export class LocalDirectory implements Directory {
     readonly name: string;
 
     constructor(readonly fullName: string) {
@@ -253,6 +249,25 @@ class LocalDirectory implements Directory {
     public ensureCreated(): Promise<{}> {
         return new Promise<{}>((resolve, reject) => {
             fs.mkdir(this.fullName, makeVoidPromise(resolve, reject));
+        }).catch((err) => {
+            if (err.code === "EEXIST") {
+                // Directory already exists.
+                return Promise.resolve({});
+            } else {
+                return Promise.reject(err);
+            }
+        });
+    }
+
+    public exists(): Promise<{}> {
+        return new Promise<{}>((resolve, reject) => {
+            fs.access(this.fullName, fs.F_OK, (err: any) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
         });
     }
 
