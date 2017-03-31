@@ -161,7 +161,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             }
         } else {
             // Clear state
-            this.filesPanelData.selectedFile = null;
+            this.filesPanelData.selectedFile = undefined;
             this.statusBar.info = undefined;
             this.toolsPanelData.graph = undefined;
             this.propertiesPanelData.selectedElements = null;

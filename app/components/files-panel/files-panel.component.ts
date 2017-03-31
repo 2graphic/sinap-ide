@@ -20,16 +20,16 @@ import { PanelComponent } from "../dynamic-panel/dynamic-panel";
 
 
 export class FilesPanelData {
-    constructor(private _directory: string | null) { }
+    constructor(private _directory: string | undefined) { }
 
-    private _selectedFile: LocalFile | null
-    = null;
+    private _selectedFile: LocalFile | undefined
+    = undefined;
 
     get directory() {
         return this._directory;
     }
 
-    set directory(value: string | null) {
+    set directory(value: string | undefined) {
         this._directory = value;
         this.directoryChanged.emit(value);
     }
@@ -38,16 +38,16 @@ export class FilesPanelData {
         return this._selectedFile;
     }
 
-    set selectedFile(value: LocalFile | null) {
+    set selectedFile(value: LocalFile | undefined) {
         this._selectedFile = value;
         this.selectedFileChanged.emit(value);
     }
 
     readonly directoryChanged
-    = new EventEmitter<string | null>();
+    = new EventEmitter<string | undefined>();
 
     readonly selectedFileChanged
-    = new EventEmitter<LocalFile | null>();
+    = new EventEmitter<LocalFile | undefined>();
 
     readonly openFile
     = new EventEmitter<LocalFile>();
@@ -86,7 +86,7 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
 
     @ViewChild('filesList') filesList: CollapsibleListComponent;
 
-    private updateDirectory = (value: string | null) => {
+    private updateDirectory = (value?: string) => {
         return new Promise<string[]>((resolve, reject) => {
             if (value) {
                 this.fileService.directoryByName(value)
@@ -113,7 +113,7 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
         });
     }
 
-    private updateSelectedFile = (value: LocalFile | null) => {
+    private updateSelectedFile = (value?: LocalFile) => {
         if (value) {
             const found = this.files.find(f => value.fullName === f.fullName);
             this.filesList.selectedIndex = found ? this.files.indexOf(found) : -1;
