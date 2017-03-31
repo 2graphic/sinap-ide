@@ -3,7 +3,6 @@
 #wrapper {
     width: 100%;
     height: 100%;
-    background-color: $PANEL_BACKGROUND_COLOR;
 }
 
 #toolbar {
@@ -11,7 +10,6 @@
     height: $TOOLBAR_HEIGHT;
     display: flex;
     align-items: center;
-    margin-left: -$TOOLBAR_WIDTH;
     box-sizing: border-box;
     border-top: thin solid lightgrey;
 }
@@ -21,7 +19,6 @@
     display: inline-block;
     font-size: 1.25em;
     font-weight: 600;
-    margin-left: $TOOLBAR_WIDTH;
     color: #333;
     padding: .5em;
     text-shadow: 1px 1px 0px whitesmoke;

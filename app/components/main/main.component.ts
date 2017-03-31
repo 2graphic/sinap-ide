@@ -1,23 +1,32 @@
-// File: main.component.ts
-// Created by: CJ Dimaano
-// Date created: October 10, 2016
-//
-// This is the main application component. It is used as the main UI display for
-// presenting content to the user.
-//
+/**
+ * @file `main.component.ts`
+ *   Created on October 10, 2016
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ *
+ * @author Daniel James
+ *   <daniel.s.james@icloud.com>
+ *
+ * @description
+ *   This is the main application component. It is used as the main UI container
+ *   for presenting content to the user.
+ */
 
 
-import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
+import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef, EventEmitter } from "@angular/core";
 import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, SerialJSO } from "sinap-core";
 
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
-import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
-import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
-import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
-import { FilesPanelComponent } from "../files-panel/files-panel.component";
-import { TestPanelComponent } from "../test-panel/test-panel.component";
+
+import { DynamicPanelComponent, DynamicPanelItem, DynamicTestPanelComponent } from "../dynamic-panel/dynamic-panel";
+import { PropertiesPanelComponent, PropertiesPanelData } from "../properties-panel/properties-panel.component";
+import { FilesPanelComponent, FilesPanelData } from "../files-panel/files-panel.component";
+import { ToolsPanelComponent, ToolsPanelData } from "../tools-panel/tools-panel.component";
+import { InputPanelComponent, InputPanelDelegate, InputPanelData } from "../input-panel/input-panel.component";
+import { TestPanelComponent, TestPanelData } from "../test-panel/test-panel.component";
+
 import { StatusBarComponent } from "../status-bar/status-bar.component";
-import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
 import { NewFileResult } from "../new-file/new-file.component";
 
@@ -60,43 +69,70 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         } catch (e) {
             console.log(e);
         }
+    }
 
+    private propertiesPanelData = new PropertiesPanelData();
+    // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
+    private filesPanelData = new FilesPanelData("./examples");
+    private toolsPanelData = new ToolsPanelData();
+    private inputPanelData = new InputPanelData(this);
+    private testPanelData = new TestPanelData();
+
+    private tabs = new Map<number, TabContext>();
+
+    // Setup references to child components. These are setup by angular once ngAfterViewInit is called.
+    @ViewChild(TabBarComponent) private tabBar: TabBarComponent;
+    @ViewChild(StatusBarComponent) private statusBar: StatusBarComponent;
+    @ViewChild(GraphEditorComponent) private graphEditor: GraphEditorComponent;
+    @ViewChild("graphEditorContainer") private graphEditorContainer: ElementRef;
+    @ViewChild("dynamicSidePanel") dynamicSidePanel: DynamicPanelComponent;
+    @ViewChild("dynamicBottomPanel") dynamicBottomPanel: DynamicPanelComponent;
+
+    sidePanels: DynamicPanelItem[];
+    bottomPanels: DynamicPanelItem[];
+
+    get maxSidePanelWidth() {
+        return window.innerWidth / 2;
+    }
+
+    get minSidePanelWidth() {
+        return 275;
+    }
+
+    get maxBottomPanelHeight() {
+        return window.innerHeight - 55;
+    }
+
+    get minBottomPanelHeight() {
+        return 175;
     }
 
     ngOnInit(): void {
-        this.inputPanel.delegate = this;
+        this.filesPanelData.openFile.asObservable().subscribe(this.openFile);
+        this.sidePanels = [
+            new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path)
+        ];
+
+        this.bottomPanels = [
+            new DynamicPanelItem(InputPanelComponent, this.inputPanelData, INPUT_ICON.name, INPUT_ICON.path),
+            new DynamicPanelItem(TestPanelComponent, this.testPanelData, TEST_ICON.name, TEST_ICON.path),
+        ];
+
         this.tabBar.delegate = this;
         this.menu.addEventListener(this);
     }
 
     ngAfterViewInit() {
-        this.leftPanelsGroup.nativeElement.style.width = "300px";
-        this.bottomPanels.nativeElement.style.height = "225px";
+        this.dynamicSidePanel.width = 300;
+        this.dynamicBottomPanel.height = 225;
     }
 
     ngAfterViewChecked() {
         // TODO: Let HTML resize this for us.
-        this.graphEditor.resize();
+        this.graphEditor.height =
+            this.graphEditorContainer.nativeElement.offsetHeight
+            - this.tabBar.offsetHeight - this.statusBar.offsetHeight;
     }
-
-    // Setup references to child components. These are setup by angular once ngAfterViewInit is called.
-    @ViewChild(GraphEditorComponent) private graphEditor: GraphEditorComponent;
-    @ViewChild(InputPanelComponent) private inputPanel: InputPanelComponent;
-    @ViewChild(PropertiesPanelComponent) private propertiesPanel: PropertiesPanelComponent;
-    @ViewChild(ToolsPanelComponent) private toolsPanel: ToolsPanelComponent;
-    @ViewChild(FilesPanelComponent) private filesPanel: FilesPanelComponent;
-    @ViewChild("leftPanelBar") private leftPanelBar: SideBarComponent;
-    @ViewChild("bottomPanelBar") private bottomPanelBar: SideBarComponent;
-    @ViewChild(TestPanelComponent) private testComponent: TestPanelComponent;
-    @ViewChild(TabBarComponent) private tabBar: TabBarComponent;
-    @ViewChild('editorPanel') editorPanel: ElementRef;
-    @ViewChild('leftPanelsGroup') leftPanelsGroup: ElementRef;
-    @ViewChild('bottomPanels') bottomPanels: ElementRef;
-    @ViewChild(StatusBarComponent) private statusBar: StatusBarComponent;
-
-    private tabs = new Map<number, TabContext>();
-    private leftPanelIcons = [FILES_ICON];
-    private bottomPanelIcons = [INPUT_ICON, TEST_ICON];
 
     private _context?: TabContext;
     private set context(context: TabContext | undefined) {
@@ -104,22 +140,34 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         if (context) {
             context.compileProgram().then(this.onNewProgram);
 
-            this.toolsPanel.graph = context.graph;
-            this.filesPanel.selectedFile = context.file;
+            this.toolsPanelData.graph = context.graph;
+            this.filesPanelData.selectedFile = context.file;
             this.statusBar.info = context.statusBarInfo;
 
-            if (this.toolsPanel.shouldDisplay()) {
-                this.leftPanelIcons = [PROPERTIES_ICON, TOOLS_ICON, FILES_ICON];
-            } else {
-                this.leftPanelIcons = [PROPERTIES_ICON, FILES_ICON];
+            context.graph.selectionChangedEvent.asObservable().subscribe(evt => this.propertiesPanelData.selectedElements = evt);
+            this.propertiesPanelData.selectedElements = context.graph.selectedElements;
+
+            if (this.toolsPanelData.shouldDisplay && this.sidePanels.length < 3) {
+                this.sidePanels = [
+                    new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
+                    new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
+                    new DynamicPanelItem(ToolsPanelComponent, this.toolsPanelData, TOOLS_ICON.name, TOOLS_ICON.path)
+                ];
+            } else if (!this.toolsPanelData.shouldDisplay && this.sidePanels.length !== 2) {
+                this.sidePanels = [
+                    new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
+                    new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
+                ];
             }
         } else {
             // Clear state
-
-            this.leftPanelIcons = [FILES_ICON];
-            this.filesPanel.selectedFile = undefined;
+            this.filesPanelData.selectedFile = null;
             this.statusBar.info = undefined;
-            this.toolsPanel.graph = undefined;
+            this.toolsPanelData.graph = undefined;
+            this.propertiesPanelData.selectedElements = null;
+            this.sidePanels = [
+                new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path)
+            ];
         }
     };
 
@@ -161,8 +209,8 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     private onNewProgram = (program: Program) => {
-        this.testComponent.program = program;
-        this.inputPanel.program = program;
+        this.testPanelData.program = program;
+        this.inputPanelData.program = program;
     }
 
 
@@ -330,27 +378,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     /* --------------------------------------- */
 
 
-    /* ---------- Resizable Panels ---------- */
-    private resizing(element: Element, event: ResizeEvent) {
-        if (element.id === "left-panels-group") {
-            if (event.rectangle.width !== undefined) {
-                this.leftPanelsGroup.nativeElement.style.width = Math.max(event.rectangle.width, 250) + "px";
-
-                if (this.leftPanelsGroup.nativeElement.clientWidth + this.editorPanel.nativeElement.clientWidth >= window.innerWidth) {
-                    this.leftPanelsGroup.nativeElement.style.width = (window.innerWidth - this.editorPanel.nativeElement.clientWidth - 1) + "px";
-                }
-            }
-        } else if (element.id === "bottom-panels") {
-            if (event.rectangle.height !== undefined) {
-                // 55 = height of tab bar plus height of status bar
-                this.bottomPanels.nativeElement.style.height = Math.min(Math.max(event.rectangle.height, 175), window.innerHeight - 55) + "px";
-            }
-        }
-    }
-    /* -------------------------------------- */
-
-
-    /* ---------- Resizable Panels ---------- */
+    /* ---------- Zoom Slider ---------- */
 
 
     private updateZoom(value: number) {

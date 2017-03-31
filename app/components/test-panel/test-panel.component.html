@@ -1,25 +1,12 @@
 <div id="wrapper">
-    <div id="toolbar">
-        <h2>Tests</h2>
-        <span class="toolbar-spacer"></span>
-        <span class="toolbar-spacer"></span>
-        <img src="${require('../../images/plus.svg')}" (click)="newTest()" class="toolbar-button" title="Add test" />
-        <img src="${require('../../images/minus.svg')}" (click)="removeSelected()" class="toolbar-button" [class.disabled]="selected.size == 0" title="Remove Selected Tests" />
-        <span class="toolbar-spacer"></span>
-        <img src="${require('../../images/autoplay.svg')}" (click)="toggleAutoplay()" class="toolbar-button" [class.toggled]="autoplay" [title]="'autorun is '+(autoplay?'on':'off')" />
-        <span class="toolbar-spacer"></span>
-        <img src="${require('../../images/play-all.svg')}" (click)="runTests()" class="toolbar-button" title="Run all tests" />
-        <img src="${require('../../images/play.svg')}" (click)="runSelectedTests(this.selected)" class="toolbar-button" title="Run selected tests" [class.disabled]="selected.size == 0" />
-    </div>
-
-    <div *ngIf="tests.length > 0" id="tests">
+    <div *ngIf="_data.tests.length > 0" id="tests">
         <table>
             <tr class="header">
                 <td>Input</td>
                 <td>Expected Result</td>
                 <td>Actual Result</td>
             </tr>
-            <tr *ngFor="let test of tests" [class.bad]="test.output == null || !areEqual(test.output.value, test.expected.value)" [class.selected]="selected.has(test)"
+            <tr *ngFor="let test of _data.tests" [class.bad]="test.output == null || !areEqual(test.output.value, test.expected.value)" [class.selected]="_data.selected.has(test)"
                 (click)="select(test)">
                 <td><sinap-type [value]="test.input" [readonly]="false" [focus]="true"></sinap-type></td>
                 <td><sinap-type [value]="test.expected" [readonly]="false"></sinap-type></td>
@@ -28,7 +15,7 @@
         </table>
     </div>
 
-    <div *ngIf="tests.length == 0" id="empty">
+    <div *ngIf="_data.tests.length == 0" id="empty">
         <p>Click the plus to create a new unit test.</p>
     </div>
 </div>

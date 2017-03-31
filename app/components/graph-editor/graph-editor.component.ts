@@ -212,6 +212,20 @@ export class GraphEditorComponent implements AfterViewInit {
         this.redraw();
     }
 
+    @Input()
+    set height(value: number) {
+        const container = this.containerElementRef.nativeElement as HTMLElement;
+        container.style.height = value + "px";
+        this.resize();
+    }
+
+    @Input()
+    set width(value: number) {
+        const container = this.containerElementRef.nativeElement as HTMLElement;
+        container.style.width = value + "px";
+        this.resize();
+    }
+
     /**
      * `dragNode`
      *
@@ -262,7 +276,8 @@ export class GraphEditorComponent implements AfterViewInit {
         const el = this.containerElementRef.nativeElement;
         const h = el.offsetHeight;
         const w = el.offsetWidth;
-        if (this.gridCanvas.size.h !== h || this.gridCanvas.size.w !== w) {
+        if (this.gridCanvas &&
+            (this.gridCanvas.size.h !== h || this.gridCanvas.size.w !== w)) {
             const size = { h: h, w: w };
             this.gridCanvas.size = size;
             this.graphCanvas.size = size;

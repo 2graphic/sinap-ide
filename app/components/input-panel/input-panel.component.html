@@ -1,18 +1,10 @@
 <div id="wrapper">
-    <div id="toolbar">
-        <h2>Input</h2>
-        <span class="toolbar-spacer"></span>
-        <span class="toolbar-spacer"></span>
-        <img src="${require('../../images/play.svg')}" (click)="step()" class="toolbar-button" title="Step" />
-        <img src="${require('../../images/play-finish.svg')}" (click)="stepFinish()" class="toolbar-button" title="Finish" />
-        <img src="${require('../../images/play-all.svg')}" (click)="stepToCompletion()" class="toolbar-button" title="Step to Completion" />
-    </div>
 
-    <div *ngIf="inputForPlugin" class="flex-container-row">
-        <div id="left-panel">
-            <div id="left-panel-output">
-                <div class="program-result clickable" *ngFor="let result of results" (click)="selectResult(result)" [class.selected]="selected == result">
-                    <table *ngIf="selected">
+    <div id="content" *ngIf="_data.inputForPlugin" (keyup.enter)="onSubmit(_data.inputForPlugin)">
+        <div class="left">
+            <div id="output">
+                <div class="program-result clickable" *ngFor="let result of _data.results" (click)="selectResult(result)" [class.selected]="_data.selected == result">
+                    <table *ngIf="_data.selected">
                         <tr>
                             <td>
                                 <div class="input">
@@ -36,42 +28,41 @@
                     </table>
                 </div>
             </div>
-            <div id="left-panel-input" (keyup.enter)="onSubmit(inputForPlugin)">
+
+            <div id="input">
                 <div id="input-value">
-                    <sinap-type [readonly]="false" [focus]="true" [disabled]="!this.program" [value]="inputForPlugin"></sinap-type>                    
+                    <sinap-type [readonly]="false" [focus]="true" [disabled]="!_data.program" [value]="_data.inputForPlugin"></sinap-type>                    
                 </div>
                 <div id="input-button">
-                    <button (click)="onSubmit(inputForPlugin)">
+                    <button (click)="onSubmit(_data.inputForPlugin)">
                         <div [inlineSVG]="'${require('../../images/play.svg')}'"></div>
                     </button>
                 </div>
             </div>
         </div>
 
-
-
-        <div id="log" #log>
-            <table *ngIf="selected">
+        <div class="right" #log>
+            <table *ngIf="_data.selected">
                 <tr>
                     <td colspan="2">
                         <div class="input">
                             <span class="chevron">&gt;</span>
-                            <sinap-type [value]="selected.input"></sinap-type>
+                            <sinap-type [value]="_data.selected.input"></sinap-type>
                         </div>
                     </td>
                 </tr>
 
-                <tbody *ngFor="let state of selected.getStates()" class="clickable" (click)="selectState(state)">
+                <tbody *ngFor="let state of _data.selected.getStates()" class="clickable" (click)="selectState(state)">
                         <tr *ngIf="state.message !== undefined">
-                            <td [class.expand-chevron-before]="selectedState === state">
+                            <td [class.expand-chevron-before]="_data.selectedState === state">
                                 <sinap-type [value]="state.message"></sinap-type>
                             </td>
-                            <td [class.expand-chevron-down]="selectedState === state" [class.expand-chevron-right]="selectedState !== state">
+                            <td [class.expand-chevron-down]="_data.selectedState === state" [class.expand-chevron-right]="_data.selectedState !== state">
                                 <span class="chevron">›</span>
                             </td>
                         </tr>
 
-                        <tr *ngIf="state.message !== undefined && selectedState == state" class="expanded">
+                        <tr *ngIf="state.message !== undefined && _data.selectedState == state" class="expanded">
                             <td colspan="2">
                                 <sinap-type [value]="state.state"></sinap-type>
                             </td>
@@ -84,12 +75,12 @@
                         </tr>
                 </tbody>
 
-                <tr *ngIf="selected.steps == selected.output.states.length">
+                <tr *ngIf="_data.selected.steps == _data.selected.output.states.length">
                     <td class="last" colspan="2">
                         <div class="result">
                             <span class="chevron">&lt;</span>
-                            <span [class.error]="isErrorType(selected.output.result.type)">
-                                <sinap-type [value]="selected.output.result"></sinap-type>
+                            <span [class.error]="isErrorType(_data.selected.output.result.type)">
+                                <sinap-type [value]="_data.selected.output.result"></sinap-type>
                             </span>
                         </div>
                     </td>
@@ -97,4 +88,5 @@
             </table>
         </div>
     </div>
+
 </div>

@@ -133,7 +133,8 @@ export class GraphController {
     public changed = new EventEmitter<UndoableEvent>();
     private isApplyingUndo = false;
 
-    private selectedElements: Set<BridgingProxy>;
+    selectedElements: Set<BridgingProxy>;
+    selectionChangedEvent = new EventEmitter<Set<BridgingProxy>>();
 
     public bridges = new DoubleMap<Drawable, CoreElement, BridgingProxy>();
 
@@ -382,6 +383,8 @@ export class GraphController {
         } else {
             this.selectedElements = new Set(values.map((e) => this.toBridges(e)));
         }
+
+        this.selectionChangedEvent.emit(this.selectedElements);
     }
 
     toBridges(e: Drawable | BridgingProxy | CoreElement): BridgingProxy {
