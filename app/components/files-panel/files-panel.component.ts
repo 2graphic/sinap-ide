@@ -13,7 +13,7 @@
 
 
 import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
-import { LocalFileService, LocalFile } from "../../services/files.service";
+import { LocalFileService, LocalFile, LocalDirectory } from "../../services/files.service";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
 import { Directory } from "sinap-core";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
@@ -71,8 +71,13 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
 
     set data(value: FilesPanelData) {
         if (value) {
-            value.directoryChanged.asObservable().subscribe(this.updateDirectory);
-            value.selectedFileChanged.asObservable().subscribe(this.updateSelectedFile);
+            value.directoryChanged
+                .asObservable()
+                .subscribe(v => this.updateDirectory(v)
+                    .catch(() => value.directory = "."));
+            value.selectedFileChanged
+                .asObservable()
+                .subscribe(this.updateSelectedFile);
             this._data = value;
             this.updateDirectory(value.directory);
             this.updateSelectedFile(value.selectedFile);
@@ -82,20 +87,30 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
     @ViewChild('filesList') filesList: CollapsibleListComponent;
 
     private updateDirectory = (value: string | null) => {
-        if (value) {
-            this.fileService.directoryByName(value)
-                .then((directory: Directory) => {
-                    this.directory = directory;
-                    directory.getFiles().then((files: LocalFile[]) => {
-                        this.files = files;
-                        this.updateSelectedFile(this._data.selectedFile);
+        return new Promise<string[]>((resolve, reject) => {
+            if (value) {
+                this.fileService.directoryByName(value)
+                    .then((directory: Directory) => {
+                        if (directory instanceof LocalDirectory) {
+                            directory.exists().then(() => {
+                                this.directory = directory;
+                                directory.getFiles().then((files: LocalFile[]) => {
+                                    this.files = files;
+                                    resolve();
+                                });
+                            }).catch((e) => {
+                                reject(e);
+                            });
+                        } else {
+                            reject("not implemented");
+                        }
                     });
-                });
-        }
-        else {
-            this.directory = undefined;
-            this.files = [];
-        }
+            }
+            else {
+                this.directory = undefined;
+                this.files = [];
+            }
+        });
     }
 
     private updateSelectedFile = (value: LocalFile | null) => {
