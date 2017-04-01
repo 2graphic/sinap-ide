@@ -123,6 +123,14 @@ export class GraphEditorComponent implements AfterViewInit {
     = null;
 
     /**
+     * `_graphCache`
+     *
+     *   Caches previously opened graphs.
+     */
+    private readonly _graphCache: Map<DrawableGraph, EditorGraph>
+    = new Map<DrawableGraph, EditorGraph>();
+
+    /**
      * `isPanning`
      *
      *   Whether or not the canvas is currently panning. This is to prevent
@@ -165,6 +173,9 @@ export class GraphEditorComponent implements AfterViewInit {
 
     @Input()
     set graph(value: DrawableGraph | null) {
+        if (this._graph)
+            this.unregisterGraph(this._graph.drawable);
+
         this.suspendRedraw();
         if (value) {
             this.registerGraph(value);
@@ -376,7 +387,10 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Registers event listeners for the newly bound graph.
      */
     private registerGraph(graph: DrawableGraph) {
-        this._graph = new EditorGraph(graph, this.graphCanvas);
+        if (!this._graphCache.has(graph))
+            this._graphCache
+                .set(graph, new EditorGraph(graph, this.graphCanvas));
+        this._graph = this._graphCache.get(graph)!;
         this.scale = graph.scale;
         this.origin = graph.origin;
         graph.addEventListener("change", this.onDrawablePropertyChanged);
