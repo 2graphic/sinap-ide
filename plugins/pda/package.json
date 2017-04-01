@@ -1,0 +1,35 @@
+{
+  "name": "pushdown-automaton",
+  "version": "1.0.0",
+  "main": "pda.ts",
+  "description": "An interpreter for PDAs for the Sinap graph based IDE.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/2graphic/sinap-core.git"
+  },
+  "keywords": [
+    "pushdown-automaton",
+    "pda",
+    "sinap",
+    "2graphic",
+    "plugin",
+    "formal-languages"
+  ],
+  "author": "2graphic",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/2graphic/sinap-core/issues"
+  },
+  "homepage": "https://github.com/2graphic/sinap-core#readme",
+  "sinap": {
+    "kind": [
+      "Formal Languages",
+      "PDA"
+    ],
+    "plugin-file": "pda.ts",
+    "description": "In computer science, a pushdown automaton (PDA) is a type of automaton that employs a stack. Pushdown automata are used in theories about what can be computed by machines. They are more capable than finite-state machines but less capable than Turing machines. Deterministic pushdown automata can recognize all deterministic context-free languages while nondeterministic ones can recognize all context-free languages, with the former often used in parser design."
+  }
+}
