@@ -1,7 +1,7 @@
 <div id="wrapper">
     <div id="tabs">
         <div *ngFor="let tab of tabs" class="tab" [class.active]="tab.index == active" (click)="active = tab.index">
-            <span class="tab-title">{{tab.data}} 
+            <span class="tab-title">{{tab.data.toString()}} 
                 <span class="right-item"
                         (click)="deleteTab(tab.index)">
                     &#10006;</span>
