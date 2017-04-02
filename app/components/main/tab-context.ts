@@ -9,9 +9,6 @@ import { PluginService } from "../../services/plugin.service";
 import { LocalFile } from "../../services/files.service";
 import { StatusBarInfo } from "../../components/status-bar/status-bar.component";
 
-const electron = require('electron');
-const dialog = electron.remote.dialog;
-
 /**
  * Stores the state of each open tab.
  */
@@ -61,16 +58,6 @@ export class TabContext {
 
     public invalidateProgram() {
         this.dirty = true;
-    }
-
-    public save() {
-        const pojo = this.graph.core.serialize();
-
-        return this.file.writeData(JSON.stringify(pojo, null, 4))
-            .catch((err) => {
-                dialog.showErrorBox("Unable to Save", `Error occurred while saving to file:\n${this.file.fullName}.`);
-                console.log(err);
-            });
     }
 
     public close() {

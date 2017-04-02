@@ -95,7 +95,13 @@ export class LocalFileService implements FileService {
         return new Promise<LocalFile>((resolve, reject) => dialog.showSaveDialog(remote.BrowserWindow.getFocusedWindow(), {
             defaultPath: name,
             filters: SINAP_FILE_FILTER
-        }, (name) => resolve(OpenedFile.fileByName(name))));
+        }, (name) => {
+            if (name) {
+                resolve(OpenedFile.fileByName(name));
+            } else {
+                reject("File selection cancelled.");
+            }
+        }));
     }
 
     requestFiles(): Promise<LocalFile[]> {

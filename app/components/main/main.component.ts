@@ -45,6 +45,9 @@ import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "
 
 import { ResizeEvent } from 'angular-resizable-element';
 
+const electron = require('electron');
+const dialog = electron.remote.dialog;
+
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
@@ -260,10 +263,41 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     saveFile() {
         if (this._context) {
-            this._context.save().then(() => {
+            this.saveToFile(this._context.graph, this._context.file).then(() => {
                 this.changeDetectorRef.detectChanges();
             });
         }
+    }
+
+    saveAsFile() {
+        if (this._context) {
+            const c = this._context;
+            this.fileService.requestSaveFile(this._context.file.name).then((f) => {
+                if (f.equals(c.file)) {
+                    // Saving as same file...
+                    this.saveToFile(c.graph, c.file).then(() => {
+                        this.changeDetectorRef.detectChanges();
+                    });
+                } else {
+                    this.closeFile(f);
+                    this.saveToFile(c.graph, f).then(() => {
+                        this.openFile(f);
+                    });
+                }
+            }).catch((e) => {
+                console.log(e);
+            });
+        }
+    }
+
+    public saveToFile(graph: GraphController, file: LocalFile) {
+        const pojo = graph.core.serialize();
+
+        return file.writeData(JSON.stringify(pojo, null, 4))
+            .catch((err) => {
+                dialog.showErrorBox("Unable to Save", `Error occurred while saving to file:\n${file.fullName}.`);
+                console.log(err);
+            });
     }
 
     requestOpenFile() {
@@ -292,6 +326,13 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 });
             }
         });
+    }
+
+    closeFile(file: LocalFile) {
+        const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
+        if (entry) {
+            this.tabBar.deleteTab(entry[0]);
+        }
     }
 
 
@@ -372,6 +413,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 break;
             case MenuEventAction.SAVE_FILE:
                 this.saveFile();
+                break;
+            case MenuEventAction.SAVE_AS_FILE:
+                this.saveAsFile();
                 break;
             case MenuEventAction.DELETE:
                 if (this.focusIsChildOf("graph-editor-container")) {
