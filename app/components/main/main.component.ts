@@ -338,6 +338,10 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     /* ---------- TabBarDelegate ---------- */
     deletedTab(i: number) {
+        const toDelete = this.tabs.get(i);
+        if (toDelete) {
+            toDelete.close();
+        }
         this.tabs.delete(i);
     }
 

@@ -119,6 +119,7 @@ export interface LocalFile extends File {
     markDirty: () => void;
     equals: (file: LocalFile) => boolean;
     getPath: () => string | undefined;
+    close: () => void;
 }
 
 class AbstractFile {
@@ -139,6 +140,10 @@ class AbstractFile {
 
     markDirty() {
         this._dirty = true;
+    }
+
+    close() {
+        this._dirty = false;
     }
 
     toString() {
