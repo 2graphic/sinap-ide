@@ -3,13 +3,13 @@
 div {
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
 #window {
   height: 100%;
   width: 100%;
   display: flex;
-  justify-content: space-around;
   background-color: $PANEL_BACKGROUND_COLOR;
 }
 
@@ -21,7 +21,6 @@ div {
   flex: 1 1 auto;
   display: flex;
   flex-flow: column;
-  justify-content: space-between;
 }
 
 #bottom-panel-group {
