@@ -34,10 +34,10 @@ let win: Electron.BrowserWindow | null;
  */
 function createWindow() {
     win = new BrowserWindow({
-        width: 1024,
+        width: 1080,
         height: 768,
         minWidth: 1024,
-        minHeight: 768,
+        minHeight: 720,
         center: true,
         show: false
     });
