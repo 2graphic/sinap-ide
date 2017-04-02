@@ -34,8 +34,10 @@ let win: Electron.BrowserWindow | null;
  */
 function createWindow() {
     win = new BrowserWindow({
-        width: 1150,
-        height: 720,
+        width: 1024,
+        height: 768,
+        minWidth: 1024,
+        minHeight: 768,
         center: true,
         show: false
     });
@@ -45,8 +47,6 @@ function createWindow() {
     win.on("closed", () => {
         win = null;
     });
-
-    win.maximize();
 
     win.once("ready-to-show", () => {
         (win as Electron.BrowserWindow).show();
