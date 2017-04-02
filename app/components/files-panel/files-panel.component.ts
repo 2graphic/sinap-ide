@@ -20,19 +20,17 @@ import { PanelComponent } from "../dynamic-panel/dynamic-panel";
 
 
 export class FilesPanelData {
-    constructor(private _directory: string | undefined) { }
+    public directory?: Directory;
+    public files: LocalFile[] = [];
+
+    constructor(directoryToOpen: string, private fileService: LocalFileService) {
+        this.setDirectory(directoryToOpen).catch(() => {
+            this.setDirectory(".");
+        });
+    }
 
     private _selectedFile: LocalFile | undefined
     = undefined;
-
-    get directory() {
-        return this._directory;
-    }
-
-    set directory(value: string | undefined) {
-        this._directory = value;
-        this.directoryChanged.emit(value);
-    }
 
     get selectedFile() {
         return this._selectedFile;
@@ -43,50 +41,13 @@ export class FilesPanelData {
         this.selectedFileChanged.emit(value);
     }
 
-    readonly directoryChanged
-    = new EventEmitter<string | undefined>();
-
     readonly selectedFileChanged
     = new EventEmitter<LocalFile | undefined>();
 
     readonly openFile
     = new EventEmitter<LocalFile>();
 
-}
-
-@Component({
-    selector: "sinap-files-panel",
-    templateUrl: "./files-panel.component.html",
-    styleUrls: ["./files-panel.component.scss"],
-    providers: [LocalFileService]
-})
-export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
-    constructor(private fileService: LocalFileService) { }
-
-    private _data: FilesPanelData;
-
-    private directory?: Directory;
-    private files: LocalFile[] = [];
-    private openFiles: LocalFile[] = [];
-
-    set data(value: FilesPanelData) {
-        if (value) {
-            value.directoryChanged
-                .asObservable()
-                .subscribe(v => this.updateDirectory(v)
-                    .catch(() => value.directory = "."));
-            value.selectedFileChanged
-                .asObservable()
-                .subscribe(this.updateSelectedFile);
-            this._data = value;
-            this.updateDirectory(value.directory);
-            this.updateSelectedFile(value.selectedFile);
-        }
-    }
-
-    @ViewChild('filesList') filesList: CollapsibleListComponent;
-
-    private updateDirectory = (value?: string) => {
+    private setDirectory(value?: string) {
         return new Promise<string[]>((resolve, reject) => {
             if (value) {
                 this.fileService.directoryByName(value)
@@ -112,20 +73,43 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
             }
         });
     }
+}
+
+@Component({
+    selector: "sinap-files-panel",
+    templateUrl: "./files-panel.component.html",
+    styleUrls: ["./files-panel.component.scss"],
+    providers: [LocalFileService]
+})
+export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
+    constructor() { }
+
+    private _data: FilesPanelData;
+
+    set data(value: FilesPanelData) {
+        if (value) {
+            value.selectedFileChanged
+                .asObservable()
+                .subscribe(this.updateSelectedFile);
+            this._data = value;
+            this.updateSelectedFile(value.selectedFile);
+        }
+    }
+
+    @ViewChild('filesList') filesList: CollapsibleListComponent;
 
     private updateSelectedFile = (value?: LocalFile) => {
         if (value) {
-            const found = this.files.find(f => value.fullName === f.fullName);
-            this.filesList.selectedIndex = found ? this.files.indexOf(found) : -1;
+            const found = this._data.files.find(f => value.fullName === f.fullName);
+            this.filesList.selectedIndex = found ? this._data.files.indexOf(found) : -1;
         } else {
             this.filesList.selectedIndex = -1;
         }
     }
 
     private itemSelected(list: CollapsibleListComponent) {
-        const file = this.files[list.selectedIndex];
+        const file = this._data.files[list.selectedIndex];
         if (this._data)
             this._data.openFile.emit(file);
     }
-
 }
