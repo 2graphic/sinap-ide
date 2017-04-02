@@ -59,12 +59,17 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         try {
             const openFilesJSON = localStorage.getItem("openFiles");
             if (openFilesJSON) {
-                const openFiles = JSON.parse(openFilesJSON) as string[];
-                openFiles.map((fileName) => this.fileService.fileByName(fileName)).forEach((p) => {
-                    p.then((f) => {
-                        this.openFile(f);
+                const openFilenames = JSON.parse(openFilesJSON) as string[];
+                openFilenames.map((fileName) => this.fileService.fileByName(fileName))
+                    .forEach((p) => {
+                        p.then((f) => {
+                            this.openFile(f).catch((e) => {
+                                console.log("Error reopening file: ", f, e);
+                            });
+                        }).catch((e) => {
+                            console.log("Can't find file: ", e);
+                        });
                     });
-                });
             }
         } catch (e) {
             console.log(e);
@@ -174,7 +179,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     /** Create a new tab and open it */
     newFile(file: LocalFile, kind: string[], content?: SerialJSO) {
         // TODO: have a more efficient way to get kind.
-        this.pluginService.getPluginByKind(kind).then((plugin) => {
+        return this.pluginService.getPluginByKind(kind).then((plugin) => {
             const model = new CoreModel(plugin, content);
 
             let tabNumber = this.tabBar.newTab(file);
@@ -245,11 +250,16 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
         if (entry) {
             this.tabBar.active = entry[0];
+            return Promise.resolve();
         } else {
-            file.readData().then((content) => {
-                const pojo = JSON.parse(content);
-                const kind = pojo.kind;
-                this.newFile(file, kind, pojo);
+            return new Promise((resolve, reject) => {
+                file.readData().then((content) => {
+                    const pojo = JSON.parse(content);
+                    const kind = pojo.kind;
+                    this.newFile(file, kind, pojo).then(() => resolve()).catch(reject);
+                }).catch((e) => {
+                    reject(e);
+                });
             });
         }
     }
