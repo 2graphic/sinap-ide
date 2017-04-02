@@ -72,19 +72,18 @@ export function step(current: State): State | boolean {
             let topOfStack = s.stack.charAt(0);
 
             s.node.children.forEach((e) => {
-                if ((nextSymbol === e.onInput || e.onInput === "" || e.onInput === undefined) && topOfStack === e.onStack) {
+                if ((nextSymbol === e.onInput || (e.onInput === "" || e.onInput === undefined) && nextSymbol === "") && topOfStack === e.onStack) {
                     r.add(new ActiveState(e.destination, (e.writeStack ? e.writeStack : "") + s.stack.substring(1)));
                 }
             });
         });
 
         return r;
-    }
+    };
 
     // Make sure we follow any change of lambdas
     const nextStates = f(current.activeStates, nextSymbol);
-    let loops = 0;
-    while(loops++ < 10) {
+    while (true) { // This can't be an infinite loop because the set of possible states is bounded
         const previousSize = nextStates.size;
         [...f(nextStates, "").values()].forEach((s) => nextStates.add(s));
         if (previousSize === nextStates.size) {
@@ -101,11 +100,11 @@ export function step(current: State): State | boolean {
     return new State(nextStates, remainingInput, nextStates.size + " active. Input: " + remainingInput);
 }
 
-interface comparable<T> {
+interface Comparable<T> {
     equals(other: T): boolean;
 }
 
-class GeneralSet<T extends comparable<T>> {
+class GeneralSet<T extends Comparable<T>> {
     private set: Set<T>;
 
     constructor(initial: T[]) {

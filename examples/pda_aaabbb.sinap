@@ -25,8 +25,8 @@
                 "label": "q0",
                 "color": "#fff200",
                 "position": {
-                    "x": 319,
-                    "y": 380.99999999999994,
+                    "x": 252.69736861759802,
+                    "y": 381.6139132535407,
                     "height": 40,
                     "width": 40
                 },
@@ -46,7 +46,8 @@
                 "borderWidth": 2,
                 "borderColor": "#000",
                 "borderStyle": "solid",
-                "isStartState": true
+                "isStartState": true,
+                "isAcceptState": true
             }
         },
         {
@@ -116,8 +117,8 @@
                 "label": "q3",
                 "color": "#fff200",
                 "position": {
-                    "x": 662,
-                    "y": 380,
+                    "x": 808.1113543427007,
+                    "y": 383.0695662677038,
                     "height": 40,
                     "width": 40
                 },
@@ -299,11 +300,11 @@
             "kind": "Node",
             "type": "Node",
             "data": {
-                "label": "q5",
+                "label": "q4",
                 "color": "#fff200",
                 "position": {
-                    "x": 637.6695904248911,
-                    "y": 559.3982699022528,
+                    "x": 519.1843324915244,
+                    "y": 512.1269493796144,
                     "height": 40,
                     "width": 40
                 },
@@ -329,7 +330,7 @@
             "kind": "Edge",
             "type": "Edge",
             "data": {
-                "label": "b, a; c",
+                "label": "b, a; a",
                 "color": "#000",
                 "source": {
                     "kind": "sinap-pointer",
@@ -353,111 +354,20 @@
                 "lineWidth": 2,
                 "onInput": "b",
                 "onStack": "a",
-                "writeStack": "c"
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Edge",
-            "data": {
-                "label": "b, c; λ",
-                "color": "#000",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 10
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 10
-                },
-                "sourcePoint": {
-                    "x": -6.653668647301796,
-                    "y": -17.477590650225736
-                },
-                "destinationPoint": {
-                    "x": 8.653668647301796,
-                    "y": -17.477590650225736
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2,
-                "onInput": "b",
-                "onStack": "c"
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Edge",
-            "data": {
-                "label": "b, a; c",
-                "color": "#000",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 10
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 10
-                },
-                "sourcePoint": {
-                    "x": -6.653668647301796,
-                    "y": -17.477590650225736
-                },
-                "destinationPoint": {
-                    "x": 8.653668647301796,
-                    "y": -17.477590650225736
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2,
-                "onInput": "b",
-                "onStack": "a",
-                "writeStack": "c"
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Edge",
-            "data": {
-                "label": "λ, Z; Z",
-                "color": "#000",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 10
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 4
-                },
-                "sourcePoint": {
-                    "x": 16.79525297796537,
-                    "y": -11.268251031099595
-                },
-                "destinationPoint": {
-                    "x": -14.795252977965369,
-                    "y": 13.268251031099595
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2,
-                "onStack": "Z",
-                "writeStack": "Z"
+                "writeStack": "a"
             }
         },
         {
             "kind": "Node",
             "type": "Node",
             "data": {
-                "label": "a^nb^n\na^nb^(2n)",
+                "label": "aⁿbⁿ\naⁿb²ⁿ",
                 "color": "#fff200",
                 "position": {
-                    "x": 334.87659255704153,
-                    "y": 504.4542257268819,
-                    "height": 175.2265625,
-                    "width": 175.2265625
+                    "x": 350.2244238955605,
+                    "y": 468.23334376797715,
+                    "height": 54,
+                    "width": 98.4140625
                 },
                 "size": {
                     "x": 334.87659255704153,
@@ -475,6 +385,127 @@
                 "borderWidth": 2,
                 "borderColor": "#000",
                 "borderStyle": "solid"
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Node",
+            "data": {
+                "label": "q5",
+                "color": "#fff200",
+                "position": {
+                    "x": 706.2941109492008,
+                    "y": 507.52379199458596,
+                    "height": 40,
+                    "width": 40
+                },
+                "size": {
+                    "x": 723.4836820483421,
+                    "y": 544.3585872070314,
+                    "height": 40,
+                    "width": 40
+                },
+                "origin": {
+                    "x": 0,
+                    "y": 0
+                },
+                "shape": "ellipse",
+                "image": "",
+                "anchorPoints": [],
+                "borderWidth": 2,
+                "borderColor": "#000",
+                "borderStyle": "solid"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edge",
+            "data": {
+                "label": "b, a; λ",
+                "color": "#000",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 10
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 13
+                },
+                "sourcePoint": {
+                    "x": 19.550226816576448,
+                    "y": -6.475900283816522
+                },
+                "destinationPoint": {
+                    "x": -17.309445371036777,
+                    "y": -7.047621400452435
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "onInput": "b",
+                "onStack": "a"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edge",
+            "data": {
+                "label": "b, a; a",
+                "color": "#000",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 13
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 10
+                },
+                "sourcePoint": {
+                    "x": -17.350155636531206,
+                    "y": 8.95435654940625
+                },
+                "destinationPoint": {
+                    "x": 19.22773999613191,
+                    "y": 9.231008117686017
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "onInput": "b",
+                "onStack": "a",
+                "writeStack": "a"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edge",
+            "data": {
+                "label": "λ, Z; Z",
+                "color": "#000",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 13
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 4
+                },
+                "sourcePoint": {
+                    "x": 13.863923796621537,
+                    "y": -14.314028358166059
+                },
+                "destinationPoint": {
+                    "x": -11.863923796621537,
+                    "y": 16.31402835816606
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "onStack": "Z",
+                "writeStack": "Z"
             }
         }
     ]

@@ -107,7 +107,7 @@ export class TypeInjectorComponent {
         const type = value.type;
         const env = type.env;
 
-        if (type.name === "NFANode[]") {
+        if (type.name === "NFANode[]" || type.name === "Node[]") {
             return ListTypeComponent;
         }
 
