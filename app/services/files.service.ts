@@ -214,7 +214,7 @@ class OpenedFile extends AbstractFile implements LocalFile {
     }
 
     getPath() {
-        return this.fullName;
+        return "/" + path.relative("/", this.fullName);
     }
 
     readData(): Promise<string> {

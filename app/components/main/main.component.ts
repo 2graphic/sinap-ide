@@ -60,16 +60,37 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             const openFilesJSON = localStorage.getItem("openFiles");
             if (openFilesJSON) {
                 const openFilenames = JSON.parse(openFilesJSON) as string[];
-                openFilenames.map((fileName) => this.fileService.fileByName(fileName))
-                    .forEach((p) => {
-                        p.then((f) => {
-                            this.openFile(f).catch((e) => {
-                                console.log("Error reopening file: ", f, e);
+
+                // Adding it again to be opened last will cause it to be selected.
+                const selectedFile = localStorage.getItem("selectedFile");
+
+                const promises = openFilenames.map((fileName) => this.fileService.fileByName(fileName))
+                    .map((p) => {
+                        return new Promise((resolve, reject) => {
+                            p.then((f) => {
+                                this.openFile(f).then(() => resolve()).catch((e) => {
+                                    console.log(e);
+                                    resolve();
+                                });
+                            }).catch((e) => {
+                                console.log(e);
+                                resolve();
                             });
-                        }).catch((e) => {
-                            console.log("Can't find file: ", e);
                         });
                     });
+
+                if (selectedFile) {
+                    Promise.all(promises).then(() => {
+                        this.fileService.fileByName(selectedFile).then((f) => {
+                            const found = [...this.tabs.entries()].find(([_, context]) => f.equals(context.file));
+                            if (found) {
+                                this.tabBar.active = found[0];
+                            }
+                        }).catch(() => {
+                            console.log("Unable to select previously selected file: ", selectedFile);
+                        });
+                    });
+                }
             }
         } catch (e) {
             console.log(e);
@@ -199,6 +220,15 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         const openFiles = [...this.tabs.values()].map((context) => context.file.getPath()).filter((path) => path !== undefined) as string[];
         localStorage.setItem("openFiles", JSON.stringify(openFiles));
 
+        // Save what file is open
+        localStorage.removeItem("selectedFile");
+        if (this._context) {
+            const path = this._context.file.getPath();
+            if (path) {
+                localStorage.setItem("selectedFile", path);
+            }
+        }
+
         // TODO: Figure out WTF Electron is doing
         // const isDirty = [...this.tabs.values()].map((context) => context.file.dirty).reduce((dirty, accum) => (dirty || accum), false);
         // if (isDirty) {
@@ -247,12 +277,12 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     openFile = (file: LocalFile) => {
-        const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
-        if (entry) {
-            this.tabBar.active = entry[0];
-            return Promise.resolve();
-        } else {
-            return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
+            const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
+            if (entry) {
+                this.tabBar.active = entry[0];
+                resolve();
+            } else {
                 file.readData().then((content) => {
                     const pojo = JSON.parse(content);
                     const kind = pojo.kind;
@@ -260,8 +290,8 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 }).catch((e) => {
                     reject(e);
                 });
-            });
-        }
+            }
+        });
     }
 
 
