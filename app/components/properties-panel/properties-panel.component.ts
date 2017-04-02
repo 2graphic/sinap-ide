@@ -1,18 +1,47 @@
-// File: properties-panel.component.ts
-// Created by: Daniel James
-// Date created: November 26, 2016
+/**
+ * @file `properties-panel.component.ts`
+ *   Created on November 26, 2016
+ *
+ * @author Daniel James
+ *   <daniel.s.james@icloud.com>
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ *
+ * @see {@link https://angular.io/docs/ts/latest/cookbook/dynamic-component-loader.html}
+ */
 
 
-import { Component, Input } from "@angular/core";
+import { Component, Input, EventEmitter } from "@angular/core";
 import { BridgingProxy } from "../../models/graph-controller";
 import { Type, UnionType, WrappedScriptObjectType, isUnionType } from "sinap-core";
+import { PanelComponent } from "../dynamic-panel/dynamic-panel";
+
+
+export class PropertiesPanelData {
+    private _selectedElements: Set<BridgingProxy> | null
+    = null;
+
+    get selectedElements() {
+        return this._selectedElements;
+    }
+
+    set selectedElements(value: Set<BridgingProxy> | null) {
+        this._selectedElements = value;
+        this.selectedElementsChanged.emit(value);
+    }
+
+    readonly selectedElementsChanged
+    = new EventEmitter<Set<BridgingProxy> | null>();
+}
+
 
 @Component({
     selector: "sinap-properties-panel",
     templateUrl: "./properties-panel.component.html",
     styleUrls: ["./properties-panel.component.scss"],
 })
-export class PropertiesPanelComponent {
+export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelData> {
     private isEmpty = true;
     private fieldNames: string[];
     private fields: { [a: string]: [string, string, Type][] };
@@ -22,7 +51,15 @@ export class PropertiesPanelComponent {
     private isUnionType = isUnionType;
 
 
-    unionValues(t: UnionType) {
+    set data(value: PropertiesPanelData) {
+        if (value) {
+            value.selectedElementsChanged.asObservable().subscribe(this.updateSelectedElements);
+            this.updateSelectedElements(value.selectedElements);
+        }
+    }
+
+
+    private unionValues(t: UnionType) {
         // substring necessary to strip the quote marks off the types
         // that is, the union.types looks like ['"option a"', '"option b"', ...]
         return [...t.types].map(t => t.name.substring(1, t.name.length - 1));
@@ -34,8 +71,7 @@ export class PropertiesPanelComponent {
         this.fieldNames = [];
     }
 
-    @Input()
-    set selectedElements(elements: Set<BridgingProxy> | null) {
+    updateSelectedElements = (elements: Set<BridgingProxy> | null) => {
         if (elements === null) {
             this.clear();
         } else {

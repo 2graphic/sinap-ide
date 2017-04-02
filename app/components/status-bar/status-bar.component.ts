@@ -5,7 +5,7 @@
 // - CJ Dimaano
 
 
-import { Component, EventEmitter, Output, Input } from "@angular/core";
+import { Component, EventEmitter, Output, Input, ElementRef } from "@angular/core";
 
 
 @Component({
@@ -14,13 +14,21 @@ import { Component, EventEmitter, Output, Input } from "@angular/core";
     styleUrls: ["./status-bar.component.scss"]
 })
 export class StatusBarComponent {
-    constructor() {
+    constructor(private readonly el: ElementRef) {
         this.zoom = 1;
     }
 
     @Input() info: StatusBarInfo | undefined;
     @Input() zoom: number;
     @Output() zoomChange = new EventEmitter<number>();
+
+    get offsetHeight() {
+        return this.el.nativeElement.offsetHeight;
+    }
+
+    get offsetWidth() {
+        return this.el.nativeElement.offsetWidth;
+    }
 
     private onZoomIn() {
         this.zoom = Math.min(this.zoom * 1.05, 8);

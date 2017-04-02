@@ -17,7 +17,7 @@ import { ResizableModule } from 'angular-resizable-element';
 
 import { MainComponent } from "./components/main/main.component";
 import { CollapsibleListComponent } from "./components/collapsible-list/collapsible-list.component";
-import { SideBarComponent } from "./components/side-bar/side-bar.component";
+import { DynamicPanelComponent, DynamicPanelDirective } from "./components/dynamic-panel/dynamic-panel";
 import { PropertiesPanelComponent } from "./components/properties-panel/properties-panel.component";
 import { ToolsPanelComponent } from "./components/tools-panel/tools-panel.component";
 import { FilesPanelComponent } from "./components/files-panel/files-panel.component";
@@ -39,12 +39,13 @@ import { ListTypeComponent } from "./components/types/list-type/list-type.compon
         BrowserModule,
         FormsModule,
         InlineSVGModule,
-        ResizableModule,
+        ResizableModule
     ],
     declarations: [
         MainComponent,
         CollapsibleListComponent,
-        SideBarComponent,
+        DynamicPanelComponent,
+        DynamicPanelDirective,
         PropertiesPanelComponent,
         ToolsPanelComponent,
         FilesPanelComponent,
@@ -58,7 +59,15 @@ import { ListTypeComponent } from "./components/types/list-type/list-type.compon
         BooleanTypeComponent,
         ObjectTypeComponent,
         NodeTypeComponent,
-        ListTypeComponent,
+        ListTypeComponent
+    ],
+    entryComponents: [
+        CollapsibleListComponent,
+        FilesPanelComponent,
+        PropertiesPanelComponent,
+        ToolsPanelComponent,
+        TestPanelComponent,
+        InputPanelComponent
     ],
     bootstrap: [MainComponent]
 })

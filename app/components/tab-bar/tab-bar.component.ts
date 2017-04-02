@@ -3,7 +3,7 @@
 // Date created: December 7, 2016
 
 
-import { Component, Input } from "@angular/core";
+import { Component, Input, ElementRef } from "@angular/core";
 
 
 @Component({
@@ -12,10 +12,20 @@ import { Component, Input } from "@angular/core";
     styleUrls: ["./tab-bar.component.scss"]
 })
 export class TabBarComponent {
+    constructor(private readonly el: ElementRef) { }
+
     public delegate: TabDelegate;
     public tabs: Tab[] = [];
     private _active: number;
     private index = 0;
+
+    get offsetHeight() {
+        return this.el.nativeElement.offsetHeight;
+    }
+
+    get offsetWidth() {
+        return this.el.nativeElement.offsetWidth;
+    }
 
     get active() {
         if (this._active) {

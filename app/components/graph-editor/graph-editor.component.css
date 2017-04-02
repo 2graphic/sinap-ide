@@ -1,20 +1,16 @@
 div {
 	position: relative;
-  background-color: #eee;
-  padding: 0;
-  margin: 0;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
+	margin: 0;
+	padding: 0;
 }
 
 canvas {
 	position: absolute;
 	left: 0;
 	top: 0;
-  outline: none;
-  height: 100%;
-  width: 100%;
+	outline: none;
+	height: 100%;
+	width: 100%;
 }
 
 #gridLayer {
@@ -23,25 +19,4 @@ canvas {
 
 #graphLayer {
 	z-index: 1;
-}
-
-input {
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	width: 0;
-	height: 0;
-	display: block;
-	font-size: 1;
-	z-index: -1;
-	color: transparent;
-	background: transparent;
-	overflow: hidden;
-	border: none;
-	padding: 0;
-	margin: 0;
-	resize: none;
-	outline: none;
-	-webkit-user-select: none;
-	user-select: none;
 }
