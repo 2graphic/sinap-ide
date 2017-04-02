@@ -330,7 +330,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 this.saveFile();
                 break;
             case MenuEventAction.DELETE:
-                if (this.focusIsChildOf("editor-panel")) {
+                if (this.focusIsChildOf("graph-editor-container")) {
                     if (this.graphEditor.graph)
                         this.graphEditor.graph.deleteSelected();
                     e.preventDefault();
@@ -343,7 +343,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 // executed when the user presses `ctrl+a`. Selecting the menu
                 // item on Windows, however, does trigger this event.
                 // console.log(e);
-                if (this.focusIsChildOf("editor-panel")) {
+                if (this.focusIsChildOf("graph-editor-container")) {
                     if (this.graphEditor.graph)
                         this.graphEditor.graph.selectAll();
                     e.preventDefault();
@@ -362,13 +362,13 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 this.tabBar.selectNextTab();
                 break;
             case MenuEventAction.UNDO:
-                if (!this.focusIsChildOf("bottom-panels") && this._context) {
+                if (!this.focusIsChildOf("bottom-panel-group") && this._context) {
                     this._context.undo();
                     e.preventDefault();
                 }
                 break;
             case MenuEventAction.REDO:
-                if (!this.focusIsChildOf("bottom-panels") && this._context) {
+                if (!this.focusIsChildOf("bottom-panel-group") && this._context) {
                     this._context.redo();
                     e.preventDefault();
                 }
