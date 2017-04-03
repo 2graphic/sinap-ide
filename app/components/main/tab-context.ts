@@ -4,8 +4,7 @@
 //
 
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
-import { Program } from "sinap-core";
-import { PluginService } from "../../services/plugin.service";
+import { Program, Plugin } from "sinap-core";
 import { LocalFile } from "../../services/files.service";
 import { StatusBarInfo } from "../../components/status-bar/status-bar.component";
 
@@ -16,11 +15,11 @@ const dialog = electron.remote.dialog;
  * Stores the state of each open tab.
  */
 export class TabContext {
-    constructor(public readonly index: number, public graph: GraphController, public file: LocalFile, private pluginService: PluginService) {
-        this.statusBarInfo = {
-            title: this.graph.plugin.pluginKind[this.graph.plugin.pluginKind.length - 1],
-            items: []
-        };
+    constructor(public readonly index: number, public graph: GraphController, public file: LocalFile, private plugin: Plugin) {
+        // this.statusBarInfo = {
+        //     title: this.graph.plugin.pluginKind[this.graph.plugin.pluginKind.length - 1],
+        //     items: []
+        // };
         graph.changed.asObservable().subscribe(this.addUndoableEvent);
     };
 
@@ -45,17 +44,15 @@ export class TabContext {
 
     /** Compile the graph with the plugin, and retains a cached copy for subsequent calls. */
     public compileProgram = (() => {
-        let cachedProgram: Promise<Program>;
+        let cachedProgram: Program;
 
         return () => {
             if (!cachedProgram || this.dirty) {
-                return (cachedProgram = this.pluginService.getProgram(this.graph.plugin, this.graph.core).then((program) => {
-                    this.statusBarInfo.items = program.validate();
-                    return program;
-                }));
-            } else {
-                return cachedProgram;
+                cachedProgram = this.plugin.makeProgram(this.graph.core);
+                // this.statusBarInfo.items = cachedProgram.validate();
             }
+
+            return cachedProgram;
         };
     })();
 

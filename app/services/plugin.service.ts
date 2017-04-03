@@ -1,11 +1,9 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { Type, ObjectType, CoreModel, Plugin, SerialJSO, loadPluginDir, Program, CoreValue } from "sinap-core";
-import { Context, SandboxService, Script } from "../services/sandbox.service";
+import { Plugin, PluginLoaderManager, Program } from "sinap-core";
+import { TypescriptPluginLoader } from "sinap-typescript";
 import { LocalFileService } from "../services/files.service";
 import { somePromises } from "../util";
 
-
-type StubContext = { global: { "plugin-stub": { "Program": any } } };
 
 export class PluginData {
     constructor(readonly path: string[], readonly description: string) {
@@ -38,62 +36,42 @@ function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
 @Injectable()
 export class PluginService {
     readonly plugins: Promise<Plugin[]>;
-    private programs = new Map<Plugin, Promise<any>>();
-    private getResults: Script;
-    private addGraph: Script;
+    private manager: PluginLoaderManager = new PluginLoaderManager();
 
-    constructor( @Inject(LocalFileService) private fileService: LocalFileService,
-        @Inject(SandboxService) private sandboxService: SandboxService) {
+    constructor( @Inject(LocalFileService) private fileService: LocalFileService) {
+        this.manager.loaders.set("typescript", new TypescriptPluginLoader());
+
         this.plugins = this.fileService.getAppLocations()
             .then((appLocations) => appLocations.pluginDirectory.getSubDirectories())
             .then((pluginDirectories) => {
-                const pluginProms = pluginDirectories.map((pluginDir) => loadPluginDir(pluginDir, this.fileService));
+                const pluginProms = pluginDirectories.map((pluginDir) => this.manager.loadPlugin(pluginDir, this.fileService));
                 return somePromises(pluginProms);
             });
     }
 
     public getPluginByKind(kind: string[]): Promise<Plugin> {
         return this.plugins.then((plugins) => {
-            const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginKind));
-            const pluginName = JSON.stringify(kind);
-            if (matches.length === 0) {
-                throw new Error(`Could not find a plugin with kind ${pluginName}`);
-            } else if (matches.length > 1) {
-                throw new Error(`Found multiple plugins matching kind ${pluginName}`);
-            } else {
-                return matches[0];
+            // const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginKind));
+            // const pluginName = JSON.stringify(kind);
+            // if (matches.length === 0) {
+            //     throw new Error(`Could not find a plugin with kind ${pluginName}`);
+            // } else if (matches.length > 1) {
+            //     throw new Error(`Found multiple plugins matching kind ${pluginName}`);
+            // } else {
+            //     return matches[0];
+            // }
+
+            if (plugins.length === 0) {
+                throw new Error("Oops no plugins");
             }
+
+            return plugins[0];
         });
     }
 
     public get pluginData(): Promise<PluginData[]> {
         return this.plugins.then((plugins) => {
-            return plugins.map((plugin) => new PluginData(plugin.pluginKind, plugin.description));
+            return plugins.map((plugin) => new PluginData(["FLAP", "DFA"], "Hardcoded"));
         });
-    }
-
-    public getProgram(plugin: Plugin, m: CoreModel): Promise<Program> {
-        return this.getProgramContext(plugin).then((context) => {
-            const programStub = context.global['plugin-stub'].Program;
-            return new Program(m, programStub);
-        });
-    }
-
-    private getProgramContext(plugin: Plugin) {
-        let contextPromise = this.programs.get(plugin);
-        if (contextPromise === undefined) {
-            const script = this.sandboxService.compileScript(plugin.results.js);
-            contextPromise = this.makeProgramContext(script);
-            this.programs.set(plugin, contextPromise);
-        }
-        return contextPromise;
-    }
-
-    private makeProgramContext(script: Script) {
-        let context: Context = this.sandboxService.createContext({
-            console: console,
-            global: {}
-        });
-        return script.runInContext(context).then((_) => context);
     }
 }

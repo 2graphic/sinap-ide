@@ -59,18 +59,18 @@ export function start(input: DFAGraph, data: string): State | boolean {
 
         if (node.children) {
             let transitions = new Set<string>();
-                for (const edge of node.children) {
-                    if (isEmpty(edge.label)) {
-                        throw new Error("Lambda transition from " + node.label + " to " + edge.destination.label + " is not allowed");
-                    }
-                    if (edge.label.length > 1) {
-                        throw new Error("Edge " + edge.label + " must be one symbol");
-                    }
-                    if (transitions.has(edge.label)) {
-                        throw new Error("Nondeterministic edge " + edge.label + (isEmpty(node.label) ? "" : (" from node: " + node.label)));
-                    }
-                    transitions.add(edge.label);
+            for (const edge of node.children) {
+                if (isEmpty(edge.label)) {
+                    throw new Error("Lambda transition from " + node.label + " to " + edge.destination.label + " is not allowed");
                 }
+                if (edge.label.length > 1) {
+                    throw new Error("Edge " + edge.label + " must be one symbol");
+                }
+                if (transitions.has(edge.label)) {
+                    throw new Error("Nondeterministic edge " + edge.label + (isEmpty(node.label) ? "" : (" from node: " + node.label)));
+                }
+                transitions.add(edge.label);
+            }
         }
     }
 

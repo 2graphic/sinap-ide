@@ -19,7 +19,8 @@ import {
     SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
 
-import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType, isObjectType, WrappedScriptObjectType, PluginTypeEnvironment, valueWrap, CoreValue, makeValue, Type, CorePrimitiveValue, CoreUnionValue, CoreObjectValue, CoreArrayValue, deepListen } from "sinap-core";
+import { Model, Plugin } from "sinap-core";
+import { Value } from "sinap-types";
 import { DoubleMap } from "./double-map";
 
 /**
@@ -121,7 +122,13 @@ export class UndoableChange {
 }
 
 export class Bridge {
-    constructor(public core: CoreElement, public drawable: Drawable) { };
+    constructor(public core: Value.Intersection, public drawable: Drawable) { };
+}
+
+class OutOfSyncError extends Error {
+    constructor() {
+        super("Nodes/edges list out of sync");
+    }
 }
 
 export class GraphController {
@@ -135,99 +142,87 @@ export class GraphController {
         return this._selectedElements;
     }
 
-    public bridges = new DoubleMap<CoreElement, Drawable, Bridge>();
+    public bridges = new DoubleMap<Value.Intersection, Drawable, Bridge>();
 
     validateEdgeHandler = (src: DrawableNode, dst?: DrawableNode, like?: DrawableEdge) => {
         const sourceBridge = this.bridges.getB(src);
         if (!sourceBridge) {
-            throw new Error("Out of sync.");
+            throw new OutOfSyncError();
         }
         const source = sourceBridge.core;
 
-        let destination: CoreElement | undefined = undefined;
+        let destination: Value.Intersection | undefined = undefined;
         if (dst !== undefined) {
             const destinationBridge = this.bridges.getB(dst);
             if (!destinationBridge) {
-                throw new Error("Out of sync.");
+                throw new OutOfSyncError();
             }
 
             destination = destinationBridge.core;
         }
 
-        // TODO: @Sheyne why does this fail?
-        const sourceType = this.plugin.typeEnvironment.getElementType(source.kind, source.type.name);
-        const destinationType = destination !== undefined ? (this.plugin.typeEnvironment.getElementType(destination.kind, destination.type.name)) : undefined;
+        // TODO: ...
 
-        let edge: WrappedScriptObjectType<PluginTypeEnvironment>;
-        if (like !== undefined) {
-            const e = this.bridges.getB(like);
-            if (e === undefined) {
-                throw "backer out of sync";
-            }
-            edge = this.plugin.typeEnvironment.getElementType(e.core.kind, e.core.type.name);
-        } else {
-            edge = this.plugin.typeEnvironment.getElementType(CoreElementKind.Edge, this.activeEdgeType);
-        }
-
-        return validateEdge(edge, sourceType, destinationType);
+        return true;
     }
 
-    constructor(public core: CoreModel, public plugin: Plugin) {
-        this.activeEdgeType = this.plugin.elementTypes(CoreElementKind.Edge).next().value;
-        this.activeNodeType = this.plugin.elementTypes(CoreElementKind.Node).next().value;
+    constructor(public core: Model, public plugin: Plugin) {
+        this.activeEdgeType = plugin.edgesType.types.values().next().value.name;
+        this.activeNodeType = plugin.nodesType.types.values().next().value.name;
 
-        this.drawable = new DrawableGraph(() => true);
-        let coreGraph: CoreElement | null = null;
-        const coreEdges: CoreElement[] = [];
+        this.drawable = new DrawableGraph(this.validateEdgeHandler);
+        this.addDrawable(this.drawable);
+        // let coreGraph: CoreElement | null = null;
+        // const coreEdges: CoreElement[] = [];
 
-        // each core element we iterate over needs to have a drawable equivalent made for it
-        for (const [_, element] of this.core.elements) {
-            // placeholder for the new drawable (if we make one)
-            let drawable: Drawable | null = null;
-            switch (element.kind) {
-                case CoreElementKind.Edge:
-                    // do edges last, they reference nodes
-                    coreEdges.push(element);
-                    break;
-                case CoreElementKind.Node:
-                    drawable = this.drawable.createNode();
-                    if (drawable === null) {
-                        throw "node creation canceled while loading from core";
-                    }
-                    this.copyPropertiesToDrawable(element, drawable);
-                    break;
-                case CoreElementKind.Graph:
-                    drawable = this.drawable;
-                    // we want to keep track of the graph element
-                    if (coreGraph !== null) {
-                        throw "More than one graph found";
-                    }
-                    coreGraph = element;
-                    this.copyPropertiesToDrawable(element, drawable);
-                    break;
-            }
-            if (drawable !== null) {
-                this.addDrawable(drawable, element);
-            }
-        }
-        // if we weren't given a graph object, make one
-        if (coreGraph === null) {
-            this.addDrawable(this.drawable);
-        }
+        // // each core element we iterate over needs to have a drawable equivalent made for it
+        // for (const [_, element] of this.core.elements) {
+        //     // placeholder for the new drawable (if we make one)
+        //     let drawable: Drawable | null = null;
+        //     switch (element.kind) {
+        //         case CoreElementKind.Edge:
+        //             // do edges last, they reference nodes
+        //             coreEdges.push(element);
+        //             break;
+        //         case CoreElementKind.Node:
+        //             drawable = this.drawable.createNode();
+        //             if (drawable === null) {
+        //                 throw "node creation canceled while loading from core";
+        //             }
+        //             this.copyPropertiesToDrawable(element, drawable);
+        //             break;
+        //         case CoreElementKind.Graph:
+        //             drawable = this.drawable;
+        //             // we want to keep track of the graph element
+        //             if (coreGraph !== null) {
+        //                 throw "More than one graph found";
+        //             }
+        //             coreGraph = element;
+        //             this.copyPropertiesToDrawable(element, drawable);
+        //             break;
+        //     }
+        //     if (drawable !== null) {
+        //         this.addDrawable(drawable, element);
+        //     }
+        // }
+        // // if we weren't given a graph object, make one
+        // if (coreGraph === null) {
+        //     this.addDrawable(this.drawable);
+        // }
 
-        // now make the drawable edges
-        for (const edge of coreEdges) {
-            const source = this.bridges.getA(edge.get('source') as any)!.drawable as DrawableNode;
-            const destination = this.bridges.getA(edge.get('destination') as any)!.drawable as DrawableNode;
+        // // now make the drawable edges
+        // for (const edge of coreEdges) {
+        //     const source = this.bridges.getA(edge.get('source') as any)!.drawable as DrawableNode;
+        //     const destination = this.bridges.getA(edge.get('destination') as any)!.drawable as DrawableNode;
 
-            const drawableEdge = this.drawable.createEdge(source, destination);
-            if (drawableEdge === null) {
-                throw "edge creation canceled while loading from core";
-            }
+        //     const drawableEdge = this.drawable.createEdge(source, destination);
+        //     if (drawableEdge === null) {
+        //         throw "edge creation canceled while loading from core";
+        //     }
 
-            this.copyPropertiesToDrawable(edge, drawableEdge);
-            this.addDrawable(drawableEdge, edge);
-        }
+        //     this.copyPropertiesToDrawable(edge, drawableEdge);
+        //     this.addDrawable(drawableEdge, edge);
+        // }
 
         // finally set up all the listeners after we copy all the elements
         this.drawable.addEventListener("created", (evt: DrawableEvent<DrawableElement>) => {
@@ -247,32 +242,32 @@ export class GraphController {
         this.setSelectedElements(undefined);
     }
 
-    private addDrawable(drawable: Drawable, core?: CoreElement) {
+    private addDrawable(drawable: Drawable, core?: Value.Intersection) {
         if (!core) {
             core = this.makeCoreFromDrawable(drawable);
         }
         const bridge = new Bridge(core, drawable);
         this.bridges.set(core, drawable, bridge);
 
-        const f = (_: any, nv: any) => {
-            for (const key in nv) {
-                if (key === "source" || key === "destination" || key === "position") continue;
-                drawable.removeEventListener("change", g);
-                (drawable as any)[key] = nv[key];
-                setTimeout(() => {
-                    drawable.addEventListener("change", g);
-                }, 0);
-            }
-        };
+        // const f = (_: any, nv: any) => {
+        //     for (const key in nv) {
+        //         if (key === "source" || key === "destination" || key === "position") continue;
+        //         drawable.removeEventListener("change", g);
+        //         (drawable as any)[key] = nv[key];
+        //         setTimeout(() => {
+        //             drawable.addEventListener("change", g);
+        //         }, 0);
+        //     }
+        // };
 
-        const g = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
-        deepListen([...core.values][0][1], () => {
-            setTimeout(() => {
-                this.changed.emit();
-            }, 0);
-        });
-        deepListen([...core.values][1][1], f);
-        drawable.addEventListener("change", g);
+        // const g = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
+        // deepListen([...core.values][0][1], () => {
+        //     setTimeout(() => {
+        //         this.changed.emit();
+        //     }, 0);
+        // });
+        // deepListen([...core.values][1][1], f);
+        // drawable.addEventListener("change", g);
 
         return bridge;
     }
@@ -280,28 +275,36 @@ export class GraphController {
     private removeDrawable(drawable: Drawable) {
         const bridge = this.bridges.getB(drawable);
         if (bridge) {
-            this.core.removeElement(bridge.core);
+            this.core.delete(bridge.core);
             this.bridges.delete(bridge.core, bridge.drawable);
+        } else {
+            throw new Error("Trying to delete core element that does not exist.");
         }
 
         return bridge;
     }
 
-    private makeCoreFromDrawable(drawable: Drawable) {
-        const kind = drawable instanceof DrawableEdge ?
-            CoreElementKind.Edge : (drawable instanceof DrawableNode ?
-                CoreElementKind.Node : CoreElementKind.Graph);
 
-        let type = undefined;
-        if (kind === CoreElementKind.Node) {
-            type = this.activeNodeType;
-        } else if (kind === CoreElementKind.Edge) {
-            type = this.activeEdgeType;
+    private makeCoreFromDrawable(drawable: Drawable) {
+        let core: Value.Intersection;
+
+        if (drawable instanceof DrawableNode) {
+            core = this.core.makeNode();
+        } else if (drawable instanceof DrawableEdge) {
+            const srcB = this.bridges.getB(drawable.source);
+            const dstB = this.bridges.getB(drawable.destination);
+            if (!srcB || !dstB) {
+                throw new Error("Modal missing source or destination for edge.");
+            }
+
+            core = this.core.makeEdge(undefined, srcB.core, dstB.core);
+        } else if (drawable instanceof DrawableGraph) {
+            core = this.core.graph;
+        } else {
+            throw new Error("Unable to create core representation of unknown Drawable type.");
         }
 
-        const core = this.core.addElement(kind, type);
         this.copyPropertiesToCore(drawable, core);
-
         return core;
     }
 
@@ -344,76 +347,76 @@ export class GraphController {
         if (bridge !== undefined) {
             this.copyPropertyToCore(bridge.drawable, bridge.core, a.key);
         } else {
-            throw "Nodes/edges list out of sync";
+            throw new OutOfSyncError();
         }
     }
 
-    private getData = (v: CoreValue<PluginTypeEnvironment>) => {
-        return v.jsonify(() => { return { result: false, value: undefined }; });
+    // private getData = (v: Value.Intersection) => {
+    //     return v.jsonify(() => { return { result: false, value: undefined }; });
+    // }
+
+    copyPropertiesToDrawable(core: Value.Intersection, drawable: Drawable) {
+        // Object.keys(drawable).forEach(this.copyPropertyToDrawable.bind(this, core, drawable));
     }
 
-    copyPropertiesToDrawable(core: CoreElement, drawable: Drawable) {
-        Object.keys(drawable).forEach(this.copyPropertyToDrawable.bind(this, core, drawable));
+    copyPropertyToDrawable(core: Value.Intersection, drawable: Drawable, key: string) {
+        // try {
+        //     if (key === "source" || key === "destination") return;
+        //     const value = core.get(key) as CoreValue<PluginTypeEnvironment>;
+        //     const data = this.getData(value);
+        //     (drawable as any)[key] = data;
+        // } catch (e) {
+        //     console.log("Not copying " + key);
+        // }
     }
 
-    copyPropertyToDrawable(core: CoreElement, drawable: Drawable, key: string) {
-        try {
-            if (key === "source" || key === "destination") return;
-            const value = core.get(key) as CoreValue<PluginTypeEnvironment>;
-            const data = this.getData(value);
-            (drawable as any)[key] = data;
-        } catch (e) {
-            console.log("Not copying " + key);
-        }
+    copyPropertiesToCore(drawable: Drawable, core: Value.Intersection) {
+        // Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    copyPropertiesToCore(drawable: Drawable, core: CoreElement) {
-        Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
-    }
+    copyPropertyToCore(drawable: Drawable, core: Value.Intersection, key: PropertyKey) {
+        // if (key === "source" || key === "destination") {
+        //     const bridge = this.bridges.getB((drawable as any)[key]);
+        //     if (!bridge) {
+        //         throw new Error("Edge is referencing a nonexistent node");
+        //     }
 
-    copyPropertyToCore(drawable: Drawable, core: CoreElement, key: PropertyKey) {
-        if (key === "source" || key === "destination") {
-            const bridge = this.bridges.getB((drawable as any)[key]);
-            if (!bridge) {
-                throw new Error("Edge is referencing a nonexistent node");
-            }
+        //     core.set(key, bridge.core);
+        //     return;
+        // }
 
-            core.set(key, bridge.core);
-            return;
-        }
+        // if (key === "position") {
+        //     const pos = core.get("position") as CoreObjectValue<PluginTypeEnvironment>;
+        //     const x = pos.get("x") as CorePrimitiveValue<PluginTypeEnvironment>;
+        //     const y = pos.get("y") as CorePrimitiveValue<PluginTypeEnvironment>;
 
-        if (key === "position") {
-            const pos = core.get("position") as CoreObjectValue<PluginTypeEnvironment>;
-            const x = pos.get("x") as CorePrimitiveValue<PluginTypeEnvironment>;
-            const y = pos.get("y") as CorePrimitiveValue<PluginTypeEnvironment>;
+        //     x.data = (drawable as DrawableNode).position.x;
+        //     y.data = (drawable as DrawableNode).position.y;
 
-            x.data = (drawable as DrawableNode).position.x;
-            y.data = (drawable as DrawableNode).position.y;
+        //     return;
+        // }
 
-            return;
-        }
+        // const kind = CoreElementKind[core.kind];
+        // const drawableType = core.type.env.lookupSinapType("Drawable" + kind);
+        // if (!isObjectType(drawableType)) {
+        //     throw new Error("Expected ObjectType");
+        // }
 
-        const kind = CoreElementKind[core.kind];
-        const drawableType = core.type.env.lookupSinapType("Drawable" + kind);
-        if (!isObjectType(drawableType)) {
-            throw new Error("Expected ObjectType");
-        }
+        // let type = drawableType.members.get(key.toString()) as Type<PluginTypeEnvironment> | undefined;
 
-        let type = drawableType.members.get(key.toString()) as Type<PluginTypeEnvironment> | undefined;
+        // if (type === undefined) {
+        //     // console.log("Not copying " + key);
+        //     return;
+        // }
 
-        if (type === undefined) {
-            // console.log("Not copying " + key);
-            return;
-        }
+        // if (type.isAssignableTo(core.type.env.lookupSinapType("WrappedString"))) {
+        //     type = type.env.getStringType();
+        // }
 
-        if (type.isAssignableTo(core.type.env.lookupSinapType("WrappedString"))) {
-            type = type.env.getStringType();
-        }
+        // const typeEnvironment = this.plugin.typeEnvironment;
+        // const value = makeValue(type, (drawable as any)[key], false);
 
-        const typeEnvironment = this.plugin.typeEnvironment;
-        const value = makeValue(type, (drawable as any)[key], false);
-
-        core.set(key.toString(), value);
+        // core.set(key.toString(), value);
     }
 
     setSelectedElements(se: Iterable<Drawable> | undefined) {

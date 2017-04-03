@@ -8,7 +8,7 @@
 
 
 import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
-import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, SerialJSO } from "sinap-core";
+import { Program, Plugin, Model } from "sinap-core";
 
 import { GraphEditorComponent, DrawableElement } from "../graph-editor/graph-editor.component";
 import { InputPanelComponent } from "../input-panel/input-panel.component";
@@ -26,7 +26,6 @@ import { MenuEventAction } from "../../models/menu";
 import { ModalInfo, ModalType } from './../../models/modal-window';
 
 import { LocalFileService, LocalFile, UntitledFile } from "../../services/files.service";
-import { SandboxService } from "../../services/sandbox.service";
 import { PluginService } from "../../services/plugin.service";
 import { WindowService } from "../../modal-windows/services/window.service";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
@@ -40,7 +39,7 @@ import { ResizeEvent } from 'angular-resizable-element';
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.scss"],
-    providers: [MenuService, PluginService, WindowService, LocalFileService, SandboxService]
+    providers: [MenuService, PluginService, WindowService, LocalFileService]
 })
 
 export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, TabDelegate {
@@ -103,9 +102,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     private set context(context: TabContext | undefined) {
         this._context = context;
         if (context) {
-            context.compileProgram().then((program) => {
-                this.onNewProgram(program, context.graph);
-            });
+            this.onNewProgram(context.compileProgram(), context.graph);
 
             this.toolsPanel.graph = context.graph;
             this.filesPanel.selectedFile = context.file;
@@ -127,15 +124,15 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     };
 
     /** Create a new tab and open it */
-    newFile(file: LocalFile, kind: string[], content?: SerialJSO) {
+    newFile(file: LocalFile, kind: string[], content?: any/*SerialJSO*/) {
         // TODO: have a more efficient way to get kind.
         this.pluginService.getPluginByKind(kind).then((plugin) => {
-            const model = new CoreModel(plugin, content);
+            const model = new Model(plugin);
 
             let tabNumber = this.tabBar.newTab(file);
 
             const graph = new GraphController(model, plugin);
-            const context = new TabContext(tabNumber, graph, file, this.pluginService);
+            const context = new TabContext(tabNumber, graph, file, plugin);
 
             graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
 
@@ -159,9 +156,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     private makeChangeNotifier(context: TabContext) {
         return (change: UndoableEvent) => {
-            context.compileProgram().then((program) => {
-                this.onNewProgram(program, context.graph);
-            });
+            this.onNewProgram(context.compileProgram(), context.graph);
         };
     }
 
