@@ -850,6 +850,7 @@ export class EditorGraph {
         this.selected.delete(e);
         this.unselected.delete(e);
         this.drawables.delete(d);
+        this.updateHoverObject();
         d.removeEventListener("change", this.onDrawablePropertyChanged);
         this.draw();
     }

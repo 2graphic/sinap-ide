@@ -1,81 +1,63 @@
-// File: properties-panel.component.ts
-// Created by: Daniel James
-// Date created: November 26, 2016
+/**
+ * @file `properties-panel.component.ts`
+ *   Created on November 26, 2016
+ *
+ * @author Daniel James
+ *   <daniel.s.james@icloud.com>
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ *
+ * @see {@link https://angular.io/docs/ts/latest/cookbook/dynamic-component-loader.html}
+ */
 
 
-import { Component, Input } from "@angular/core";
+import { Component, Input, EventEmitter } from "@angular/core";
 import { Bridge } from "../../models/graph-controller";
-import { Type, UnionType, WrappedScriptObjectType, isUnionType, PluginTypeEnvironment, CoreValue, CoreObjectValue } from "sinap-core";
+import { Value } from "sinap-types";
+import { PanelComponent } from "../dynamic-panel/dynamic-panel";
+
+
+export class PropertiesPanelData {
+    private _selectedElements?: Set<Bridge>;
+
+    get selectedElements() {
+        return this._selectedElements;
+    }
+
+    set selectedElements(value: Set<Bridge> | undefined) {
+        this._selectedElements = value;
+        this.selectedElementsChanged.emit(value);
+    }
+
+    readonly selectedElementsChanged
+    = new EventEmitter<Set<Bridge> | undefined>();
+}
+
 
 @Component({
     selector: "sinap-properties-panel",
     templateUrl: "./properties-panel.component.html",
     styleUrls: ["./properties-panel.component.scss"],
 })
-export class PropertiesPanelComponent {
+export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelData> {
     private isEmpty = true;
-    private fieldNames: string[];
-    private fields: { [a: string]: [string, string, Type<PluginTypeEnvironment>][] };
-    private element: { [a: string]: any };
-    private lookupSinapType: (a: string) => Type<PluginTypeEnvironment>;
-    private lookupPluginType: (a: string) => Type<PluginTypeEnvironment>;
-    private isUnionType = isUnionType;
 
-    private pluginValue: CoreObjectValue<PluginTypeEnvironment> | undefined;
-    private drawableValue: CoreObjectValue<PluginTypeEnvironment> | undefined;
-    private elementKind: string | undefined;
-
-    unionValues(t: UnionType<PluginTypeEnvironment>) {
-        // substring necessary to strip the quote marks off the types
-        // that is, the union.types looks like ['"option a"', '"option b"', ...]
-        return [...t.types].map(t => t.name.substring(1, t.name.length - 1));
+    set data(value: PropertiesPanelData) {
+        if (value) {
+            value.selectedElementsChanged.asObservable().subscribe(this.updateSelectedElements);
+            this.updateSelectedElements(value.selectedElements);
+        }
     }
 
-    private clear() {
-        this.isEmpty = true;
-        this.fields = {};
-        this.fieldNames = [];
-        this.pluginValue = undefined;
-        this.drawableValue = undefined;
-        this.elementKind = undefined;
-    }
-
-    @Input()
-    set selectedElements(elements: Set<Bridge> | undefined) {
-        if (elements === undefined) {
-            this.clear();
+    updateSelectedElements = (elements: Set<Bridge> | undefined) => {
+        if (elements === undefined || elements.size === 0) {
+            this.isEmpty = true;
         } else {
             const bridge = elements.values().next().value;
-            const values = [...(bridge.core.values).values()];
-            this.pluginValue = values[0] as CoreObjectValue<PluginTypeEnvironment>;
-            this.elementKind = bridge.core.pluginType.name;
-            this.drawableValue = values[1] as CoreObjectValue<PluginTypeEnvironment>;
             this.isEmpty = false;
 
-            // const bridge = elements.values().next().value;
-            // const drawableType = bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind) !;
-
-            // if (bridge.core.type instanceof WrappedScriptObjectType) {
-            //     const pluginType = bridge.core.type;
-
-            //     // TODO: move this to function
-            //     const pluginFields = [...pluginType.members.entries()].map(([n, t]) => [n, pluginType.prettyNames.get(n), t] as [string, string, Type<PluginTypeEnvironment>]);
-            //     const drawableFields = [...drawableType.members.entries()]
-            //         .filter(([n, _]) => !pluginType.members.has(n))
-            //         .map(([n, t]) => [n, drawableType.prettyNames.get(n), t] as [string, string, Type<PluginTypeEnvironment>]);
-
-            //     this.fields = {
-            //         "General": pluginFields,
-            //         "Drawable": drawableFields
-            //     };
-            //     this.fieldNames = Object.keys(this.fields);
-            //     this.element = bridge.proxy;
-
-            //     this.lookupSinapType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupSinapType(a);
-            //     this.lookupPluginType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupPluginType(a);
-            // } else {
-            //     this.clear();
-            // }
+            console.log(bridge);
         }
     }
 }

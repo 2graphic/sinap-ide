@@ -1,96 +1,91 @@
-// File: input-panel.component.ts
-//
+/**
+ * @file `input-panel.component.ts`
+ *
+ * @author Daniel James
+ *   <daniel.s.james@icloud.com>
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ *
+ * @see {@link https://angular.io/docs/ts/latest/cookbook/dynamic-component-loader.html}
+ */
 
-import { Component, ElementRef, ViewChild, AfterViewChecked } from "@angular/core";
-import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType, WrappedScriptType, PluginTypeEnvironment, CoreObjectValue, CorePrimitiveValue, CoreElement, makeValue, CoreArrayValue, CoreMapValue } from "sinap-core";
-import { GraphController } from "../../models/graph-controller";
-import { DrawableElement } from "../graph-editor/graph-editor.component";
+import { Component, ElementRef, ViewChild, AfterViewChecked, EventEmitter } from "@angular/core";
+import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType } from "sinap-core";
+import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
+
+export class InputPanelData {
+    constructor() { }
+
+    private _program?: Program;
+
+    results: ProgramResult[] = [];
+    selected: ProgramResult;
+    selectedState: State;
+
+    inputForPlugin?: CoreValue;
+
+    shouldScroll = false;
+
+    isObjectType = isObjectType;
+
+    get program() {
+        return this._program;
+    }
+
+    set program(value: Program | undefined) {
+        this._program = value;
+        this.programChanged.emit(value);
+    }
+
+    readonly programChanged
+    = new EventEmitter<Program | undefined>();
+}
 
 @Component({
     selector: "sinap-input-panel",
     templateUrl: "./input-panel.component.html",
     styleUrls: ["./input-panel.component.scss"]
 })
-export class InputPanelComponent implements AfterViewChecked {
-    public program?: Program;
-    private graph?: GraphController;
+export class InputPanelComponent implements AfterViewChecked, PanelComponent<InputPanelData>, TitleBarItems {
+    private _data: InputPanelData;
 
-    set info(info: [Program, GraphController] | undefined) {
-        if (info) {
-            const [program, graph] = info;
-            this.program = program;
-            this.graph = graph;
-        } else {
-            this.program = undefined;
-            this.graph = undefined;
-        }
+    titlebarItems = [
+        new TitlebarSpacer(),
+        new TitlebarButton(`${require('../../images/play.svg')}`, "Step", false, false, () => this.step()),
+        new TitlebarButton(`${require('../../images/play-finish.svg')}`, "Finish", false, false, () => this.stepFinish()),
+        new TitlebarButton(`${require('../../images/play-all.svg')}`, "Step to Completion", false, false, () => this.stepToCompletion())
+    ];
 
+    set data(value: InputPanelData) {
+        this._data = value;
+        value.programChanged.asObservable().subscribe(p => {
+            this.setupInput();
+        });
         this.setupInput();
     }
 
-    private results: ProgramResult[] = [];
-    private selected: ProgramResult;
-    private selectedState: State;
-
-    private inputForPlugin?: CoreValue<PluginTypeEnvironment>;
-
-    private shouldScroll = false;
     ngAfterViewChecked() {
-        if (this.shouldScroll) {
+        if (this._data.shouldScroll) {
             let el: Element = this.log.nativeElement;
             el.scrollTop = el.scrollHeight;
-            this.shouldScroll = false;
+            this._data.shouldScroll = false;
         }
     };
 
     @ViewChild('log') log: ElementRef;
 
-    private isObjectType = isObjectType;
-    private isErrorType(t: Type<PluginTypeEnvironment>) {
-        try {
-            return t.isAssignableTo(t.env.lookupPluginType("Error"));
-        } catch (e) {
-            // TODO:
-            return false;
-        }
+    private isErrorType(t: Type) {
+        return t.isAssignableTo((t.env as any).lookupPluginType("Error"));
     }
 
     private selectState(state: State) {
-        this.selectedState = state;
-        if (state.state instanceof CoreObjectValue && state.state.type.members.has("active")) {
-            const active = state.state.get("active");
-
-            // TODO: Check to make sure they are actually CoreElements. Do Sets also...
-            if (active instanceof CoreArrayValue) {
-                this.selectElements(active.values);
-            } else {
-                this.selectElements([active]);
-            }
-        }
-    }
-
-    private selectElements(elements: CoreValue<PluginTypeEnvironment>[]) {
-        if (this.graph) {
-            const f = (element: CoreElement) => {
-                for (let bridge of this.graph!.bridges.entries()) {
-                    if (bridge.core.uuid === (element as any).value.uuid) {
-                        if (bridge.drawable instanceof DrawableElement) {
-                            toSelect.push(bridge.drawable);
-                        }
-                    }
-                };
-            };
-
-            const toSelect: DrawableElement[] = [];
-            elements.forEach(f);
-
-            this.graph.drawable.clearSelection();
-            this.graph.drawable.select(...toSelect);
-        }
+        this._data.selectedState = state;
+        // this._data.delegate.selectNode(state.state.value.active);
     }
 
     private scrollToBottom() {
-        this.shouldScroll = true;
+        this._data.shouldScroll = true;
     }
 
     private getStringType(program: Program) {
@@ -98,45 +93,31 @@ export class InputPanelComponent implements AfterViewChecked {
     }
 
     private setupInput() {
-        if (this.program && this.graph) {
-            let type = this.program.runArguments[0][0];
+        if (this._data.program) {
+            let type = this._data.program.runArguments[0][0];
 
-            // TODO: improve this
-            if (type instanceof WrappedScriptType && type.env.lookupGlobalType("Map").type.symbol === type.type.symbol) {
-                const types = (type as any).typeArguments as Type<PluginTypeEnvironment>[];
-                const keyType = types[0];
-                const valueType = types[1];
-
-                const map = new Map<CoreValue<PluginTypeEnvironment>, CoreValue<PluginTypeEnvironment>>();
-
-                if (keyType.isAssignableTo(keyType.env.lookupPluginType("Node"))) {
-                    [...this.graph.bridges.values()].map((b) => b.core).forEach((core) => {
-                        if (core.type.types.values().next().value.isAssignableTo(keyType)) {
-                            map.set(core, makeValue(valueType, undefined, true));
-                        }
-                    });
-                }
-
-                let mapValue = makeValue(type, new Map(), false) as CoreMapValue<PluginTypeEnvironment>;
-                map.forEach((v, k) => {
-                    mapValue.map.set(k, v);
+            if (type.name === "InputType") {
+                const members = new Map<string, Type>();
+                members.set("a", this._data.program.plugin.typeEnvironment.getBooleanType());
+                members.set("b", this._data.program.plugin.typeEnvironment.getBooleanType());
+                this._data.inputForPlugin = new CoreValue(new FakeObjectType(this._data.program.plugin.typeEnvironment, members), {
+                    "a": false,
+                    "b": false
                 });
-
-                this.inputForPlugin = mapValue;
             } else {
-                this.inputForPlugin = makeValue(type, undefined, true);
+                this._data.inputForPlugin = new CoreValue(type, "");
             }
         }
     }
 
     private selectResult(c: ProgramResult) {
-        this.selected = c;
+        this._data.selected = c;
         this.scrollToBottom();
     }
 
     private step(): boolean {
-        if (this.selected && (this.selected.steps < this.selected.output.states.length)) {
-            this.selectState(this.selected.output.states[this.selected.steps++]);
+        if (this._data.selected && (this._data.selected.steps < this._data.selected.output.states.length)) {
+            this.selectState(this._data.selected.output.states[this._data.selected.steps++]);
             this.scrollToBottom();
             return true;
         }
@@ -145,9 +126,9 @@ export class InputPanelComponent implements AfterViewChecked {
     }
 
     private stepFinish() {
-        if (this.selected) {
-            this.selected.steps = this.selected.output.states.length - 1;
-            this.selectState(this.selected.output.states[this.selected.steps++]);
+        if (this._data.selected) {
+            this._data.selected.steps = this._data.selected.output.states.length - 1;
+            this.selectState(this._data.selected.output.states[this._data.selected.steps++]);
             this.scrollToBottom();
         }
     }
@@ -172,18 +153,18 @@ export class InputPanelComponent implements AfterViewChecked {
         g();
     }
 
-    private onSubmit(input: CoreValue<PluginTypeEnvironment>) {
+    private onSubmit(input: CoreValue) {
         const output = this.run(input);
         if (output) {
             const states = output.states.map(s => new State(s));
             const result = new ProgramResult(input, new Output(states, output.result));
             console.log(result);
 
-            this.selected = result;
-            this.results.unshift(result);
+            this._data.selected = result;
+            this._data.results.unshift(result);
 
             if (result.output.states.length > 0) {
-                this.selectedState = result.output.states[0];
+                this._data.selectedState = result.output.states[0];
                 result.steps++;
                 this.selectState(result.output.states[0]);
             }
@@ -193,9 +174,9 @@ export class InputPanelComponent implements AfterViewChecked {
         }
     }
 
-    private run(input: CoreValue<PluginTypeEnvironment>) {
-        if (this.program) {
-            return this.program.run([input]);
+    private run(input: CoreValue) {
+        if (this._data.program) {
+            return this._data.program.run([input]);
         } else {
             console.log("no graph to run!");
         }
@@ -205,25 +186,37 @@ export class InputPanelComponent implements AfterViewChecked {
 }
 
 class Output {
-    constructor(public readonly states: State[], public readonly result: CoreValue<PluginTypeEnvironment>) { };
+    constructor(public readonly states: State[], public readonly result: CoreValue) { };
 }
 
 class State {
-    message: CoreValue<PluginTypeEnvironment> | undefined;
-    state: CoreValue<PluginTypeEnvironment>;
+    message: CoreValue | undefined;
+    state: CoreValue;
 
-    constructor(value: CoreValue<PluginTypeEnvironment>) {
+    constructor(value: CoreValue) {
         this.message = this.getMessage(value);
-        this.state = value;
+        this.state = this.stripMessage(value);
     }
 
-    private getMessage(state: CoreValue<PluginTypeEnvironment>) {
-        if (state instanceof CoreObjectValue && state.type.members.has("message")) {
-            const message = state.get("message");
+    /**
+     * Returns a new object value that doesn't have a message property.
+     */
+    private stripMessage(state: CoreValue) {
+        if (isObjectType(state.type)) {
+            const members = new Map(state.type.members);
+            members.delete("message");
+            return new CoreValue(new FakeObjectType(state.type.env, members), state.value);
+        } else {
+            return state;
+        }
+    }
 
-            // TODO:
-            // message.hidden = true;
-            return message;
+    private getMessage(state: CoreValue) {
+        if (isObjectType(state.type)) {
+            const type = state.type.members.get("message");
+            if (type) {
+                return new CoreValue(type, state.value.message);
+            }
         }
 
         return undefined;
@@ -231,7 +224,7 @@ class State {
 }
 
 class ProgramResult {
-    constructor(public readonly input: CoreValue<PluginTypeEnvironment>, public readonly output: Output) { };
+    constructor(public readonly input: CoreValue, public readonly output: Output) { };
     public steps = 0;
 
     public getStates() {

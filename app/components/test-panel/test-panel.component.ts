@@ -1,189 +1,243 @@
-// File: test-panel.component.ts
-// Created by: Daniel James
-// Date created: December 8, 2016
+/**
+ * @file `test-panel.component.ts`
+ *   Created on December 8, 2016
+ *
+ * @author Daniel James
+ *   <daniel.s.james@icloud.com>
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ *
+ * @see {@link https://angular.io/docs/ts/latest/cookbook/dynamic-component-loader.html}
+ */
 
+import { Component, Input, EventEmitter } from "@angular/core";
+import { Program, CoreValue, FakeObjectType, Type } from "sinap-core";
+import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
 
-import { Component, Input } from "@angular/core";
-import { GraphController } from "../../models/graph-controller";
-import { Program, CoreValue, valueWrap, PluginTypeEnvironment, FakeObjectType, Type, makeValue, deepListen, WrappedScriptType, CoreMapValue } from "sinap-core";
+export class TestPanelData {
+    private _program?: Program;
+    /**
+     * Whether changes to the graph should automatically run through all tests.
+     */
+    private _autoplay: boolean = true;
+    private readonly _selected = new Set<Test>();
+
+    tests: Test[] = [];
+
+    readonly autoplayChanged = new EventEmitter<boolean>();
+
+    readonly selectedChanged = new EventEmitter<TestPanelData>();
+
+    get autoplay() {
+        return this._autoplay;
+    }
+
+    set autoplay(value: boolean) {
+        this._autoplay = value;
+        this.autoplayChanged.emit(value);
+    }
+
+    get program() {
+        return this._program;
+    }
+
+    set program(value: Program | undefined) {
+        this._program = value;
+        this.programChanged.emit(value);
+    }
+
+    get selectedSize() {
+        return this._selected.size;
+    }
+
+    get selected(): Iterable<Test> {
+        return this._selected;
+    }
+
+    isSelected(value: Test) {
+        return this._selected.has(value);
+    }
+
+    removeSelected(value: Test) {
+        this._selected.delete(value);
+        this.selectedChanged.emit(this);
+    }
+
+    addSelected(value: Test) {
+        this._selected.add(value);
+        this.selectedChanged.emit(this);
+    }
+
+    clearSelected() {
+        this._selected.clear();
+        this.selectedChanged.emit(this);
+    }
+
+    readonly programChanged
+    = new EventEmitter<Program | undefined>();
+}
 
 @Component({
     selector: "sinap-test-panel",
     templateUrl: "./test-panel.component.html",
     styleUrls: ["./test-panel.component.scss"]
 })
-export class TestPanelComponent {
-    public program?: Program;
-    private graph?: GraphController;
+export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleBarItems {
+    private _data: TestPanelData;
 
-    set info(info: [Program, GraphController] | undefined) {
-        if (info) {
-            const [program, graph] = info;
-            this.program = program;
-            this.graph = graph;
+    titlebarItems = [
+        new TitlebarSpacer(),
+        new TitlebarButton(`${require('../../images/plus.svg')}`, "Add test", false, false, () => this.newTest()),
+        new TitlebarButton(`${require('../../images/minus.svg')}`, "Remove Selected Tests", false, false, () => this.removeSelected()),
+        new TitlebarSpacer(),
+        new TitlebarButton(`${require('../../images/autoplay.svg')}`, "Autorun is off", false, false, () => this.toggleAutoplay()),
+        new TitlebarSpacer(),
+        new TitlebarButton(`${require('../../images/play-all.svg')}`, "Run all tests", false, false, () => this.runTests()),
+        new TitlebarButton(`${require('../../images/play.svg')}`, "Run selected tests", false, false, () => this.runSelectedTests()),
+    ];
 
-            if (this.autoplay) {
+    set data(value: TestPanelData) {
+        this._data = value;
+        value.programChanged.asObservable().subscribe(p => {
+            if (p && this._data.autoplay)
                 this.runTests();
-            }
-        } else {
-            this.program = undefined;
-            this.graph = undefined;
-        }
+        });
+        value.selectedChanged.asObservable().subscribe(d => {
+            (this.titlebarItems[2] as TitlebarButton).isDisabled = d.selectedSize === 0;
+            (this.titlebarItems[7] as TitlebarButton).isDisabled = d.selectedSize === 0;
+        });
+        value.autoplayChanged.asObservable().subscribe(v => {
+            (this.titlebarItems[4] as TitlebarButton).isToggled = v;
+            (this.titlebarItems[4] as TitlebarButton).title = "Autorun is " + v ? "on" : "off";
+        });
+        (this.titlebarItems[2] as TitlebarButton).isDisabled = value.selectedSize === 0;
+        (this.titlebarItems[7] as TitlebarButton).isDisabled = value.selectedSize === 0;
+        (this.titlebarItems[4] as TitlebarButton).isToggled = value.autoplay;
+        (this.titlebarItems[4] as TitlebarButton).title = "Autorun is " + value.autoplay ? "on" : "off";
+        if (value.program && value.autoplay)
+            this.runTests();
     }
 
-    private tests: Test[] = [];
-    private selected = new Set<Test>();
-
-    /**
-     * Whether changes to the graph should automatically run through all tests.
-     */
-    private autoplay: Boolean = true;
-
-
-
     private runTests() {
-        this.tests.forEach((test) => {
+        this._data.tests.forEach((test) => {
             this.runTest(test);
         });
     }
 
     private runTest(test: Test) {
-        if (this.program) {
+        if (this._data.program) {
             try {
-                let out = this.program.run([test.input]);
+                let out = this._data.program.run([test.input]);
                 test.output = out.result;
             } catch (e) {
-                test.output = valueWrap(this.program.plugin.typeEnvironment, e, false);
+                console.log(e);
+                test.output = new CoreValue(this._data.program.plugin.typeEnvironment.getStringType(), "Error");
             }
         }
     }
 
-    private runSelectedTests(tests: Set<Test>) {
-        tests.forEach((test) => {
+    private runSelectedTests() {
+        for (const test of this._data.selected)
             this.runTest(test);
-        });
     }
 
     private testChanged(test: Test) {
-        if (this.autoplay) {
+        if (this._data.autoplay) {
             this.runTest(test);
         }
     }
 
     private newTest() {
-        if (this.program && this.graph) {
+        if (this._data.program) {
             const test = {
-                input: this.getInput(this.program, this.graph),
-                expected: this.getExpected(this.program, this.graph),
-                output: makeValue<PluginTypeEnvironment>(this.program.plugin.typeEnvironment.getStringType(), "Not ran", false)
+                input: this.getInput(this._data.program),
+                expected: this.getExpected(this._data.program),
+                output: new CoreValue(this._data.program.plugin.typeEnvironment.getStringType(), "Not ran")
             };
 
-            // deepListen(test.input, () => {
-            //     // TODO: fix this (change notification after change has been made with previous value, booleans)
-            //     setTimeout(this.testChanged.bind(this, test), 0);
-            // });
+            // test.input.changed.asObservable().subscribe(this.testChanged.bind(this, test));
 
-            this.tests.push(test);
+            this._data.tests.push(test);
             this.runTest(test);
         }
     }
 
-    private getInput(program: Program, graph: GraphController) {
-        const type = program.runArguments[0][0];
+    private getInput(program: Program) {
+        let type = program.runArguments[0][0];
 
-        // TODO: improve this
-        if (type instanceof WrappedScriptType && type.env.lookupGlobalType("Map").type.symbol === type.type.symbol) {
-            const types = (type as any).typeArguments as Type<PluginTypeEnvironment>[];
-            const keyType = types[0];
-            const valueType = types[1];
-
-            const map = new Map<CoreValue<PluginTypeEnvironment>, CoreValue<PluginTypeEnvironment>>();
-
-            if (keyType.isAssignableTo(keyType.env.lookupPluginType("Node"))) {
-                [...graph.bridges.values()].map((b) => b.core).forEach((core) => {
-                    if (core.type.types.values().next().value.isAssignableTo(keyType)) {
-                        map.set(core, makeValue(valueType, undefined, true));
-                    }
-                });
-            }
-
-            let mapValue = makeValue(type, new Map(), false) as CoreMapValue<PluginTypeEnvironment>;
-            map.forEach((v, k) => {
-                mapValue.map.set(k, v);
+        if (type.name === "InputType") {
+            const members = new Map<string, Type>();
+            members.set("a", program.plugin.typeEnvironment.getBooleanType());
+            members.set("b", program.plugin.typeEnvironment.getBooleanType());
+            return new CoreValue(new FakeObjectType(program.plugin.typeEnvironment, members), {
+                "a": false,
+                "b": false
             });
-
-            return mapValue;
+        } else {
+            return new CoreValue(type, "");
         }
-
-        return makeValue(type, undefined, true);
     }
 
-    private getExpected(program: Program, graph: GraphController) {
-        // TODO: fix
-        const type = program.runReturn[0];
-
-        // TODO: improve this
-        if (type instanceof WrappedScriptType && type.env.lookupGlobalType("Map").type.symbol === type.type.symbol) {
-            const types = (type as any).typeArguments as Type<PluginTypeEnvironment>[];
-            const keyType = types[0];
-            const valueType = types[1];
-
-            const map = new Map<CoreValue<PluginTypeEnvironment>, CoreValue<PluginTypeEnvironment>>();
-
-            if (keyType.isAssignableTo(keyType.env.lookupPluginType("Node"))) {
-                [...graph.bridges.values()].map((b) => b.core).forEach((core) => {
-                    const elementType = core.type.types.values().next().value;
-                    if (elementType.isIdenticalTo(keyType) && elementType.name === keyType.name) {
-                        map.set(core, makeValue(valueType, undefined, true));
-                    }
-                });
-            }
-
-            let mapValue = makeValue(type, new Map(), false) as CoreMapValue<PluginTypeEnvironment>;
-            map.forEach((v, k) => {
-                mapValue.map.set(k, v);
+    private getExpected(program: Program) {
+        if (program.plugin.pluginKind[1] === "Digital Logic") {
+            const members = new Map<string, Type>();
+            members.set("Cout", program.plugin.typeEnvironment.getBooleanType());
+            members.set("S", program.plugin.typeEnvironment.getBooleanType());
+            return new CoreValue(new FakeObjectType(program.plugin.typeEnvironment, members), {
+                "Cout": false,
+                "S": false
             });
-
-            return mapValue;
+        } else {
+            return new CoreValue(program.plugin.typeEnvironment.getBooleanType(), true);
         }
-
-        return makeValue(type, undefined, true);
     }
 
-    private areEqual(a: CoreValue<any>, b: CoreValue<any>) {
-        return a.deepEqual(b);
+    private areEqual(a: any, b: any) {
+        if (typeof a === "object" && typeof b === "object") {
+            for (let p in a) {
+                if (b.hasOwnProperty(p)) {
+                    if (a[p] !== b[p]) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        } else {
+            return a === b;
+        }
     }
 
     private select(test: Test) {
-        if (this.selected.has(test)) {
-            this.selected.delete(test);
+        if (this._data.isSelected(test)) {
+            this._data.removeSelected(test);
         } else {
-            this.selected.add(test);
+            this._data.addSelected(test);
         }
     }
 
     private toggleAutoplay() {
-        this.autoplay = !this.autoplay;
-        if (this.autoplay && this.program) {
+        this._data.autoplay = !this._data.autoplay;
+        if (this._data.autoplay && this._data.program) {
             this.runTests();
         }
     }
 
     private removeSelected() {
-        this.selected.forEach((test) => {
-            let index = this.tests.indexOf(test);
-            if (index >= 0) {
-                this.tests.splice(index, 1);
-            }
-        });
+        for (const test of this._data.selected) {
+            const index = this._data.tests.indexOf(test);
+            if (index >= 0)
+                this._data.tests.splice(index, 1);
+        }
 
-        this.selected = new Set();
+        this._data.clearSelected();
     }
 
 }
 
 interface Test {
-    input: CoreValue<PluginTypeEnvironment>;
-    expected: CoreValue<PluginTypeEnvironment>;
-    output: CoreValue<PluginTypeEnvironment>;
+    input: CoreValue;
+    expected: CoreValue;
+    output: CoreValue;
 }

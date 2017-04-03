@@ -1,23 +1,32 @@
-// File: main.component.ts
-// Created by: CJ Dimaano
-// Date created: October 10, 2016
-//
-// This is the main application component. It is used as the main UI display for
-// presenting content to the user.
-//
+/**
+ * @file `main.component.ts`
+ *   Created on October 10, 2016
+ *
+ * @author CJ Dimaano
+ *   <c.j.s.dimaano@gmail.com>
+ *
+ * @author Daniel James
+ *   <daniel.s.james@icloud.com>
+ *
+ * @description
+ *   This is the main application component. It is used as the main UI container
+ *   for presenting content to the user.
+ */
 
 
-import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef } from "@angular/core";
+import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef, EventEmitter } from "@angular/core";
 import { Program, Plugin, Model } from "sinap-core";
 
-import { GraphEditorComponent, DrawableElement } from "../graph-editor/graph-editor.component";
+import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
+
+import { DynamicPanelComponent, DynamicPanelItem, DynamicTestPanelComponent } from "../dynamic-panel/dynamic-panel";
+import { PropertiesPanelComponent, PropertiesPanelData } from "../properties-panel/properties-panel.component";
+import { FilesPanelComponent, FilesPanelData } from "../files-panel/files-panel.component";
+import { ToolsPanelComponent, ToolsPanelData } from "../tools-panel/tools-panel.component";
 import { InputPanelComponent } from "../input-panel/input-panel.component";
-import { PropertiesPanelComponent } from "../properties-panel/properties-panel.component";
-import { ToolsPanelComponent } from "../tools-panel/tools-panel.component";
-import { FilesPanelComponent } from "../files-panel/files-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
+
 import { StatusBarComponent } from "../status-bar/status-bar.component";
-import { SideBarComponent } from "../side-bar/side-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
 import { NewFileResult } from "../new-file/new-file.component";
 
@@ -35,13 +44,15 @@ import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "
 
 import { ResizeEvent } from 'angular-resizable-element';
 
+const remote = require('electron').remote;
+const dialog = remote.dialog;
+
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.scss"],
     providers: [MenuService, PluginService, WindowService, LocalFileService]
 })
-
 export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
@@ -50,83 +61,149 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         try {
             const openFilesJSON = localStorage.getItem("openFiles");
             if (openFilesJSON) {
-                const openFiles = JSON.parse(openFilesJSON) as string[];
-                openFiles.map((fileName) => this.fileService.fileByName(fileName)).forEach((p) => {
-                    p.then((f) => {
-                        this.openFile(f);
+                const openFilenames = JSON.parse(openFilesJSON) as string[];
+
+                // Adding it again to be opened last will cause it to be selected.
+                const selectedFile = localStorage.getItem("selectedFile");
+
+                const promises = openFilenames.map((fileName) => this.fileService.fileByName(fileName))
+                    .map((p) => {
+                        return new Promise((resolve, reject) => {
+                            p.then((f) => {
+                                this.openFile(f).then(() => resolve()).catch((e) => {
+                                    console.log(e);
+                                    resolve();
+                                });
+                            }).catch((e) => {
+                                console.log(e);
+                                resolve();
+                            });
+                        });
                     });
-                });
+
+                if (selectedFile) {
+                    Promise.all(promises).then(() => {
+                        this.fileService.fileByName(selectedFile).then((f) => {
+                            const found = [...this.tabs.entries()].find(([_, context]) => f.equals(context.file));
+                            if (found) {
+                                this.tabBar.active = found[0];
+                            }
+                        }).catch(() => {
+                            console.log("Unable to select previously selected file: ", selectedFile);
+                        });
+                    });
+                }
             }
         } catch (e) {
             console.log(e);
         }
+    }
 
+    private propertiesPanelData = new PropertiesPanelData();
+    // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
+    private filesPanelData = new FilesPanelData("./examples", this.fileService);
+    private toolsPanelData = new ToolsPanelData();
+
+    private tabs = new Map<number, TabContext>();
+
+    // Setup references to child components. These are setup by angular once ngAfterViewInit is called.
+    @ViewChild(TabBarComponent) private tabBar: TabBarComponent;
+    @ViewChild(StatusBarComponent) private statusBar: StatusBarComponent;
+    @ViewChild(GraphEditorComponent) private graphEditor: GraphEditorComponent;
+    @ViewChild("graphEditorContainer") private graphEditorContainer: ElementRef;
+    @ViewChild("dynamicSidePanel") dynamicSidePanel: DynamicPanelComponent;
+    @ViewChild("dynamicBottomPanel") dynamicBottomPanel: DynamicPanelComponent;
+
+    sidePanels: DynamicPanelItem[];
+    bottomPanels: DynamicPanelItem[];
+
+    get maxSidePanelWidth() {
+        return window.innerWidth / 2;
+    }
+
+    get minSidePanelWidth() {
+        return 275;
+    }
+
+    get maxBottomPanelHeight() {
+        return window.innerHeight - 55;
+    }
+
+    get minBottomPanelHeight() {
+        return 175;
     }
 
     ngOnInit(): void {
-        // this.inputPanel.delegate = this;
+        this.filesPanelData.openFile.asObservable().subscribe(this.openFile);
+        this.sidePanels = [
+            new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path)
+        ];
+
+        this.bottomPanels = [];
+
         this.tabBar.delegate = this;
         this.menu.addEventListener(this);
     }
 
     ngAfterViewInit() {
-        this.leftPanelsGroup.nativeElement.style.width = "300px";
-        this.bottomPanels.nativeElement.style.height = "225px";
+        this.dynamicSidePanel.width = 300;
+        this.dynamicBottomPanel.height = 225;
     }
 
     ngAfterViewChecked() {
         // TODO: Let HTML resize this for us.
-        this.graphEditor.resize();
+        this.graphEditor.height =
+            this.graphEditorContainer.nativeElement.offsetHeight
+            - this.tabBar.offsetHeight - this.statusBar.offsetHeight;
     }
-
-    // Setup references to child components. These are setup by angular once ngAfterViewInit is called.
-    @ViewChild(GraphEditorComponent) private graphEditor: GraphEditorComponent;
-    @ViewChild(InputPanelComponent) private inputPanel: InputPanelComponent;
-    @ViewChild(PropertiesPanelComponent) private propertiesPanel: PropertiesPanelComponent;
-    @ViewChild(ToolsPanelComponent) private toolsPanel: ToolsPanelComponent;
-    @ViewChild(FilesPanelComponent) private filesPanel: FilesPanelComponent;
-    @ViewChild("leftPanelBar") private leftPanelBar: SideBarComponent;
-    @ViewChild("bottomPanelBar") private bottomPanelBar: SideBarComponent;
-    @ViewChild(TestPanelComponent) private testComponent: TestPanelComponent;
-    @ViewChild(TabBarComponent) private tabBar: TabBarComponent;
-    @ViewChild('editorPanel') editorPanel: ElementRef;
-    @ViewChild('leftPanelsGroup') leftPanelsGroup: ElementRef;
-    @ViewChild('bottomPanels') bottomPanels: ElementRef;
-    @ViewChild(StatusBarComponent) private statusBar: StatusBarComponent;
-
-    private tabs = new Map<number, TabContext>();
-    private leftPanelIcons = [FILES_ICON];
-    private bottomPanelIcons = [INPUT_ICON, TEST_ICON];
 
     private _context?: TabContext;
     private set context(context: TabContext | undefined) {
         this._context = context;
         if (context) {
-            this.onNewProgram(context.compileProgram(), context.graph);
+            context.compileProgram();
 
-            this.toolsPanel.graph = context.graph;
-            this.filesPanel.selectedFile = context.file;
+            this.toolsPanelData.graph = context.graph;
+            this.filesPanelData.selectedFile = context.file;
             this.statusBar.info = context.statusBarInfo;
 
-            if (this.toolsPanel.shouldDisplay()) {
-                this.leftPanelIcons = [PROPERTIES_ICON, TOOLS_ICON, FILES_ICON];
-            } else {
-                this.leftPanelIcons = [PROPERTIES_ICON, FILES_ICON];
+            context.graph.selectionChanged.asObservable().subscribe(evt => this.propertiesPanelData.selectedElements = evt);
+            this.propertiesPanelData.selectedElements = context.graph.selectedElements;
+
+            if (this.toolsPanelData.shouldDisplay && this.sidePanels.length < 3) {
+                this.sidePanels = [
+                    new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
+                    new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
+                    new DynamicPanelItem(ToolsPanelComponent, this.toolsPanelData, TOOLS_ICON.name, TOOLS_ICON.path)
+                ];
+            } else if (!this.toolsPanelData.shouldDisplay && this.sidePanels.length !== 2) {
+                this.sidePanels = [
+                    new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
+                    new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
+                ];
             }
+
+            this.bottomPanels = [
+                new DynamicPanelItem(InputPanelComponent, context.inputPanelData, INPUT_ICON.name, INPUT_ICON.path),
+                new DynamicPanelItem(TestPanelComponent, context.testPanelData, TEST_ICON.name, TEST_ICON.path),
+            ];
         } else {
             // Clear state
-
-            this.leftPanelIcons = [FILES_ICON];
-            this.filesPanel.selectedFile = undefined;
+            this.filesPanelData.selectedFile = undefined;
             this.statusBar.info = undefined;
-            this.toolsPanel.graph = undefined;
+            this.toolsPanelData.graph = undefined;
+            this.propertiesPanelData.selectedElements = undefined;
+            this.sidePanels = [
+                new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path)
+            ];
+            this.bottomPanels = [];
         }
     };
 
     /** Create a new tab and open it */
     newFile(file: LocalFile, kind: string[], content?: any/*SerialJSO*/) {
         // TODO: have a more efficient way to get kind.
-        this.pluginService.getPluginByKind(kind).then((plugin) => {
+        return this.pluginService.getPluginByKind(kind).then((plugin) => {
             const model = new Model(plugin);
 
             let tabNumber = this.tabBar.newTab(file);
@@ -146,6 +223,15 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         const openFiles = [...this.tabs.values()].map((context) => context.file.getPath()).filter((path) => path !== undefined) as string[];
         localStorage.setItem("openFiles", JSON.stringify(openFiles));
 
+        // Save what file is open
+        localStorage.removeItem("selectedFile");
+        if (this._context) {
+            const path = this._context.file.getPath();
+            if (path) {
+                localStorage.setItem("selectedFile", path);
+            }
+        }
+
         // TODO: Figure out WTF Electron is doing
         // const isDirty = [...this.tabs.values()].map((context) => context.file.dirty).reduce((dirty, accum) => (dirty || accum), false);
         // if (isDirty) {
@@ -156,15 +242,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     private makeChangeNotifier(context: TabContext) {
         return (change: UndoableEvent) => {
-            this.onNewProgram(context.compileProgram(), context.graph);
+            context.compileProgram();
         };
     }
-
-    private onNewProgram = (program: Program, graph: GraphController) => {
-        this.testComponent.info = [program, graph];
-        this.inputPanel.info = [program, graph];
-    }
-
 
     promptNewFile() {
         this.pluginService.pluginData.then((pluginData) => {
@@ -177,10 +257,43 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     saveFile() {
         if (this._context) {
-            this._context.save().then(() => {
+            this.saveToFile(this._context.graph, this._context.file).then(() => {
                 this.changeDetectorRef.detectChanges();
             });
         }
+    }
+
+    saveAsFile() {
+        if (this._context) {
+            const c = this._context;
+            this.fileService.requestSaveFile(this._context.file.getPath()).then((f) => {
+                if (f.equals(c.file)) {
+                    // Saving as same file...
+                    this.saveToFile(c.graph, c.file).then(() => {
+                        this.changeDetectorRef.detectChanges();
+                    });
+                } else {
+                    f.close();
+                    this.closeFile(f);
+                    this.saveToFile(c.graph, f).then(() => {
+                        this.openFile(f);
+                    });
+                }
+            }).catch((e) => {
+                console.log(e);
+            });
+        }
+    }
+
+    public saveToFile(graph: GraphController, file: LocalFile) {
+        return Promise.reject("Not implemented.");
+        // const pojo = graph.core.serialize();
+
+        // return file.writeData(JSON.stringify(pojo, null, 4))
+        //     .catch((err) => {
+        //         dialog.showErrorBox("Unable to Save", `Error occurred while saving to file:\n${file.fullName}.`);
+        //         console.log(err);
+        //     });
     }
 
     requestOpenFile() {
@@ -194,15 +307,27 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     openFile = (file: LocalFile) => {
+        return new Promise((resolve, reject) => {
+            const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
+            if (entry) {
+                this.tabBar.active = entry[0];
+                resolve();
+            } else {
+                file.readData().then((content) => {
+                    const pojo = JSON.parse(content);
+                    const kind = pojo.kind;
+                    this.newFile(file, kind, pojo).then(() => resolve()).catch(reject);
+                }).catch((e) => {
+                    reject(e);
+                });
+            }
+        });
+    }
+
+    closeFile(file: LocalFile) {
         const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
         if (entry) {
-            this.tabBar.active = entry[0];
-        } else {
-            file.readData().then((content) => {
-                const pojo = JSON.parse(content);
-                const kind = pojo.kind;
-                this.newFile(file, kind, pojo);
-            });
+            this.tabBar.deleteTab(entry[0]);
         }
     }
 
@@ -223,7 +348,37 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
 
     /* ---------- TabBarDelegate ---------- */
+    canDeleteTab(i: number) {
+        return new Promise((resolve, reject) => {
+            const toDelete = this.tabs.get(i);
+            if (toDelete && toDelete.file.dirty === true) {
+                dialog.showMessageBox(remote.BrowserWindow.getFocusedWindow(), {
+                    type: "question",
+                    buttons: ["Save", "Don't Save", "Cancel"],
+                    defaultId: 2,
+                    cancelId: 2,
+                    message: "Save file before closing?",
+                    detail: toDelete.file.getPath()
+                }, (r) => {
+                    if (r === 0) {
+                        this.saveToFile(toDelete.graph, toDelete.file).then(() => {
+                            resolve(true);
+                        });
+                    } else {
+                        resolve(r === 1);
+                    }
+                });
+            } else {
+                resolve(true);
+            }
+        });
+    }
+
     deletedTab(i: number) {
+        const toDelete = this.tabs.get(i);
+        if (toDelete) {
+            toDelete.file.close();
+        }
         this.tabs.delete(i);
     }
 
@@ -255,8 +410,11 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             case MenuEventAction.SAVE_FILE:
                 this.saveFile();
                 break;
+            case MenuEventAction.SAVE_AS_FILE:
+                this.saveAsFile();
+                break;
             case MenuEventAction.DELETE:
-                if (this.focusIsChildOf("editor-panel")) {
+                if (this.focusIsChildOf("graph-editor-container")) {
                     if (this.graphEditor.graph)
                         this.graphEditor.graph.deleteSelected();
                     e.preventDefault();
@@ -269,7 +427,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 // executed when the user presses `ctrl+a`. Selecting the menu
                 // item on Windows, however, does trigger this event.
                 // console.log(e);
-                if (this.focusIsChildOf("editor-panel")) {
+                if (this.focusIsChildOf("graph-editor-container")) {
                     if (this.graphEditor.graph)
                         this.graphEditor.graph.selectAll();
                     e.preventDefault();
@@ -288,13 +446,13 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 this.tabBar.selectNextTab();
                 break;
             case MenuEventAction.UNDO:
-                if (!this.focusIsChildOf("bottom-panels") && this._context) {
+                if (!this.focusIsChildOf("bottom-panel-group") && this._context) {
                     this._context.undo();
                     e.preventDefault();
                 }
                 break;
             case MenuEventAction.REDO:
-                if (!this.focusIsChildOf("bottom-panels") && this._context) {
+                if (!this.focusIsChildOf("bottom-panel-group") && this._context) {
                     this._context.redo();
                     e.preventDefault();
                 }
@@ -304,27 +462,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     /* --------------------------------------- */
 
 
-    /* ---------- Resizable Panels ---------- */
-    private resizing(element: Element, event: ResizeEvent) {
-        if (element.id === "left-panels-group") {
-            if (event.rectangle.width !== undefined) {
-                this.leftPanelsGroup.nativeElement.style.width = Math.max(event.rectangle.width, 250) + "px";
-
-                if (this.leftPanelsGroup.nativeElement.clientWidth + this.editorPanel.nativeElement.clientWidth >= window.innerWidth) {
-                    this.leftPanelsGroup.nativeElement.style.width = (window.innerWidth - this.editorPanel.nativeElement.clientWidth - 1) + "px";
-                }
-            }
-        } else if (element.id === "bottom-panels") {
-            if (event.rectangle.height !== undefined) {
-                // 55 = height of tab bar plus height of status bar
-                this.bottomPanels.nativeElement.style.height = Math.min(Math.max(event.rectangle.height, 175), window.innerHeight - 55) + "px";
-            }
-        }
-    }
-    /* -------------------------------------- */
-
-
-    /* ---------- Resizable Panels ---------- */
+    /* ---------- Zoom Slider ---------- */
 
 
     private updateZoom(value: number) {

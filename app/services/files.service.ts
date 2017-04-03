@@ -84,7 +84,7 @@ export class LocalFileService implements FileService {
     }
 
     fileByName(fullName: string): Promise<LocalFile> {
-        return surroundSync(() => new OpenedFile(fullName));
+        return surroundSync(() => OpenedFile.fileByName(fullName));
     }
 
     directoryByName(fullName: string): Promise<Directory> {
@@ -95,7 +95,13 @@ export class LocalFileService implements FileService {
         return new Promise<LocalFile>((resolve, reject) => dialog.showSaveDialog(remote.BrowserWindow.getFocusedWindow(), {
             defaultPath: name,
             filters: SINAP_FILE_FILTER
-        }, (name) => resolve(new OpenedFile(name))));
+        }, (name) => {
+            if (name) {
+                resolve(OpenedFile.fileByName(name));
+            } else {
+                reject("File selection cancelled.");
+            }
+        }));
     }
 
     requestFiles(): Promise<LocalFile[]> {
@@ -105,7 +111,7 @@ export class LocalFileService implements FileService {
                 filters: SINAP_FILE_FILTER
             }, (filenames: string[]) => {
                 if (filenames) {
-                    resolve(filenames.map((name) => new OpenedFile(name)));
+                    resolve(filenames.map((name) => OpenedFile.fileByName(name)));
                 } else {
                     reject(new Error("No files were selected."));
                 }
@@ -119,6 +125,7 @@ export interface LocalFile extends File {
     markDirty: () => void;
     equals: (file: LocalFile) => boolean;
     getPath: () => string | undefined;
+    close: () => void;
 }
 
 class AbstractFile {
@@ -139,6 +146,10 @@ class AbstractFile {
 
     markDirty() {
         this._dirty = true;
+    }
+
+    close() {
+        this._dirty = false;
     }
 
     toString() {
@@ -205,16 +216,34 @@ export class UntitledFile extends AbstractFile implements LocalFile {
 }
 
 class OpenedFile extends AbstractFile implements LocalFile {
-    constructor(readonly fullName: string) {
+    private constructor(readonly fullName: string) {
         super(path.basename(fullName));
     }
+    static fileByName = (() => {
+        // Keep a list of existing files, so everyone that references files is referencing the same object.
+        const files = new Map<string, LocalFile>();
+
+        return (fullName: string): LocalFile => {
+            const fullname = "/" + path.relative("/", fullName);
+            const cached = files.get(fullname);
+
+            if (cached) {
+                return cached;
+            } else {
+                const newFile = new OpenedFile(fullName);
+
+                files.set(fullname, newFile);
+                return newFile;
+            }
+        };
+    })();
 
     equals(file: LocalFile) {
         return (path.relative(".", this.fullName) === path.relative(".", file.fullName));
     }
 
     getPath() {
-        return this.fullName;
+        return path.normalize("/" + path.relative("/", this.fullName));
     }
 
     readData(): Promise<string> {
@@ -276,7 +305,7 @@ export class LocalDirectory implements Directory {
     }
 
     public fileByName(name: string): LocalFile {
-        return new OpenedFile(path.join(this.fullName, name));
+        return OpenedFile.fileByName(path.join(this.fullName, name));
     }
 
     public copyDirectory(destination: LocalDirectory): Promise<{}> {
@@ -322,7 +351,7 @@ export class LocalDirectory implements Directory {
                             if (isDirectory) {
                                 return new LocalDirectory(name);
                             } else {
-                                return new OpenedFile(name);
+                                return OpenedFile.fileByName(name);
                             }
                         });
                 }));

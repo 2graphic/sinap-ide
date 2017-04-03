@@ -105,17 +105,14 @@ import { DoubleMap } from "./double-map";
 // }
 
 export type UndoableEvent = UndoableChange | UndoableAddOrDelete;
-export type CreatedOrDeletedEvent = ["created" | "deleted", BridgingProxy];
+export type CreatedOrDeletedEvent = ["created" | "deleted", Bridge];
 export class UndoableAddOrDelete {
     constructor(public events: CreatedOrDeletedEvent[]) { }
 }
 
-export declare class BridgingProxy {
-}
-
 // TODO: changes can also be adds or deletes
 export class UndoableChange {
-    constructor(public target: BridgingProxy,
+    constructor(public target: Bridge,
         public key: PropertyKey,
         public oldValue: any,
         public newValue: any) { }
@@ -136,11 +133,9 @@ export class GraphController {
     activeNodeType: string;
     activeEdgeType: string;
     public changed = new EventEmitter<UndoableEvent>();
+    public selectionChanged = new EventEmitter<Set<Bridge>>();
 
-    private _selectedElements: Set<Bridge>;
-    private get selectedElements() {
-        return this._selectedElements;
-    }
+    public selectedElements: Set<Bridge>;
 
     public bridges = new DoubleMap<Value.Intersection, Drawable, Bridge>();
 
@@ -428,18 +423,20 @@ export class GraphController {
         if (values.length === 0) {
             const br = this.bridges.getB(this.drawable);
             if (br === undefined) {
-                throw "no graph element";
+                throw new Error("no graph element");
             }
-            this._selectedElements = new Set([br]);
+            this.selectedElements = new Set([br]);
         } else {
-            this._selectedElements = new Set(values.map((d) => {
+            this.selectedElements = new Set(values.map((d) => {
                 const bridge = this.bridges.getB(d);
                 if (bridge) {
                     return bridge;
                 } else {
-                    throw new Error("Out of sync.");
+                    throw new OutOfSyncError();
                 }
             }));
         }
+
+        this.selectionChanged.emit(this.selectedElements);
     }
 }

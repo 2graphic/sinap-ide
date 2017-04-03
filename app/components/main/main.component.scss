@@ -1,67 +1,46 @@
 @import '../../styles/constants';
 
-.flex-container-row {
-  display: flex;
-  flex-direction: row;
+div {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-.flex-container-column {
-  display: flex;
-  flex-direction: column;
-}
-
-
-/* Flex box determines the overall structure of the app. */
-
-.panel-bar-vertical {
-  flex: none;
-  width: $TOOLBAR_WIDTH;
-}
-
-.panel-bar-horizontal {
-  flex: none;
-  height: $TOOLBAR_HEIGHT;
-}
-
-#bottom-panels {
-  flex: none;
-  border-top: thin solid lightgrey;
-}
-
-#left-panels-group {
-  flex: none;
+#window {
   height: 100%;
-  box-sizing: border-box;
-  border-right: thin solid lightgrey;
+  width: 100%;
+  display: flex;
+  background-color: $PANEL_BACKGROUND_COLOR;
+}
+
+#left-panel-group {
+  flex: 0 0 auto;
+}
+
+#right-panel-group {
+  flex: 1 1 auto;
+  display: flex;
+  flex-flow: column;
+}
+
+#bottom-panel-group {
+  flex: 0 0 auto;
+}
+
+#document-panel-group {
+  display: flex;
+  flex-flow: column;
 }
 
 #status-bar {
-  flex: none;
+  flex: 0 0 auto;
   height: 1.25em;
 }
 
 #tab-bar {
-  flex: none;
+  flex: 0 0 auto;
   height: $TOOLBAR_HEIGHT;
 }
-
-#graph-editor-container {
-  flex: none;
-  width: 100%;
-  height: calc(100% - 1.25em - #{$TOOLBAR_HEIGHT});
-}
-
-#content, #left-panels, #editor-panel, #bottom-panel {
-  flex: 1;
-}
-
-.full-size {
-  width: 100%;
-  height: 100%;
-}
-
-
-/********************************************************/
 
 #empty-background {
   cursor: pointer;
@@ -75,3 +54,16 @@
     font-weight: bold;
   }
 }
+
+#graph-editor-container {
+  background-color: red;
+}
+
+.dock-fill {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+
+// /********************************************************/

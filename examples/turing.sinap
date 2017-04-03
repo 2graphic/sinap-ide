@@ -1,0 +1,119 @@
+{
+    "format": "sinap-file-format",
+    "kind": [
+        "Formal Languages",
+        "Turing Machine"
+    ],
+    "version": "0.0.7",
+    "elements": [
+        {
+            "kind": "Graph",
+            "type": "Graph",
+            "data": {
+                "blank": "K"
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#fff200",
+                "label": "q1",
+                "position": {
+                    "x": 234,
+                    "y": 189.00000000000003
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2,
+                "isStartState": true
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#fff200",
+                "label": "q2",
+                "position": {
+                    "x": 401,
+                    "y": 182.00000000000003
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#fff200",
+                "label": "q3",
+                "position": {
+                    "x": 540,
+                    "y": 191.00000000000003
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2,
+                "isAcceptState": true
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "1",
+                "write": "2",
+                "move": "Right"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "color": "#000",
+                "label": "",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 3
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "2",
+                "write": "3",
+                "move": "Right"
+            }
+        }
+    ]
+}

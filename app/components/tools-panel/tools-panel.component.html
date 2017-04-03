@@ -1,4 +1,4 @@
 <div id="wrapper">
-    <sinap-collapsible-list #nodesList [hidden]="nodes.length <= 1" [items]="nodes" text="Nodes"></sinap-collapsible-list>
-    <sinap-collapsible-list #edgesList [hidden]="edges.length <= 1" [items]="edges" text="Edges"></sinap-collapsible-list>
+    <sinap-collapsible-list #nodesList [hidden]="_data.nodes.length <= 1" [items]="_data.nodes" text="Nodes"></sinap-collapsible-list>
+    <sinap-collapsible-list #edgesList [hidden]="_data.edges.length <= 1" [items]="_data.edges" text="Edges"></sinap-collapsible-list>
 </div>

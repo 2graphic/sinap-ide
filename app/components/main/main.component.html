@@ -1,45 +1,53 @@
-<div class="flex-container-row full-size">
-  <div id="left-panels-group" #leftPanelsGroup class="flex-container-column"
-      [style.width.px]="leftPanelWidth"
-      mwlResizable [resizeEdges]="{right: true}" (resizing)="resizing(leftPanelsGroup, $event)">
-    <sinap-side-bar #leftPanelBar class="panel-bar-horizontal" [vertical]="false" [title]="true" [icons]="leftPanelIcons">
-      </sinap-side-bar>
-      <div id="left-panels">
-        <sinap-properties-panel [hidden]="!(leftPanelBar.active == 'Properties')" [selectedElements]="_context ? _context.graph.selectedElements : undefined">
-        </sinap-properties-panel>
-        <sinap-tools-panel [hidden]="!(leftPanelBar.active == 'Tools')">
-        </sinap-tools-panel>
-        <sinap-files-panel [hidden]="!(leftPanelBar.active == 'Files')" (openFile)="openFile($event)">
-        </sinap-files-panel>
-      </div>
+<div id="window">
+
+  <div id="left-panel-group">
+    <dynamic-panel #dynamicSidePanel
+                   [panels]="sidePanels"
+                   [maximumWidth]="maxSidePanelWidth"
+                   [minimumWidth]="minSidePanelWidth"></dynamic-panel>
   </div>
 
+  <div id="right-panel-group">
 
-  <div id="content" class="flex-container-column">
-    <div id="editor-panel" #editorPanel class="flex-container-column">
-      <div [hidden]="(this.tabs.size == 0)" class="full-size flex-container-column">
+    <!-- TODO: use *ngIf instead of [hidden] -->
+    <div id="document-panel-group"
+         class="dock-fill"
+         [hidden]="(tabs.size === 0)">
+
+      <div>
         <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
-        <div id="graph-editor-container">
-          <sinap-graph-editor [graph]="_context ? _context.graph.drawable : null" id="graph-editor"></sinap-graph-editor>
-        </div>
-        <sinap-status-bar id="status-bar" [zoom]="_context ? _context.graph.drawable.scale : 1" (zoomChange)="updateZoom($event)"></sinap-status-bar>
       </div>
-      <div [hidden]="(this.tabs.size > 0)" class="full-size">
-        <div (click)="promptNewFile()" id="empty-background" class="full-size">
-          <a>Click to create a new graph</a>
-        </div>
+
+      <div #graphEditorContainer
+           id="graph-editor-container"
+           class="dock-fill">
+        <sinap-graph-editor id="graph-editor"
+                            [graph]="_context ? _context.graph.drawable : null"></sinap-graph-editor>
       </div>
+
+      <div>
+        <sinap-status-bar id="status-bar"
+                          [zoom]="_context ? _context.graph.drawable.scale : 1"
+                          (zoomChange)="updateZoom($event)"></sinap-status-bar>
+      </div>
+      
     </div>
 
-    <div id="bottom-panels" #bottomPanels class="flex-container-row"
-        [style.height.px]="bottomPanelHeight"
-        mwlResizable [resizeEdges]="{top: true}" (resizing)="resizing(bottomPanels, $event)">
-      <sinap-side-bar #bottomSideBar class="panel-bar-vertical" [vertical]="true" [icons]="bottomPanelIcons">
-        </sinap-side-bar>
-        <div id="bottom-panel">
-          <sinap-input-panel [hidden]="!(bottomSideBar.active == 'Input')"></sinap-input-panel>
-          <sinap-test-panel [hidden]="!(bottomSideBar.active == 'Test')"></sinap-test-panel>
-        </div>
+    <div id="empty-background"
+         class="dock-fill"
+         [hidden]="(tabs.size > 0)"
+         (click)="promptNewFile()">
+      <a>Click to create a new graph</a>
     </div>
+
+    <div id="bottom-panel-group" [hidden]="dynamicBottomPanel.isEmpty()">
+      <dynamic-panel #dynamicBottomPanel
+                     [panels]="bottomPanels"
+                     [isVertical]="true"
+                     [maximumHeight]="maxBottomPanelHeight"
+                     [minimumHeight]="minBottomPanelHeight"></dynamic-panel>
+    </div>
+
   </div>
+
 </div>

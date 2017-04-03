@@ -1,0 +1,43 @@
+<div *ngIf="isCollapsed"
+     id="collapsed-container"
+     [class.vertical]="isVertical"
+     [class.horizontal]="!isVertical">
+    <div class="icon" [inlineSVG]="isCollapsed ? expandIcon : collapseIcon" (click)="toggleCollapse()"></div>
+</div>
+
+<div id="container"
+    [hidden]="isCollapsed"
+    #container
+    mwlResizable
+    [resizeEdges]="isVertical ? {top: true} : {right: true}"
+    [class.vertical]="isVertical"
+    [class.horizontal]="!isVertical"
+    (resizing)="resizing($event)">
+    <div id="header">
+        <div id="titlebar">
+            <h2 id="title">{{title}}</h2>
+            <div *ngIf="titlebarItems" class="titlebar-items">
+                <div *ngFor="let item of titlebarItems">
+                        <div *ngIf="item.kind === 'spacer'">
+                            <span class="titlebar-spacer"></span>
+                        </div>
+                        <div *ngIf="item.kind === 'button'">
+                            <img class="titlebar-button"
+                                src="{{item.icon}}"
+                                title="{{item.title}}"
+                                [class.disabled]="item.isDisabled"
+                                [class.toggled]="item.isToggled"
+                                (click)="item.click()" />
+                        </div>
+                </div>
+            </div>
+        </div>
+        <div id="icons">
+            <div class="icon" *ngFor="let panel of panels" [inlineSVG]="panel.icon" [class.active]="panel.text === title" (click)="updateContent(panel)"></div>
+        </div>
+        <div class="icon" [inlineSVG]="isCollapsed ? expandIcon : collapseIcon" (click)="toggleCollapse()"></div>
+    </div>
+    <div id="content">
+        <ng-template id="dynamic-content" dynamic-content></ng-template>
+    </div>
+</div>
