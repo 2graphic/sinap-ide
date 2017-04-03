@@ -45,8 +45,8 @@ import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "
 
 import { ResizeEvent } from 'angular-resizable-element';
 
-const electron = require('electron');
-const dialog = electron.remote.dialog;
+const remote = require('electron').remote;
+const dialog = remote.dialog;
 
 @Component({
     selector: "sinap-main",
@@ -279,6 +279,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                         this.changeDetectorRef.detectChanges();
                     });
                 } else {
+                    f.close();
                     this.closeFile(f);
                     this.saveToFile(c.graph, f).then(() => {
                         this.openFile(f);
@@ -378,10 +379,30 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
 
     /* ---------- TabBarDelegate ---------- */
+    canDeleteTab(i: number) {
+        return new Promise((resolve, reject) => {
+            const toDelete = this.tabs.get(i);
+            if (toDelete && toDelete.file.dirty === true) {
+                dialog.showMessageBox(remote.BrowserWindow.getFocusedWindow(), {
+                    type: "question",
+                    buttons: ["OK", "cancel"],
+                    defaultId: 1,
+                    cancelId: 1,
+                    message: "Close unsaved file?",
+                    detail: toDelete.file.getPath()
+                }, (r) => {
+                    resolve(r === 0);
+                });
+            } else {
+                resolve(true);
+            }
+        });
+    }
+
     deletedTab(i: number) {
         const toDelete = this.tabs.get(i);
         if (toDelete) {
-            toDelete.close();
+            toDelete.file.close();
         }
         this.tabs.delete(i);
     }

@@ -61,33 +61,42 @@ export class TabBarComponent {
 
     // If the current tab is selected, delegate.selectedTab() is called with the new selected tab before delegate.deletedTab()
     deleteTab(index: number) {
-        let tab = this.findTab(index);
-        if (!tab) {
-            return;
-        }
+        const tab = this.findTab(index);
+        if (tab !== null) {
+            const f = () => {
+                let reselect = false;
 
-        let reselect = false;
+                if (this.active === tab.index) {
+                    reselect = true;
+                }
 
-        if (this.active === tab.index) {
-            reselect = true;
-        }
+                let location = this.tabs.indexOf(tab);
+                if (location >= 0) {
+                    this.tabs.splice(location, 1);
 
-        let location = this.tabs.indexOf(tab);
-        if (location >= 0) {
-            this.tabs.splice(location, 1);
+                    if (reselect) {
+                        if (this.tabs.length > 0) {
+                            this.active = this.tabs[0].index;
+                        } else {
+                            if (this.delegate) {
+                                this.delegate.selectedTab(-1);
+                            }
+                        }
+                    }
 
-            if (reselect) {
-                if (this.tabs.length > 0) {
-                    this.active = this.tabs[0].index;
-                } else {
                     if (this.delegate) {
-                        this.delegate.selectedTab(-1);
+                        this.delegate.deletedTab(index);
                     }
                 }
-            }
+            };
 
             if (this.delegate) {
-                this.delegate.deletedTab(index);
+                this.delegate.canDeleteTab(index).then((can) => {
+                    if (!can) return;
+                    f();
+                });
+            } else {
+                f();
             }
         }
     }
@@ -133,6 +142,7 @@ export class TabBarComponent {
 }
 
 export interface TabDelegate {
+    canDeleteTab: (i: number) => Promise<boolean>;
     deletedTab: (i: number) => void;
     selectedTab: (i: number) => void; // -1 = no tabs
     createNewTab: () => void;

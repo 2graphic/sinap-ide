@@ -60,10 +60,6 @@ export class TabContext {
         this.dirty = true;
     }
 
-    public close() {
-        this.file.close();
-    }
-
     public undo() {
         const change = this.undoHistory.pop();
         if (change) {
