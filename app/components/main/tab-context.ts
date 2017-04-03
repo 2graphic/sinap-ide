@@ -7,9 +7,8 @@ import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { Program, Plugin } from "sinap-core";
 import { LocalFile } from "../../services/files.service";
 import { StatusBarInfo } from "../../components/status-bar/status-bar.component";
-import { DynamicPanelItem } from "../dynamic-panel/dynamic-panel";
-import { InputPanelData } from "../input-panel/input-panel.component";
-import { TestPanelData } from "../test-panel/test-panel.component";
+// import { InputPanelData } from "../input-panel/input-panel.component";
+// import { TestPanelData } from "../test-panel/test-panel.component";
 
 /**
  * Stores the state of each open tab.
@@ -28,9 +27,8 @@ export class TabContext {
     private stack = this.undoHistory;
     private isRedoing = false;
 
-    public inputPanelData: InputPanelData = new InputPanelData();
-    public testPanelData: TestPanelData = new TestPanelData();
-    public panels: DynamicPanelItem[];
+    // public inputPanelData: InputPanelData = new InputPanelData();
+    // public testPanelData: TestPanelData = new TestPanelData();
 
     /** Whether a change has happened since the last time a program was compiled */
     private dirty = true;

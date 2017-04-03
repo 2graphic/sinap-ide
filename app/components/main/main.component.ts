@@ -22,9 +22,9 @@ import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
 import { DynamicPanelComponent, DynamicPanelItem, DynamicTestPanelComponent } from "../dynamic-panel/dynamic-panel";
 import { PropertiesPanelComponent, PropertiesPanelData } from "../properties-panel/properties-panel.component";
 import { FilesPanelComponent, FilesPanelData } from "../files-panel/files-panel.component";
-import { ToolsPanelComponent, ToolsPanelData } from "../tools-panel/tools-panel.component";
-import { InputPanelComponent } from "../input-panel/input-panel.component";
-import { TestPanelComponent } from "../test-panel/test-panel.component";
+// import { ToolsPanelComponent, ToolsPanelData } from "../tools-panel/tools-panel.component";
+// import { InputPanelComponent } from "../input-panel/input-panel.component";
+// import { TestPanelComponent } from "../test-panel/test-panel.component";
 
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
@@ -57,52 +57,54 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
+        this.newFile(new UntitledFile(), ["FLAP", "dfa"]);
+
         // Restore previously opened files.
-        try {
-            const openFilesJSON = localStorage.getItem("openFiles");
-            if (openFilesJSON) {
-                const openFilenames = JSON.parse(openFilesJSON) as string[];
+        // try {
+        //     const openFilesJSON = localStorage.getItem("openFiles");
+        //     if (openFilesJSON) {
+        //         const openFilenames = JSON.parse(openFilesJSON) as string[];
 
-                // Adding it again to be opened last will cause it to be selected.
-                const selectedFile = localStorage.getItem("selectedFile");
+        //         // Adding it again to be opened last will cause it to be selected.
+        //         const selectedFile = localStorage.getItem("selectedFile");
 
-                const promises = openFilenames.map((fileName) => this.fileService.fileByName(fileName))
-                    .map((p) => {
-                        return new Promise((resolve, reject) => {
-                            p.then((f) => {
-                                this.openFile(f).then(() => resolve()).catch((e) => {
-                                    console.log(e);
-                                    resolve();
-                                });
-                            }).catch((e) => {
-                                console.log(e);
-                                resolve();
-                            });
-                        });
-                    });
+        //         const promises = openFilenames.map((fileName) => this.fileService.fileByName(fileName))
+        //             .map((p) => {
+        //                 return new Promise((resolve, reject) => {
+        //                     p.then((f) => {
+        //                         this.openFile(f).then(() => resolve()).catch((e) => {
+        //                             console.log(e);
+        //                             resolve();
+        //                         });
+        //                     }).catch((e) => {
+        //                         console.log(e);
+        //                         resolve();
+        //                     });
+        //                 });
+        //             });
 
-                if (selectedFile) {
-                    Promise.all(promises).then(() => {
-                        this.fileService.fileByName(selectedFile).then((f) => {
-                            const found = [...this.tabs.entries()].find(([_, context]) => f.equals(context.file));
-                            if (found) {
-                                this.tabBar.active = found[0];
-                            }
-                        }).catch(() => {
-                            console.log("Unable to select previously selected file: ", selectedFile);
-                        });
-                    });
-                }
-            }
-        } catch (e) {
-            console.log(e);
-        }
+        //         if (selectedFile) {
+        //             Promise.all(promises).then(() => {
+        //                 this.fileService.fileByName(selectedFile).then((f) => {
+        //                     const found = [...this.tabs.entries()].find(([_, context]) => f.equals(context.file));
+        //                     if (found) {
+        //                         this.tabBar.active = found[0];
+        //                     }
+        //                 }).catch(() => {
+        //                     console.log("Unable to select previously selected file: ", selectedFile);
+        //                 });
+        //             });
+        //         }
+        //     }
+        // } catch (e) {
+        //     console.log(e);
+        // }
     }
 
     private propertiesPanelData = new PropertiesPanelData();
     // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
     private filesPanelData = new FilesPanelData("./examples", this.fileService);
-    private toolsPanelData = new ToolsPanelData();
+    // private toolsPanelData = new ToolsPanelData();
 
     private tabs = new Map<number, TabContext>();
 
@@ -163,35 +165,41 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         if (context) {
             context.compileProgram();
 
-            this.toolsPanelData.graph = context.graph;
+            // this.toolsPanelData.graph = context.graph;
             this.filesPanelData.selectedFile = context.file;
             this.statusBar.info = context.statusBarInfo;
 
             context.graph.selectionChanged.asObservable().subscribe(evt => this.propertiesPanelData.selectedElements = evt);
             this.propertiesPanelData.selectedElements = context.graph.selectedElements;
 
-            if (this.toolsPanelData.shouldDisplay && this.sidePanels.length < 3) {
-                this.sidePanels = [
-                    new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
-                    new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
-                    new DynamicPanelItem(ToolsPanelComponent, this.toolsPanelData, TOOLS_ICON.name, TOOLS_ICON.path)
-                ];
-            } else if (!this.toolsPanelData.shouldDisplay && this.sidePanels.length !== 2) {
-                this.sidePanels = [
-                    new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
-                    new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
-                ];
-            }
+            // if (this.toolsPanelData.shouldDisplay && this.sidePanels.length < 3) {
+            //     this.sidePanels = [
+            //         new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
+            //         new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
+            //         new DynamicPanelItem(ToolsPanelComponent, this.toolsPanelData, TOOLS_ICON.name, TOOLS_ICON.path)
+            //     ];
+            // } else if (!this.toolsPanelData.shouldDisplay && this.sidePanels.length !== 2) {
+            //     this.sidePanels = [
+            //         new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
+            //         new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
+            //     ];
+            // }
 
-            this.bottomPanels = [
-                new DynamicPanelItem(InputPanelComponent, context.inputPanelData, INPUT_ICON.name, INPUT_ICON.path),
-                new DynamicPanelItem(TestPanelComponent, context.testPanelData, TEST_ICON.name, TEST_ICON.path),
+            this.sidePanels = [
+                new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
+                new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
             ];
+            this.bottomPanels = [];
+
+            // this.bottomPanels = [
+            //     new DynamicPanelItem(InputPanelComponent, context.inputPanelData, INPUT_ICON.name, INPUT_ICON.path),
+            //     new DynamicPanelItem(TestPanelComponent, context.testPanelData, TEST_ICON.name, TEST_ICON.path),
+            // ];
         } else {
             // Clear state
             this.filesPanelData.selectedFile = undefined;
             this.statusBar.info = undefined;
-            this.toolsPanelData.graph = undefined;
+            // this.toolsPanelData.graph = undefined;
             this.propertiesPanelData.selectedElements = undefined;
             this.sidePanels = [
                 new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path)
