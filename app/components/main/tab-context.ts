@@ -107,7 +107,7 @@ export class TabContext implements InputPanelDelegate {
         // TODO: Fix everything
         let f = (element: any) => {
             for (let n of this.graph.drawable.nodes) {
-                if (n.label === element.label) {
+                if (n.label === element.label && element.label !== "") {
                     toSelect.push(n);
                 }
             }
