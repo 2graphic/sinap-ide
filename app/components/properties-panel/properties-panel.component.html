@@ -1,11 +1,29 @@
 <div id="wrapper">
-    <div *ngIf="isEmpty" id="empty">
+    <div *ngIf="element === undefined" id="empty">
         <p>empty</p>
     </div>
-    <div *ngIf="!isEmpty">
-        <!--<h3>{{elementKind}}</h3>
-        <br>
-        <sinap-type [readonly]="false" [value]="pluginValue"></sinap-type>
-        <sinap-type [readonly]="false" [value]="drawableValue"></sinap-type>-->
+    <div *ngIf="element !== undefined">
+        <table>
+            <tr>
+                <th colspan="2">Plugin Properties - {{element.kind}}</th>
+            </tr>
+            <tr *ngFor="let property of element.pluginProperties">
+                <td>{{property.name}}</td>
+                <td>
+                    <sinap-type [value]="property.value" [readonly]="false"></sinap-type>
+                </td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <th colspan="2">Drawable Properties</th>
+            </tr>
+            <tr *ngFor="let property of element.drawableProperties">
+                <td>{{property.name}}</td>
+                <td>
+                    <sinap-type [value]="property.value" [readonly]="false"></sinap-type>
+                </td>
+            </tr>
+        </table>
     </div>
 </div>

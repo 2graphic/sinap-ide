@@ -14,9 +14,7 @@
          class="dock-fill"
          [hidden]="(tabs.size === 0)">
 
-      <div>
-        <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
-      </div>
+      <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
 
       <div #graphEditorContainer
            id="graph-editor-container"
@@ -25,11 +23,9 @@
                             [graph]="_context ? _context.graph.drawable : null"></sinap-graph-editor>
       </div>
 
-      <div>
-        <sinap-status-bar id="status-bar"
-                          [zoom]="_context ? _context.graph.drawable.scale : 1"
-                          (zoomChange)="updateZoom($event)"></sinap-status-bar>
-      </div>
+      <sinap-status-bar id="status-bar"
+                        [zoom]="_context ? _context.graph.drawable.scale : 1"
+                        (zoomChange)="updateZoom($event)"></sinap-status-bar>
       
     </div>
 

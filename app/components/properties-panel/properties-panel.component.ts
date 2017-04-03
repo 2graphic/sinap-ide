@@ -15,6 +15,7 @@
 import { Component, Input, EventEmitter } from "@angular/core";
 import { Bridge } from "../../models/graph-controller";
 import { Element } from "sinap-core";
+import { Value } from "sinap-types";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
 
 
@@ -41,7 +42,7 @@ export class PropertiesPanelData {
     styleUrls: ["./properties-panel.component.scss"],
 })
 export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelData> {
-    private isEmpty = true;
+    private element?: ElementInfo;
 
     set data(value: PropertiesPanelData) {
         if (value) {
@@ -52,12 +53,39 @@ export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelD
 
     updateSelectedElements = (elements: Set<Bridge> | undefined) => {
         if (elements === undefined || elements.size === 0) {
-            this.isEmpty = true;
+            this.element = undefined;
         } else {
-            const bridge = elements.values().next().value;
-            this.isEmpty = false;
+            const element = elements.values().next().value.core;
+            console.log(element);
 
-            console.log(bridge);
+            this.element = new ElementInfo(element);
+            console.log(this.element);
         }
     }
+}
+
+class ElementInfo {
+    public readonly pluginProperties: Property[];
+    public readonly drawableProperties: Property[];
+    public readonly kind: string;
+
+    constructor(public readonly element: Element) {
+        const types = [...element.type.types.values()];
+
+        if (types.length !== 2) {
+            throw new Error("Expecting element intersection to have two types.");
+        }
+
+        const pluginType = types[0];
+        const drawableType = types[1];
+
+        this.kind = pluginType.name;
+
+        this.pluginProperties = [...pluginType.members.keys()].map((k) => new Property(pluginType.prettyName(k), element.get(k)));
+        this.drawableProperties = [...drawableType.members.keys()].filter((k) => !pluginType.members.has(k)).map((k) => new Property(pluginType.prettyName(k), element.get(k)));
+    }
+}
+
+class Property {
+    constructor(public readonly name: string, public readonly value: Value.Value) { };
 }

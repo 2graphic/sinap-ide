@@ -3,18 +3,19 @@
 // Date created: February 22, 2017
 //
 
-import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type } from "@angular/core";
-import { CoreValue, Type as CoreType, isObjectType, PluginTypeEnvironment, isUnionType, CorePrimitiveValue, CoreMapValue, CoreElement, CoreArrayValue } from "sinap-core";
+import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type as AngularType } from "@angular/core";
+import * as Core from "sinap-core";
+import { Type, Value } from "sinap-types";
 
 import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
-import { ObjectTypeComponent } from "./../object-type/object-type.component";
-import { NodeTypeComponent } from "./../node-type/node-type.component";
-import { ListTypeComponent } from "./../list-type/list-type.component";
-import { UnionTypeComponent } from "./../union-type/union-type.component";
-import { NumberTypeComponent } from "./../number-type/number-type.component";
-import { ColorTypeComponent } from "./../color-type/color-type.component";
-import { MapTypeComponent } from "./../map-type/map-type.component";
+// import { ObjectTypeComponent } from "./../object-type/object-type.component";
+// import { NodeTypeComponent } from "./../node-type/node-type.component";
+// import { ListTypeComponent } from "./../list-type/list-type.component";
+// import { UnionTypeComponent } from "./../union-type/union-type.component";
+// import { NumberTypeComponent } from "./../number-type/number-type.component";
+// import { ColorTypeComponent } from "./../color-type/color-type.component";
+// import { MapTypeComponent } from "./../map-type/map-type.component";
 
 
 /**
@@ -25,7 +26,7 @@ import { MapTypeComponent } from "./../map-type/map-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent, ColorTypeComponent, MapTypeComponent],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent/*, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent, ColorTypeComponent, MapTypeComponent*/],
     template: `<ng-template #container></ng-template>`,
 })
 export class TypeInjectorComponent {
@@ -33,7 +34,7 @@ export class TypeInjectorComponent {
 
     @ViewChild('container', { read: ViewContainerRef }) private container: ViewContainerRef;
     private component?: ComponentRef<any>;
-    private _value?: CoreValue<PluginTypeEnvironment>;
+    private _value?: Value.Value;
     private _disabled: boolean = false;
 
     /**
@@ -56,11 +57,11 @@ export class TypeInjectorComponent {
     }
 
     @Input()
-    set value(v: CoreValue<PluginTypeEnvironment> | undefined) {
+    set value(v: Value.Value | undefined) {
         if (!v) {
             this.container.clear();
             this.component = undefined;
-        } else if (this.component && this._value && this.areEqual(this._value, v)) {
+        } else if (this.component && this._value && this._value.deepEqual(v)) {
             if (this._value !== v) {
                 this.component.instance.value = v;
             }
@@ -69,11 +70,7 @@ export class TypeInjectorComponent {
         }
     }
 
-    private areEqual(a: CoreValue<PluginTypeEnvironment>, b: CoreValue<PluginTypeEnvironment>) {
-        return false; // (a.type.isAssignableTo(b.type) && b.type.isAssignableTo(a.type) && a.type === b.value);
-    }
-
-    private inject(value: CoreValue<PluginTypeEnvironment>, readonly: boolean, disabled: boolean) {
+    private inject(value: Value.Value, readonly: boolean, disabled: boolean) {
         this._value = value;
 
         let componentType = this.getComponentType(value);
@@ -82,9 +79,9 @@ export class TypeInjectorComponent {
             return;
         }
 
-        if (!value.mutable) {
-            value.mutable = true; // TODO: Fix this
-        }
+        // if (!value.mutable) {
+        //     value.mutable = true; // TODO: Fix this
+        // }
 
         // console.log(value, componentType);
 
@@ -107,52 +104,60 @@ export class TypeInjectorComponent {
         }
     }
 
-    private getComponentType(value: CoreValue<PluginTypeEnvironment>): Type<any> | undefined {
+    private getComponentType(value: Value.Value): AngularType<any> | undefined {
         try {
             const type = value.type;
-            const env = type.env;
 
-            if (value instanceof CoreMapValue) {
-                return MapTypeComponent;
+            if (value instanceof Value.Primitive) {
+                if (value.type.name === "boolean") {
+                    return BooleanTypeComponent;
+                }
+                if (value.type.name === "string") {
+                    return StringTypeComponent;
+                }
             }
 
-            if (value instanceof CoreArrayValue) {
-                return ListTypeComponent;
-            }
+            // if (value instanceof CoreMapValue) {
+            //     return MapTypeComponent;
+            // }
 
-            if (value instanceof CoreElement || type.isAssignableTo(env.lookupPluginType("Nodes"))) {
-                return NodeTypeComponent;
-            }
+            // if (value instanceof CoreArrayValue) {
+            //     return ListTypeComponent;
+            // }
 
-            if (type.name === "true | false" || type.isAssignableTo(env.getBooleanType())) {
-                return BooleanTypeComponent;
-            }
+            // if (value instanceof CoreElement || type.isAssignableTo(env.lookupPluginType("Nodes"))) {
+            //     return NodeTypeComponent;
+            // }
 
-            if (isUnionType(type)) {
-                return UnionTypeComponent;
-            }
+            // if (type.name === "true | false" || type.isAssignableTo(env.getBooleanType())) {
+            //     return BooleanTypeComponent;
+            // }
 
-            if (type.isAssignableTo(env.lookupPluginType("Error"))) {
-                return undefined;
-                // return StringTypeComponent; // TODO: Make error component
-            }
+            // if (isUnionType(type)) {
+            //     return UnionTypeComponent;
+            // }
 
-            // TODO: fix
-            if (type.isAssignableTo(env.lookupSinapType("Color")) || (value instanceof CorePrimitiveValue && value.data !== undefined && (value.data as any).toString().charAt(0) === "#")) {
-                return ColorTypeComponent;
-            }
+            // if (type.isAssignableTo(env.lookupPluginType("Error"))) {
+            //     return undefined;
+            //     // return StringTypeComponent; // TODO: Make error component
+            // }
 
-            if (type.isAssignableTo(env.getNumberType())) {
-                return NumberTypeComponent;
-            }
+            // // TODO: fix
+            // if (type.isAssignableTo(env.lookupSinapType("Color")) || (value instanceof CorePrimitiveValue && value.data !== undefined && (value.data as any).toString().charAt(0) === "#")) {
+            //     return ColorTypeComponent;
+            // }
 
-            if (type.isAssignableTo(env.getStringType())) {
-                return StringTypeComponent;
-            }
+            // if (type.isAssignableTo(env.getNumberType())) {
+            //     return NumberTypeComponent;
+            // }
 
-            if (isObjectType(type)) {
-                return ObjectTypeComponent;
-            }
+            // if (type.isAssignableTo(env.getStringType())) {
+            //     return StringTypeComponent;
+            // }
+
+            // if (isObjectType(type)) {
+            //     return ObjectTypeComponent;
+            // }
 
             // if (typeof value.value === "object") {
             //     const members = new Map<string, CoreType>();
@@ -169,7 +174,7 @@ export class TypeInjectorComponent {
             return undefined;
         } catch (e) {
             // TODO: No errors
-            // console.log(e);
+            console.log(e);
             return undefined;
         }
 

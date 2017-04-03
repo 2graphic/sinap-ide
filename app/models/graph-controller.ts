@@ -237,6 +237,8 @@ export class GraphController {
     }
 
     private addDrawable(drawable: Drawable, core?: Element) {
+        console.log(drawable, core);
+
         if (!core) {
             core = this.makeCoreFromDrawable(drawable);
         }
@@ -269,7 +271,11 @@ export class GraphController {
     private removeDrawable(drawable: Drawable) {
         const bridge = this.bridges.getB(drawable);
         if (bridge) {
-            this.core.delete(bridge.core);
+            try {
+                this.core.delete(bridge.core);
+            } catch (e) {
+                console.log(e);
+            }
             this.bridges.delete(bridge.core, bridge.drawable);
         } else {
             throw new Error("Trying to delete core element that does not exist.");

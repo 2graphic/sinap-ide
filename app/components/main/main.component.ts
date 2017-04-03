@@ -155,8 +155,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     ngAfterViewChecked() {
         // TODO: Let HTML resize this for us.
         this.graphEditor.height =
-            this.graphEditorContainer.nativeElement.offsetHeight
-            - this.tabBar.offsetHeight - this.statusBar.offsetHeight;
+            this.graphEditorContainer.nativeElement.offsetHeight;
     }
 
     private _context?: TabContext;

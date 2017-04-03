@@ -1,14 +1,16 @@
 <div id="wrapper">
-    <div id="items" *ngIf="info !== undefined">
-        <span class="title">
-            {{info.title}}
-        </span>
+    <div id="items">
+        <ng-template *ngIf="info !== undefined">
+            <span class="title">
+                {{info.title}}
+            </span>
 
-        <span class="spacer"></span>
+            <span class="spacer"></span>
 
-        <p *ngFor="let item of info.items">
-            {{item}}
-        </p>
+            <p *ngFor="let item of info.items">
+                {{item}}
+            </p>
+        </ng-template>
 
         <span class="expand"></span>
 
