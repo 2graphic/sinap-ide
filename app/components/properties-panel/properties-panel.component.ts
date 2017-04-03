@@ -14,7 +14,7 @@
 
 import { Component, Input, EventEmitter } from "@angular/core";
 import { Bridge } from "../../models/graph-controller";
-import { Value } from "sinap-types";
+import { Element } from "sinap-core";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
 
 

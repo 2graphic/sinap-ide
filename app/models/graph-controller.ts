@@ -19,8 +19,7 @@ import {
     SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
 
-import { Model, Plugin } from "sinap-core";
-import { Value } from "sinap-types";
+import { Model, Plugin, Element } from "sinap-core";
 import { DoubleMap } from "./double-map";
 
 /**
@@ -119,7 +118,7 @@ export class UndoableChange {
 }
 
 export class Bridge {
-    constructor(public core: Value.Intersection, public drawable: Drawable) { };
+    constructor(public core: Element, public drawable: Drawable) { };
 }
 
 class OutOfSyncError extends Error {
@@ -137,7 +136,7 @@ export class GraphController {
 
     public selectedElements: Set<Bridge>;
 
-    public bridges = new DoubleMap<Value.Intersection, Drawable, Bridge>();
+    public bridges = new DoubleMap<Element, Drawable, Bridge>();
 
     validateEdgeHandler = (src: DrawableNode, dst?: DrawableNode, like?: DrawableEdge) => {
         const sourceBridge = this.bridges.getB(src);
@@ -146,7 +145,7 @@ export class GraphController {
         }
         const source = sourceBridge.core;
 
-        let destination: Value.Intersection | undefined = undefined;
+        let destination: Element | undefined = undefined;
         if (dst !== undefined) {
             const destinationBridge = this.bridges.getB(dst);
             if (!destinationBridge) {
@@ -237,7 +236,7 @@ export class GraphController {
         this.setSelectedElements(undefined);
     }
 
-    private addDrawable(drawable: Drawable, core?: Value.Intersection) {
+    private addDrawable(drawable: Drawable, core?: Element) {
         if (!core) {
             core = this.makeCoreFromDrawable(drawable);
         }
@@ -281,7 +280,7 @@ export class GraphController {
 
 
     private makeCoreFromDrawable(drawable: Drawable) {
-        let core: Value.Intersection;
+        let core: Element;
 
         if (drawable instanceof DrawableNode) {
             core = this.core.makeNode();
@@ -346,15 +345,15 @@ export class GraphController {
         }
     }
 
-    // private getData = (v: Value.Intersection) => {
+    // private getData = (v: Element) => {
     //     return v.jsonify(() => { return { result: false, value: undefined }; });
     // }
 
-    copyPropertiesToDrawable(core: Value.Intersection, drawable: Drawable) {
+    copyPropertiesToDrawable(core: Element, drawable: Drawable) {
         // Object.keys(drawable).forEach(this.copyPropertyToDrawable.bind(this, core, drawable));
     }
 
-    copyPropertyToDrawable(core: Value.Intersection, drawable: Drawable, key: string) {
+    copyPropertyToDrawable(core: Element, drawable: Drawable, key: string) {
         // try {
         //     if (key === "source" || key === "destination") return;
         //     const value = core.get(key) as CoreValue<PluginTypeEnvironment>;
@@ -365,11 +364,11 @@ export class GraphController {
         // }
     }
 
-    copyPropertiesToCore(drawable: Drawable, core: Value.Intersection) {
+    copyPropertiesToCore(drawable: Drawable, core: Element) {
         // Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    copyPropertyToCore(drawable: Drawable, core: Value.Intersection, key: PropertyKey) {
+    copyPropertyToCore(drawable: Drawable, core: Element, key: PropertyKey) {
         // if (key === "source" || key === "destination") {
         //     const bridge = this.bridges.getB((drawable as any)[key]);
         //     if (!bridge) {
