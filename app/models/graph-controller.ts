@@ -143,7 +143,7 @@ export class GraphController {
         const destination = dst ? this.bridges.getA(dst) : dst;
 
         if (source === undefined || (dst !== undefined && destination === undefined)) {
-            console.log("backer out of sync")
+            console.log("backer out of sync");
             return false;
         }
 
@@ -154,7 +154,7 @@ export class GraphController {
         if (like !== undefined) {
             const e = this.bridges.getA(like);
             if (e === undefined) {
-                console.log("backer out of sync")
+                console.log("backer out of sync");
                 return false;
             }
             edge = this.plugin.typeEnvironment.getElementType(e.core.kind, e.core.type.name);
