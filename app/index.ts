@@ -36,8 +36,8 @@ function createWindow() {
     win = new BrowserWindow({
         width: 1080,
         height: 768,
-        minWidth: 1024,
-        minHeight: 720,
+        minWidth: 640,
+        minHeight: 480,
         center: true,
         show: false
     });
