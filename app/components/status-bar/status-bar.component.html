@@ -17,13 +17,13 @@
 
         <!-- Zoom slider -->
         <span class="spacer"></span>
-        <p>
+        <span>
             <button (click)="onZoomOut()">-</button>
             <input class="slider" type="range" min="0.25" max="4" step="0.05" defaultValue="1" [value]="zoom" (input)="onZoomChange($event)" />
             <button (click)="onZoomIn()">+</button>
-        </p>
-        <p>
-            <input class="zoomText" type="text" [value]="(100 * zoom).toFixed(3) + ' %'" onfocus="this.select()" (blur)="updateZoom($event)" (keypress)="enterZoom($event)" />
-        </p>
+        </span>
+        <span id="zoomTextContainer">
+            <input class="zoomText" type="text" [value]="zoomText" onfocus="this.select()" (blur)="updateZoom($event)" (keypress)="enterZoom($event)" />
+        </span>
     </div>
 </div>
