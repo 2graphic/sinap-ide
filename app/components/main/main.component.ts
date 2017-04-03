@@ -272,7 +272,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     saveAsFile() {
         if (this._context) {
             const c = this._context;
-            this.fileService.requestSaveFile(this._context.file.name).then((f) => {
+            this.fileService.requestSaveFile(this._context.file.getPath()).then((f) => {
                 if (f.equals(c.file)) {
                     // Saving as same file...
                     this.saveToFile(c.graph, c.file).then(() => {
