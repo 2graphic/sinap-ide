@@ -354,13 +354,19 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             if (toDelete && toDelete.file.dirty === true) {
                 dialog.showMessageBox(remote.BrowserWindow.getFocusedWindow(), {
                     type: "question",
-                    buttons: ["OK", "cancel"],
-                    defaultId: 1,
-                    cancelId: 1,
-                    message: "Close unsaved file?",
+                    buttons: ["Save", "Don't Save", "Cancel"],
+                    defaultId: 2,
+                    cancelId: 2,
+                    message: "Save file before closing?",
                     detail: toDelete.file.getPath()
                 }, (r) => {
-                    resolve(r === 0);
+                    if (r === 0) {
+                        this.saveToFile(toDelete.graph, toDelete.file).then(() => {
+                            resolve(true);
+                        });
+                    } else {
+                        resolve(r === 1);
+                    }
                 });
             } else {
                 resolve(true);
