@@ -562,11 +562,13 @@ export class EditorGraph {
         for (const s of [...this.selected]) {
             if (!s.hitRect(rect)) {
                 this.selected.delete(s);
+                this.unselected.add(s);
             }
         }
         for (const u of [...this.unselected]) {
             if (u.hitRect(rect)) {
                 this.selected.add(u);
+                this.unselected.delete(u);
             }
         }
 
