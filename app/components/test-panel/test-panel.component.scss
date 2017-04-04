@@ -2,7 +2,7 @@
 
 #tests {
     width: 100%;
-    height: calc(100% - #{$TOOLBAR_HEIGHT});
+    height: 100%;
     overflow-y: scroll;
 }
 
@@ -16,7 +16,6 @@
 #empty p {
     display: inline-block;
     width: 100%;
-    padding-bottom: $TOOLBAR_HEIGHT;
     text-align: center;
     font-size: larger;
     color: #a8a8a8;

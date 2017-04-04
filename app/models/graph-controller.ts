@@ -143,7 +143,8 @@ export class GraphController {
         const destination = dst ? this.bridges.getA(dst) : dst;
 
         if (source === undefined || (dst !== undefined && destination === undefined)) {
-            throw "backer out of sync";
+            console.log("backer out of sync");
+            return false;
         }
 
         const sourceType = this.plugin.typeEnvironment.getElementType(source.core.kind, source.core.type.name);
@@ -153,7 +154,8 @@ export class GraphController {
         if (like !== undefined) {
             const e = this.bridges.getA(like);
             if (e === undefined) {
-                throw "backer out of sync";
+                console.log("backer out of sync");
+                return false;
             }
             edge = this.plugin.typeEnvironment.getElementType(e.core.kind, e.core.type.name);
         } else {
@@ -252,6 +254,12 @@ export class GraphController {
         }
         const bridge = new BridgingProxy(core, drawable, this);
         this.bridges.set(drawable, core, bridge);
+
+        drawable.addEventListener("change", (evt: PropertyChangedEvent<any>) => {
+            if (evt.detail.key === "position") {
+                bridge.set("position", evt.detail.curr, false);
+            }
+        });
 
         return bridge;
     }

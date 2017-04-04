@@ -74,7 +74,7 @@ export class ToolsPanelComponent implements AfterViewInit, PanelComponent<ToolsP
         this.nodesList.selectedIndexChanged.asObservable().subscribe(() => {
             if (this._data && this._data.graph) {
                 this._data.graph.activeNodeType
-                    = this.data.nodes[this.nodesList.selectedIndex];
+                    = this._data.nodes[this.nodesList.selectedIndex];
             }
         });
 

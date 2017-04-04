@@ -139,6 +139,10 @@ export class DynamicPanelComponent {
         return this._isCollapsed;
     }
 
+    isEmpty() {
+        return this._panels.length === 0;
+    }
+
     get panels() {
         /**
          * @see {@link https://github.com/angular/angular/issues/6392}
@@ -180,6 +184,7 @@ export class DynamicPanelComponent {
             else {
                 this.title = "";
                 this._currentIndex = -1;
+                this.titlebarItems = undefined;
             }
         }
     }

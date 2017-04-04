@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="42" width="62">
+<path d="M 1 1 V 40 L 21 21 Z"
+stroke="black"
+stroke-width="2"
+fill="white"
+/>
+<circle cx="41" cy="21" r="20" stroke="black" stroke-width="2" fill="#fff200" />
+<circle cx="41" cy="21" r="17" stroke="black" stroke-width="1" fill="transparent" />
+</svg>
