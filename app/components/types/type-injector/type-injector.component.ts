@@ -9,7 +9,7 @@ import { Type, Value } from "sinap-types";
 
 import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
-// import { ObjectTypeComponent } from "./../object-type/object-type.component";
+import { ObjectTypeComponent } from "./../object-type/object-type.component";
 // import { NodeTypeComponent } from "./../node-type/node-type.component";
 // import { ListTypeComponent } from "./../list-type/list-type.component";
 // import { UnionTypeComponent } from "./../union-type/union-type.component";
@@ -26,7 +26,7 @@ import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent/*, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent, ColorTypeComponent, MapTypeComponent*/],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent/*, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent, ColorTypeComponent, MapTypeComponent*/],
     template: `<ng-template #container></ng-template>`,
 })
 export class TypeInjectorComponent {
@@ -115,6 +115,10 @@ export class TypeInjectorComponent {
                 if (value.type.name === "string") {
                     return StringTypeComponent;
                 }
+            }
+
+            if (value instanceof Value.CustomObject) {
+                return ObjectTypeComponent;
             }
 
             // if (value instanceof CoreMapValue) {

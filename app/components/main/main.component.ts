@@ -23,8 +23,8 @@ import { DynamicPanelComponent, DynamicPanelItem, DynamicTestPanelComponent } fr
 import { PropertiesPanelComponent, PropertiesPanelData } from "../properties-panel/properties-panel.component";
 import { FilesPanelComponent, FilesPanelData } from "../files-panel/files-panel.component";
 // import { ToolsPanelComponent, ToolsPanelData } from "../tools-panel/tools-panel.component";
-// import { InputPanelComponent } from "../input-panel/input-panel.component";
-// import { TestPanelComponent } from "../test-panel/test-panel.component";
+import { InputPanelComponent } from "../input-panel/input-panel.component";
+import { TestPanelComponent } from "../test-panel/test-panel.component";
 
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
@@ -188,12 +188,11 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
                 new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
             ];
-            this.bottomPanels = [];
 
-            // this.bottomPanels = [
-            //     new DynamicPanelItem(InputPanelComponent, context.inputPanelData, INPUT_ICON.name, INPUT_ICON.path),
-            //     new DynamicPanelItem(TestPanelComponent, context.testPanelData, TEST_ICON.name, TEST_ICON.path),
-            // ];
+            this.bottomPanels = [
+                new DynamicPanelItem(InputPanelComponent, context.inputPanelData, INPUT_ICON.name, INPUT_ICON.path),
+                // new DynamicPanelItem(TestPanelComponent, context.testPanelData, TEST_ICON.name, TEST_ICON.path),
+            ];
         } else {
             // Clear state
             this.filesPanelData.selectedFile = undefined;

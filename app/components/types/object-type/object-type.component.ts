@@ -4,7 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue, isObjectType, ObjectType } from "sinap-core";
+import { Value, Type } from "sinap-types";
 
 @Component({
     selector: "sinap-object-type",
@@ -14,31 +14,20 @@ import { CoreValue, isObjectType, ObjectType } from "sinap-core";
 export class ObjectTypeComponent {
     @Input() readonly: boolean = true;
 
-    private values = new Map<string, CoreValue>();
+    private values = new Map<string, Value.Value>();
     private keys: string[] = [];
 
     @Input()
-    set value(v: CoreValue) {
-        const type = v.type as ObjectType;
+    set value(v: Value.Value) {
+        if (v instanceof Value.CustomObject) {
+            // TODO, remove keys that no longer exist.
+            v.type.members.forEach((type, key) => {
+                this.values.set(key, v.get(key));
+            });
 
-        // TODO, remove keys that no longer exist.
-        type.members.forEach((type, key) => {
-            if (key === "__constructor" || key === "states" || key === "toVisit" || key === "input" || key === "output") {
-                return;
-            }
-            let subValue;
-            if (typeof v.value[key] === 'boolean') {
-                subValue = {
-                    get: () => v.value[key],
-                    set: (newValue: any) => v.value[key] = newValue,
-                    toString: () => v.value[key]
-                };
-            } else {
-                subValue = v.value[key];
-            }
-            this.values.set(key, new CoreValue(type, subValue));
-        });
-
-        this.keys = [...this.values.keys()];
+            this.keys = [...this.values.keys()];
+        } else {
+            console.log(v, " is not a CustomObject");
+        }
     }
 }
