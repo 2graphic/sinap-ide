@@ -64,7 +64,7 @@ export class LocalFileService implements FileService {
             pluginDirectory: pluginDirectory
         };
 
-        return pluginDirectory.ensureCreated().then(() => result);
+        return Promise.resolve(result);
     }
 
     joinPath(...paths: string[]): string {
