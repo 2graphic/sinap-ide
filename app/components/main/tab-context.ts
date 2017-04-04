@@ -14,11 +14,11 @@ import { StatusBarInfo } from "../../components/status-bar/status-bar.component"
  * Stores the state of each open tab.
  */
 export class TabContext {
-    constructor(public readonly index: number, public graph: GraphController, public file: LocalFile, private plugin: Plugin) {
-        // this.statusBarInfo = {
-        //     title: this.graph.plugin.pluginKind[this.graph.plugin.pluginKind.length - 1],
-        //     items: []
-        // };
+    constructor(public readonly index: number, public graph: GraphController, public file: LocalFile, private plugin: Plugin, private kind: string[]) {
+        this.statusBarInfo = {
+            title: kind.length > 0 ? kind[kind.length - 1] : "",
+            items: []
+        };
         graph.changed.asObservable().subscribe(this.addUndoableEvent);
     };
 
@@ -51,7 +51,12 @@ export class TabContext {
         return () => {
             if (!program || this.dirty) {
                 program = this.plugin.makeProgram(this.graph.core);
-                // this.statusBarInfo.items = program.validate();
+                const validation = program.validate();
+                if (validation) {
+                    this.statusBarInfo.items = [validation.value.toString()];
+                } else {
+                    this.statusBarInfo.items = [];
+                }
                 // this.inputPanelData.program = program;
                 // this.testPanelData.program = program;
                 return program;

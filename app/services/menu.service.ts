@@ -20,7 +20,7 @@ export class MenuService {
         let id = remote.getCurrentWindow().id;
 
         ipcRenderer.on("MenuEvent", (event, action: MenuEventAction) => {
-            if (remote.BrowserWindow.getFocusedWindow().id === id) {
+            if (remote.BrowserWindow.getFocusedWindow() && remote.BrowserWindow.getFocusedWindow().id === id) {
                 this.callEvent(action);
             } else {
                 this.getDefaultAction(action)();

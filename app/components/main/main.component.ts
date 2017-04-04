@@ -216,7 +216,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             let tabNumber = this.tabBar.newTab(file);
 
             const graph = new GraphController(model, plugin);
-            const context = new TabContext(tabNumber, graph, file, plugin);
+            const context = new TabContext(tabNumber, graph, file, plugin, kind);
 
             graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
 
