@@ -839,6 +839,7 @@ export class EditorGraph {
      *   Unregisters event listeners for a drawable.
      */
     private unregisterDrawable(d: DrawableElement) {
+        this.updateHoverObject();
         if (d instanceof DrawableEdge) {
             const edge = this.drawables.get(d) as EditorEdge;
             edge.source.outgoingEdges.delete(edge);
@@ -852,7 +853,6 @@ export class EditorGraph {
         this.selected.delete(e);
         this.unselected.delete(e);
         this.drawables.delete(d);
-        this.updateHoverObject();
         d.removeEventListener("change", this.onDrawablePropertyChanged);
         this.draw();
     }

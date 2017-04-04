@@ -402,7 +402,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
      */
     private updateHighlight() {
         if (this.drawable.shape === "image") {
-            const posn = this.drawable.position;
+            const posn = this.position;
             const offsets = [
                 -2, -2,
                 0, -2,
