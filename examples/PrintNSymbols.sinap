@@ -10,7 +10,12 @@
             "kind": "Graph",
             "type": "Graph",
             "data": {
-                "blank": "□"
+                "blank": "□",
+                "scale": 1,
+                "origin": {
+                    "x": -2.951885671549462,
+                    "y": -5.421516633525002
+                }
             }
         },
         {
@@ -18,45 +23,95 @@
             "type": "Nodes",
             "data": {
                 "color": "#fff200",
-                "label": "  q1",
+                "label": "q1",
                 "position": {
-                    "x": 437,
-                    "y": 222.00000000000003
+                    "x": 53.01839511621762,
+                    "y": 135.00021658492926,
+                    "height": 42,
+                    "width": 62
                 },
                 "shape": "image",
                 "image": "./../plugins/start_state.svg",
                 "anchorPoints": [
                     {
-                        "x": 2,
-                        "y": -16
-                    },
-                    {
-                        "x": 20,
-                        "y": -16
-                    },
-                    {
-                        "x": 2,
-                        "y": 16
-                    },
-                    {
-                        "x": 20,
-                        "y": 16
-                    },
-                    {
-                        "x": 11,
-                        "y": -20
-                    },
-                    {
-                        "x": 11,
-                        "y": 20
-                    },
-                    {
-                        "x": -5,
+                        "x": 31,
                         "y": 0
                     },
                     {
-                        "x": 27,
-                        "y": 0
+                        "x": 29.972186842198223,
+                        "y": 6.489356881873896
+                    },
+                    {
+                        "x": 26.989356881873896,
+                        "y": 12.343490298141935
+                    },
+                    {
+                        "x": 22.343490298141937,
+                        "y": 16.989356881873896
+                    },
+                    {
+                        "x": 16.489356881873896,
+                        "y": 19.972186842198223
+                    },
+                    {
+                        "x": 10.000000000000002,
+                        "y": 21
+                    },
+                    {
+                        "x": 3.510643118126106,
+                        "y": 19.972186842198226
+                    },
+                    {
+                        "x": -2.3434902981419334,
+                        "y": 16.989356881873896
+                    },
+                    {
+                        "x": -6.989356881873896,
+                        "y": 12.343490298141939
+                    },
+                    {
+                        "x": -9.972186842198223,
+                        "y": 6.489356881873897
+                    },
+                    {
+                        "x": -11,
+                        "y": 2.5717582782094417e-15
+                    },
+                    {
+                        "x": -9.972186842198226,
+                        "y": -6.489356881873893
+                    },
+                    {
+                        "x": -6.989356881873896,
+                        "y": -12.343490298141933
+                    },
+                    {
+                        "x": -2.3434902981419388,
+                        "y": -16.989356881873896
+                    },
+                    {
+                        "x": 3.510643118126101,
+                        "y": -19.972186842198223
+                    },
+                    {
+                        "x": 9.999999999999996,
+                        "y": -21
+                    },
+                    {
+                        "x": 16.489356881873892,
+                        "y": -19.972186842198226
+                    },
+                    {
+                        "x": 22.34349029814193,
+                        "y": -16.9893568818739
+                    },
+                    {
+                        "x": 26.989356881873896,
+                        "y": -12.34349029814194
+                    },
+                    {
+                        "x": 29.972186842198223,
+                        "y": -6.4893568818739
                     }
                 ],
                 "borderColor": "#000",
@@ -72,8 +127,10 @@
                 "color": "#fff200",
                 "label": "q2",
                 "position": {
-                    "x": 637,
-                    "y": 221.99999999999997
+                    "x": 251.11337880077622,
+                    "y": 114.99955478369783,
+                    "height": 40,
+                    "width": 40
                 },
                 "shape": "circle",
                 "image": "",
@@ -84,41 +141,101 @@
             }
         },
         {
-            "kind": "Edge",
-            "type": "Edges",
-            "data": {
-                "color": "#000",
-                "label": "0; 0; <-",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 2
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 2
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2,
-                "read": "0",
-                "write": "0",
-                "move": "Left"
-            }
-        },
-        {
             "kind": "Node",
             "type": "Nodes",
             "data": {
                 "color": "#fff200",
                 "label": "q6",
                 "position": {
-                    "x": 636,
-                    "y": 483
+                    "x": 255.82842774709837,
+                    "y": 357.9037179159172,
+                    "height": 42,
+                    "width": 42
                 },
                 "shape": "image",
                 "image": "./../plugins/accept_state.svg",
-                "anchorPoints": [],
+                "anchorPoints": [
+                    {
+                        "x": 21,
+                        "y": 0
+                    },
+                    {
+                        "x": 19.972186842198223,
+                        "y": 6.489356881873896
+                    },
+                    {
+                        "x": 16.989356881873896,
+                        "y": 12.343490298141935
+                    },
+                    {
+                        "x": 12.343490298141935,
+                        "y": 16.989356881873896
+                    },
+                    {
+                        "x": 6.4893568818738965,
+                        "y": 19.972186842198223
+                    },
+                    {
+                        "x": 1.2858791391047208e-15,
+                        "y": 21
+                    },
+                    {
+                        "x": -6.489356881873894,
+                        "y": 19.972186842198226
+                    },
+                    {
+                        "x": -12.343490298141933,
+                        "y": 16.989356881873896
+                    },
+                    {
+                        "x": -16.989356881873896,
+                        "y": 12.343490298141939
+                    },
+                    {
+                        "x": -19.972186842198223,
+                        "y": 6.489356881873897
+                    },
+                    {
+                        "x": -21,
+                        "y": 2.5717582782094417e-15
+                    },
+                    {
+                        "x": -19.972186842198226,
+                        "y": -6.489356881873893
+                    },
+                    {
+                        "x": -16.989356881873896,
+                        "y": -12.343490298141933
+                    },
+                    {
+                        "x": -12.343490298141939,
+                        "y": -16.989356881873896
+                    },
+                    {
+                        "x": -6.489356881873899,
+                        "y": -19.972186842198223
+                    },
+                    {
+                        "x": -3.857637417314163e-15,
+                        "y": -21
+                    },
+                    {
+                        "x": 6.489356881873892,
+                        "y": -19.972186842198226
+                    },
+                    {
+                        "x": 12.343490298141932,
+                        "y": -16.9893568818739
+                    },
+                    {
+                        "x": 16.989356881873896,
+                        "y": -12.34349029814194
+                    },
+                    {
+                        "x": 19.972186842198223,
+                        "y": -6.4893568818739
+                    }
+                ],
                 "borderColor": "#000",
                 "borderStyle": "solid",
                 "borderWidth": 2,
@@ -132,10 +249,12 @@
                 "color": "#000000",
                 "label": "Input should be a\nbinary number.\n Consumes the\n input and prints\n the number of A's.\n\nI.E. 11 -> 00#AAA",
                 "position": {
-                    "x": 503,
-                    "y": 358
+                    "x": 118.06588695849698,
+                    "y": 241.47543011644498,
+                    "height": 144,
+                    "width": 194.4296875
                 },
-                "shape": "square",
+                "shape": "rectangle",
                 "image": "",
                 "anchorPoints": [],
                 "borderColor": "#000",
@@ -150,8 +269,10 @@
                 "color": "#fff200",
                 "label": "q3",
                 "position": {
-                    "x": 808.0000000000001,
-                    "y": 221
+                    "x": 422.1133788007761,
+                    "y": 114.95196725042318,
+                    "height": 40,
+                    "width": 40
                 },
                 "shape": "circle",
                 "image": "",
@@ -159,52 +280,6 @@
                 "borderColor": "#000",
                 "borderStyle": "solid",
                 "borderWidth": 2
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Edges",
-            "data": {
-                "color": "#000",
-                "label": "1; 0; ->",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 2
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 6
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2,
-                "read": "1",
-                "write": "0",
-                "move": "Right"
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Edges",
-            "data": {
-                "color": "#000",
-                "label": "0; 1; ->",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 6
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 6
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2,
-                "read": "0",
-                "write": "1",
-                "move": "Right"
             }
         },
         {
@@ -214,8 +289,30 @@
                 "color": "#fff200",
                 "label": "q4",
                 "position": {
-                    "x": 984,
-                    "y": 221.00000000000003
+                    "x": 598.1133788007758,
+                    "y": 113.99955478369789,
+                    "height": 40,
+                    "width": 40
+                },
+                "shape": "circle",
+                "image": "",
+                "anchorPoints": [],
+                "borderColor": "#000",
+                "borderStyle": "solid",
+                "borderWidth": 2
+            }
+        },
+        {
+            "kind": "Node",
+            "type": "Nodes",
+            "data": {
+                "color": "#fff200",
+                "label": "q5",
+                "position": {
+                    "x": 417.25585432761477,
+                    "y": 253.61819271626905,
+                    "height": 40,
+                    "width": 40
                 },
                 "shape": "circle",
                 "image": "",
@@ -229,15 +326,147 @@
             "kind": "Edge",
             "type": "Edges",
             "data": {
+                "label": "□; #; <-",
                 "color": "#000",
-                "label": "#; #; ->",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 1
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "sourcePoint": {
+                    "x": 31,
+                    "y": 0
+                },
+                "destinationPoint": {
+                    "x": -18.858249172884058,
+                    "y": 3.3769601990041154
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "□",
+                "write": "#",
+                "move": "Left"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "label": "0; 0; <-",
+                "color": "#000",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 2
+                },
+                "sourcePoint": {
+                    "x": -6.653668647301796,
+                    "y": -17.477590650225736
+                },
+                "destinationPoint": {
+                    "x": 8.653668647301796,
+                    "y": -17.477590650225736
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "0",
+                "write": "0",
+                "move": "Left"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "label": "0; 1; ->",
+                "color": "#000",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 5
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 5
+                },
+                "sourcePoint": {
+                    "x": -6.653668647301796,
+                    "y": -17.477590650225736
+                },
+                "destinationPoint": {
+                    "x": 8.653668647301796,
+                    "y": -17.477590650225736
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "0",
+                "write": "1",
+                "move": "Right"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "label": "A; A; ->",
+                "color": "#000",
                 "source": {
                     "kind": "sinap-pointer",
                     "index": 6
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 9
+                    "index": 6
+                },
+                "sourcePoint": {
+                    "x": -6.653668647301796,
+                    "y": -17.477590650225736
+                },
+                "destinationPoint": {
+                    "x": 8.653668647301796,
+                    "y": -17.477590650225736
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "A",
+                "write": "A",
+                "move": "Right"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "label": "#; #; ->",
+                "color": "#000",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 5
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 6
+                },
+                "sourcePoint": {
+                    "x": 20.999707170201088,
+                    "y": 0.8917728952286661
+                },
+                "destinationPoint": {
+                    "x": -18.999707170201088,
+                    "y": 1.108227104771334
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -252,15 +481,54 @@
             "kind": "Edge",
             "type": "Edges",
             "data": {
+                "label": "1; 0; ->",
                 "color": "#000",
-                "label": "A; A; ->",
                 "source": {
                     "kind": "sinap-pointer",
-                    "index": 9
+                    "index": 2
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 9
+                    "index": 5
+                },
+                "sourcePoint": {
+                    "x": 20.99999922554865,
+                    "y": 0.9944342068500656
+                },
+                "destinationPoint": {
+                    "x": -18.99999922554865,
+                    "y": 1.0055657931499344
+                },
+                "showSourceArrow": false,
+                "showDestinationArrow": true,
+                "lineStyle": "solid",
+                "lineWidth": 2,
+                "read": "1",
+                "write": "0",
+                "move": "Right"
+            }
+        },
+        {
+            "kind": "Edge",
+            "type": "Edges",
+            "data": {
+                "label": "A; A; <-",
+                "color": "#000",
+                "source": {
+                    "kind": "sinap-pointer",
+                    "index": 7
+                },
+                "destination": {
+                    "kind": "sinap-pointer",
+                    "index": 7
+                },
+                "sourcePoint": {
+                    "x": -6.653668647301796,
+                    "y": -17.477590650225736
+                },
+                "destinationPoint": {
+                    "x": 8.653668647301796,
+                    "y": -17.477590650225736
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -268,40 +536,30 @@
                 "lineWidth": 2,
                 "read": "A",
                 "write": "A",
-                "move": "Right"
-            }
-        },
-        {
-            "kind": "Node",
-            "type": "Nodes",
-            "data": {
-                "color": "#fff200",
-                "label": "q5",
-                "position": {
-                    "x": 805.9999999999999,
-                    "y": 373
-                },
-                "shape": "circle",
-                "image": "",
-                "anchorPoints": [],
-                "borderColor": "#000",
-                "borderStyle": "solid",
-                "borderWidth": 2
+                "move": "Left"
             }
         },
         {
             "kind": "Edge",
             "type": "Edges",
             "data": {
-                "color": "#000",
                 "label": "□; A; <-",
+                "color": "#000",
                 "source": {
                     "kind": "sinap-pointer",
-                    "index": 9
+                    "index": 6
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 12
+                    "index": 7
+                },
+                "sourcePoint": {
+                    "x": -14.83141175875397,
+                    "y": 13.221554799811134
+                },
+                "destinationPoint": {
+                    "x": 16.831411758753973,
+                    "y": -11.221554799811134
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -316,15 +574,23 @@
             "kind": "Edge",
             "type": "Edges",
             "data": {
-                "color": "#000",
                 "label": "#; #; <-",
+                "color": "#000",
                 "source": {
                     "kind": "sinap-pointer",
-                    "index": 12
+                    "index": 7
                 },
                 "destination": {
                     "kind": "sinap-pointer",
                     "index": 2
+                },
+                "sourcePoint": {
+                    "x": -14.356850693942674,
+                    "y": -11.812772407404744
+                },
+                "destinationPoint": {
+                    "x": 16.356850693942675,
+                    "y": 13.812772407404744
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -339,22 +605,30 @@
             "kind": "Edge",
             "type": "Edges",
             "data": {
+                "label": "□; □; <-",
                 "color": "#000",
-                "label": "A; A; <-",
                 "source": {
                     "kind": "sinap-pointer",
-                    "index": 12
+                    "index": 2
                 },
                 "destination": {
                     "kind": "sinap-pointer",
-                    "index": 12
+                    "index": 3
+                },
+                "sourcePoint": {
+                    "x": 1.4248667404498463,
+                    "y": 20.995486697073904
+                },
+                "destinationPoint": {
+                    "x": -3.857637417314163e-15,
+                    "y": -21
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
                 "lineStyle": "solid",
                 "lineWidth": 2,
-                "read": "A",
-                "write": "A",
+                "read": "□",
+                "write": "□",
                 "move": "Left"
             }
         },
@@ -362,8 +636,8 @@
             "kind": "Edge",
             "type": "Edges",
             "data": {
-                "color": "#000",
                 "label": "1; 1; ->",
+                "color": "#000",
                 "source": {
                     "kind": "sinap-pointer",
                     "index": 1
@@ -373,12 +647,12 @@
                     "index": 1
                 },
                 "sourcePoint": {
-                    "x": 427.83026071728256,
-                    "y": 199.86229106023825
+                    "x": -6.989356881873896,
+                    "y": -12.343490298141933
                 },
                 "destinationPoint": {
-                    "x": 446.16973928271744,
-                    "y": 199.86229106023825
+                    "x": 26.989356881873896,
+                    "y": -12.34349029814194
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -393,8 +667,8 @@
             "kind": "Edge",
             "type": "Edges",
             "data": {
-                "color": "#000",
                 "label": "0; 0; ->",
+                "color": "#000",
                 "source": {
                     "kind": "sinap-pointer",
                     "index": 1
@@ -404,12 +678,12 @@
                     "index": 1
                 },
                 "sourcePoint": {
-                    "x": 427.83026071728256,
-                    "y": 199.86229106023825
+                    "x": -6.989356881873896,
+                    "y": -12.343490298141933
                 },
                 "destinationPoint": {
-                    "x": 446.16973928271744,
-                    "y": 199.86229106023825
+                    "x": 26.989356881873896,
+                    "y": -12.34349029814194
                 },
                 "showSourceArrow": false,
                 "showDestinationArrow": true,
@@ -418,68 +692,6 @@
                 "read": "0",
                 "write": "0",
                 "move": "Right"
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Edges",
-            "data": {
-                "color": "#000",
-                "label": "□; #; <-",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 1
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 2
-                },
-                "sourcePoint": {
-                    "x": 469,
-                    "y": 222.00000000000003
-                },
-                "destinationPoint": {
-                    "x": 616,
-                    "y": 221.99999999999997
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2,
-                "read": "□",
-                "write": "#",
-                "move": "Left"
-            }
-        },
-        {
-            "kind": "Edge",
-            "type": "Edges",
-            "data": {
-                "color": "#000",
-                "label": "□; □; <-",
-                "source": {
-                    "kind": "sinap-pointer",
-                    "index": 2
-                },
-                "destination": {
-                    "kind": "sinap-pointer",
-                    "index": 4
-                },
-                "sourcePoint": {
-                    "x": 636.9195408204437,
-                    "y": 242.99984586420635
-                },
-                "destinationPoint": {
-                    "x": 636.0842912452607,
-                    "y": 460.99998498694623
-                },
-                "showSourceArrow": false,
-                "showDestinationArrow": true,
-                "lineStyle": "solid",
-                "lineWidth": 2,
-                "read": "□",
-                "write": "□",
-                "move": "Left"
             }
         }
     ]

@@ -255,6 +255,12 @@ export class GraphController {
         const bridge = new BridgingProxy(core, drawable, this);
         this.bridges.set(drawable, core, bridge);
 
+        drawable.addEventListener("change", (evt: PropertyChangedEvent<any>) => {
+            if (evt.detail.key === "position") {
+                bridge.set("position", evt.detail.curr, false);
+            }
+        });
+
         return bridge;
     }
 
