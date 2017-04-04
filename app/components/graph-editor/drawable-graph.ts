@@ -434,33 +434,34 @@ export class DrawableGraph extends Drawable {
      * @emits DrawableGraph#deleted
      */
     delete(...items: DrawableElement[]): boolean {
-        const deletedNodes: DrawableNode[] = [];
         const deletedEdges: DrawableEdge[] = [];
+        const deletedNodes: DrawableNode[] = [];
+        const toDeselect: DrawableElement[] = [];
         const deleteEdge = (d: DrawableEdge) => {
             if (this._edges.delete(d)) {
                 d.source.removeEdge(d);
                 d.destination.removeEdge(d);
                 deletedEdges.push(d);
+                toDeselect.push(d);
             }
         };
 
-        this.deselect(...items);
         items.forEach(d => {
-            if (d instanceof DrawableEdge) {
+            if (d instanceof DrawableEdge)
                 deleteEdge(d);
-                this._unselected.delete(d);
-            }
             else if (d instanceof DrawableNode) {
                 const edges = [...d.edges];
                 edges.forEach(e => deleteEdge(e));
                 this._nodes.delete(d);
-                this._unselected.delete(d);
                 deletedNodes.push(d);
+                toDeselect.push(d);
             }
         });
 
         const deleted = [...deletedNodes, ...deletedEdges];
         if (deleted.length > 0) {
+            this.deselect(...toDeselect);
+            toDeselect.forEach(v => this._unselected.delete(v));
             this.dispatchEvent(
                 new TypedCustomEvent(
                     "deleted",
