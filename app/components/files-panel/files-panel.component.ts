@@ -17,14 +17,15 @@ import { LocalFileService, LocalFile, LocalDirectory } from "../../services/file
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
 import { Directory } from "sinap-core";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
-
+import { IS_DEBUG } from "../../constants";
 
 export class FilesPanelData {
     public directory?: Directory;
     public files: LocalFile[] = [];
 
     constructor(directoryToOpen: string, private fileService: LocalFileService) {
-        this.setDirectory(directoryToOpen).catch(() => {
+        this.setDirectory(directoryToOpen).catch((err) => {
+            if (IS_DEBUG) alert(`Could not set directory to ${directoryToOpen}: ${err}.`);
             this.setDirectory(".");
         });
     }

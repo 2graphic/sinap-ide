@@ -44,6 +44,7 @@ import { TabContext } from "./tab-context";
 import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "./icons";
 
 import { ResizeEvent } from 'angular-resizable-element';
+import { IS_PRODUCTION } from "../../constants";
 
 const remote = require('electron').remote;
 const dialog = remote.dialog;
@@ -98,11 +99,17 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         } catch (e) {
             console.log(e);
         }
+
+        if (IS_PRODUCTION) {
+            this.filesPanelData = new FilesPanelData("./resources/app/examples", this.fileService);
+        } else {
+            this.filesPanelData = new FilesPanelData("./examples", this.fileService);
+        }
     }
 
     private propertiesPanelData = new PropertiesPanelData();
     // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
-    private filesPanelData = new FilesPanelData("./examples", this.fileService);
+    private filesPanelData: FilesPanelData;
     private toolsPanelData = new ToolsPanelData();
 
     private tabs = new Map<number, TabContext>();
