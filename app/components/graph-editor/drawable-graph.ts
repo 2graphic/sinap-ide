@@ -434,13 +434,14 @@ export class DrawableGraph extends Drawable {
      * @emits DrawableGraph#deleted
      */
     delete(...items: DrawableElement[]): boolean {
-        const deleted: DrawableElement[] = [];
+        const deletedEdges: DrawableEdge[] = [];
+        const deletedNodes: DrawableNode[] = [];
         const toDeselect: DrawableElement[] = [];
         const deleteEdge = (d: DrawableEdge) => {
             if (this._edges.delete(d)) {
                 d.source.removeEdge(d);
                 d.destination.removeEdge(d);
-                deleted.push(d);
+                deletedEdges.push(d);
                 toDeselect.push(d);
             }
         };
@@ -452,11 +453,12 @@ export class DrawableGraph extends Drawable {
                 const edges = [...d.edges];
                 edges.forEach(e => deleteEdge(e));
                 this._nodes.delete(d);
-                deleted.push(d);
+                deletedNodes.push(d);
                 toDeselect.push(d);
             }
         });
 
+        const deleted = [...deletedNodes, ...deletedEdges];
         if (deleted.length > 0) {
             this.deselect(...toDeselect);
             toDeselect.forEach(v => this._unselected.delete(v));
