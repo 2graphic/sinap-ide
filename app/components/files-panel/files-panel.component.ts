@@ -100,7 +100,7 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
 
     private updateSelectedFile = (value?: LocalFile) => {
         if (value) {
-            const found = this._data.files.find(f => value.fullName === f.fullName);
+            const found = this._data.files.find(f => f.equals(value));
             this.filesList.selectedIndex = found ? this._data.files.indexOf(found) : -1;
         } else {
             this.filesList.selectedIndex = -1;

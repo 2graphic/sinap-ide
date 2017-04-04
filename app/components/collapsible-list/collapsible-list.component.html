@@ -7,6 +7,6 @@
     <div class="label">{{text}}</div>
   </div>
   <ul [style.display]="isExpanded ? 'inherit' : 'none'">
-    <li *ngFor="let item of items; let i = index" (click)="clickItem($event)" [attr.id]="i" [class.active]="i == selectedIndex">{{item}}</li>
+    <li *ngFor="let item of items; let i = index" (click)="clickItem($event)" [attr.id]="i" [class.active]="i == selectedIndex">{{item.toString()}}</li>
   </ul>
 </div>

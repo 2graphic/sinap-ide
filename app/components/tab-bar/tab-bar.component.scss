@@ -6,6 +6,13 @@
     display: flex;
 }
 
+#tabs {
+    flex: 1;
+    display: flex;
+
+    overflow-x: scroll;
+}
+
 ::-webkit-scrollbar {
     display: none;
 }
@@ -13,7 +20,6 @@
 .tab {
     flex: 1;
     padding: .75em;
-    min-width: 7em;
     font-size: small;
     cursor: pointer;
     display: flex;
@@ -46,11 +52,14 @@
 }
 
 .right-item {
-    padding-left: .35em;
-    float: right;
+    position: absolute;
+    right: 0;
 }
 
 .tab-title {
     width: 100%;
     text-align: center;
+    white-space: nowrap;
+    position: relative;
+    padding-right: 1.25em;
 }

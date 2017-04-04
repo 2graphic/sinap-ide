@@ -40,7 +40,7 @@
       <a>Click to create a new graph</a>
     </div>
 
-    <div id="bottom-panel-group">
+    <div id="bottom-panel-group" [hidden]="dynamicBottomPanel.isEmpty()">
       <dynamic-panel #dynamicBottomPanel
                      [panels]="bottomPanels"
                      [isVertical]="true"

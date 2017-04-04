@@ -30,6 +30,10 @@ export class StatusBarComponent {
         return this.el.nativeElement.offsetWidth;
     }
 
+    get zoomText() {
+        return Math.round(100 * this.zoom) + ' %';
+    }
+
     private onZoomIn() {
         this.zoom = Math.min(this.zoom * 1.05, 8);
         this.onZoomChange();
@@ -55,7 +59,7 @@ export class StatusBarComponent {
             text = text.substr(0, text.length - 1).trim();
         let value = Number.parseFloat(text);
         if (Number.isNaN(value))
-            target.value = (this.zoom * 100).toFixed(3) + ' %';
+            target.value = this.zoomText;
         else {
             value = Math.max(12.5, value);
             value = Math.min(800, value);
