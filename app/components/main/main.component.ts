@@ -45,6 +45,7 @@ import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "
 
 import { ResizeEvent } from 'angular-resizable-element';
 import { IS_PRODUCTION } from "../../constants";
+import * as path from "path";
 
 const remote = require('electron').remote;
 const dialog = remote.dialog;
@@ -101,7 +102,8 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         }
 
         if (IS_PRODUCTION) {
-            this.filesPanelData = new FilesPanelData("./resources/app/examples", this.fileService);
+            const dir = path.join(remote.app.getAppPath(), "..", "app", "examples");
+            this.filesPanelData = new FilesPanelData(dir, this.fileService);
         } else {
             this.filesPanelData = new FilesPanelData("./examples", this.fileService);
         }
