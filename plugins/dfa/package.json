@@ -1,7 +1,7 @@
 {
   "name": "dfa",
   "version": "1.0.0",
-  "description": "A DFA interpreter for Sinap.",
+  "description": "This interpreter provides a simple deterministic finite automata (DFA) implementation..",
   "main": "dfa-interpreter.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -27,6 +27,6 @@
       "DFA"
     ],
     "plugin-file": "dfa-interpreter.ts",
-    "description": "This interpreter provides a simple deterministic finite automata (DFA) implementation."
+    "loader": "typescript"
   }
 }
