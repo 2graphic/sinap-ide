@@ -1,5 +1,5 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { Plugin, PluginLoaderManager, Program } from "sinap-core";
+import { Plugin, PluginLoader, getInterpreterInfo, Program } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
 import { LocalFileService } from "../services/files.service";
 import { somePromises } from "../util";
@@ -36,21 +36,24 @@ function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
 @Injectable()
 export class PluginService {
     readonly plugins: Promise<Plugin[]>;
-    private manager: PluginLoaderManager = new PluginLoaderManager();
+    private loader: TypescriptPluginLoader = new TypescriptPluginLoader();
 
     constructor( @Inject(LocalFileService) private fileService: LocalFileService) {
-        this.manager.loaders.set("typescript", new TypescriptPluginLoader());
-
         this.plugins = this.fileService.getAppLocations()
             .then((appLocations) => appLocations.pluginDirectory.getSubDirectories())
             .then((pluginDirectories) => {
-                const pluginProms = pluginDirectories.map((pluginDir) => this.manager.loadPlugin(pluginDir, this.fileService));
+                const pluginProms = pluginDirectories.map((pluginDir) => {
+                    return getInterpreterInfo(pluginDir.fullName).then((info) => {
+                        return this.loader.load(info.interpreterInfo);
+                    });
+                });
                 return somePromises(pluginProms);
             });
     }
 
     public getPluginByKind(kind: string[]): Promise<Plugin> {
         return this.plugins.then((plugins) => {
+            // TODO
             // const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginKind));
             // const pluginName = JSON.stringify(kind);
             // if (matches.length === 0) {

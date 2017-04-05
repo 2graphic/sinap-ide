@@ -19,7 +19,7 @@ import {
     SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
 
-import { Model, Plugin, Element } from "sinap-core";
+import { Model, Plugin, ElementValue } from "sinap-core";
 import { Value } from "sinap-types";
 import { DoubleMap } from "./double-map";
 
@@ -110,7 +110,7 @@ export class UndoableEvent {
 }
 
 export class Bridge {
-    constructor(public core: Element, public drawable: Drawable) { };
+    constructor(public core: ElementValue, public drawable: Drawable) { };
 }
 
 class OutOfSyncError extends Error {
@@ -128,7 +128,7 @@ export class GraphController {
 
     public selectedElements: Set<Bridge>;
 
-    public bridges = new DoubleMap<Element, Drawable, Bridge>();
+    public bridges = new DoubleMap<ElementValue, Drawable, Bridge>();
 
     validateEdgeHandler = (src: DrawableNode, dst?: DrawableNode, like?: DrawableEdge) => {
         const sourceBridge = this.bridges.getB(src);
@@ -137,7 +137,7 @@ export class GraphController {
         }
         const source = sourceBridge.core;
 
-        let destination: Element | undefined = undefined;
+        let destination: ElementValue | undefined = undefined;
         if (dst !== undefined) {
             const destinationBridge = this.bridges.getB(dst);
             if (!destinationBridge) {
@@ -237,8 +237,8 @@ export class GraphController {
         this.setSelectedElements(undefined);
     }
 
-    private addDrawable(drawable: Drawable, _core?: Element) {
-        let core: Element;
+    private addDrawable(drawable: Drawable, _core?: ElementValue) {
+        let core: ElementValue;
         if (!_core) {
             core = this.makeCoreFromDrawable(drawable);
         } else {
@@ -294,7 +294,7 @@ export class GraphController {
 
 
     private makeCoreFromDrawable(drawable: Drawable) {
-        let core: Element;
+        let core: ElementValue;
 
         if (drawable instanceof DrawableNode) {
             core = this.core.makeNode();
@@ -366,11 +366,11 @@ export class GraphController {
     //     return v.jsonify(() => { return { result: false, value: undefined }; });
     // }
 
-    copyPropertiesToDrawable(core: Element, drawable: Drawable) {
+    copyPropertiesToDrawable(core: ElementValue, drawable: Drawable) {
         // Object.keys(drawable).forEach(this.copyPropertyToDrawable.bind(this, core, drawable));
     }
 
-    copyPropertyToDrawable(core: Element, drawable: Drawable, key: string) {
+    copyPropertyToDrawable(core: ElementValue, drawable: Drawable, key: string) {
         const value = core.get(key);
         const primitives = ["label"];
 
@@ -381,11 +381,11 @@ export class GraphController {
         });
     }
 
-    copyPropertiesToCore(drawable: Drawable, core: Element) {
+    copyPropertiesToCore(drawable: Drawable, core: ElementValue) {
         // Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    copyPropertyToCore(drawable: Drawable, core: Element, key: PropertyKey) {
+    copyPropertyToCore(drawable: Drawable, core: ElementValue, key: PropertyKey) {
         // if (key === "source" || key === "destination") {
         //     const bridge = this.bridges.getB((drawable as any)[key]);
         //     if (!bridge) {

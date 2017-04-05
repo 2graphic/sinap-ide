@@ -15,12 +15,11 @@
 import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
 import { LocalFileService, LocalFile, LocalDirectory } from "../../services/files.service";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
-import { Directory } from "sinap-core";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
 
 
 export class FilesPanelData {
-    public directory?: Directory;
+    public directory?: LocalDirectory;
     public files: LocalFile[] = [];
 
     constructor(directoryToOpen: string, private fileService: LocalFileService) {
@@ -51,7 +50,7 @@ export class FilesPanelData {
         return new Promise<string[]>((resolve, reject) => {
             if (value) {
                 this.fileService.directoryByName(value)
-                    .then((directory: Directory) => {
+                    .then((directory: LocalDirectory) => {
                         if (directory instanceof LocalDirectory) {
                             directory.exists().then(() => {
                                 this.directory = directory;
