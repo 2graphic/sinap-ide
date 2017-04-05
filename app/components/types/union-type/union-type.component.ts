@@ -4,50 +4,55 @@
 //
 
 import { Component, Input, ViewChild, ElementRef } from "@angular/core";
-import { CoreValue, PluginTypeEnvironment, CoreUnionValue, isUnionType, valueWrap, makeValue, CorePrimitiveValue } from "sinap-core";
+import { BaseTypeComponent } from "../type-injector/base-classes";
+import { Value, Type } from "sinap-types";
 
 @Component({
     selector: "sinap-union-type",
     templateUrl: "./union-type.component.html",
     styleUrls: ["./union-type.component.scss"]
 })
-export class UnionTypeComponent {
-    private _value: CoreUnionValue<PluginTypeEnvironment>;
-    @Input() readonly: boolean = true;
+export class UnionTypeComponent extends BaseTypeComponent<Value.Union> {
+    private options: [string, Type.Type][];
+    private _selected: Type.Type;
+    private selectedValue: Value.Value | undefined = undefined;
+    private set selected(selected: Type.Type) {
+        this.value.value = this.value.environment.make(selected);
 
-    private options = new Array<CorePrimitiveValue<PluginTypeEnvironment>>();
-
-    @Input() set value(v: CoreValue<PluginTypeEnvironment>) {
-        if (isUnionType(v.type)) {
-            this._value = v as CoreUnionValue<PluginTypeEnvironment>;
-
-            for (const t of v.type.types) {
-                const option = makeValue(t, undefined, false);
-                if (option instanceof CorePrimitiveValue) {
-                    this.options.push(option);
-                    // TODO: Make this work with none primitive values
-                } else {
-                    console.log(v, "Currently only support union's of primitive values.");
-                    this.options.length = 0;
-                    this._value = undefined as any;
-                    return;
-                }
-            }
+        if (this.value.value instanceof Value.Literal) {
+            this.selectedValue = undefined;
         } else {
-            console.log(v, " is not a CoreUnionValue");
+            this.selectedValue = this.value.value;
         }
     }
-
-    getValue() {
-        if (this._value) {
-            return (this._value.value as CorePrimitiveValue<PluginTypeEnvironment>).data;
-        }
-
-        return "";
+    private get selected() {
+        return this._selected;
     }
 
-    setValue(value: any) {
-        const newValue = valueWrap(this._value.type.env, value, this._value.mutable);
-        this._value.value = newValue;
+    set value(v: Value.Union) {
+        console.log(v);
+
+        super.value = v;
+
+        this.options = [];
+        v.type.types.forEach((t) => {
+            if (v.value.type.equals(t)) {
+                this.selected = t;
+            }
+
+            this.options.push([this.getName(t), t])
+        });
+    }
+
+    selectedOption(option: Type.Type) {
+        this.selected = option;
+    }
+
+    private getName(t: Type.Type) {
+        if (t instanceof Type.Literal && /^\".*\"$/.test(t.name)) {
+            return t.name.slice(1, t.name.length - 1);
+        } else {
+            return t.name;
+        }
     }
 }

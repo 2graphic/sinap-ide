@@ -20,7 +20,7 @@ import {
 } from "../components/graph-editor/graph-editor.component";
 
 import { Model, Plugin, ElementValue } from "sinap-core";
-import { Value } from "sinap-types";
+import { Value, Type } from "sinap-types";
 import { DoubleMap } from "./double-map";
 
 /**
@@ -248,6 +248,7 @@ export class GraphController {
         this.bridges.set(core, drawable, bridge);
 
         core.environment.listen((_, value, other) => {
+            console.log(value, other);
             [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => v === value).forEach(([k, _]) => {
                 this.copyPropertyToDrawable(core, drawable, k);
                 console.log(core, drawable, k, value, other);
@@ -375,6 +376,7 @@ export class GraphController {
     }
 
     private readonly primitives = new Set(["label", "color", "borderColor", "borderWidth"]);
+    private readonly unions = new Set(["shape", "borderStyle"]);
 
     copyPropertyToDrawable(core: ElementValue, drawable: Drawable, key: string) {
         const value = core.get(key);
@@ -383,6 +385,11 @@ export class GraphController {
             // TODO: Typesafe way to do this?
             (drawable as any)[key] = value.value;
         }
+
+        if (value instanceof Value.Union && this.unions.has(key) && value.value instanceof Value.Primitive) {
+            console.log("here");
+            (drawable as any)[key] = value.value.value;
+        } 
     }
 
     copyPropertyToCore(drawable: Drawable, core: ElementValue, key: string) {
@@ -400,6 +407,11 @@ export class GraphController {
 
         if (value instanceof Value.Primitive && this.primitives.has(key)) {
             value.value = (drawable as any)[key];
+        }
+
+        if (value instanceof Value.Union && this.unions.has(key)) {
+            // TODO: I'm assuming that all types of a union are literal
+            value.value = value.environment.make(new Type.Primitive((drawable as any)[key]));
         } 
 
         // if (key === "position") {

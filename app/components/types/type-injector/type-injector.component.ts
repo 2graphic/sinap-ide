@@ -12,7 +12,7 @@ import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
 import { ObjectTypeComponent } from "./../object-type/object-type.component";
 // import { NodeTypeComponent } from "./../node-type/node-type.component";
 // import { ListTypeComponent } from "./../list-type/list-type.component";
-// import { UnionTypeComponent } from "./../union-type/union-type.component";
+import { UnionTypeComponent } from "./../union-type/union-type.component";
 import { NumberTypeComponent } from "./../number-type/number-type.component";
 import { ColorTypeComponent } from "./../color-type/color-type.component";
 // import { MapTypeComponent } from "./../map-type/map-type.component";
@@ -26,7 +26,7 @@ import { ColorTypeComponent } from "./../color-type/color-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, ColorTypeComponent, NumberTypeComponent/*, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, MapTypeComponent*/],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, ColorTypeComponent, NumberTypeComponent, UnionTypeComponent/*, NodeTypeComponent, ListTypeComponent, MapTypeComponent*/],
     template: `<ng-template #container></ng-template>`,
 })
 export class TypeInjectorComponent {
@@ -125,6 +125,10 @@ export class TypeInjectorComponent {
 
             if (value instanceof Value.CustomObject) {
                 return ObjectTypeComponent;
+            }
+
+            if (value instanceof Value.Union) {
+                return UnionTypeComponent;
             }
 
             // if (value instanceof CoreMapValue) {

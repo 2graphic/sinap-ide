@@ -33,7 +33,7 @@ import { BooleanTypeComponent } from "./components/types/boolean-type/boolean-ty
 import { ObjectTypeComponent } from "./components/types/object-type/object-type.component";
 // import { NodeTypeComponent } from "./components/types/node-type/node-type.component";
 // import { ListTypeComponent } from "./components/types/list-type/list-type.component";
-// import { UnionTypeComponent } from "./components/types/union-type/union-type.component";
+import { UnionTypeComponent } from "./components/types/union-type/union-type.component";
 import { NumberTypeComponent } from "./components/types/number-type/number-type.component";
 import { ColorTypeComponent } from "./components/types/color-type/color-type.component";
 // import { MapTypeComponent } from "./components/types/map-type/map-type.component";
@@ -64,7 +64,7 @@ import { ColorTypeComponent } from "./components/types/color-type/color-type.com
         ObjectTypeComponent,
         // NodeTypeComponent,
         // ListTypeComponent,
-        // UnionTypeComponent,
+        UnionTypeComponent,
         NumberTypeComponent,
         ColorTypeComponent,
         // MapTypeComponent,
