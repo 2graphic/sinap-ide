@@ -14,7 +14,7 @@ import { ObjectTypeComponent } from "./../object-type/object-type.component";
 // import { ListTypeComponent } from "./../list-type/list-type.component";
 // import { UnionTypeComponent } from "./../union-type/union-type.component";
 // import { NumberTypeComponent } from "./../number-type/number-type.component";
-// import { ColorTypeComponent } from "./../color-type/color-type.component";
+import { ColorTypeComponent } from "./../color-type/color-type.component";
 // import { MapTypeComponent } from "./../map-type/map-type.component";
 
 
@@ -26,7 +26,7 @@ import { ObjectTypeComponent } from "./../object-type/object-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent/*, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent, ColorTypeComponent, MapTypeComponent*/],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, ColorTypeComponent/*, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent, MapTypeComponent*/],
     template: `<ng-template #container></ng-template>`,
 })
 export class TypeInjectorComponent {
@@ -114,6 +114,10 @@ export class TypeInjectorComponent {
                 }
                 if (value.type.name === "string") {
                     return StringTypeComponent;
+                }
+                if (value.type.name === "color") {
+                    console.log(value);
+                    return ColorTypeComponent;
                 }
             }
 

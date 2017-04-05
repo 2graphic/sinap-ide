@@ -353,7 +353,7 @@ export class GraphController {
     private onPropertyChanged(a: PropertyChangedEventDetail<any>) {
         const bridge = this.bridges.getB(a.source);
         if (bridge !== undefined) {
-            this.copyPropertyToCore(bridge.drawable, bridge.core, a.key);
+            this.copyPropertyToCore(bridge.drawable, bridge.core, a.key.toString());
             this.changed.emit(new UndoableEvent(() => {
                 // TODO
             }));
@@ -367,34 +367,40 @@ export class GraphController {
     // }
 
     copyPropertiesToDrawable(core: ElementValue, drawable: Drawable) {
-        // Object.keys(drawable).forEach(this.copyPropertyToDrawable.bind(this, core, drawable));
-    }
-
-    copyPropertyToDrawable(core: ElementValue, drawable: Drawable, key: string) {
-        const value = core.get(key);
-        const primitives = ["label"];
-
-        primitives.forEach((p) => {
-            if (drawable.hasOwnProperty(p) && value instanceof Value.Primitive && (typeof value.value === typeof (drawable as any)[p])) {
-                (drawable as any)[p] = value.value;
-            }
-        });
+        Object.keys(drawable).forEach(this.copyPropertyToDrawable.bind(this, core, drawable));
     }
 
     copyPropertiesToCore(drawable: Drawable, core: ElementValue) {
-        // Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
+        Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    copyPropertyToCore(drawable: Drawable, core: ElementValue, key: PropertyKey) {
-        // if (key === "source" || key === "destination") {
-        //     const bridge = this.bridges.getB((drawable as any)[key]);
-        //     if (!bridge) {
-        //         throw new Error("Edge is referencing a nonexistent node");
-        //     }
+    private readonly primitives = new Set(["label", "color", "borderColor"]);
 
-        //     core.set(key, bridge.core);
-        //     return;
-        // }
+    copyPropertyToDrawable(core: ElementValue, drawable: Drawable, key: string) {
+        const value = core.get(key);
+
+        if (value instanceof Value.Primitive && this.primitives.has(key)) {
+            // TODO: Typesafe way to do this?
+            (drawable as any)[key] = value.value;
+        }
+    }
+
+    copyPropertyToCore(drawable: Drawable, core: ElementValue, key: string) {
+        if (key === "source" || key === "destination") {
+            const bridge = this.bridges.getB((drawable as any)[key]);
+            if (!bridge) {
+                throw new Error("Edge is referencing a nonexistent node");
+            }
+
+            core.set(key, bridge.core);
+            return;
+        }
+
+        let value = core.get(key);
+
+        if (value instanceof Value.Primitive && this.primitives.has(key)) {
+            value.value = (drawable as any)[key];
+        } 
 
         // if (key === "position") {
         //     const pos = core.get("position") as CoreObjectValue<PluginTypeEnvironment>;

@@ -4,6 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
+import { BaseTypeComponent } from "../type-injector/base-classes";
 import { Value, Type } from "sinap-types";
 
 @Component({
@@ -11,23 +12,17 @@ import { Value, Type } from "sinap-types";
     templateUrl: "./object-type.component.html",
     styleUrls: ["./object-type.component.scss"]
 })
-export class ObjectTypeComponent {
-    @Input() readonly: boolean = true;
-
+export class ObjectTypeComponent extends BaseTypeComponent<Value.CustomObject> {
     private values = new Map<string, Value.Value>();
     private keys: string[] = [];
 
     @Input()
-    set value(v: Value.Value) {
-        if (v instanceof Value.CustomObject) {
-            // TODO, remove keys that no longer exist.
-            v.type.members.forEach((type, key) => {
-                this.values.set(key, v.get(key));
-            });
+    set value(v: Value.CustomObject) {
+        // TODO, remove keys that no longer exist.
+        v.type.members.forEach((type, key) => {
+            this.values.set(key, v.get(key));
+        });
 
-            this.keys = [...this.values.keys()];
-        } else {
-            console.log(v, " is not a CustomObject");
-        }
+        this.keys = [...this.values.keys()];
     }
 }

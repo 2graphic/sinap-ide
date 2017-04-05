@@ -4,22 +4,13 @@
 //
 
 import { Component, Input, ViewChild, ElementRef } from "@angular/core";
-import { CoreValue, PluginTypeEnvironment, CorePrimitiveValue } from "sinap-core";
+import { BaseTypeComponent } from "../type-injector/base-classes";
+import { Value, Type } from "sinap-types";
 
 @Component({
     selector: "sinap-color-type",
     templateUrl: "./color-type.component.html",
     styleUrls: ["./color-type.component.scss"]
 })
-export class ColorTypeComponent {
-    private _value: CorePrimitiveValue<PluginTypeEnvironment>;
-    @Input() readonly: boolean = true;
-
-    @Input() set value(v: CoreValue<PluginTypeEnvironment>) {
-        if (v instanceof CorePrimitiveValue) {
-            this._value = v;
-        } else {
-            console.log(v, " is not a CorePrimitiveValue");
-        }
-    }
+export class ColorTypeComponent extends BaseTypeComponent<Value.Primitive> {
 }

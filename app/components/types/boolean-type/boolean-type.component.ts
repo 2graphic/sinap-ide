@@ -4,7 +4,7 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { PrimitiveTypeComponent } from "../type-injector/base-classes";
+import { BaseTypeComponent } from "../type-injector/base-classes";
 import { Value } from "sinap-types";
 
 @Component({
@@ -12,5 +12,5 @@ import { Value } from "sinap-types";
     templateUrl: "./boolean-type.component.html",
     styleUrls: ["./boolean-type.component.scss"]
 })
-export class BooleanTypeComponent extends PrimitiveTypeComponent {
+export class BooleanTypeComponent extends BaseTypeComponent<Value.Primitive> {
 }

@@ -35,7 +35,7 @@ import { ObjectTypeComponent } from "./components/types/object-type/object-type.
 // import { ListTypeComponent } from "./components/types/list-type/list-type.component";
 // import { UnionTypeComponent } from "./components/types/union-type/union-type.component";
 // import { NumberTypeComponent } from "./components/types/number-type/number-type.component";
-// import { ColorTypeComponent } from "./components/types/color-type/color-type.component";
+import { ColorTypeComponent } from "./components/types/color-type/color-type.component";
 // import { MapTypeComponent } from "./components/types/map-type/map-type.component";
 
 @NgModule({
@@ -66,7 +66,7 @@ import { ObjectTypeComponent } from "./components/types/object-type/object-type.
         // ListTypeComponent,
         // UnionTypeComponent,
         // NumberTypeComponent,
-        // ColorTypeComponent,
+        ColorTypeComponent,
         // MapTypeComponent,
         // ListTypeComponent,
     ],
