@@ -374,7 +374,7 @@ export class GraphController {
         Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    private readonly primitives = new Set(["label", "color", "borderColor"]);
+    private readonly primitives = new Set(["label", "color", "borderColor", "borderWidth"]);
 
     copyPropertyToDrawable(core: ElementValue, drawable: Drawable, key: string) {
         const value = core.get(key);
