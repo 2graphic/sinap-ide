@@ -389,7 +389,7 @@ export class GraphController {
         if (value instanceof Value.Union && this.unions.has(key) && value.value instanceof Value.Primitive) {
             console.log("here");
             (drawable as any)[key] = value.value.value;
-        } 
+        }
     }
 
     copyPropertyToCore(drawable: Drawable, core: ElementValue, key: string) {
@@ -412,7 +412,7 @@ export class GraphController {
         if (value instanceof Value.Union && this.unions.has(key)) {
             // TODO: I'm assuming that all types of a union are literal
             value.value = value.environment.make(new Type.Primitive((drawable as any)[key]));
-        } 
+        }
 
         // if (key === "position") {
         //     const pos = core.get("position") as CoreObjectValue<PluginTypeEnvironment>;

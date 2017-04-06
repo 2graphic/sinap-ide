@@ -8,7 +8,7 @@ import { Program, Plugin } from "sinap-core";
 import { LocalFile } from "../../services/files.service";
 import { StatusBarInfo } from "../../components/status-bar/status-bar.component";
 import { InputPanelData } from "../input-panel/input-panel.component";
-// import { TestPanelData } from "../test-panel/test-panel.component";
+import { TestPanelData } from "../test-panel/test-panel.component";
 
 /**
  * Stores the state of each open tab.
@@ -28,7 +28,7 @@ export class TabContext {
     private isRedoing = false;
 
     public inputPanelData: InputPanelData = new InputPanelData();
-    // public testPanelData: TestPanelData = new TestPanelData();
+    public testPanelData: TestPanelData = new TestPanelData();
 
     /** Whether a change has happened since the last time a program was compiled */
     private dirty = true;
@@ -58,7 +58,7 @@ export class TabContext {
                     this.statusBarInfo.items = [];
                 }
                 this.inputPanelData.program = program;
-                // this.testPanelData.program = program;
+                this.testPanelData.program = program;
                 return program;
             }
 

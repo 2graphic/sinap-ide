@@ -40,7 +40,7 @@ export class UnionTypeComponent extends BaseTypeComponent<Value.Union> {
                 this.selected = t;
             }
 
-            this.options.push([this.getName(t), t])
+            this.options.push([this.getName(t), t]);
         });
     }
 

@@ -12,7 +12,8 @@
  */
 
 import { Component, Input, EventEmitter } from "@angular/core";
-import { Program, CoreValue, FakeObjectType, Type } from "sinap-core";
+import { Program } from "sinap-core";
+import { Value, Type } from "sinap-types";
 import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
 
 export class TestPanelData {
@@ -127,12 +128,12 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
 
     private runTest(test: Test) {
         if (this._data.program) {
-            try {
-                let out = this._data.program.run([test.input]);
+            let out = this._data.program.run([test.input]);
+
+            if (out.result) {
                 test.output = out.result;
-            } catch (e) {
-                console.log(e);
-                test.output = new CoreValue(this._data.program.plugin.typeEnvironment.getStringType(), "Error");
+            } else {
+                test.output = out.error ? out.error : new Value.Primitive(new Type.Primitive("string"), this._data.program.environment, "Not ran yet.");
             }
         }
     }
@@ -153,10 +154,10 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
             const test = {
                 input: this.getInput(this._data.program),
                 expected: this.getExpected(this._data.program),
-                output: new CoreValue(this._data.program.plugin.typeEnvironment.getStringType(), "Not ran")
+                output: new Value.Primitive(new Type.Primitive("string"), this._data.program.environment, "Not ran yet.")
             };
 
-            // test.input.changed.asObservable().subscribe(this.testChanged.bind(this, test));
+            test.input.environment.listen(this.testChanged.bind(this, test), () => true, test.input);
 
             this._data.tests.push(test);
             this.runTest(test);
@@ -164,49 +165,16 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
     }
 
     private getInput(program: Program) {
-        let type = program.runArguments[0][0];
-
-        if (type.name === "InputType") {
-            const members = new Map<string, Type>();
-            members.set("a", program.plugin.typeEnvironment.getBooleanType());
-            members.set("b", program.plugin.typeEnvironment.getBooleanType());
-            return new CoreValue(new FakeObjectType(program.plugin.typeEnvironment, members), {
-                "a": false,
-                "b": false
-            });
-        } else {
-            return new CoreValue(type, "");
-        }
+        return program.environment.make(program.plugin.argumentTypes[0]);
     }
 
     private getExpected(program: Program) {
-        if (program.plugin.pluginKind[1] === "Digital Logic") {
-            const members = new Map<string, Type>();
-            members.set("Cout", program.plugin.typeEnvironment.getBooleanType());
-            members.set("S", program.plugin.typeEnvironment.getBooleanType());
-            return new CoreValue(new FakeObjectType(program.plugin.typeEnvironment, members), {
-                "Cout": false,
-                "S": false
-            });
-        } else {
-            return new CoreValue(program.plugin.typeEnvironment.getBooleanType(), true);
-        }
+        return program.environment.make(program.plugin.resultType);
     }
 
-    private areEqual(a: any, b: any) {
-        if (typeof a === "object" && typeof b === "object") {
-            for (let p in a) {
-                if (b.hasOwnProperty(p)) {
-                    if (a[p] !== b[p]) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        } else {
-            return a === b;
-        }
+    private areEqual(a: Value.Value, b: Value.Value) {
+        console.log(a, b);
+        return a.deepEqual(b);
     }
 
     private select(test: Test) {
@@ -237,7 +205,7 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
 }
 
 interface Test {
-    input: CoreValue;
-    expected: CoreValue;
-    output: CoreValue;
+    input: Value.Value;
+    expected: Value.Value;
+    output: Value.Value;
 }
