@@ -19,7 +19,7 @@ import {
     SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
 
-import { Model, Plugin, ElementValue } from "sinap-core";
+import { Model, Plugin, ElementValue, ElementType } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { DoubleMap } from "./double-map";
 
@@ -121,8 +121,8 @@ class OutOfSyncError extends Error {
 
 export class GraphController {
     drawable: DrawableGraph;
-    activeNodeType: string;
-    activeEdgeType: string;
+    activeNodeType: ElementType;
+    activeEdgeType: ElementType;
     public changed = new EventEmitter<UndoableEvent>();
     public selectionChanged = new EventEmitter<Set<Bridge>>();
 
@@ -153,8 +153,8 @@ export class GraphController {
     }
 
     constructor(public core: Model, public plugin: Plugin) {
-        this.activeEdgeType = plugin.edgesType.types.values().next().value.name;
-        this.activeNodeType = plugin.nodesType.types.values().next().value.name;
+        this.activeEdgeType = plugin.edgesType.types.values().next().value;
+        this.activeNodeType = plugin.nodesType.types.values().next().value;
 
         this.drawable = new DrawableGraph(this.validateEdgeHandler);
         this.addDrawable(this.drawable);
@@ -298,7 +298,7 @@ export class GraphController {
         let core: ElementValue;
 
         if (drawable instanceof DrawableNode) {
-            core = this.core.makeNode();
+            core = this.core.makeNode(this.activeNodeType);
         } else if (drawable instanceof DrawableEdge) {
             const srcB = this.bridges.getB(drawable.source);
             const dstB = this.bridges.getB(drawable.destination);
@@ -306,7 +306,7 @@ export class GraphController {
                 throw new Error("Modal missing source or destination for edge.");
             }
 
-            core = this.core.makeEdge(undefined, srcB.core, dstB.core);
+            core = this.core.makeEdge(this.activeEdgeType, srcB.core, dstB.core);
         } else if (drawable instanceof DrawableGraph) {
             core = this.core.graph;
         } else {

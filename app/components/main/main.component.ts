@@ -22,7 +22,7 @@ import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
 import { DynamicPanelComponent, DynamicPanelItem, DynamicTestPanelComponent } from "../dynamic-panel/dynamic-panel";
 import { PropertiesPanelComponent, PropertiesPanelData } from "../properties-panel/properties-panel.component";
 import { FilesPanelComponent, FilesPanelData } from "../files-panel/files-panel.component";
-// import { ToolsPanelComponent, ToolsPanelData } from "../tools-panel/tools-panel.component";
+import { ToolsPanelComponent, ToolsPanelData } from "../tools-panel/tools-panel.component";
 import { InputPanelComponent } from "../input-panel/input-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
 
@@ -104,7 +104,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     private propertiesPanelData = new PropertiesPanelData();
     // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
     private filesPanelData = new FilesPanelData("./examples", this.fileService);
-    // private toolsPanelData = new ToolsPanelData();
+    private toolsPanelData = new ToolsPanelData();
 
     private tabs = new Map<number, TabContext>();
 
@@ -164,7 +164,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         if (context) {
             context.compileProgram();
 
-            // this.toolsPanelData.graph = context.graph;
+            this.toolsPanelData.graph = context.graph;
             this.filesPanelData.selectedFile = context.file;
             this.statusBar.info = context.statusBarInfo;
 

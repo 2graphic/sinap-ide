@@ -19,7 +19,7 @@ import { MainComponent } from "./components/main/main.component";
 import { CollapsibleListComponent } from "./components/collapsible-list/collapsible-list.component";
 import { DynamicPanelComponent, DynamicPanelDirective } from "./components/dynamic-panel/dynamic-panel";
 import { PropertiesPanelComponent } from "./components/properties-panel/properties-panel.component";
-// import { ToolsPanelComponent } from "./components/tools-panel/tools-panel.component";
+import { ToolsPanelComponent } from "./components/tools-panel/tools-panel.component";
 import { FilesPanelComponent } from "./components/files-panel/files-panel.component";
 import { InputPanelComponent } from "./components/input-panel/input-panel.component";
 import { TestPanelComponent } from "./components/test-panel/test-panel.component";
@@ -51,7 +51,7 @@ import { ColorTypeComponent } from "./components/types/color-type/color-type.com
         DynamicPanelComponent,
         DynamicPanelDirective,
         PropertiesPanelComponent,
-        // ToolsPanelComponent,
+        ToolsPanelComponent,
         FilesPanelComponent,
         InputPanelComponent,
         TestPanelComponent,
@@ -68,13 +68,12 @@ import { ColorTypeComponent } from "./components/types/color-type/color-type.com
         NumberTypeComponent,
         ColorTypeComponent,
         // MapTypeComponent,
-        // ListTypeComponent,
     ],
     entryComponents: [
         CollapsibleListComponent,
         FilesPanelComponent,
         PropertiesPanelComponent,
-        // ToolsPanelComponent,
+        ToolsPanelComponent,
         TestPanelComponent,
         InputPanelComponent,
     ],

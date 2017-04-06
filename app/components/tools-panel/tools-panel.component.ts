@@ -15,7 +15,7 @@
 import { Component, ViewChild, AfterViewInit, EventEmitter } from "@angular/core";
 import { GraphController } from "../../models/graph-controller";
 import { CollapsibleListComponent } from "./../collapsible-list/collapsible-list.component";
-import { CoreElementKind } from "sinap-core";
+import { ElementType } from "sinap-core";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
 
 
@@ -40,13 +40,13 @@ export class ToolsPanelData {
 
     get nodes() {
         return this._graph ?
-            [...this._graph.plugin.elementTypes(CoreElementKind.Node)] :
+            [...this._graph.plugin.nodesType.types] :
             [];
     }
 
     get edges() {
         return this._graph ?
-            [...this._graph.plugin.elementTypes(CoreElementKind.Edge)] :
+            [...this._graph.plugin.edgesType.types] :
             [];
     }
 
