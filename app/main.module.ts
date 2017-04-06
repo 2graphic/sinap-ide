@@ -38,6 +38,7 @@ import { NumberTypeComponent } from "./components/types/number-type/number-type.
 import { ColorTypeComponent } from "./components/types/color-type/color-type.component";
 // import { MapTypeComponent } from "./components/types/map-type/map-type.component";
 import { LiteralTypeComponent } from "./components/types/literal-type/literal-type.component";
+import { PointTypeComponent } from "./components/types/point-type/point-type.component";
 
 @NgModule({
     imports: [
@@ -70,6 +71,7 @@ import { LiteralTypeComponent } from "./components/types/literal-type/literal-ty
         ColorTypeComponent,
         // MapTypeComponent,
         LiteralTypeComponent,
+        PointTypeComponent,
     ],
     entryComponents: [
         CollapsibleListComponent,

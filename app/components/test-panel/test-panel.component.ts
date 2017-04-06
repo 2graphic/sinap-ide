@@ -133,7 +133,7 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
             if (out.result) {
                 test.output = out.result;
             } else {
-                test.output = new Value.Literal(new Type.Literal(out.error?out.error.value.toString() : "Error"), this._data.program.environment)
+                test.output = new Value.Literal(new Type.Literal(out.error ? out.error.value.toString() : "Error"), this._data.program.environment);
             }
         }
     }

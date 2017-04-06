@@ -2,3 +2,11 @@ $FONT: sans-serif;
 $TOOLBAR_HEIGHT: 35px;
 $TOOLBAR_WIDTH: 45px;
 $PANEL_BACKGROUND_COLOR: whitesmoke;
+
+%rounded {
+    background-color: white;
+    border: thin solid black;
+    border-radius: 4px;
+    box-sizing: border-box;
+    padding: 2px;
+}

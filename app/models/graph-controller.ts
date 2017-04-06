@@ -249,14 +249,34 @@ export class GraphController {
 
         core.environment.listen((_, value, other) => {
             console.log(value, other);
-            [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => v === value).forEach(([k, _]) => {
-                this.copyPropertyToDrawable(core, drawable, k);
-                console.log(core, drawable, k, value, other);
-                this.changed.emit(new UndoableEvent(() => {
-                    // TODO
-                }));
+            [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => {
+                if (v === value) {
+                    return true;
+                } else if (v instanceof Value.Record) {
+                    for (const k of Object.keys(v.value)) {
+                        if (v.value[k] === value) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }).forEach(([k, _]) => {
+                drawable.removeEventListener("change", onChange);
+                setTimeout(() => {
+                    this.copyPropertyToDrawable(core, drawable, k);
+                    console.log(core, drawable, k, value, other);
+                    this.changed.emit(new UndoableEvent(() => {
+                        // TODO
+                    }));
+                    setTimeout(() => drawable.addEventListener("change", onChange), 0);
+                });
             });
         }, () => true, core);
+
+        const onChange = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
+
+        drawable.addEventListener("change", onChange);
 
         // const f = (_: any, nv: any) => {
         //     for (const key in nv) {
@@ -387,8 +407,14 @@ export class GraphController {
         }
 
         if (value instanceof Value.Union && this.unions.has(key) && value.value instanceof Value.Primitive) {
-            console.log("here");
             (drawable as any)[key] = value.value.value;
+        }
+
+        if (value instanceof Value.Record && key === "position") {
+            (drawable as DrawableNode).position = {
+                x: (value.value.x as Value.Primitive).value as number,
+                y: (value.value.y as Value.Primitive).value as number
+            };
         }
     }
 
@@ -412,6 +438,11 @@ export class GraphController {
         if (value instanceof Value.Union && this.unions.has(key)) {
             // TODO: I'm assuming that all types of a union are literal
             value.value = value.environment.make(new Type.Primitive((drawable as any)[key]));
+        }
+
+        if (value instanceof Value.Record && key === "position") {
+            (value.value.x as Value.Primitive).value = (drawable as any)[key].x;
+            (value.value.y as Value.Primitive).value = (drawable as any)[key].y;
         }
 
         // if (key === "position") {
