@@ -133,7 +133,7 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
             if (out.result) {
                 test.output = out.result;
             } else {
-                test.output = out.error ? out.error : new Value.Primitive(new Type.Primitive("string"), this._data.program.environment, "Not ran yet.");
+                test.output = new Value.Literal(new Type.Literal(out.error?out.error.value.toString() : "Error"), this._data.program.environment)
             }
         }
     }
@@ -154,7 +154,7 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
             const test = {
                 input: this.getInput(this._data.program),
                 expected: this.getExpected(this._data.program),
-                output: new Value.Primitive(new Type.Primitive("string"), this._data.program.environment, "Not ran yet.")
+                output: new Value.Literal(new Type.Literal("Not ran yet."), this._data.program.environment)
             };
 
             test.input.environment.listen(this.testChanged.bind(this, test), () => true, test.input);
@@ -173,7 +173,6 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
     }
 
     private areEqual(a: Value.Value, b: Value.Value) {
-        console.log(a, b);
         return a.deepEqual(b);
     }
 

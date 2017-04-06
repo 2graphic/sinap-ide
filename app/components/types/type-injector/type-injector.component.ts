@@ -16,6 +16,7 @@ import { UnionTypeComponent } from "./../union-type/union-type.component";
 import { NumberTypeComponent } from "./../number-type/number-type.component";
 import { ColorTypeComponent } from "./../color-type/color-type.component";
 // import { MapTypeComponent } from "./../map-type/map-type.component";
+import { LiteralTypeComponent } from "./../literal-type/literal-type.component";
 
 
 /**
@@ -26,7 +27,7 @@ import { ColorTypeComponent } from "./../color-type/color-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, ColorTypeComponent, NumberTypeComponent, UnionTypeComponent/*, NodeTypeComponent, ListTypeComponent, MapTypeComponent*/],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, ColorTypeComponent, NumberTypeComponent, UnionTypeComponent, LiteralTypeComponent/*, NodeTypeComponent, ListTypeComponent, MapTypeComponent*/],
     template: `<ng-template #container></ng-template>`,
 })
 export class TypeInjectorComponent {
@@ -129,6 +130,10 @@ export class TypeInjectorComponent {
 
             if (value instanceof Value.Union) {
                 return UnionTypeComponent;
+            }
+
+            if (value instanceof Value.Literal) {
+                return LiteralTypeComponent;
             }
 
             // if (value instanceof CoreMapValue) {

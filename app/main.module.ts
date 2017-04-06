@@ -37,6 +37,7 @@ import { UnionTypeComponent } from "./components/types/union-type/union-type.com
 import { NumberTypeComponent } from "./components/types/number-type/number-type.component";
 import { ColorTypeComponent } from "./components/types/color-type/color-type.component";
 // import { MapTypeComponent } from "./components/types/map-type/map-type.component";
+import { LiteralTypeComponent } from "./components/types/literal-type/literal-type.component";
 
 @NgModule({
     imports: [
@@ -68,6 +69,7 @@ import { ColorTypeComponent } from "./components/types/color-type/color-type.com
         NumberTypeComponent,
         ColorTypeComponent,
         // MapTypeComponent,
+        LiteralTypeComponent,
     ],
     entryComponents: [
         CollapsibleListComponent,
