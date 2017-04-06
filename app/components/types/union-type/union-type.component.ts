@@ -31,15 +31,11 @@ export class UnionTypeComponent extends BaseTypeComponent<Value.Union> {
     }
 
     set value(v: Value.Union) {
-        console.log(v);
-
         super.value = v;
 
         this.options = [];
         v.type.types.forEach((t) => {
-            console.log(v.value.type, t, v.value.type.equals(t));
             if (v.value.type.equals(t)) {
-                console.log(t);
                 this.selected = t;
             }
 

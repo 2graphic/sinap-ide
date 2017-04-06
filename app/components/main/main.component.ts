@@ -183,6 +183,11 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                     new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
                 ];
             }
+
+            this.bottomPanels = [
+                new DynamicPanelItem(InputPanelComponent, context.inputPanelData, INPUT_ICON.name, INPUT_ICON.path),
+                new DynamicPanelItem(TestPanelComponent, context.testPanelData, TEST_ICON.name, TEST_ICON.path),
+            ];
         } else {
             // Clear state
             this.filesPanelData.selectedFile = undefined;

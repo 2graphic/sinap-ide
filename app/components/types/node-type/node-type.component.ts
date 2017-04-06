@@ -4,33 +4,40 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue, PluginTypeEnvironment, CoreElement, CorePrimitiveValue, CoreReferenceValue } from "sinap-core";
+import { BaseTypeComponent } from "../type-injector/base-classes";
+import { Value, Type } from "sinap-types";
+import { ElementValue } from "sinap-core";
 
 @Component({
     selector: "sinap-node-type",
     templateUrl: "./node-type.component.html",
     styleUrls: ["./node-type.component.scss"]
 })
-export class NodeTypeComponent {
-    private _value: CoreValue<PluginTypeEnvironment>;
-    @Input() readonly: boolean = true;
-
+export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
     private label: string = "";
 
     @Input()
-    set value(v: CoreValue<PluginTypeEnvironment>) {
-        // TODO: Nodes that come from the plugin are just UUID's
-        this._value = v;
-        if (v instanceof CoreElement) {
-            this.label = (v.get("label") as CorePrimitiveValue<PluginTypeEnvironment>).data as any;
-            this.label = this.label ? this.label : "No Label";
-        } else {
-            const vs = v as any;
-            if (vs.value && vs.value instanceof CoreReferenceValue) {
-                this.label = vs.value.type.name;
-            } else {
-                this.label = "NOT IMPLEMENTED";
+    set value(value: ElementValue) {
+        super.value = value;
+
+        const label = this.getPrimitiveAsString(value, "label");
+
+        const index = [...value.environment.values.entries()].map((v) => v[1]).filter((v) => {
+            return Type.isSubtype(v.type, value.type);
+        }).indexOf(value);
+
+        this.label = label ? label : value.type.pluginType.name + " " + index;
+    }
+
+    // TODO: Move this into a util collection
+    private getPrimitiveAsString(v: Value.Intersection, key: string): string | undefined {
+        if (v.type.members.has(key)) {
+            const keyValue = v.get(key);
+            if (keyValue instanceof Value.Primitive && typeof keyValue.value === "string") {
+                return keyValue.value;
             }
         }
+
+        return undefined;
     }
 }
