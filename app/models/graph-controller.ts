@@ -436,7 +436,7 @@ export class GraphController {
 
         if (value instanceof Value.Union && this.unions.has(key)) {
             // TODO: I'm assuming that all types of a union are literal
-            value.value = value.environment.make(new Type.Primitive((drawable as any)[key]));
+            value.value = value.environment.make(new Type.Literal((drawable as any)[key]));
         }
 
         if (value instanceof Value.Record && key === "position") {
