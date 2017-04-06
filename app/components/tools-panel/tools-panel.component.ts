@@ -38,20 +38,8 @@ export class ToolsPanelData {
         this.graphChanged.emit(value);
     }
 
-    get nodes() {
-        return this._graph ?
-            [...this._graph.plugin.types.edges.types] :
-            [];
-    }
-
-    get edges() {
-        return this._graph ?
-            [...this._graph.plugin.types.edges.types] :
-            [];
-    }
-
     get shouldDisplay() {
-        return this.nodes.length > 1 || this.edges.length > 1;
+        return this._graph && (this._graph.plugin.types.nodes.types.size > 1 || this._graph.plugin.types.edges.types.size > 1);
     }
 
     readonly graphChanged
@@ -66,6 +54,8 @@ export class ToolsPanelData {
 })
 export class ToolsPanelComponent implements AfterViewInit, PanelComponent<ToolsPanelData> {
     private _data?: ToolsPanelData;
+    private nodes: TypeInfo[] = [];
+    private edges: TypeInfo[] = [];
 
     @ViewChild('nodesList') private nodesList: CollapsibleListComponent;
     @ViewChild('edgesList') private edgesList: CollapsibleListComponent;
@@ -74,14 +64,14 @@ export class ToolsPanelComponent implements AfterViewInit, PanelComponent<ToolsP
         this.nodesList.selectedIndexChanged.asObservable().subscribe(() => {
             if (this._data && this._data.graph) {
                 this._data.graph.activeNodeType
-                    = this._data.nodes[this.nodesList.selectedIndex];
+                    = this.nodes[this.nodesList.selectedIndex].type;
             }
         });
 
         this.edgesList.selectedIndexChanged.asObservable().subscribe(() => {
             if (this._data && this._data.graph) {
                 this._data.graph.activeEdgeType
-                    = this._data.edges[this.edgesList.selectedIndex];
+                    = this.edges[this.edgesList.selectedIndex].type;
             }
         });
     }
@@ -94,15 +84,35 @@ export class ToolsPanelComponent implements AfterViewInit, PanelComponent<ToolsP
     }
 
     private updateContent = () => {
+        this.nodes = [];
+        this.edges = [];
+        this.nodesList.selectedIndex = -1;
+        this.edgesList.selectedIndex = -1;
+
         if (this._data && this._data.graph) {
-            this.nodesList.selectedIndex
-                = this._data.nodes.indexOf(this._data.graph.activeNodeType);
-            this.edgesList.selectedIndex =
-                this._data.edges.indexOf(this._data.graph.activeEdgeType);
-        } else {
-            this.nodesList.selectedIndex = -1;
-            this.edgesList.selectedIndex = -1;
-        }
+            const graph = this._data.graph;
+
+            this.nodes = [...graph.plugin.types.nodes.types].map((e, i) => {
+                if (e === graph.activeNodeType) {
+                    this.nodesList.selectedIndex = i;
+                }
+                return new TypeInfo(e);
+            });
+            this.edges = [...graph.plugin.types.edges.types].map((e, i) => {
+                if (e === graph.activeEdgeType) {
+                    this.edgesList.selectedIndex = i;
+                }
+                return new TypeInfo(e);
+            });
+        };
     }
 
+}
+
+class TypeInfo {
+    constructor(public readonly type: ElementType) { };
+
+    toString() {
+        return this.type.pluginType.name;
+    }
 }

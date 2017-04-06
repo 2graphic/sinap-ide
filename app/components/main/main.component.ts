@@ -171,33 +171,23 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             context.graph.selectionChanged.asObservable().subscribe(evt => this.propertiesPanelData.selectedElements = evt);
             this.propertiesPanelData.selectedElements = context.graph.selectedElements;
 
-            // if (this.toolsPanelData.shouldDisplay && this.sidePanels.length < 3) {
-            //     this.sidePanels = [
-            //         new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
-            //         new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
-            //         new DynamicPanelItem(ToolsPanelComponent, this.toolsPanelData, TOOLS_ICON.name, TOOLS_ICON.path)
-            //     ];
-            // } else if (!this.toolsPanelData.shouldDisplay && this.sidePanels.length !== 2) {
-            //     this.sidePanels = [
-            //         new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
-            //         new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
-            //     ];
-            // }
-
-            this.sidePanels = [
-                new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
-                new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
-            ];
-
-            this.bottomPanels = [
-                new DynamicPanelItem(InputPanelComponent, context.inputPanelData, INPUT_ICON.name, INPUT_ICON.path),
-                new DynamicPanelItem(TestPanelComponent, context.testPanelData, TEST_ICON.name, TEST_ICON.path),
-            ];
+            if (this.toolsPanelData.shouldDisplay && this.sidePanels.length < 3) {
+                this.sidePanels = [
+                    new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
+                    new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
+                    new DynamicPanelItem(ToolsPanelComponent, this.toolsPanelData, TOOLS_ICON.name, TOOLS_ICON.path)
+                ];
+            } else if (!this.toolsPanelData.shouldDisplay && this.sidePanels.length !== 2) {
+                this.sidePanels = [
+                    new DynamicPanelItem(PropertiesPanelComponent, this.propertiesPanelData, PROPERTIES_ICON.name, PROPERTIES_ICON.path),
+                    new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path),
+                ];
+            }
         } else {
             // Clear state
             this.filesPanelData.selectedFile = undefined;
             this.statusBar.info = undefined;
-            // this.toolsPanelData.graph = undefined;
+            this.toolsPanelData.graph = undefined;
             this.propertiesPanelData.selectedElements = undefined;
             this.sidePanels = [
                 new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path)
