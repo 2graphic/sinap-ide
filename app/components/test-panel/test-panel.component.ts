@@ -165,11 +165,11 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
     }
 
     private getInput(program: Program) {
-        return program.environment.make(program.plugin.argumentTypes[0]);
+        return program.environment.make(program.plugin.types.arguments[0]);
     }
 
     private getExpected(program: Program) {
-        return program.environment.make(program.plugin.resultType);
+        return program.environment.make(program.plugin.types.result);
     }
 
     private areEqual(a: Value.Value, b: Value.Value) {

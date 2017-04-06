@@ -153,8 +153,8 @@ export class GraphController {
     }
 
     constructor(public core: Model, public plugin: Plugin) {
-        this.activeEdgeType = plugin.edgesType.types.values().next().value;
-        this.activeNodeType = plugin.nodesType.types.values().next().value;
+        this.activeEdgeType = plugin.types.edges.types.values().next().value;
+        this.activeNodeType = plugin.types.nodes.types.values().next().value;
 
         this.drawable = new DrawableGraph(this.validateEdgeHandler);
         this.addDrawable(this.drawable);
@@ -265,7 +265,6 @@ export class GraphController {
                 drawable.removeEventListener("change", onChange);
                 setTimeout(() => {
                     this.copyPropertyToDrawable(core, drawable, k);
-                    console.log(core, drawable, k, value, other);
                     this.changed.emit(new UndoableEvent(() => {
                         // TODO
                     }));
@@ -395,8 +394,8 @@ export class GraphController {
         Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    private readonly primitives = new Set(["label", "color", "borderColor", "borderWidth"]);
-    private readonly unions = new Set(["shape", "borderStyle"]);
+    private readonly primitives = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow"]);
+    private readonly unions = new Set(["shape", "borderStyle", "lineStyle"]);
 
     copyPropertyToDrawable(core: ElementValue, drawable: Drawable, key: string) {
         const value = core.get(key);

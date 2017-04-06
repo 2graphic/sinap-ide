@@ -56,10 +56,7 @@ export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelD
             this.element = undefined;
         } else {
             const element = elements.values().next().value.core;
-            console.log(element);
-
             this.element = new ElementInfo(element);
-            console.log(this.element);
         }
     }
 }

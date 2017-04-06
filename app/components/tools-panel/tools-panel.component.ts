@@ -40,13 +40,13 @@ export class ToolsPanelData {
 
     get nodes() {
         return this._graph ?
-            [...this._graph.plugin.nodesType.types] :
+            [...this._graph.plugin.types.edges.types] :
             [];
     }
 
     get edges() {
         return this._graph ?
-            [...this._graph.plugin.edgesType.types] :
+            [...this._graph.plugin.types.edges.types] :
             [];
     }
 

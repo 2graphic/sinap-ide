@@ -93,7 +93,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private setupInput() {
         if (this._data.program) {
             const plugin = ((this._data.program as any).plugin as Plugin);
-            const type = plugin.argumentTypes[0];
+            const type = plugin.types.arguments[0];
 
             this._data.inputForPlugin = this._data.program.environment.make(type);
         }
@@ -170,8 +170,6 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private run(input: Value.Value) {
         if (this._data.program) {
             return this._data.program.run([input]);
-        } else {
-            console.log("no graph to run!");
         }
 
         return undefined;

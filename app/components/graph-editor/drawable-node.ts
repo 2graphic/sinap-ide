@@ -91,7 +91,6 @@ export class DrawableNode extends DrawableElement {
                 enumerable: true,
                 get: () => this._rect as point,
                 set: (value: point) => {
-                    console.log("Here?");
                     const old = { x: this._rect.x, y: this._rect.y };
                     if (value.x !== old.x || value.y !== old.y) {
                         this._rect.x = value.x;

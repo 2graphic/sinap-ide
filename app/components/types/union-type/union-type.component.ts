@@ -17,6 +17,7 @@ export class UnionTypeComponent extends BaseTypeComponent<Value.Union> {
     private _selected: Type.Type;
     private selectedValue: Value.Value | undefined = undefined;
     private set selected(selected: Type.Type) {
+        this._selected = selected;
         this.value.value = this.value.environment.make(selected);
 
         if (this.value.value instanceof Value.Literal) {
@@ -36,7 +37,9 @@ export class UnionTypeComponent extends BaseTypeComponent<Value.Union> {
 
         this.options = [];
         v.type.types.forEach((t) => {
+            console.log(v.value.type, t, v.value.type.equals(t));
             if (v.value.type.equals(t)) {
+                console.log(t);
                 this.selected = t;
             }
 
