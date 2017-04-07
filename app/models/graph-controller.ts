@@ -269,7 +269,7 @@ export class GraphController {
             (drawable as any)[key] = value.value;
         }
 
-        if (value instanceof Value.Union && this.unions.has(key) && value.value instanceof Value.Primitive) {
+        if (value instanceof Value.Union && this.unions.has(key) && value.value instanceof Value.Literal) {
             (drawable as any)[key] = value.value.value;
         }
 
