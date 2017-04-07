@@ -220,7 +220,7 @@ export class GraphController {
             const srcB = this.bridges.getB(drawable.source);
             const dstB = this.bridges.getB(drawable.destination);
             if (!srcB || !dstB) {
-                throw new Error("Modal missing source or destination for edge.");
+                throw new Error("Model missing source or destination for edge.");
             }
 
             core = this.core.makeEdge(this.activeEdgeType, srcB.core, dstB.core);
@@ -293,10 +293,7 @@ export class GraphController {
                 throw new Error("Edge is referencing a nonexistent node");
             }
 
-            const union = new Value.Union(this.plugin.types.nodes, core.environment);
-            union.value = bridge.core;
-
-            (core.get(key) as Value.Union).value = union;
+            (core.get(key) as Value.Union).value = bridge.core;
             return;
         }
 
