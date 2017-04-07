@@ -7,8 +7,8 @@ import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { Program, Plugin } from "sinap-core";
 import { StatusBarInfo } from "../../components/status-bar/status-bar.component";
 import { InputPanelData } from "../input-panel/input-panel.component";
+import { TestPanelData } from "../test-panel/test-panel.component";
 import { fileStat } from "../../util";
-// import { TestPanelData } from "../test-panel/test-panel.component";
 
 /**
  * Stores the state of each open tab.
@@ -30,7 +30,7 @@ export class TabContext {
     private lastUpdated: Date;
 
     public inputPanelData: InputPanelData = new InputPanelData();
-    // public testPanelData: TestPanelData = new TestPanelData();
+    public testPanelData: TestPanelData = new TestPanelData();
 
     /** Whether a change has happened since the last time a program was compiled */
     private dirty = true;
@@ -61,7 +61,7 @@ export class TabContext {
                 }
                 this.inputPanelData.program = program;
                 this.dirty = false;
-                // this.testPanelData.program = program;
+                this.testPanelData.program = program;
                 return program;
             }
 

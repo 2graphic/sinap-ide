@@ -10,12 +10,14 @@ import { Type, Value } from "sinap-types";
 import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
 import { ObjectTypeComponent } from "./../object-type/object-type.component";
-// import { NodeTypeComponent } from "./../node-type/node-type.component";
-// import { ListTypeComponent } from "./../list-type/list-type.component";
-// import { UnionTypeComponent } from "./../union-type/union-type.component";
-// import { NumberTypeComponent } from "./../number-type/number-type.component";
-// import { ColorTypeComponent } from "./../color-type/color-type.component";
-// import { MapTypeComponent } from "./../map-type/map-type.component";
+import { NodeTypeComponent } from "./../node-type/node-type.component";
+import { ListTypeComponent } from "./../list-type/list-type.component";
+import { UnionTypeComponent } from "./../union-type/union-type.component";
+import { NumberTypeComponent } from "./../number-type/number-type.component";
+import { ColorTypeComponent } from "./../color-type/color-type.component";
+import { MapTypeComponent } from "./../map-type/map-type.component";
+import { LiteralTypeComponent } from "./../literal-type/literal-type.component";
+import { PointTypeComponent } from "./../point-type/point-type.component";
 
 
 /**
@@ -26,7 +28,7 @@ import { ObjectTypeComponent } from "./../object-type/object-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent/*, NodeTypeComponent, ListTypeComponent, UnionTypeComponent, NumberTypeComponent, ColorTypeComponent, MapTypeComponent*/],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, ColorTypeComponent, NumberTypeComponent, UnionTypeComponent, LiteralTypeComponent, PointTypeComponent, NodeTypeComponent, ListTypeComponent, MapTypeComponent],
     template: `<ng-template #container></ng-template>`,
 })
 export class TypeInjectorComponent {
@@ -79,10 +81,6 @@ export class TypeInjectorComponent {
             return;
         }
 
-        // if (!value.mutable) {
-        //     value.mutable = true; // TODO: Fix this
-        // }
-
         // console.log(value, componentType);
 
         let injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
@@ -115,66 +113,46 @@ export class TypeInjectorComponent {
                 if (value.type.name === "string") {
                     return StringTypeComponent;
                 }
+                if (value.type.name === "color") {
+                    return ColorTypeComponent;
+                }
+                if (value.type.name === "number") {
+                    return NumberTypeComponent;
+                }
             }
 
             if (value instanceof Value.CustomObject) {
                 return ObjectTypeComponent;
             }
 
-            // if (value instanceof CoreMapValue) {
-            //     return MapTypeComponent;
-            // }
+            if (value instanceof Value.Union) {
+                return UnionTypeComponent;
+            }
 
-            // if (value instanceof CoreArrayValue) {
-            //     return ListTypeComponent;
-            // }
+            if (value instanceof Value.Literal) {
+                return LiteralTypeComponent;
+            }
 
-            // if (value instanceof CoreElement || type.isAssignableTo(env.lookupPluginType("Nodes"))) {
-            //     return NodeTypeComponent;
-            // }
+            if (value instanceof Value.Record) {
+                if (value.type.name === "Point") {
+                    return PointTypeComponent;
+                } else {
+                    // TODO:
+                }
+            }
 
-            // if (type.name === "true | false" || type.isAssignableTo(env.getBooleanType())) {
-            //     return BooleanTypeComponent;
-            // }
+            if (value instanceof Core.ElementValue) {
+                return NodeTypeComponent;
+            }
 
-            // if (isUnionType(type)) {
-            //     return UnionTypeComponent;
-            // }
+            if (value instanceof Value.ArrayObject) {
+                return ListTypeComponent;
+            }
 
-            // if (type.isAssignableTo(env.lookupPluginType("Error"))) {
-            //     return undefined;
-            //     // return StringTypeComponent; // TODO: Make error component
-            // }
+            if (value instanceof Value.MapObject) {
+                return MapTypeComponent;
+            }
 
-            // // TODO: fix
-            // if (type.isAssignableTo(env.lookupSinapType("Color")) || (value instanceof CorePrimitiveValue && value.data !== undefined && (value.data as any).toString().charAt(0) === "#")) {
-            //     return ColorTypeComponent;
-            // }
-
-            // if (type.isAssignableTo(env.getNumberType())) {
-            //     return NumberTypeComponent;
-            // }
-
-            // if (type.isAssignableTo(env.getStringType())) {
-            //     return StringTypeComponent;
-            // }
-
-            // if (isObjectType(type)) {
-            //     return ObjectTypeComponent;
-            // }
-
-            // if (typeof value.value === "object") {
-            //     const members = new Map<string, CoreType>();
-            //     Object.keys(value.value).forEach((k) => {
-            //         members.set(k, type.env.getBooleanType());
-            //     });
-
-            //     (value.type as any).members = members;
-
-            //     return ObjectTypeComponent;
-            // }
-
-            // console.log("Unknown type for Value: ", value);
             return undefined;
         } catch (e) {
             // TODO: No errors

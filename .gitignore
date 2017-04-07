@@ -43,7 +43,6 @@ node_modules/
 
 
 # Visual Studio Code Stuff
-.vscode*
 build
 dist
 dll

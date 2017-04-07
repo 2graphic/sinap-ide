@@ -14,7 +14,7 @@
 
 import { Component, Input, EventEmitter } from "@angular/core";
 import { Bridge } from "../../models/graph-controller";
-import { Element } from "sinap-core";
+import { ElementValue } from "sinap-core";
 import { Value } from "sinap-types";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
 
@@ -56,10 +56,7 @@ export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelD
             this.element = undefined;
         } else {
             const element = elements.values().next().value.core;
-            console.log(element);
-
             this.element = new ElementInfo(element);
-            console.log(this.element);
         }
     }
 }
@@ -69,20 +66,17 @@ class ElementInfo {
     public readonly drawableProperties: Property[];
     public readonly kind: string;
 
-    constructor(public readonly element: Element) {
-        const types = [...element.type.types.values()];
-
-        if (types.length !== 2) {
-            throw new Error("Expecting element intersection to have two types.");
-        }
-
-        const pluginType = types[0];
-        const drawableType = types[1];
+    constructor(public readonly element: ElementValue) {
+        const pluginType = element.type.pluginType;
+        const drawableType = element.type.drawableType;
 
         this.kind = pluginType.name;
 
-        this.pluginProperties = [...pluginType.members.keys()].map((k) => new Property(pluginType.prettyName(k), element.get(k)));
-        this.drawableProperties = [...drawableType.members.keys()].filter((k) => !pluginType.members.has(k)).map((k) => new Property(pluginType.prettyName(k), element.get(k)));
+        this.pluginProperties = [...pluginType.members.keys()]
+            .map((k) => new Property(pluginType.prettyName(k), element.get(k)));
+        this.drawableProperties = [...drawableType.members.keys()]
+            .filter((k) => !pluginType.members.has(k))
+            .map((k) => new Property(pluginType.prettyName(k), element.get(k)));
     }
 }
 

@@ -4,27 +4,24 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue, isObjectType, PluginTypeEnvironment, CoreMapValue, ObjectType } from "sinap-core";
+import { BaseTypeComponent } from "../type-injector/base-classes";
+import { Value } from "sinap-types";
 
 @Component({
     selector: "sinap-map-type",
     templateUrl: "./map-type.component.html",
     styleUrls: ["./map-type.component.scss"]
 })
-export class MapTypeComponent {
+export class MapTypeComponent extends BaseTypeComponent<Value.MapObject> {
     @Input() readonly: boolean = true;
 
-    private values: [CoreValue<PluginTypeEnvironment>, CoreValue<PluginTypeEnvironment>][] = [];
+    private values: [Value.Value, Value.Value][] = [];
 
     @Input()
-    set value(v: CoreValue<PluginTypeEnvironment>) {
-        this.values.length = 0;
-        if (v instanceof CoreMapValue) {
-            v.map.forEach((v, k) => {
-                this.values.push([k, v]);
-            });
-        } else {
-            console.log(v, " not an instance of CoreMapValue");
-        }
+    set value(v: Value.MapObject) {
+        super.value = v;
+        this.values = [];
+
+        // TODO
     }
 }

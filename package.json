@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/2graphic/sinap-ide"
   },
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
     "clean": "rimraf ./build && rimraf ./dist && rimraf ./dll",
     "webpack": "webpack --progress --profile --colors --display-error-details --display-cached",
@@ -17,7 +17,7 @@
     "build:dll": "npm run webpack -- --config webpack.dll.config.js",
     "build:prod": "npm run format && npm run webpack -- --env.ENV=production",
     "build:watch": "npm run format && npm run webpack -- --watch",
-    "start": "electron build",
+    "start": "electron . --enable-logging --remote-debugging-port=9222",
     "build:start": "npm run build && npm run start",
     "build:watch:start": "concurrently \"npm run build:watch\" \"npm run start\""
   },
@@ -35,8 +35,8 @@
     "reflect-metadata": "0.1.10",
     "reset-css": "2.2.0",
     "rxjs": "5.2.0",
-    "sinap-core": "2.2.1",
-    "sinap-typescript": "0.0.7",
+    "sinap-core": "3.4.3",
+    "sinap-typescript": "0.1.2",
     "zone.js": "0.8.5"
   },
   "devDependencies": {

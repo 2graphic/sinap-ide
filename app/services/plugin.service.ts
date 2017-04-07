@@ -49,6 +49,7 @@ export class PluginService {
 
     public getPluginByKind(kind: string[]): Promise<Plugin> {
         return this.plugins.then((plugins) => {
+            // TODO
             // const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginKind));
             // const pluginName = JSON.stringify(kind);
             // if (matches.length === 0) {

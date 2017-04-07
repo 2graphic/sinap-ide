@@ -5,23 +5,37 @@
     <div *ngIf="element !== undefined">
         <table>
             <tr>
-                <th colspan="2">Plugin Properties - {{element.kind}}</th>
+                <th class="expand-chevron-before">Plugin Properties - {{element.kind}}</th>
+                <th class="expand-chevron-down clickable"><span class="chevron">›</span></th>
             </tr>
-            <tr *ngFor="let property of element.pluginProperties">
-                <td>{{property.name}}</td>
-                <td>
-                    <sinap-type [value]="property.value" [readonly]="false"></sinap-type>
+            <tr class="expanded">
+                <td colspan="2">
+                    <table class="expanded-table">
+                        <tr *ngFor="let property of element.pluginProperties">
+                            <td>{{property.name}}</td>
+                            <td>
+                                <sinap-type [value]="property.value" [readonly]="false"></sinap-type>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
         </table>
         <table>
             <tr>
-                <th colspan="2">Drawable Properties</th>
+                <th class="expand-chevron-before">Drawable Properties</th>
+                <th class="expand-chevron-down clickable"><span class="chevron">›</span></th>
             </tr>
-            <tr *ngFor="let property of element.drawableProperties">
-                <td>{{property.name}}</td>
-                <td>
-                    <sinap-type [value]="property.value" [readonly]="false"></sinap-type>
+            <tr class="expanded">
+                <td colspan="2">
+                    <table class="expanded-table">
+                        <tr *ngFor="let property of element.drawableProperties">
+                            <td>{{property.name}}</td>
+                            <td>
+                                <sinap-type [value]="property.value" [readonly]="false"></sinap-type>
+                            </td>
+                        </tr>
+                    </table>
                 </td>
             </tr>
         </table>
