@@ -7,6 +7,19 @@ export class DFANode {
     label: string;
 }
 
+export class DFANode3 {
+}
+
+export class DFANode4 {
+}
+
+export class DFANode5 {
+}
+
+export class DFANode6 {
+}
+
+
 export class DFAEdge {
     /** Symbol */
     label: string;
@@ -14,11 +27,11 @@ export class DFAEdge {
 }
 
 export class DFAGraph {
-    nodes: DFANode[];
+    nodes: Nodes[];
     // startState: DFANode;
 }
 
-export type Nodes = DFANode;
+export type Nodes = DFANode | DFANode3 | DFANode4 | DFANode5 | DFANode6;
 export type Edges = DFAEdge;
 export type Graph = DFAGraph;
 

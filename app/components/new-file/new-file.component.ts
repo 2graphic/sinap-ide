@@ -8,6 +8,7 @@ import { WindowService } from "./../../modal-windows/services/window.service";
 import { CollapsibleListComponent } from "./../../components/collapsible-list/collapsible-list.component";
 import { ModalInfo, ModalComponent } from "./../../models/modal-window";
 import { PluginData } from "../../services/plugin.service";
+import { ResizeEvent } from 'angular-resizable-element';
 
 export class NewFileResult {
     constructor(readonly name: string, readonly kind: string[]) {
@@ -42,6 +43,7 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
 
     private availablePlugins: PluginList[];
     private selectedPlugin: PluginData;
+    private width = 175;
     @ViewChild(CollapsibleListComponent) firstList: CollapsibleListComponent;
     @ViewChildren(CollapsibleListComponent) lists: QueryList<CollapsibleListComponent>;
 
@@ -52,6 +54,12 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
             this.firstList.selectedIndex = 0;
             this.selectedPlugin = this.firstList.items[this.firstList.selectedIndex];
             this.changeDetectorRef.detectChanges();
+        }
+    }
+
+    private resizing(evt: ResizeEvent) {
+        if (evt.rectangle.width) {
+            this.width = Math.max(Math.min(evt.rectangle.width, 325), 125);
         }
     }
 
