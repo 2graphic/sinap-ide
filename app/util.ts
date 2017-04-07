@@ -2,9 +2,15 @@ import * as fs from "fs";
 import * as path from "path";
 import { NodePromise, readdir } from "sinap-core";
 import { SINAP_FILE_FILTER } from "./constants";
+import * as zlib from "zlib";
 
 import { remote } from "electron";
 const { dialog } = remote;
+
+import { ncp } from "ncp";
+import * as archiver from "archiver";
+import * as tmp from "tmp";
+import * as extract from "extract-zip";
 
 // Similar to Promise.all. However, this will always resolve and ignore rejected promises.
 export function somePromises<T>(promises: Iterable<Promise<T>>): Promise<T[]> {
@@ -69,5 +75,58 @@ export function requestFiles(name?: string): Promise<string[]> {
         filters: SINAP_FILE_FILTER,
         defaultPath: name
     }, names => result.cb(names ? null : "File selection cancelled", names));
+    return result.promise;
+}
+
+export function copy(src: string, dest: string): Promise<any> {
+    const result = new NodePromise<any>();
+    ncp(src, dest, err => err ? result.cb(err, null) : result.cb(null, null));
+    return result.promise;
+}
+
+export function zipFiles(src: string, dest: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        const output = fs.createWriteStream(dest);
+        const result = archiver("zip", {
+            zlib: { level: zlib.constants.Z_BEST_COMPRESSION }
+        });
+
+        output.on("close", () => resolve());
+        result.on("error", reject);
+
+        result.pipe(output);
+        result.directory(src, path.basename(src));
+        result.finalize();
+    });
+}
+
+export function unzip(src: string, dest: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => extract(src, { dir: dest }, err => {
+        if (err) reject(err);
+        else resolve();
+    }));
+}
+
+export interface Closeable {
+    close(): Promise<any>;
+}
+
+export class TempDir implements Closeable {
+    constructor(public readonly path: string, private cleanup: () => void) {
+    }
+
+    close(): Promise<any> {
+        this.cleanup();
+        return Promise.resolve();
+    }
+}
+
+export function closeAfter(prom: Promise<any>, toClose: Closeable) {
+    prom.then(_ => toClose.close()).catch(_ => toClose.close());
+}
+
+export function tempDir(): Promise<TempDir> {
+    const result = new NodePromise<TempDir>();
+    tmp.dir((err, path, cleanup) => result.cb(err, new TempDir(path, cleanup)));
     return result.promise;
 }

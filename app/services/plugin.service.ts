@@ -1,7 +1,7 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { Plugin, Program, getInterpreterInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
-import { somePromises, subdirs } from "../util";
+import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter } from "../util";
 import * as path from "path";
 import { app } from "electron";
 import { IS_PRODUCTION } from "../constants";
@@ -72,5 +72,26 @@ export class PluginService {
         return this.plugins.then((plugins) => {
             return plugins.map((plugin) => new PluginData(["FLAP", "DFA"], "Hardcoded"));
         });
+    }
+
+    public importPlugins(dir: string): Promise<{}> {
+        // Recursively progress through directories until we get interpreter info.
+        return fileStat(dir).then((stats): Promise<{}> => {
+            if (stats.isFile()) {
+                return tempDir().then(temp => {
+                    const result = unzip(dir, temp.path).then(_ => this.importPlugins(temp.path));
+                    closeAfter(result, temp);
+                    return result;
+                });
+            } else {
+                return getInterpreterInfo(dir)
+                    .then(_ => copy(dir, PLUGIN_DIRECTORY))
+                    .catch(_ => subdirs(dir).then(dirs => somePromises(dirs.map(otherDir => this.importPlugins(otherDir)))));
+            }
+        });
+    }
+
+    public exportPlugins(dest: string): Promise<void> {
+        return zipFiles(PLUGIN_DIRECTORY, dest);
     }
 }
