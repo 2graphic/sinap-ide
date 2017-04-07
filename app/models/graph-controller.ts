@@ -284,12 +284,19 @@ export class GraphController {
     copyPropertyToCore(drawable: Drawable, core: ElementValue, key: string) {
         console.log("Copying " + key + " to core.");
         if (key === "source" || key === "destination") {
+            if (!(drawable instanceof DrawableEdge)) {
+                return;
+            }
+
             const bridge = this.bridges.getB((drawable as any)[key]);
             if (!bridge) {
                 throw new Error("Edge is referencing a nonexistent node");
             }
 
-            core.set(key, bridge.core);
+            const union = new Value.Union(this.plugin.types.nodes, core.environment);
+            union.value = bridge.core;
+
+            (core.get(key) as Value.Union).value = union;
             return;
         }
 
