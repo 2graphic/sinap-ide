@@ -10,76 +10,54 @@
  *
  * @see {@link https://angular.io/docs/ts/latest/cookbook/dynamic-component-loader.html}
  */
-
-
 import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
-import { LocalFileService, LocalFile, LocalDirectory } from "../../services/files.service";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
-import { Directory } from "sinap-core";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
-
+import { dirFiles } from "../../util";
 
 export class FilesPanelData {
-    public directory?: Directory;
-    public files: LocalFile[] = [];
+    public directory?: string;
+    public files: string[] = [];
 
-    constructor(directoryToOpen: string, private fileService: LocalFileService) {
+    constructor(directoryToOpen: string) {
         this.setDirectory(directoryToOpen).catch(() => {
             this.setDirectory(".");
         });
     }
 
-    private _selectedFile: LocalFile | undefined
-    = undefined;
+    private _selectedFile: string | undefined = undefined;
 
     get selectedFile() {
         return this._selectedFile;
     }
 
-    set selectedFile(value: LocalFile | undefined) {
+    set selectedFile(value: string | undefined) {
         this._selectedFile = value;
         this.selectedFileChanged.emit(value);
     }
 
-    readonly selectedFileChanged
-    = new EventEmitter<LocalFile | undefined>();
+    readonly selectedFileChanged = new EventEmitter<string | undefined>();
 
-    readonly openFile
-    = new EventEmitter<LocalFile>();
+    readonly openFile = new EventEmitter<string>();
 
-    private setDirectory(value?: string) {
-        return new Promise<string[]>((resolve, reject) => {
-            if (value) {
-                this.fileService.directoryByName(value)
-                    .then((directory: Directory) => {
-                        if (directory instanceof LocalDirectory) {
-                            directory.exists().then(() => {
-                                this.directory = directory;
-                                directory.getFiles().then((files: LocalFile[]) => {
-                                    this.files = files;
-                                    resolve();
-                                });
-                            }).catch((e) => {
-                                reject(e);
-                            });
-                        } else {
-                            reject("not implemented");
-                        }
-                    });
-            }
-            else {
-                this.directory = undefined;
-                this.files = [];
-            }
-        });
+    private setDirectory(value?: string): Promise<void> {
+        if (value) {
+            return dirFiles(value).then(files => {
+                this.files = files;
+            });
+        }
+        else {
+            this.directory = undefined;
+            this.files = [];
+            return Promise.resolve();
+        }
     }
 }
 
 @Component({
     selector: "sinap-files-panel",
     templateUrl: "./files-panel.component.html",
-    styleUrls: ["./files-panel.component.scss"],
-    providers: [LocalFileService]
+    styleUrls: ["./files-panel.component.scss"]
 })
 export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
     constructor() { }
@@ -98,9 +76,9 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
 
     @ViewChild('filesList') filesList: CollapsibleListComponent;
 
-    private updateSelectedFile = (value?: LocalFile) => {
+    private updateSelectedFile = (value?: string) => {
         if (value) {
-            const found = this._data.files.find(f => f.equals(value));
+            const found = this._data.files.find(f => f === value);
             this.filesList.selectedIndex = found ? this._data.files.indexOf(found) : -1;
         } else {
             this.filesList.selectedIndex = -1;

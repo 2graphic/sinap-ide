@@ -1,5 +1,5 @@
 <div id="wrapper">
     <sinap-collapsible-list [items]="openFiles" text="Open Editors"></sinap-collapsible-list>
-    <sinap-collapsible-list #filesList [items]="_data.files" [text]="_data.directory ? _data.directory.name : 'No folder opened'"
+    <sinap-collapsible-list #filesList [items]="_data.files" [text]="_data.directory ? _data.directory : 'No folder opened'"
         (selectedIndexChanged)="itemSelected($event)"></sinap-collapsible-list>
 </div>

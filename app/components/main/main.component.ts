@@ -15,7 +15,7 @@
 
 
 import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef, EventEmitter } from "@angular/core";
-import { Program, Plugin, Model } from "sinap-core";
+import { Program, Plugin, Model, readFile, NodePromise } from "sinap-core";
 
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
 
@@ -34,7 +34,6 @@ import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { MenuEventAction } from "../../models/menu";
 import { ModalInfo, ModalType } from './../../models/modal-window';
 
-import { LocalFileService, LocalFile, UntitledFile } from "../../services/files.service";
 import { PluginService } from "../../services/plugin.service";
 import { WindowService } from "../../modal-windows/services/window.service";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
@@ -43,6 +42,7 @@ import { TabContext } from "./tab-context";
 import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "./icons";
 
 import { ResizeEvent } from 'angular-resizable-element';
+import { requestSaveFile, requestFiles } from "../../util";
 
 const remote = require('electron').remote;
 const dialog = remote.dialog;
@@ -51,13 +51,13 @@ const dialog = remote.dialog;
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.scss"],
-    providers: [MenuService, PluginService, WindowService, LocalFileService]
+    providers: [MenuService, PluginService, WindowService]
 })
 export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
-        this.newFile(new UntitledFile(), ["FLAP", "dfa"]);
+        this.newFile("Untitled", ["FLAP", "dfa"]);
 
         // Restore previously opened files.
         // try {
@@ -103,7 +103,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     private propertiesPanelData = new PropertiesPanelData();
     // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
-    private filesPanelData = new FilesPanelData("./examples", this.fileService);
+    private filesPanelData = new FilesPanelData("./examples");
     // private toolsPanelData = new ToolsPanelData();
 
     private tabs = new Map<number, TabContext>();
@@ -207,7 +207,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     };
 
     /** Create a new tab and open it */
-    newFile(file: LocalFile, kind: string[], content?: any/*SerialJSO*/) {
+    newFile(file: string, kind: string[], content?: any/*SerialJSO*/) {
         // TODO: have a more efficient way to get kind.
         return this.pluginService.getPluginByKind(kind).then((plugin) => {
             const model = new Model(plugin);
@@ -226,13 +226,13 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     onClose = (e: any): any => {
         // Save what files are open
-        const openFiles = [...this.tabs.values()].map((context) => context.file.getPath()).filter((path) => path !== undefined) as string[];
+        const openFiles = [...this.tabs.values()].map((context) => context.file).filter((path) => path !== undefined) as string[];
         localStorage.setItem("openFiles", JSON.stringify(openFiles));
 
         // Save what file is open
         localStorage.removeItem("selectedFile");
         if (this._context) {
-            const path = this._context.file.getPath();
+            const path = this._context.file;
             if (path) {
                 localStorage.setItem("selectedFile", path);
             }
@@ -256,7 +256,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         this.pluginService.pluginData.then((pluginData) => {
             let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginData);
             result.then((result: NewFileResult) => {
-                this.newFile(new UntitledFile(result.name), result.kind);
+                this.newFile(result.name, result.kind);
             });
         });
     }
@@ -272,26 +272,18 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     saveAsFile() {
         if (this._context) {
             const c = this._context;
-            this.fileService.requestSaveFile(this._context.file.getPath()).then((f) => {
-                if (f.equals(c.file)) {
-                    // Saving as same file...
-                    this.saveToFile(c.graph, c.file).then(() => {
-                        this.changeDetectorRef.detectChanges();
-                    });
+            requestSaveFile(c.file).then(file => {
+                if (file === c.file) {
+                    this.saveToFile(c.graph, c.file).then(() => this.changeDetectorRef.detectChanges());
                 } else {
-                    f.close();
-                    this.closeFile(f);
-                    this.saveToFile(c.graph, f).then(() => {
-                        this.openFile(f);
-                    });
+                    this.closeFile(file);
+                    this.saveToFile(c.graph, file).then(() => this.openFile(file));
                 }
-            }).catch((e) => {
-                console.log(e);
-            });
+            }).catch(e => console.log(e));
         }
     }
 
-    public saveToFile(graph: GraphController, file: LocalFile) {
+    public saveToFile(graph: GraphController, file: string) {
         return Promise.reject("Not implemented.");
         // const pojo = graph.core.serialize();
 
@@ -303,35 +295,25 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     requestOpenFile() {
-        this.fileService.requestFiles()
-            .then((files: LocalFile[]) => {
-                files.forEach(this.openFile);
-            }).catch((e) => {
-                // User cancelled, do nothing
-                console.log(e);
+        requestFiles().then(files => files.forEach(file => this.openFile(file))).catch(e => console.log(e));
+    }
+
+    openFile(file: string): Promise<void> {
+        const entry = [...this.tabs.entries()].find(([_, context]) => file === context.file);
+        if (entry) {
+            this.tabBar.active = entry[0];
+            return Promise.resolve();
+        } else {
+            return readFile(file).then(content => {
+                const pojo = JSON.parse(content);
+                const kind = pojo.kind;
+                return this.newFile(file, kind, pojo);
             });
+        }
     }
 
-    openFile = (file: LocalFile) => {
-        return new Promise((resolve, reject) => {
-            const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
-            if (entry) {
-                this.tabBar.active = entry[0];
-                resolve();
-            } else {
-                file.readData().then((content) => {
-                    const pojo = JSON.parse(content);
-                    const kind = pojo.kind;
-                    this.newFile(file, kind, pojo).then(() => resolve()).catch(reject);
-                }).catch((e) => {
-                    reject(e);
-                });
-            }
-        });
-    }
-
-    closeFile(file: LocalFile) {
-        const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
+    closeFile(file: string) {
+        const entry = [...this.tabs.entries()].find(([_, context]) => file === context.file);
         if (entry) {
             this.tabBar.deleteTab(entry[0]);
         }
@@ -355,36 +337,33 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     /* ---------- TabBarDelegate ---------- */
     canDeleteTab(i: number) {
-        return new Promise((resolve, reject) => {
-            const toDelete = this.tabs.get(i);
-            if (toDelete && toDelete.file.dirty === true) {
+        const toDelete = this.tabs.get(i);
+        if (!toDelete) {
+            return Promise.resolve(true);
+        }
+
+        return toDelete.unsavedChanges()
+            .then(unsavedChanges => {
+                const result = new NodePromise<number>();
                 dialog.showMessageBox(remote.BrowserWindow.getFocusedWindow(), {
                     type: "question",
                     buttons: ["Save", "Don't Save", "Cancel"],
                     defaultId: 2,
                     cancelId: 2,
                     message: "Save file before closing?",
-                    detail: toDelete.file.getPath()
-                }, (r) => {
-                    if (r === 0) {
-                        this.saveToFile(toDelete.graph, toDelete.file).then(() => {
-                            resolve(true);
-                        });
-                    } else {
-                        resolve(r === 1);
-                    }
-                });
-            } else {
-                resolve(true);
-            }
-        });
+                    detail: toDelete.file
+                }, (num) => result.cb(null, num));
+                return result.promise;
+            })
+            .then(choice => {
+                if (choice === 0) return this.saveToFile(toDelete.graph, toDelete.file);
+                else return Promise.resolve(choice === 1);
+            })
+            .then(_ => true);
     }
 
     deletedTab(i: number) {
         const toDelete = this.tabs.get(i);
-        if (toDelete) {
-            toDelete.file.close();
-        }
         this.tabs.delete(i);
     }
 

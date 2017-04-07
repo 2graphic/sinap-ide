@@ -5,27 +5,29 @@
 
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { Program, Plugin } from "sinap-core";
-import { LocalFile } from "../../services/files.service";
 import { StatusBarInfo } from "../../components/status-bar/status-bar.component";
 import { InputPanelData } from "../input-panel/input-panel.component";
+import { fileStat } from "../../util";
 // import { TestPanelData } from "../test-panel/test-panel.component";
 
 /**
  * Stores the state of each open tab.
  */
 export class TabContext {
-    constructor(public readonly index: number, public graph: GraphController, public file: LocalFile, private plugin: Plugin, private kind: string[]) {
+    constructor(public readonly index: number, public graph: GraphController, public file: string, private plugin: Plugin, private kind: string[]) {
         this.statusBarInfo = {
             title: kind.length > 0 ? kind[kind.length - 1] : "",
             items: []
         };
         graph.changed.asObservable().subscribe(this.addUndoableEvent);
+        this.lastUpdated = new Date();
     };
 
     private readonly undoHistory: UndoableEvent[] = [];
     private readonly redoHistory: UndoableEvent[] = [];
     private stack = this.undoHistory;
     private isRedoing = false;
+    private lastUpdated: Date;
 
     public inputPanelData: InputPanelData = new InputPanelData();
     // public testPanelData: TestPanelData = new TestPanelData();
@@ -58,6 +60,7 @@ export class TabContext {
                     this.statusBarInfo.items = [];
                 }
                 this.inputPanelData.program = program;
+                this.dirty = false;
                 // this.testPanelData.program = program;
                 return program;
             }
@@ -68,6 +71,7 @@ export class TabContext {
 
     public invalidateProgram() {
         this.dirty = true;
+        this.lastUpdated = new Date();
     }
 
     public undo() {
@@ -90,7 +94,7 @@ export class TabContext {
     }
 
     public addUndoableEvent = (change: UndoableEvent) => {
-        this.file.markDirty();
+        this.invalidateProgram();
 
         this.stack.push(change);
         if (this.stack === this.undoHistory && !this.isRedoing) {
@@ -101,5 +105,9 @@ export class TabContext {
         if (this.undoHistory.length > this.UNDO_HISTORY_LENGTH) {
             this.undoHistory.shift();
         }
+    }
+
+    public unsavedChanges(): Promise<boolean> {
+        return fileStat(this.file).then(stats => stats.ctime.getTime() < this.lastUpdated.getTime());
     }
 }
