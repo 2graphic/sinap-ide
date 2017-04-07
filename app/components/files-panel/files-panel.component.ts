@@ -20,7 +20,8 @@ export class FilesPanelData {
     public files: string[] = [];
 
     constructor(directoryToOpen: string) {
-        this.setDirectory(directoryToOpen).catch(() => {
+        this.setDirectory(directoryToOpen).catch(err => {
+            console.log(err);
             this.setDirectory(".");
         });
     }

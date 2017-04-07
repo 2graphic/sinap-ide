@@ -42,10 +42,12 @@ import { TabContext } from "./tab-context";
 import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "./icons";
 
 import { ResizeEvent } from 'angular-resizable-element';
-import { requestSaveFile, requestFiles } from "../../util";
+import { requestSaveFile, requestFiles, fileStat } from "../../util";
 
 const remote = require('electron').remote;
 const dialog = remote.dialog;
+
+import * as path from "path";
 
 @Component({
     selector: "sinap-main",
@@ -57,7 +59,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
-        this.newFile("Untitled", ["FLAP", "dfa"]);
+        this.newFile(["FLAP", "dfa"], "Untitled");
 
         // Restore previously opened files.
         // try {
@@ -202,7 +204,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     };
 
     /** Create a new tab and open it */
-    newFile(file: string, kind: string[], content?: any/*SerialJSO*/) {
+    newFile(kind: string[], file: string, content?: any/*SerialJSO*/) {
         // TODO: have a more efficient way to get kind.
         return this.pluginService.getPluginByKind(kind).then((plugin) => {
             const model = new Model(plugin);
@@ -210,12 +212,15 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             let tabNumber = this.tabBar.newTab(file);
 
             const graph = new GraphController(model, plugin);
-            const context = new TabContext(tabNumber, graph, file, plugin, kind);
+            const context = fileStat(file).then(stats => stats.isFile() ? Promise.resolve() : Promise.reject(null))
+                .then(_ => new TabContext(tabNumber, graph, plugin, kind, path.basename(file, ".sinap"), file))
+                .catch(_ => new TabContext(tabNumber, graph, plugin, kind, file));
 
-            graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
-
-            this.tabs.set(tabNumber, context);
-            this.selectedTab(tabNumber);
+            context.then(context => {
+                graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
+                this.tabs.set(tabNumber, context);
+                this.selectedTab(tabNumber);
+            });
         });
     }
 
@@ -251,14 +256,15 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         this.pluginService.pluginData.then((pluginData) => {
             let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginData);
             result.then((result: NewFileResult) => {
-                this.newFile(result.name, result.kind);
+                this.newFile(result.kind, result.name);
             });
         });
     }
 
     saveFile() {
         if (this._context) {
-            this.saveToFile(this._context.graph, this._context.file).then(() => {
+            // file should NOT be null.
+            this.saveToFile(this._context.graph, this._context.file!).then(() => {
                 this.changeDetectorRef.detectChanges();
             });
         }
@@ -278,7 +284,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         }
     }
 
-    public saveToFile(graph: GraphController, file: string) {
+    public saveToFile(graph: GraphController, file?: string) {
         return Promise.reject("Not implemented.");
         // const pojo = graph.core.serialize();
 
@@ -302,7 +308,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             return readFile(file).then(content => {
                 const pojo = JSON.parse(content);
                 const kind = pojo.kind;
-                return this.newFile(file, kind, pojo);
+                return this.newFile(kind, pojo, file);
             });
         }
     }

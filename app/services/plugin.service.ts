@@ -34,7 +34,7 @@ function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
     return true;
 }
 
-export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app", "plugins") : "../plugins";
+export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app", "plugins") : "./plugins";
 
 @Injectable()
 export class PluginService {

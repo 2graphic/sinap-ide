@@ -14,7 +14,8 @@ import { fileStat } from "../../util";
  * Stores the state of each open tab.
  */
 export class TabContext {
-    constructor(public readonly index: number, public graph: GraphController, public file: string, private plugin: Plugin, private kind: string[]) {
+    constructor(public readonly index: number, public graph: GraphController, private plugin: Plugin, private kind: string[],
+        public name: string, public file?: string) {
         this.statusBarInfo = {
             title: kind.length > 0 ? kind[kind.length - 1] : "",
             items: []
@@ -108,6 +109,6 @@ export class TabContext {
     }
 
     public unsavedChanges(): Promise<boolean> {
-        return fileStat(this.file).then(stats => stats.ctime.getTime() < this.lastUpdated.getTime());
+        return this.file ? fileStat(this.file).then(stats => stats.ctime.getTime() < this.lastUpdated.getTime()) : Promise.resolve(true);
     }
 }
