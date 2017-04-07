@@ -23,88 +23,6 @@ import { Model, Plugin, ElementValue, ElementType } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { DoubleMap } from "./double-map";
 
-/**
- * Contains a reference to a `CoreElement` and a `Drawable`.
- *
- * Calls to get/set will update both. It also contains a
- * `proxy` field. Reads and writes to this will intelligently update
- * the core element and the drawable. For any of these uses, if
- * the backer object (core/drawable) references another core or drawable
- * this will return a `BridgingProxy` in its place. Sets will intelligently
- * sync the backends even if the set `v` is a `BridgingProxy`
-//  */
-// export class BridgingProxy {
-//     proxy: { [a: string]: any };
-
-//     constructor(public core: CoreElement, public drawable: Drawable, public graph: GraphController) {
-//         this.proxy = new Proxy(core.data, {
-//             set: (data, k, v) => this.set(k, v),
-//             get: (data, k) => this.get(k),
-//         });
-//     }
-
-//     set(k: PropertyKey, v: any, updateDrawable = true) {
-//         let drawableValue = v;
-//         let coreValue = v;
-
-//         // If v is a drawable element or a core element,
-//         // then when it gets set in the various proxied data
-//         // structures, set it differently.
-
-//         if (v instanceof BridgingProxy) {
-//             drawableValue = v.drawable;
-//             coreValue = v.core;
-//         } else if (v instanceof CoreElement) {
-//             drawableValue = drawableFromAny(v, this.graph.bridges);
-//         } else if (v instanceof Drawable) {
-//             coreValue = coreFromAny(v, this.graph.bridges);
-//         }
-
-//         if (updateDrawable && Object.keys(this.drawable).indexOf(k.toString()) !== -1) {
-//             (this.drawable as any)[k] = drawableValue;
-//         }
-
-//         const oldValue = this.core.data[k];
-//         this.core.data[k] = coreValue;
-
-//         this.graph.changed.emit(new UndoableChange(this, k, oldValue, coreValue));
-
-//         return true;
-//     }
-
-//     get(k: PropertyKey) {
-//         const coreValue = this.core.data[k];
-//         // if this is something that should be proxied
-//         const proxiedValue = this.graph.bridges.getB(coreValue);
-//         // return the proxy. That is, any changes made to the returned
-//         // object should propagate to both backers
-//         return proxiedValue !== undefined ? proxiedValue : coreValue;
-//     }
-// }
-
-// function drawableFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingProxy>) {
-//     if (a instanceof CoreElement) {
-//         const bridge = bridges.getB(a);
-//         if (bridge === undefined) {
-//             throw "trying to reference a core element that doesn't have an analogous drawable";
-//         }
-//         a = bridge.drawable;
-//     }
-//     return a;
-// }
-
-// function coreFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingProxy>) {
-//     if (a instanceof Drawable) {
-//         const bridge = bridges.getA(a);
-//         if (bridge === undefined) {
-//             throw "trying to reference a drawable element that doesn't have an analogous core";
-//         }
-//         a = bridge.core;
-//     }
-//     return a;
-// }
-
-// TODO: changes can also be adds or deletes
 export class UndoableEvent {
     constructor(public undo: () => void) { }
 }
@@ -248,7 +166,7 @@ export class GraphController {
         this.bridges.set(core, drawable, bridge);
 
         core.environment.listen((_, value, other) => {
-            console.log(value, other);
+            console.log(core, _, value, other);
             [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => {
                 if (v === value) {
                     return true;
@@ -276,26 +194,6 @@ export class GraphController {
         const onChange = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
 
         drawable.addEventListener("change", onChange);
-
-        // const f = (_: any, nv: any) => {
-        //     for (const key in nv) {
-        //         if (key === "source" || key === "destination" || key === "position") continue;
-        //         drawable.removeEventListener("change", g);
-        //         (drawable as any)[key] = nv[key];
-        //         setTimeout(() => {
-        //             drawable.addEventListener("change", g);
-        //         }, 0);
-        //     }
-        // };
-
-        // const g = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
-        // deepListen([...core.values][0][1], () => {
-        //     setTimeout(() => {
-        //         this.changed.emit();
-        //     }, 0);
-        // });
-        // deepListen([...core.values][1][1], f);
-        // drawable.addEventListener("change", g);
 
         return bridge;
     }
@@ -337,37 +235,7 @@ export class GraphController {
     }
 
     public applyUndoableEvent(event: UndoableEvent) {
-        // if (event instanceof UndoableAddOrDelete) {
-        //     const toUndo = event.events
-        //         .map((e) => [e[0], e[1].drawable] as DrawableCreatedOrDeletedEvent);
-
-        //     const undoResults = this.drawable.undo(toUndo);
-
-        //     const mapped = undoResults.map(([createdOrDeleted, drawable]): CreatedOrDeletedEvent =>
-        //         [createdOrDeleted, (() => {
-        //             if (createdOrDeleted === "created") {
-        //                 const found = event.events.find(([_, bridge]) => bridge.drawable === drawable);
-
-        //                 if (found) {
-        //                     // Reinsert the core element and bridge
-        //                     const [_, bridge] = found;
-
-        //                     this.core.elements.set(bridge.core.uuid, bridge.core);
-        //                     this.bridges.set(bridge.drawable, bridge.core, bridge);
-        //                     return bridge;
-        //                 } else {
-        //                     return this.addDrawable(drawable);
-        //                 }
-        //             } else {
-        //                 return this.removeDrawable(drawable);
-        //             }
-        //         })()]);
-        //     this.changed.emit(new UndoableAddOrDelete(mapped));
-        // } else if (event instanceof UndoableChange) {
-        //     event.target.set(event.key, event.oldValue, true);
-        // } else {
-        //     throw "Unrecognized event";
-        // }
+        // TODO:
     }
 
     private onPropertyChanged(a: PropertyChangedEventDetail<any>) {
@@ -381,10 +249,6 @@ export class GraphController {
             throw new OutOfSyncError();
         }
     }
-
-    // private getData = (v: Element) => {
-    //     return v.jsonify(() => { return { result: false, value: undefined }; });
-    // }
 
     copyPropertiesToDrawable(core: ElementValue, drawable: Drawable) {
         Object.keys(drawable).forEach(this.copyPropertyToDrawable.bind(this, core, drawable));
@@ -418,6 +282,7 @@ export class GraphController {
     }
 
     copyPropertyToCore(drawable: Drawable, core: ElementValue, key: string) {
+        console.log("Copying " + key + " to core.");
         if (key === "source" || key === "destination") {
             const bridge = this.bridges.getB((drawable as any)[key]);
             if (!bridge) {
@@ -443,39 +308,6 @@ export class GraphController {
             (value.value.x as Value.Primitive).value = (drawable as any)[key].x;
             (value.value.y as Value.Primitive).value = (drawable as any)[key].y;
         }
-
-        // if (key === "position") {
-        //     const pos = core.get("position") as CoreObjectValue<PluginTypeEnvironment>;
-        //     const x = pos.get("x") as CorePrimitiveValue<PluginTypeEnvironment>;
-        //     const y = pos.get("y") as CorePrimitiveValue<PluginTypeEnvironment>;
-
-        //     x.data = (drawable as DrawableNode).position.x;
-        //     y.data = (drawable as DrawableNode).position.y;
-
-        //     return;
-        // }
-
-        // const kind = CoreElementKind[core.kind];
-        // const drawableType = core.type.env.lookupSinapType("Drawable" + kind);
-        // if (!isObjectType(drawableType)) {
-        //     throw new Error("Expected ObjectType");
-        // }
-
-        // let type = drawableType.members.get(key.toString()) as Type<PluginTypeEnvironment> | undefined;
-
-        // if (type === undefined) {
-        //     // console.log("Not copying " + key);
-        //     return;
-        // }
-
-        // if (type.isAssignableTo(core.type.env.lookupSinapType("WrappedString"))) {
-        //     type = type.env.getStringType();
-        // }
-
-        // const typeEnvironment = this.plugin.typeEnvironment;
-        // const value = makeValue(type, (drawable as any)[key], false);
-
-        // core.set(key.toString(), value);
     }
 
     setSelectedElements(se: Iterable<Drawable> | undefined) {
