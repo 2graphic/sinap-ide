@@ -50,6 +50,7 @@
     "electron-packager": "8.6.0",
     "extract-loader": "0.1.0",
     "file-loader": "0.10.1",
+    "glob": "^7.1.1",
     "html-loader": "0.4.5",
     "ncp": "^2.0.0",
     "node-sass": "4.5.1",
@@ -64,6 +65,7 @@
     "typescript-formatter": "5.1.2",
     "uglify-js": "git+https://github.com/mishoo/UglifyJS2.git#harmony",
     "webpack": "2.2.1",
-    "webpack-merge": "4.1.0"
+    "webpack-merge": "4.1.0",
+    "zip-folder": "^1.0.0"
   }
 }
