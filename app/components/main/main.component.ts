@@ -57,48 +57,46 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
-        this.newFile(new UntitledFile(), ["FLAP", "dfa"]);
-
         // Restore previously opened files.
-        // try {
-        //     const openFilesJSON = localStorage.getItem("openFiles");
-        //     if (openFilesJSON) {
-        //         const openFilenames = JSON.parse(openFilesJSON) as string[];
+        try {
+            const openFilesJSON = localStorage.getItem("openFiles");
+            if (openFilesJSON) {
+                const openFilenames = JSON.parse(openFilesJSON) as string[];
 
-        //         // Adding it again to be opened last will cause it to be selected.
-        //         const selectedFile = localStorage.getItem("selectedFile");
+                // Adding it again to be opened last will cause it to be selected.
+                const selectedFile = localStorage.getItem("selectedFile");
 
-        //         const promises = openFilenames.map((fileName) => this.fileService.fileByName(fileName))
-        //             .map((p) => {
-        //                 return new Promise((resolve, reject) => {
-        //                     p.then((f) => {
-        //                         this.openFile(f).then(() => resolve()).catch((e) => {
-        //                             console.log(e);
-        //                             resolve();
-        //                         });
-        //                     }).catch((e) => {
-        //                         console.log(e);
-        //                         resolve();
-        //                     });
-        //                 });
-        //             });
+                const promises = openFilenames.map((fileName) => this.fileService.fileByName(fileName))
+                    .map((p) => {
+                        return new Promise((resolve, reject) => {
+                            p.then((f) => {
+                                this.openFile(f).then(() => resolve()).catch((e) => {
+                                    console.log(e);
+                                    resolve();
+                                });
+                            }).catch((e) => {
+                                console.log(e);
+                                resolve();
+                            });
+                        });
+                    });
 
-        //         if (selectedFile) {
-        //             Promise.all(promises).then(() => {
-        //                 this.fileService.fileByName(selectedFile).then((f) => {
-        //                     const found = [...this.tabs.entries()].find(([_, context]) => f.equals(context.file));
-        //                     if (found) {
-        //                         this.tabBar.active = found[0];
-        //                     }
-        //                 }).catch(() => {
-        //                     console.log("Unable to select previously selected file: ", selectedFile);
-        //                 });
-        //             });
-        //         }
-        //     }
-        // } catch (e) {
-        //     console.log(e);
-        // }
+                if (selectedFile) {
+                    Promise.all(promises).then(() => {
+                        this.fileService.fileByName(selectedFile).then((f) => {
+                            const found = [...this.tabs.entries()].find(([_, context]) => f.equals(context.file));
+                            if (found) {
+                                this.tabBar.active = found[0];
+                            }
+                        }).catch(() => {
+                            console.log("Unable to select previously selected file: ", selectedFile);
+                        });
+                    });
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     private propertiesPanelData = new PropertiesPanelData();

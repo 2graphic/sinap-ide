@@ -7,7 +7,7 @@ import { Component, Input, ViewChild, AfterViewInit, ChangeDetectorRef, ViewChil
 import { WindowService } from "./../../modal-windows/services/window.service";
 import { CollapsibleListComponent } from "./../../components/collapsible-list/collapsible-list.component";
 import { ModalInfo, ModalComponent } from "./../../models/modal-window";
-import { PluginData } from "../../services/plugin.service";
+import { PluginInfo } from "sinap-core";
 import { ResizeEvent } from 'angular-resizable-element';
 
 export class NewFileResult {
@@ -23,15 +23,15 @@ export class NewFileResult {
 })
 export class NewFileComponent implements ModalComponent, AfterViewInit {
     set modalInfo(modalInfo: ModalInfo) {
-        const plugins: PluginData[] = modalInfo.data;
+        const plugins: PluginInfo[] = modalInfo.data;
         // This code is extremely evil but necessary.
         for (const plugin of plugins) {
-            Object.setPrototypeOf(plugin, PluginData.prototype);
+            Object.setPrototypeOf(plugin, PluginInfo.prototype);
         }
 
         const result: any = {};
         for (const plugin of plugins) {
-            const group = plugin.group;
+            const group = plugin.pluginKind[0];
             if (!result[group]) {
                 result[group] = [];
             }
@@ -42,7 +42,7 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
     }
 
     private availablePlugins: PluginList[];
-    private selectedPlugin: PluginData;
+    private selectedPlugin: PluginInfo;
     private width = 175;
     @ViewChild(CollapsibleListComponent) firstList: CollapsibleListComponent;
     @ViewChildren(CollapsibleListComponent) lists: QueryList<CollapsibleListComponent>;
@@ -75,7 +75,7 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
 
     public createNewFile(filename: string) {
         if (filename) {
-            this.windowService.closeWindow(new NewFileResult(filename, this.selectedPlugin.path));
+            this.windowService.closeWindow(new NewFileResult(filename, this.selectedPlugin.pluginKind));
         }
     }
 
@@ -85,6 +85,11 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
 }
 
 class PluginList {
-    constructor(public readonly title: string, public readonly plugins: PluginData[]) {
+    constructor(public readonly title: string, public readonly plugins: PluginInfo[]) {
+        this.plugins.forEach((p) => {
+            p.toString = () => {
+                return p.pluginKind[p.pluginKind.length - 1];
+            };
+        });
     }
 }

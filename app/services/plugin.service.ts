@@ -1,23 +1,9 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { Plugin, PluginLoader, getInterpreterInfo, Program } from "sinap-core";
+import { Plugin, PluginLoader, getInterpreterInfo, Program, PluginInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
 import { LocalFileService } from "../services/files.service";
 import { somePromises } from "../util";
 
-
-export class PluginData {
-    constructor(readonly path: string[], readonly description: string) {
-    }
-    get name(): string {
-        return this.path[this.path.length - 1];
-    }
-    get group(): string {
-        return this.path[this.path.length - 2];
-    }
-    toString() {
-        return this.name;
-    }
-}
 
 function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
     if (arr1.length !== arr2.length) {
@@ -35,46 +21,45 @@ function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
 
 @Injectable()
 export class PluginService {
-    readonly plugins: Promise<Plugin[]>;
+    readonly plugins: Promise<[PluginInfo, Promise<Plugin>][]>;
     private loader: TypescriptPluginLoader = new TypescriptPluginLoader();
 
     constructor( @Inject(LocalFileService) private fileService: LocalFileService) {
-        this.plugins = this.fileService.getAppLocations()
-            .then((appLocations) => appLocations.pluginDirectory.getSubDirectories())
-            .then((pluginDirectories) => {
-                const pluginProms = pluginDirectories.map((pluginDir) => {
-                    return getInterpreterInfo(pluginDir.fullName).then((info) => {
-                        return this.loader.load(info.interpreterInfo);
+        this.plugins = new Promise((resolve, reject) => {
+            const plugins: [PluginInfo, Promise<Plugin>][] = [];
+
+            this.fileService.getAppLocations()
+                .then((appLocations) => appLocations.pluginDirectory.getSubDirectories())
+                .then((pluginDirectories) => {
+                    pluginDirectories.map((pluginDir) => {
+                        getInterpreterInfo(pluginDir.fullName).then((info) => {
+                            plugins.push([info, this.loader.load(info.interpreterInfo)]);
+                        });
                     });
+                    resolve(plugins);
+                }).catch((e) => {
+                    reject(e);
                 });
-                return somePromises(pluginProms);
-            });
+        });
     }
 
     public getPluginByKind(kind: string[]): Promise<Plugin> {
         return this.plugins.then((plugins) => {
-            // TODO
-            // const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginKind));
-            // const pluginName = JSON.stringify(kind);
-            // if (matches.length === 0) {
-            //     throw new Error(`Could not find a plugin with kind ${pluginName}`);
-            // } else if (matches.length > 1) {
-            //     throw new Error(`Found multiple plugins matching kind ${pluginName}`);
-            // } else {
-            //     return matches[0];
-            // }
-
-            if (plugins.length === 0) {
-                throw new Error("Oops no plugins");
+            const matches = plugins.filter((plugin) => arrayEquals(kind, plugin[0].pluginKind));
+            const pluginName = JSON.stringify(kind);
+            if (matches.length === 0) {
+                throw new Error(`Could not find a plugin with kind ${pluginName}`);
+            } else if (matches.length > 1) {
+                throw new Error(`Found multiple plugins matching kind ${pluginName}`);
+            } else {
+                return matches[0][1];
             }
-
-            return plugins[0];
         });
     }
 
-    public get pluginData(): Promise<PluginData[]> {
+    public get pluginData(): Promise<PluginInfo[]> {
         return this.plugins.then((plugins) => {
-            return plugins.map((plugin) => new PluginData(["FLAP", "DFA"], "Hardcoded"));
+            return plugins.map((plugin) => plugin[0]);
         });
     }
 }
