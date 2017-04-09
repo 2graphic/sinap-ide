@@ -287,14 +287,13 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     public saveToFile(graph: GraphController, file: LocalFile) {
-        return Promise.reject("Not implemented.");
-        // const pojo = graph.core.serialize();
+        const pojo = graph.core.serialize();
 
-        // return file.writeData(JSON.stringify(pojo, null, 4))
-        //     .catch((err) => {
-        //         dialog.showErrorBox("Unable to Save", `Error occurred while saving to file:\n${file.fullName}.`);
-        //         console.log(err);
-        //     });
+        return file.writeData(JSON.stringify(pojo, null, 4))
+            .catch((err) => {
+                dialog.showErrorBox("Unable to Save", `Error occurred while saving to file:\n${file.fullName}.`);
+                console.log(err);
+            });
     }
 
     requestOpenFile() {
