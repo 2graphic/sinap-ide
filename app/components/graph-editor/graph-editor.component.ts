@@ -18,6 +18,8 @@ import {
     ViewChild
 } from "@angular/core";
 
+import * as MathEx from "./math";
+import { STICKY_DELAY, NUDGE } from "./defaults";
 import { PropertyChangedEvent } from "./events";
 import { NOOP, diff, sum } from "./math";
 import { EditorCanvas, point } from "./editor-canvas";
@@ -123,12 +125,28 @@ export class GraphEditorComponent implements AfterViewInit {
     = null;
 
     /**
-     * `_graphCache`
+     * `graphCache`
      *
      *   Caches previously opened graphs.
      */
-    private readonly _graphCache: Map<DrawableGraph, EditorGraph>
+    private readonly graphCache: Map<DrawableGraph, EditorGraph>
     = new Map<DrawableGraph, EditorGraph>();
+
+    /**
+     * `downPt`
+     * 
+     *   The previously captured mouse down event.
+     */
+    private downPt: point | null
+    = null;
+
+    /**
+     * `stickyTimeout`
+     *
+     *   Timer reference for the sticky delay.
+     */
+    private stickyTimeout: NodeJS.Timer | number | null
+    = null;
 
     /**
      * `isPanning`
@@ -350,6 +368,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private registerEventListeners() {
         const el = this.el.nativeElement as HTMLElement;
+        el.addEventListener("dblclick", this.onDoubleClick);
         el.addEventListener("mousedown", this.onMouseDown);
         el.addEventListener("mousemove", this.onMouseMove);
         el.addEventListener("wheel", this.onWheel);
@@ -370,6 +389,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private unregisterEventListeners() {
         const el = this.el.nativeElement as EventTarget;
+        el.removeEventListener("dblclick", this.onDoubleClick);
         el.removeEventListener("mousedown", this.onMouseDown);
         el.removeEventListener("mouseup", this.onMouseUp);
         el.removeEventListener("mousemove", this.onMouseMove);
@@ -387,10 +407,10 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Registers event listeners for the newly bound graph.
      */
     private registerGraph(graph: DrawableGraph) {
-        if (!this._graphCache.has(graph))
-            this._graphCache
+        if (!this.graphCache.has(graph))
+            this.graphCache
                 .set(graph, new EditorGraph(graph, this.graphCanvas));
-        this._graph = this._graphCache.get(graph)!;
+        this._graph = this.graphCache.get(graph)!;
         this.scale = graph.scale;
         this.origin = graph.origin;
         graph.addEventListener("change", this.onDrawablePropertyChanged);
@@ -506,6 +526,18 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
+     * `onDoubleClick`
+     *
+     *   Handles the double click event.
+     */
+    private onDoubleClick
+    = (evt: MouseEvent) => {
+        const d = this._graph!.drawable.createNode();
+        if (d)
+            d.position = this.graphCanvas.getCoordinates(evt);
+    }
+
+    /**
      * `onMouseDown`
      *
      *   Handles the mousedown event.
@@ -521,17 +553,31 @@ export class GraphEditorComponent implements AfterViewInit {
             "mouseup",
             this.onMouseUp
         );
-        switch (evt.buttons) {
-            // Handle the left mouse button event.
-            case 1: {
-                // Start dragging the graph.
-                this._graph!.dragStart(this.graphCanvas.getCoordinates(evt));
-            } break;
 
-            // Handle the right mouse button event.
-            case 2: {
+        if (evt.buttons === 1) {
+            if (evt.shiftKey) {
+                this._graph!.updateHoverObject();
+                this._graph!.dragStart(this.graphCanvas.getCoordinates(evt));
+            }
+            else if (evt.altKey) {
+                this.el.nativeElement.style.cursor = "grabbing";
                 this.isPanning = true;
-            } break;
+            }
+            else {
+                this._graph!.dragStart(this.graphCanvas.getCoordinates(evt));
+                if (!this._graph!.isDragging) {
+                    this.downPt = evt;
+                    this.stickyTimeout = this.stickyTimeout ?
+                        this.stickyTimeout :
+                        setTimeout(() => {
+                            clearTimeout(this.stickyTimeout as NodeJS.Timer);
+                            this.stickyTimeout = null;
+                            this.downPt = null;
+                            this.el.nativeElement.style.cursor = "grabbing";
+                            this.isPanning = true;
+                        }, STICKY_DELAY);
+                }
+            }
         }
     }
 
@@ -559,14 +605,25 @@ export class GraphEditorComponent implements AfterViewInit {
 
             // Drag.
             case 1: {
-                this.el.nativeElement.style.cursor = "default";
-                this._graph!.drag(ept);
-            } break;
-
-            // Pan.
-            case 2: {
-                if (this.isPanning)
+                if (this.isPanning) {
+                    this.el.nativeElement.style.cursor = "grabbing";
                     this.pan(evt);
+                }
+                else if (this.stickyTimeout) {
+                    const dpt = MathEx.diff(evt, this.downPt!);
+                    if (MathEx.dot(dpt, dpt) > NUDGE * NUDGE) {
+                        clearTimeout(this.stickyTimeout as NodeJS.Timer);
+                        this.stickyTimeout = null;
+                        this.el.nativeElement.style.cursor = "default";
+                        this._graph!
+                            .dragStart(this.graphCanvas.getCoordinates(evt));
+                        this._graph!.drag(ept);
+                    }
+                }
+                else {
+                    this.el.nativeElement.style.cursor = "default";
+                    this._graph!.drag(ept);
+                }
             } break;
         }
     }
@@ -577,15 +634,28 @@ export class GraphEditorComponent implements AfterViewInit {
      *   Handles the mouseup event.
      */
     private onMouseUp
-    = (e: MouseEvent): void => {
-        this.isPanning = false;
+    = (evt: MouseEvent): void => {
         // Swap up and down events.
         this.el.nativeElement
             .removeEventListener("mouseup", this.onMouseUp);
         this.el.nativeElement
             .addEventListener("mousedown", this.onMouseDown);
+
+        if (this.stickyTimeout) {
+            clearTimeout(this.stickyTimeout as NodeJS.Timer);
+            this.stickyTimeout = null;
+            this.downPt = null;
+            this._graph!.dragStart(this.graphCanvas.getCoordinates(evt));
+        }
+
+        if (this.isPanning) {
+            this.el.nativeElement.style.cursor = "default";
+            this.isPanning = false;
+        }
+
         // Drop the graph.
-        this._graph!.drop(this.graphCanvas.getCoordinates(e));
+        else
+            this._graph!.drop(this.graphCanvas.getCoordinates(evt));
     }
 
     /**
