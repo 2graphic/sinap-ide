@@ -71,7 +71,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
 
     private trace = (g: EditorCanvas) => { };
 
-    private stroke = (g: EditorCanvas, extraLineWidth: number = 0) => { };
+    private stroke = (g: EditorCanvas) => { };
 
     private fill = (g: EditorCanvas) => { };
 
@@ -190,6 +190,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
         g.fillColor = "#fff";
         g.strokeColor = "#000";
         g.lineWidth = 2;
+        g.lineStyle = "solid";
         this.lines.forEach(l => {
             g.strokeText(l, x, y);
             g.fillText(l, x, y);
@@ -322,10 +323,10 @@ export class EditorNode extends EditorElement<DrawableNode> {
     private updateStroke() {
         const drawable = this.drawable;
         if (drawable.shape === "image" || drawable.borderWidth === 0)
-            this.stroke = (g: EditorCanvas, extraLineWidth: number = 0) => { };
+            this.stroke = (g: EditorCanvas) => { };
         else
-            this.stroke = (g: EditorCanvas, extraLineWidth: number = 0) => {
-                g.lineWidth = this.drawable.borderWidth + extraLineWidth;
+            this.stroke = (g: EditorCanvas) => {
+                g.lineWidth = this.drawable.borderWidth;
                 g.lineStyle = this.drawable.borderStyle;
                 g.strokeColor = this.drawable.borderColor;
                 g.stroke();
@@ -426,7 +427,10 @@ export class EditorNode extends EditorElement<DrawableNode> {
         else {
             this._drawHighlight = (g: EditorCanvas) => {
                 this.trace(g);
-                this.stroke(g, 6);
+                g.lineStyle = "solid";
+                g.lineWidth = this.drawable.borderWidth + 6;
+                g.strokeColor = this.drawable.borderColor;
+                g.stroke();
             };
         }
     }
@@ -443,6 +447,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
                 g.fillColor = "#fff";
                 g.strokeColor = "#000";
                 g.lineWidth = 1;
+                g.lineStyle = "solid";
                 g.fill();
                 g.stroke();
             };
