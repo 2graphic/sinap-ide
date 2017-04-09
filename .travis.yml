@@ -1,3 +1,5 @@
+dist: trusty
+sudo: false
 language: nodejs
 node_js:
 - 6.1.x
