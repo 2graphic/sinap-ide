@@ -144,35 +144,45 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
 
     private onSubmit(input: Value.Value) {
         this.run(input).then((output) => {
-            if (output && output.result) {
-                const states = output.steps.map(s => new State(s));
-                const result = new ProgramResult(input, new Output(states, output.result));
+            const states = output.steps.map(s => new State(s));
+            const result = new ProgramResult(input, new Output(states, output.result));
 
-                console.log(result);
+            console.log(result);
 
-                this._data.selected = result;
-                this._data.results.unshift(result);
+            this._data.selected = result;
+            this._data.results.unshift(result);
 
-                if (result.output.states.length > 0) {
-                    this._data.selectedState = result.output.states[0];
-                    result.steps++;
-                    this.selectState(result.output.states[0]);
-                }
-
-                this.setupInput();
-                this.scrollToBottom();
-            } else {
-                // TODO
+            if (result.output.states.length > 0) {
+                this._data.selectedState = result.output.states[0];
+                result.steps++;
+                this.selectState(result.output.states[0]);
             }
+
+            this.setupInput();
+            this.scrollToBottom();
+        }).catch((e) => {
+            // TODO:
         });
     }
 
     private run(input: Value.Value) {
-        if (this._data.program) {
-            return this._data.program.run([input]);
-        }
-
-        return Promise.reject("No program to run.");
+        return new Promise<{ result: Value.Value, steps: Value.CustomObject[] }>((resolve, reject) => {
+            if (this._data.program) {
+                this._data.program.run([input]).then((output) => {
+                    if (output.result) {
+                        resolve({
+                            result: output.result,
+                            steps: output.steps
+                        });
+                    } else {
+                        // TODO:
+                        reject("");
+                    }
+                }).catch((e) => {
+                    reject(e);
+                });
+            }
+        });
     }
 }
 
