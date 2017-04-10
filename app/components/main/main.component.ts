@@ -200,10 +200,10 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     };
 
     /** Create a new tab and open it */
-    newFile(file: LocalFile, kind: string[], content?: any/*SerialJSO*/) {
+    newFile(file: LocalFile, kind: string[], content?: any) {
         // TODO: have a more efficient way to get kind.
         return this.pluginService.getPluginByKind(kind).then((plugin) => {
-            const model = new Model(plugin);
+            const model = content ? Model.fromSerial(content, plugin) : new Model(plugin);
 
             let tabNumber = this.tabBar.newTab(file);
 
