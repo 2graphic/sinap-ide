@@ -291,6 +291,7 @@ export class GraphEditorComponent implements AfterViewInit {
         this.graphCanvas = new EditorCanvas(
             this.graphLayerElementRef.nativeElement.getContext("2d")
         );
+        this.graphLayerElementRef.nativeElement.onselectstart = function() { return false; };
         this.resize();
     }
 
