@@ -2,7 +2,6 @@ import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { Plugin, PluginLoader, getInterpreterInfo, Program, PluginInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
 import { LocalFileService } from "../services/files.service";
-import { somePromises } from "../util";
 
 
 function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
@@ -21,27 +20,20 @@ function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
 
 @Injectable()
 export class PluginService {
-    readonly plugins: Promise<[PluginInfo, Promise<Plugin>][]>;
+    readonly plugins: Promise<[PluginInfo, Plugin][]>;
     private loader: TypescriptPluginLoader = new TypescriptPluginLoader();
 
     constructor( @Inject(LocalFileService) private fileService: LocalFileService) {
-        this.plugins = new Promise((resolve, reject) => {
-            const plugins: [PluginInfo, Promise<Plugin>][] = [];
+        this.plugins = this.loadPlugins();
+    }
 
-            this.fileService.getAppLocations()
-                .then((appLocations) => appLocations.pluginDirectory.getSubDirectories())
-                .then((pluginDirectories) => {
-                    somePromises(pluginDirectories.map((pluginDir) => {
-                        return getInterpreterInfo(pluginDir.fullName).then((info) => {
-                            plugins.push([info, this.loader.load(info.interpreterInfo)]);
-                        });
-                    })).then(() => {
-                        resolve(plugins);
-                    });
-                }).catch((e) => {
-                    reject(e);
-                });
-        });
+    private async loadPlugins() {
+        const appLocations = await this.fileService.getAppLocations();
+        const pluginDirectories = await appLocations.pluginDirectory.getSubDirectories();
+        return Promise.all(pluginDirectories.map(async pluginDir => {
+            const info = await getInterpreterInfo(pluginDir.fullName);
+            return [info, await this.loader.load(info.interpreterInfo)] as [PluginInfo, Plugin];
+        }));
     }
 
     public async getPluginByKind(kind: string[]): Promise<Plugin> {
@@ -59,7 +51,7 @@ export class PluginService {
 
     public get pluginData(): Promise<PluginInfo[]> {
         return this.plugins.then((plugins) => {
-            return plugins.map((plugin) => plugin[0]);
+            return plugins.map(([pluginInfo, _]) => pluginInfo);
         });
     }
 }
