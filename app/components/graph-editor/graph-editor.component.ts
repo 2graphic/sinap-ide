@@ -134,7 +134,7 @@ export class GraphEditorComponent implements AfterViewInit {
 
     /**
      * `downPt`
-     * 
+     *
      *   The previously captured mouse down event.
      */
     private downPt: point | null
