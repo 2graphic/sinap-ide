@@ -368,6 +368,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private registerEventListeners() {
         const el = this.el.nativeElement as HTMLElement;
+        el.addEventListener("keydown", this.onKeyDown);
         el.addEventListener("dblclick", this.onDoubleClick);
         el.addEventListener("mousedown", this.onMouseDown);
         el.addEventListener("mousemove", this.onMouseMove);
@@ -389,6 +390,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private unregisterEventListeners() {
         const el = this.el.nativeElement as EventTarget;
+        el.removeEventListener("keydown", this.onKeyDown);
         el.removeEventListener("dblclick", this.onDoubleClick);
         el.removeEventListener("mousedown", this.onMouseDown);
         el.removeEventListener("mouseup", this.onMouseUp);
@@ -526,6 +528,17 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
+     * `onKeyDown`
+     *
+     *   Handles the keydown event.
+     */
+    private onKeyDown
+    = (evt: KeyboardEvent) => {
+        if (evt.altKey)
+            this.el.nativeElement.style.cursor = "-webkit-grab";
+    }
+
+    /**
      * `onDoubleClick`
      *
      *   Handles the double click event.
@@ -560,7 +573,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 this._graph!.dragStart(this.graphCanvas.getCoordinates(evt));
             }
             else if (evt.altKey) {
-                this.el.nativeElement.style.cursor = "grabbing";
+                this.el.nativeElement.style.cursor = "-webkit-grabbing";
                 this.isPanning = true;
             }
             else {
@@ -573,7 +586,8 @@ export class GraphEditorComponent implements AfterViewInit {
                             clearTimeout(this.stickyTimeout as NodeJS.Timer);
                             this.stickyTimeout = null;
                             this.downPt = null;
-                            this.el.nativeElement.style.cursor = "grabbing";
+                            this.el.nativeElement.style.cursor
+                                = "-webkit-grabbing";
                             this.isPanning = true;
                         }, STICKY_DELAY);
                 }
@@ -606,7 +620,7 @@ export class GraphEditorComponent implements AfterViewInit {
             // Drag.
             case 1: {
                 if (this.isPanning) {
-                    this.el.nativeElement.style.cursor = "grabbing";
+                    this.el.nativeElement.style.cursor = "-webkit-grabbing";
                     this.pan(evt);
                 }
                 else if (this.stickyTimeout) {
