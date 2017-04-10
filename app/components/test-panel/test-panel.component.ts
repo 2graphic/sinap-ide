@@ -130,7 +130,7 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
         if (this._data.program) {
             const p = this._data.program;
 
-            const out = await p.run([test.input])
+            const out = await p.run([test.input]);
             // TODO: This should really be a .then.catch case (not optional result and error on out)
             if (out.result) {
                 test.output = out.result;
