@@ -95,7 +95,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
             const plugin = ((this._data.program as any).plugin as Plugin);
             const type = plugin.types.arguments[0];
 
-            this._data.inputForPlugin = this._data.program.environment.make(type);
+            this._data.inputForPlugin = this._data.program.model.environment.make(type);
         }
     }
 
@@ -143,28 +143,28 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private onSubmit(input: Value.Value) {
-        const output = this.run(input);
+        this.run(input).then((output) => {
+            if (output && output.result) {
+                const states = output.steps.map(s => new State(s));
+                const result = new ProgramResult(input, new Output(states, output.result));
 
-        if (output && output.result) {
-            const states = output.steps.map(s => new State(s));
-            const result = new ProgramResult(input, new Output(states, output.result));
+                console.log(result);
 
-            console.log(result);
+                this._data.selected = result;
+                this._data.results.unshift(result);
 
-            this._data.selected = result;
-            this._data.results.unshift(result);
+                if (result.output.states.length > 0) {
+                    this._data.selectedState = result.output.states[0];
+                    result.steps++;
+                    this.selectState(result.output.states[0]);
+                }
 
-            if (result.output.states.length > 0) {
-                this._data.selectedState = result.output.states[0];
-                result.steps++;
-                this.selectState(result.output.states[0]);
+                this.setupInput();
+                this.scrollToBottom();
+            } else {
+                // TODO
             }
-
-            this.setupInput();
-            this.scrollToBottom();
-        } else {
-            // TODO
-        }
+        });
     }
 
     private run(input: Value.Value) {
@@ -172,7 +172,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
             return this._data.program.run([input]);
         }
 
-        return undefined;
+        return Promise.reject("No program to run.");
     }
 }
 
