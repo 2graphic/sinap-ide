@@ -31,12 +31,13 @@ export class PluginService {
             this.fileService.getAppLocations()
                 .then((appLocations) => appLocations.pluginDirectory.getSubDirectories())
                 .then((pluginDirectories) => {
-                    pluginDirectories.map((pluginDir) => {
-                        getInterpreterInfo(pluginDir.fullName).then((info) => {
+                    somePromises(pluginDirectories.map((pluginDir) => {
+                        return getInterpreterInfo(pluginDir.fullName).then((info) => {
                             plugins.push([info, this.loader.load(info.interpreterInfo)]);
                         });
+                    })).then(() => {
+                        resolve(plugins);
                     });
-                    resolve(plugins);
                 }).catch((e) => {
                     reject(e);
                 });

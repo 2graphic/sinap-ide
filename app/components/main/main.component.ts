@@ -207,7 +207,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
             let tabNumber = this.tabBar.newTab(file);
 
-            const graph = new GraphController(model, plugin);
+            const graph = new GraphController(model, plugin, kind);
             const context = new TabContext(tabNumber, graph, file, plugin, kind);
 
             graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
@@ -285,7 +285,10 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     public saveToFile(graph: GraphController, file: LocalFile) {
-        const pojo = graph.core.serialize();
+        const pojo = {
+            kind: graph.kind,
+            graph: graph.core.serialize()
+        };
 
         return file.writeData(JSON.stringify(pojo, null, 4))
             .catch((err) => {
@@ -313,8 +316,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             } else {
                 file.readData().then((content) => {
                     const pojo = JSON.parse(content);
-                    const kind = pojo.kind;
-                    this.newFile(file, kind, pojo).then(() => resolve()).catch(reject);
+                    this.newFile(file, pojo.kind, pojo.graph).then(() => resolve()).catch(reject);
                 }).catch((e) => {
                     reject(e);
                 });

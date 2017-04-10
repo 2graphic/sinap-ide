@@ -70,7 +70,7 @@ export class GraphController {
         return true;
     }
 
-    constructor(public core: Model, public plugin: Plugin) {
+    constructor(public core: Model, public readonly plugin: Plugin, public readonly kind: string[]) {
         this.activeEdgeType = plugin.types.edges.types.values().next().value;
         this.activeNodeType = plugin.types.nodes.types.values().next().value;
 
@@ -90,8 +90,8 @@ export class GraphController {
 
         core.edges.forEach((edge) => {
             // TODO: Avoid all this casting?
-            const sourceBridge = this.bridges.getA(edge.get("source") as ElementValue);
-            const destinationBridge = this.bridges.getA(edge.get("destination") as ElementValue);
+            const sourceBridge = this.bridges.getA((edge.get("source") as Value.Union).value as ElementValue);
+            const destinationBridge = this.bridges.getA((edge.get("destination") as Value.Union).value as ElementValue);
             if (!sourceBridge || !destinationBridge) {
                 throw new OutOfSyncError();
             }
@@ -142,6 +142,7 @@ export class GraphController {
             core = this.makeCoreFromDrawable(drawable);
         } else {
             core = _core;
+            this.copyPropertiesToDrawable(core, drawable);
         }
         const bridge = new Bridge(core, drawable);
         this.bridges.set(core, drawable, bridge);
