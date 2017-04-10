@@ -142,47 +142,40 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         g();
     }
 
-    private onSubmit(input: Value.Value) {
-        this.run(input).then((output) => {
-            const states = output.steps.map(s => new State(s));
-            const result = new ProgramResult(input, new Output(states, output.result));
+    private async onSubmit(input: Value.Value) {
+        const output = await this.run(input);
+        const states = output.steps.map(s => new State(s));
+        const result = new ProgramResult(input, new Output(states, output.result));
 
-            console.log(result);
+        console.log(result);
 
-            this._data.selected = result;
-            this._data.results.unshift(result);
+        this._data.selected = result;
+        this._data.results.unshift(result);
 
-            if (result.output.states.length > 0) {
-                this._data.selectedState = result.output.states[0];
-                result.steps++;
-                this.selectState(result.output.states[0]);
-            }
+        if (result.output.states.length > 0) {
+            this._data.selectedState = result.output.states[0];
+            result.steps++;
+            this.selectState(result.output.states[0]);
+        }
 
-            this.setupInput();
-            this.scrollToBottom();
-        }).catch((e) => {
-            // TODO:
-        });
+        this.setupInput();
+        this.scrollToBottom();
     }
 
-    private run(input: Value.Value) {
-        return new Promise<{ result: Value.Value, steps: Value.CustomObject[] }>((resolve, reject) => {
-            if (this._data.program) {
-                this._data.program.run([input]).then((output) => {
-                    if (output.result) {
-                        resolve({
-                            result: output.result,
-                            steps: output.steps
-                        });
-                    } else {
-                        // TODO:
-                        reject("");
-                    }
-                }).catch((e) => {
-                    reject(e);
-                });
+    private async run(input: Value.Value) {
+        if (this._data.program) {
+            const output = await this._data.program.run([input]);
+            if (output.result) {
+                return {
+                    result: output.result,
+                    steps: output.steps
+                };
+            } else {
+                // TODO:
+                throw new Error("Daniel should fix this 1");
             }
-        });
+        }
+        throw new Error("Daniel should fix this 2");
     }
 }
 

@@ -126,18 +126,17 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
         });
     }
 
-    private runTest(test: Test) {
+    private async runTest(test: Test) {
         if (this._data.program) {
             const p = this._data.program;
 
-            this._data.program.run([test.input]).then((out) => {
-                // TODO: This should really be a .then.catch case (not optional result and error on out)
-                if (out.result) {
-                    test.output = out.result;
-                } else {
-                    test.output = new Value.Literal(new Type.Literal(out.error ? out.error.value.toString() : "Error"), p.model.environment);
-                }
-            });
+            const out = await p.run([test.input])
+            // TODO: This should really be a .then.catch case (not optional result and error on out)
+            if (out.result) {
+                test.output = out.result;
+            } else {
+                test.output = new Value.Literal(new Type.Literal(out.error ? out.error.value.toString() : "Error"), p.model.environment);
+            }
         }
     }
 

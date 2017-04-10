@@ -44,18 +44,17 @@ export class PluginService {
         });
     }
 
-    public getPluginByKind(kind: string[]): Promise<Plugin> {
-        return this.plugins.then((plugins) => {
-            const matches = plugins.filter((plugin) => arrayEquals(kind, plugin[0].pluginKind));
-            const pluginName = JSON.stringify(kind);
-            if (matches.length === 0) {
-                throw new Error(`Could not find a plugin with kind ${pluginName}`);
-            } else if (matches.length > 1) {
-                throw new Error(`Found multiple plugins matching kind ${pluginName}`);
-            } else {
-                return matches[0][1];
-            }
-        });
+    public async getPluginByKind(kind: string[]): Promise<Plugin> {
+        const plugins = await this.plugins;
+        const matches = plugins.filter((plugin) => arrayEquals(kind, plugin[0].pluginKind));
+        const pluginName = JSON.stringify(kind);
+        if (matches.length === 0) {
+            throw new Error(`Could not find a plugin with kind ${pluginName}`);
+        } else if (matches.length > 1) {
+            throw new Error(`Found multiple plugins matching kind ${pluginName}`);
+        } else {
+            return matches[0][1];
+        }
     }
 
     public get pluginData(): Promise<PluginInfo[]> {
