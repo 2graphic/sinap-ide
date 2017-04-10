@@ -14,7 +14,7 @@ script:
 - npm run lint
 - npm run build:dll
 - npm run build
-- curl https://github.com/electron-userland/electron-packager/blob/master/test/ci/before_install.sh | bash 
+- curl https://raw.githubusercontent.com/electron-userland/electron-packager/master/test/ci/before_install.sh | bash 
 - node package.js
 notifications:
   slack:
