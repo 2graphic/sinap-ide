@@ -20,7 +20,7 @@ function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
 
 @Injectable()
 export class PluginService {
-    readonly plugins: Promise<[PluginInfo, Plugin][]>;
+    readonly plugins: Promise<[PluginInfo, Promise<Plugin>][]>;
     private loader: TypescriptPluginLoader = new TypescriptPluginLoader();
 
     constructor( @Inject(LocalFileService) private fileService: LocalFileService) {
@@ -32,7 +32,7 @@ export class PluginService {
         const pluginDirectories = await appLocations.pluginDirectory.getSubDirectories();
         return Promise.all(pluginDirectories.map(async pluginDir => {
             const info = await getInterpreterInfo(pluginDir.fullName);
-            return [info, await this.loader.load(info.interpreterInfo)] as [PluginInfo, Plugin];
+            return [info, this.loader.load(info.interpreterInfo)] as [PluginInfo, Promise<Plugin>];
         }));
     }
 
