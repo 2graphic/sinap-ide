@@ -59,8 +59,6 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
-        this.newFile(["FLAP", "dfa"], "Untitled");
-
         // Restore previously opened files.
         // try {
         //     const openFilesJSON = localStorage.getItem("openFiles");
@@ -204,14 +202,14 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     };
 
     /** Create a new tab and open it */
-    newFile(kind: string[], file: string, content?: any/*SerialJSO*/) {
+    newFile(kind: string[], file: string, content?: any) {
         // TODO: have a more efficient way to get kind.
         return this.pluginService.getPluginByKind(kind).then((plugin) => {
-            const model = new Model(plugin);
+            const model = content ? Model.fromSerial(content, plugin) : new Model(plugin);
 
             let tabNumber = this.tabBar.newTab(file);
 
-            const graph = new GraphController(model, plugin);
+            const graph = new GraphController(model, plugin, kind);
             const context = fileStat(file).then(stats => stats.isFile() ? Promise.resolve() : Promise.reject(null))
                 .then(_ => new TabContext(tabNumber, graph, plugin, kind, path.basename(file, ".sinap"), file))
                 .catch(_ => new TabContext(tabNumber, graph, plugin, kind, file));
@@ -284,9 +282,13 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         }
     }
 
-    public saveToFile(graph: GraphController, file?: string) {
-        return Promise.reject("Not implemented.");
-        // const pojo = graph.core.serialize();
+    public saveToFile(graph: GraphController, file: string) {
+        const pojo = {
+            kind: graph.kind,
+            graph: graph.core.serialize()
+        };
+
+        return Promise.reject("Not Implemented");
 
         // return file.writeData(JSON.stringify(pojo, null, 4))
         //     .catch((err) => {
@@ -299,18 +301,21 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         requestFiles().then(files => files.forEach(file => this.openFile(file))).catch(e => console.log(e));
     }
 
-    openFile(file: string): Promise<void> {
-        const entry = [...this.tabs.entries()].find(([_, context]) => file === context.file);
-        if (entry) {
-            this.tabBar.active = entry[0];
-            return Promise.resolve();
-        } else {
-            return readFile(file).then(content => {
-                const pojo = JSON.parse(content);
-                const kind = pojo.kind;
-                return this.newFile(kind, pojo, file);
-            });
-        }
+    openFile = (file: string) => {
+        return new Promise((resolve, reject) => {
+            const entry = [...this.tabs.entries()].find(([_, context]) => file === context.file);
+            if (entry) {
+                this.tabBar.active = entry[0];
+                resolve();
+            } else {
+                readFile(file).then((content) => {
+                    const pojo = JSON.parse(content);
+                    this.newFile(pojo.kind, file, pojo.graph).then(() => resolve()).catch(reject);
+                }).catch((e) => {
+                    reject(e);
+                });
+            }
+        });
     }
 
     closeFile(file: string) {
@@ -357,7 +362,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 return result.promise;
             })
             .then(choice => {
-                if (choice === 0) return this.saveToFile(toDelete.graph, toDelete.file);
+                if (choice === 0) return this.saveToFile(toDelete.graph, toDelete.file!); // TODO
                 else return Promise.resolve(choice === 1);
             })
             .then(_ => true);

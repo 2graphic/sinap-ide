@@ -7,6 +7,8 @@ const mainConfig = require("./webpack.config.js");
 const fs = require("fs");
 const process = require("process");
 const path = require("path");
+const zipFolder = require('zip-folder');
+const glob = require("glob");
 
 ncp.limit = 16;
 
@@ -110,6 +112,18 @@ function main() {
     mainBuild.then(() => runPackage(packageOpts)).then(() => {
         deleteDir("./build");
         deleteDir("./dll");
+
+        glob("dist/*", function(er, files){
+            for (const dir of files) {
+                zipFolder(dir, dir + '.zip', (err) => {
+                    if (err) {
+                        console.log("failed to make archive", dir)
+                    } else {
+                        console.log("finished", dir)
+                    }
+                })
+            }
+        });
     });
 }
 

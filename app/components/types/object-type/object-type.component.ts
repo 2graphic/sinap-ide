@@ -20,7 +20,9 @@ export class ObjectTypeComponent extends BaseTypeComponent<Value.CustomObject> {
     set value(v: Value.CustomObject) {
         // TODO, remove keys that no longer exist.
         v.type.members.forEach((type, key) => {
-            this.values.set(key, v.get(key));
+            if (v.type.isVisible(key)) {
+                this.values.set(key, v.get(key));
+            }
         });
 
         this.keys = [...this.values.keys()];

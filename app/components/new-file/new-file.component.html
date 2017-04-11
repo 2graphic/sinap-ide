@@ -1,8 +1,6 @@
 <div id="container" class="flex-container-row">
-    <div id="side-bar">
-        <div *ngFor="let list of availablePlugins">
-            <sinap-collapsible-list [items]="list.plugins" [text]="list.title" (selectedIndexChanged)="newSelection($event)"></sinap-collapsible-list>
-        </div>
+    <div id="side-bar" mwlResizable [resizeEdges]="{right: true}" (resizing)="resizing($event)" [style.width]="width+'px'">
+        <sinap-collapsible-list *ngFor="let list of availablePlugins" [items]="list.plugins" [text]="list.title" (selectedIndexChanged)="newSelection($event)"></sinap-collapsible-list>
     </div>
     <div id="content" class="flex-container-column" *ngIf="selectedPlugin">
         <div id="description">
@@ -16,10 +14,10 @@
                 <input type="text" [(ngModel)]="filename" placeholder="File Name" autofocus (keyup.enter)="createNewFile(filename)">
             </div>
             <div id="submit-input">
-                <button (click)="createNewFile(filename)" [disabled]="!filename">Ok</button>                
+                <button (click)="createNewFile(filename)" [disabled]="!filename">Ok</button>
             </div>
             <div id="cancel-input">
-                <button (click)="cancel()">Cancel</button>                
+                <button (click)="cancel()">Cancel</button>
             </div>
         </div>
     </div>

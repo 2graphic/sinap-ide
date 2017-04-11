@@ -70,65 +70,44 @@ export class GraphController {
         return true;
     }
 
-    constructor(public core: Model, public plugin: Plugin) {
+    constructor(public core: Model, public readonly plugin: Plugin, public readonly kind: string[]) {
         this.activeEdgeType = plugin.types.edges.types.values().next().value;
         this.activeNodeType = plugin.types.nodes.types.values().next().value;
 
         this.drawable = new DrawableGraph(this.validateEdgeHandler);
-        this.addDrawable(this.drawable);
-        // let coreGraph: CoreElement | null = null;
-        // const coreEdges: CoreElement[] = [];
+        this.addDrawable(this.drawable); // Will copy over properties from the core graph to the drawable graph
 
-        // // each core element we iterate over needs to have a drawable equivalent made for it
-        // for (const [_, element] of this.core.elements) {
-        //     // placeholder for the new drawable (if we make one)
-        //     let drawable: Drawable | null = null;
-        //     switch (element.kind) {
-        //         case CoreElementKind.Edge:
-        //             // do edges last, they reference nodes
-        //             coreEdges.push(element);
-        //             break;
-        //         case CoreElementKind.Node:
-        //             drawable = this.drawable.createNode();
-        //             if (drawable === null) {
-        //                 throw "node creation canceled while loading from core";
-        //             }
-        //             this.copyPropertiesToDrawable(element, drawable);
-        //             break;
-        //         case CoreElementKind.Graph:
-        //             drawable = this.drawable;
-        //             // we want to keep track of the graph element
-        //             if (coreGraph !== null) {
-        //                 throw "More than one graph found";
-        //             }
-        //             coreGraph = element;
-        //             this.copyPropertiesToDrawable(element, drawable);
-        //             break;
-        //     }
-        //     if (drawable !== null) {
-        //         this.addDrawable(drawable, element);
-        //     }
-        // }
-        // // if we weren't given a graph object, make one
-        // if (coreGraph === null) {
-        //     this.addDrawable(this.drawable);
-        // }
 
-        // // now make the drawable edges
-        // for (const edge of coreEdges) {
-        //     const source = this.bridges.getA(edge.get('source') as any)!.drawable as DrawableNode;
-        //     const destination = this.bridges.getA(edge.get('destination') as any)!.drawable as DrawableNode;
 
-        //     const drawableEdge = this.drawable.createEdge(source, destination);
-        //     if (drawableEdge === null) {
-        //         throw "edge creation canceled while loading from core";
-        //     }
+        /* Create drawable versions of nodes and edges in the give graph */
+        core.nodes.forEach((node) => {
+            const drawableNode = this.drawable.createNode();
+            if (!drawableNode) {
+                throw new Error("Node creation failed while loading graph.");
+            }
+            this.addDrawable(drawableNode, node);
+        });
 
-        //     this.copyPropertiesToDrawable(edge, drawableEdge);
-        //     this.addDrawable(drawableEdge, edge);
-        // }
+        core.edges.forEach((edge) => {
+            // TODO: Avoid all this casting?
+            const sourceBridge = this.bridges.getA((edge.get("source") as Value.Union).value as ElementValue);
+            const destinationBridge = this.bridges.getA((edge.get("destination") as Value.Union).value as ElementValue);
+            if (!sourceBridge || !destinationBridge) {
+                throw new OutOfSyncError();
+            }
 
-        // finally set up all the listeners after we copy all the elements
+            const drawableEdge = this.drawable.createEdge(sourceBridge.drawable as DrawableNode, destinationBridge.drawable as DrawableNode);
+            if (!drawableEdge) {
+                throw new Error("Edge creation failed while loading graph.");
+            }
+
+            this.addDrawable(drawableEdge, edge);
+        });
+        /* ************************************************************* */
+
+
+
+        /* finally set up all the listeners after we copy all the elements */
         this.drawable.addEventListener("created", (evt: DrawableEvent<DrawableElement>) => {
             const bridges = evt.detail.drawables.map(d => this.addDrawable(d));
             this.changed.emit(new UndoableEvent(() => {
@@ -150,6 +129,8 @@ export class GraphController {
         });
         this.drawable.addEventListener("change", (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail));
         this.drawable.addEventListener("select", (evt: SelectionChangedEvent) => this.setSelectedElements(evt.detail.curr));
+        /* ************************************************************* */
+
 
         // side effect of selecting the graph
         this.setSelectedElements(undefined);
@@ -161,6 +142,7 @@ export class GraphController {
             core = this.makeCoreFromDrawable(drawable);
         } else {
             core = _core;
+            this.copyPropertiesToDrawable(core, drawable);
         }
         const bridge = new Bridge(core, drawable);
         this.bridges.set(core, drawable, bridge);
@@ -220,7 +202,7 @@ export class GraphController {
             const srcB = this.bridges.getB(drawable.source);
             const dstB = this.bridges.getB(drawable.destination);
             if (!srcB || !dstB) {
-                throw new Error("Modal missing source or destination for edge.");
+                throw new Error("Model missing source or destination for edge.");
             }
 
             core = this.core.makeEdge(this.activeEdgeType, srcB.core, dstB.core);
@@ -293,10 +275,7 @@ export class GraphController {
                 throw new Error("Edge is referencing a nonexistent node");
             }
 
-            const union = new Value.Union(this.plugin.types.nodes, core.environment);
-            union.value = bridge.core;
-
-            (core.get(key) as Value.Union).value = union;
+            (core.get(key) as Value.Union).value = bridge.core;
             return;
         }
 

@@ -1,76 +1,46 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { Plugin, Program, getInterpreterInfo } from "sinap-core";
-import { TypescriptPluginLoader } from "sinap-typescript";
-import { somePromises, subdirs } from "../util";
+import { somePromises, subdirs, arrayEquals } from "../util";
 import * as path from "path";
 import { app } from "electron";
 import { IS_PRODUCTION } from "../constants";
+import { Plugin, PluginLoader, getInterpreterInfo, Program, PluginInfo } from "sinap-core";
+import { TypescriptPluginLoader } from "sinap-typescript";
 
-export class PluginData {
-    constructor(readonly path: string[], readonly description: string) {
-    }
-    get name(): string {
-        return this.path[this.path.length - 1];
-    }
-    get group(): string {
-        return this.path[this.path.length - 2];
-    }
-    toString() {
-        return this.name;
-    }
-}
 
-function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
-    if (arr1.length !== arr2.length) {
-        return false;
-    }
-
-    for (let i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
 
 export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app", "plugins") : "./plugins";
 
 @Injectable()
 export class PluginService {
-    readonly plugins: Promise<Plugin[]>;
-    private loader = new TypescriptPluginLoader();
+    readonly plugins: Promise<[PluginInfo, Promise<Plugin>][]>;
+    private loader: TypescriptPluginLoader = new TypescriptPluginLoader();
 
     constructor() {
-        this.plugins = subdirs(PLUGIN_DIRECTORY)
+        this.plugins = this.loadPlugins();
+    }
+
+    private async loadPlugins() {
+        return subdirs(PLUGIN_DIRECTORY)
             .then(dirs => somePromises(dirs.map(getInterpreterInfo)))
-            .then(infos => somePromises(infos.map(info => this.loader.load(info.interpreterInfo))));
+            .then(infos => infos.map(info => [info, this.loader.load(info.interpreterInfo)]));
     }
 
-    public getPluginByKind(kind: string[]): Promise<Plugin> {
-        return this.plugins.then((plugins) => {
-            // TODO
-            // const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginKind));
-            // const pluginName = JSON.stringify(kind);
-            // if (matches.length === 0) {
-            //     throw new Error(`Could not find a plugin with kind ${pluginName}`);
-            // } else if (matches.length > 1) {
-            //     throw new Error(`Found multiple plugins matching kind ${pluginName}`);
-            // } else {
-            //     return matches[0];
-            // }
-
-            if (plugins.length === 0) {
-                throw new Error("Oops no plugins");
-            }
-
-            return plugins[0];
-        });
+    public async getPluginByKind(kind: string[]): Promise<Plugin> {
+        const plugins = await this.plugins;
+        const matches = plugins.filter((plugin) => arrayEquals(kind, plugin[0].pluginKind));
+        const pluginName = JSON.stringify(kind);
+        if (matches.length === 0) {
+            throw new Error(`Could not find a plugin with kind ${pluginName}`);
+        } else if (matches.length > 1) {
+            throw new Error(`Found multiple plugins matching kind ${pluginName}`);
+        } else {
+            return matches[0][1];
+        }
     }
 
-    public get pluginData(): Promise<PluginData[]> {
+    public get pluginData(): Promise<PluginInfo[]> {
         return this.plugins.then((plugins) => {
-            return plugins.map((plugin) => new PluginData(["FLAP", "DFA"], "Hardcoded"));
+            return plugins.map(([pluginInfo, _]) => pluginInfo);
         });
     }
 }

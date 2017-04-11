@@ -26,8 +26,9 @@
 
 #side-bar {
     flex: none;
-    width: 10em;
     background-color: #e6e6e6;
+    border-right: thin solid lightgrey;
+    padding-top: .25em;
 }
 
 #description {
@@ -77,19 +78,4 @@ p, ul {
 .top {
     background-color: #CCCCCC !important;
     padding-left: .75em;
-}
-
-li {
-    padding-left: 1.5em;
-    padding-top: .25em;
-    padding-bottom: .25em;
-}
-
-li:hover {
-    background-color: #DBDBDB;
-    cursor: pointer;
-}
-
-.active {
-    background-color: #D9D9D9;
 }

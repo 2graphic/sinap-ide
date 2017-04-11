@@ -1,12 +1,17 @@
-<div [hidden]="!items || items.length == 0">
-  <div (click)="toggleList()" class="text" [attr.title]="tooltip ? tooltip : text">
-    <div class="toggle">
-      <ng-template [ngIf]="isExpanded">&#9660;</ng-template>
-      <ng-template [ngIf]="!isExpanded">&#9658;</ng-template>
-    </div>
-    <div class="label">{{text}}</div>
-  </div>
-  <ul [style.display]="isExpanded ? 'inherit' : 'none'">
-    <li *ngFor="let item of items; let i = index" (click)="clickItem($event)" [attr.id]="i" [class.active]="i == selectedIndex">{{item.toString()}}</li>
-  </ul>
+<div [hidden]="!items || items.length == 0" id="wrapper">
+  <table>
+    <tr>
+      <th [class.expand-chevron-before]="isExpanded" [attr.title]="tooltip ? tooltip : text">{{text}}</th>
+      <th class="clickable" [class.expand-chevron-down]="isExpanded" [class.expand-chevron-right]="!isExpanded" (click)="toggleList()"><span class="chevron">›</span></th>
+    </tr>
+    <tr class="expanded" *ngIf="isExpanded">
+      <td colspan="2">
+        <div class="expanded-table">
+          <ul [style.display]="isExpanded ? 'inherit' : 'none'">
+            <li *ngFor="let item of items; let i = index" (click)="clickItem($event)" [attr.id]="i" [class.active]="i == selectedIndex">{{item.toString()}}</li>
+          </ul>
+        </div>
+      </td>
+    </tr>
+  </table>
 </div>

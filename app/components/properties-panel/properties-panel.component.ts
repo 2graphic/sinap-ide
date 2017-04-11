@@ -73,9 +73,10 @@ class ElementInfo {
         this.kind = pluginType.name;
 
         this.pluginProperties = [...pluginType.members.keys()]
+            .filter((k) => pluginType.isVisible(k))
             .map((k) => new Property(pluginType.prettyName(k), element.get(k)));
         this.drawableProperties = [...drawableType.members.keys()]
-            .filter((k) => !pluginType.members.has(k))
+            .filter((k) => !pluginType.members.has(k) && drawableType.isVisible(k))
             .map((k) => new Property(pluginType.prettyName(k), element.get(k)));
     }
 }
