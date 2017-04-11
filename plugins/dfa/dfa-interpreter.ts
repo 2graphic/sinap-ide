@@ -7,6 +7,19 @@ export class DFANode {
     label: string;
 }
 
+export class DFANode3 {
+}
+
+export class DFANode4 {
+}
+
+export class DFANode5 {
+}
+
+export class DFANode6 {
+}
+
+
 export class DFAEdge {
     /** Symbol */
     label: string;
@@ -14,11 +27,11 @@ export class DFAEdge {
 }
 
 export class DFAGraph {
-    nodes: DFANode[];
+    nodes: Nodes[];
     // startState: DFANode;
 }
 
-export type Nodes = DFANode;
+export type Nodes = DFANode | DFANode3 | DFANode4 | DFANode5 | DFANode6;
 export type Edges = DFAEdge;
 export type Graph = DFAGraph;
 
@@ -59,18 +72,18 @@ export function start(input: DFAGraph, data: string): State | boolean {
 
         if (node.children) {
             let transitions = new Set<string>();
-                for (const edge of node.children) {
-                    if (isEmpty(edge.label)) {
-                        throw new Error("Lambda transition from " + node.label + " to " + edge.destination.label + " is not allowed");
-                    }
-                    if (edge.label.length > 1) {
-                        throw new Error("Edge " + edge.label + " must be one symbol");
-                    }
-                    if (transitions.has(edge.label)) {
-                        throw new Error("Nondeterministic edge " + edge.label + (isEmpty(node.label) ? "" : (" from node: " + node.label)));
-                    }
-                    transitions.add(edge.label);
+            for (const edge of node.children) {
+                if (isEmpty(edge.label)) {
+                    throw new Error("Lambda transition from " + node.label + " to " + edge.destination.label + " is not allowed");
                 }
+                if (edge.label.length > 1) {
+                    throw new Error("Edge " + edge.label + " must be one symbol");
+                }
+                if (transitions.has(edge.label)) {
+                    throw new Error("Nondeterministic edge " + edge.label + (isEmpty(node.label) ? "" : (" from node: " + node.label)));
+                }
+                transitions.add(edge.label);
+            }
         }
     }
 

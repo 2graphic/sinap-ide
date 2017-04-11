@@ -1,51 +1,43 @@
 <div id="wrapper">
-    <div *ngIf="isEmpty" id="empty">
+    <div *ngIf="element === undefined" id="empty">
         <p>empty</p>
     </div>
-    <div *ngIf="!isEmpty">
-        <table *ngFor="let name of fieldNames" class="group-table">
-            <ng-template [ngIf]="fields[name]">
-                <tr>
-                    <th colspan="2">{{name}}</th>
-                </tr>
-                <tr *ngFor="let triple of fields[name]">
-                    <td class="label">{{triple[1]}}</td>
-                    <td [ngSwitch]="triple[2].name">
-                        <div *ngSwitchCase="'string'">
-                            <input [(ngModel)]="element[triple[0]]" type="text" class="text-input"/>
-                        </div>
-                        <div *ngSwitchCase="'number'">
-                            <input [(ngModel)]="element[triple[0]]" type="number" class="number-input"/>
-                        </div>
-                        <div *ngSwitchCase="'boolean'">
-                            <input [ngModel]="element[triple[0]]" (ngModelChange)="element[triple[0]] = $event" type="checkbox"/>
-                        </div>
-                        <div *ngSwitchDefault> 
-                            <label *ngIf="triple[2].isAssignableTo(lookupSinapType('Color'))" class="color-label" for="property{{triple[0]}}">
-                                <span class="color-preview" [style.background-color]="element[triple[0]]"></span>
-                                {{element[triple[0]]}}
-                                <input [(ngModel)]="element[triple[0]]" id="property{{triple[0]}}" type="color" class="color-input"/>
-                            </label>
-
-                            <select *ngIf="isUnionType(triple[2])" [ngModel]="element[triple[0]]" (ngModelChange)="element[triple[0]] = $event">
-                                <option *ngFor="let lit of unionValues(triple[2])" [ngValue]="lit">{{lit}}</option>
-                            </select>
-
-                            <label *ngIf="triple[2].isAssignableTo(lookupPluginType('Nodes'))" class="color-label" for="property{{triple[0]}}">
-                                Node
-                            </label>
-
-                            <label *ngIf="triple[2].isAssignableTo(lookupPluginType('Edges'))" class="color-label" for="property{{triple[0]}}">
-                                Edge
-                            </label>
-
-                            <label *ngIf="triple[2].isAssignableTo(lookupPluginType('Graph'))" class="color-label" for="property{{triple[0]}}">
-                                Graph
-                            </label>
-                        </div>
-                    </td>
-                </tr>
-            </ng-template>
+    <div *ngIf="element !== undefined">
+        <table>
+            <tr>
+                <th class="expand-chevron-before">Plugin Properties - {{element.kind}}</th>
+                <th class="expand-chevron-down clickable"><span class="chevron">›</span></th>
+            </tr>
+            <tr class="expanded">
+                <td colspan="2">
+                    <table class="expanded-table">
+                        <tr *ngFor="let property of element.pluginProperties">
+                            <td>{{property.name}}</td>
+                            <td>
+                                <sinap-type [value]="property.value" [readonly]="false"></sinap-type>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <th class="expand-chevron-before">Drawable Properties</th>
+                <th class="expand-chevron-down clickable"><span class="chevron">›</span></th>
+            </tr>
+            <tr class="expanded">
+                <td colspan="2">
+                    <table class="expanded-table">
+                        <tr *ngFor="let property of element.drawableProperties">
+                            <td>{{property.name}}</td>
+                            <td>
+                                <sinap-type [value]="property.value" [readonly]="false"></sinap-type>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
         </table>
     </div>
 </div>

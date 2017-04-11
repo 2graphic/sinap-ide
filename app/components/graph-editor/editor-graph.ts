@@ -11,7 +11,7 @@
  */
 
 // TODO: Make sure to not rely on this dependency long term.
-import { PLUGIN_DIRECTORY } from "../../services/files.service";
+import { PLUGIN_DIRECTORY } from "../../services/plugin.service";
 import { remote } from "electron";
 const path = remote.require("path");
 
@@ -818,6 +818,7 @@ export class EditorGraph {
         this.selected.delete(e);
         this.unselected.delete(e);
         this.drawables.delete(d);
+        this.updateHoverObject();
         d.removeEventListener("change", this.onDrawablePropertyChanged);
         this.draw();
     }

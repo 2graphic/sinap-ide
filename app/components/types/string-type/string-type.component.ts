@@ -4,18 +4,15 @@
 //
 
 import { Component, Input, ViewChild, ElementRef } from "@angular/core";
-import { CoreValue } from "sinap-core";
+import { BaseTypeComponent } from "../type-injector/base-classes";
+import { Value } from "sinap-types";
 
 @Component({
     selector: "sinap-string-type",
     templateUrl: "./string-type.component.html",
     styleUrls: ["./string-type.component.scss"]
 })
-export class StringTypeComponent {
-    @Input() value: CoreValue;
-    @Input() readonly: boolean = true;
-    @Input() disabled: boolean = false;
-
+export class StringTypeComponent extends BaseTypeComponent<Value.Primitive> {
     @ViewChild('input') input: ElementRef;
 
     focus() {

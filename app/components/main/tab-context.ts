@@ -4,38 +4,63 @@
 //
 
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
-import { Program } from "sinap-core";
-import { PluginService } from "../../services/plugin.service";
-import { LocalFile } from "../../services/files.service";
+import { Program, Plugin } from "sinap-core";
 import { StatusBarInfo } from "../../components/status-bar/status-bar.component";
-import { DynamicPanelItem } from "../dynamic-panel/dynamic-panel";
-import { InputPanelDelegate, InputPanelData } from "../input-panel/input-panel.component";
+import { InputPanelData } from "../input-panel/input-panel.component";
 import { TestPanelData } from "../test-panel/test-panel.component";
+import { getBasename, writeData } from "../../util";
+import { SINAP_FILE_FILTER } from "../../constants";
+
+import { remote } from 'electron';
+const { dialog, app } = remote;
 
 /**
  * Stores the state of each open tab.
  */
-export class TabContext implements InputPanelDelegate {
-    constructor(public readonly index: number, public graph: GraphController, public file: LocalFile, private pluginService: PluginService) {
+export class TabContext {
+    private constructor(public graph: GraphController, private plugin: Plugin, private kind: string[], public file?: string, tempName?: string) {
         this.statusBarInfo = {
-            title: this.graph.plugin.pluginKind[this.graph.plugin.pluginKind.length - 1],
+            title: kind.length > 0 ? kind[kind.length - 1] : "",
             items: []
         };
-
         graph.changed.asObservable().subscribe(this.addUndoableEvent);
+
+        if (file) {
+            this.name = getBasename(file).replace(".sinap", "");
+        } else if (tempName) {
+            this.name = tempName;
+        } else {
+            this.name = "Untitled";
+        }
     };
+
+    static getUnsavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], name?: string) {
+        return new TabContext(graph, plugin, kind, undefined, name);
+    }
+
+    static getSavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], file: string) {
+        // TODO: Move file loading here
+        return new TabContext(graph, plugin, kind, file);
+    }
+
+    toString() {
+        return this.name + (this._unsaved ? " ●" : "");
+    }
 
     private readonly undoHistory: UndoableEvent[] = [];
     private readonly redoHistory: UndoableEvent[] = [];
+    private name: string;
     private stack = this.undoHistory;
     private isRedoing = false;
 
-    public inputPanelData: InputPanelData = new InputPanelData(this);
+    public inputPanelData: InputPanelData = new InputPanelData();
     public testPanelData: TestPanelData = new TestPanelData();
-    public panels: DynamicPanelItem[];
 
     /** Whether a change has happened since the last time a program was compiled */
-    private dirty = true;
+    private _dirty = true;
+
+    /** Whether the files this tab represents needs to be saved */
+    private _unsaved = false;
 
     /**
      * The amount of changes to keep in the undo history. (and incidently the redo history)
@@ -48,27 +73,36 @@ export class TabContext implements InputPanelDelegate {
     public statusBarInfo: StatusBarInfo;
 
 
+
     /** Compile the graph with the plugin, and retains a cached copy for subsequent calls. */
     public compileProgram = (() => {
-        let cachedProgram: Promise<Program>;
+        let program: Program;
 
         return () => {
-            if (!cachedProgram || this.dirty) {
-                return (cachedProgram = this.pluginService.getProgram(this.graph.plugin, this.graph.core).then((program) => {
-                    this.statusBarInfo.items = program.validate();
-                    this.inputPanelData.program = program;
-                    this.testPanelData.program = program;
-                    return program;
-                }));
-            } else {
-                return cachedProgram;
+            if (!program || this._dirty) {
+                this._dirty = false;
+
+                program = this.plugin.makeProgram(this.graph.core);
+                const validation = program.validate();
+                if (validation) {
+                    this.statusBarInfo.items = [validation.value.toString()];
+                } else {
+                    this.statusBarInfo.items = [];
+                }
+                this.inputPanelData.program = program;
+                this.testPanelData.program = program;
+                return program;
             }
+
+            return program;
         };
     })();
 
     public invalidateProgram() {
-        this.dirty = true;
+        this._dirty = true;
     }
+
+
 
     public undo() {
         const change = this.undoHistory.pop();
@@ -90,7 +124,8 @@ export class TabContext implements InputPanelDelegate {
     }
 
     public addUndoableEvent = (change: UndoableEvent) => {
-        this.file.markDirty();
+        this.invalidateProgram();
+        this._unsaved = true;
 
         this.stack.push(change);
         if (this.stack === this.undoHistory && !this.isRedoing) {
@@ -103,24 +138,55 @@ export class TabContext implements InputPanelDelegate {
         }
     }
 
-    selectNode(a: any) {
-        // TODO: Fix everything
-        let f = (element: any) => {
-            for (let n of this.graph.drawable.nodes) {
-                if (n.label === element.label && element.label !== "") {
-                    toSelect.push(n);
-                }
+
+
+    public get unsaved(): boolean {
+        return this.file ? this._unsaved : true;
+    }
+
+    public getRawData() {
+        return JSON.stringify({
+            kind: this.graph.plugin.pluginInfo.pluginKind,
+            graph: this.graph.core.serialize()
+        }, null, 4);
+    }
+
+    public save() {
+        const data = this.getRawData();
+
+        return new Promise((resolve, reject) => {
+            const saved = () => {
+                this._unsaved = false;
+                resolve();
+            };
+
+            const failedToSave = (e: Error) => {
+                dialog.showErrorBox("Unable to Save", `Error occurred while saving to file:\n${this.file}.`);
+                reject(e);
+            };
+
+            if (this.file) {
+                writeData(this.file, data).then(saved).catch(failedToSave);
+            } else {
+                this.chooseFile().then((file) => {
+                    writeData(file, data).then(saved).catch(failedToSave);
+                });
             }
-        };
+        });
+    }
 
-        const toSelect: any[] = [];
-        if (Array.isArray(a)) {
-            a.forEach(f);
-        } else {
-            f(a);
-        }
-
-        this.graph.drawable.clearSelection();
-        this.graph.drawable.select(...toSelect);
+    private chooseFile(): Promise<string> {
+        return new Promise((resolve) => {
+            dialog.showSaveDialog(remote.BrowserWindow.getFocusedWindow(), {
+                defaultPath: this.name,
+                filters: SINAP_FILE_FILTER
+            }, (name) => {
+                if (name) {
+                    this.file = name;
+                    this.name = getBasename(name).replace(".sinap", "");
+                    resolve(this.file);
+                }
+            });
+        });
     }
 }

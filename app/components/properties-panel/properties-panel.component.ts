@@ -13,26 +13,26 @@
 
 
 import { Component, Input, EventEmitter } from "@angular/core";
-import { BridgingProxy } from "../../models/graph-controller";
-import { Type, UnionType, WrappedScriptObjectType, isUnionType } from "sinap-core";
+import { Bridge } from "../../models/graph-controller";
+import { ElementValue } from "sinap-core";
+import { Value } from "sinap-types";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
 
 
 export class PropertiesPanelData {
-    private _selectedElements: Set<BridgingProxy> | null
-    = null;
+    private _selectedElements?: Set<Bridge>;
 
     get selectedElements() {
         return this._selectedElements;
     }
 
-    set selectedElements(value: Set<BridgingProxy> | null) {
+    set selectedElements(value: Set<Bridge> | undefined) {
         this._selectedElements = value;
         this.selectedElementsChanged.emit(value);
     }
 
     readonly selectedElementsChanged
-    = new EventEmitter<Set<BridgingProxy> | null>();
+    = new EventEmitter<Set<Bridge> | undefined>();
 }
 
 
@@ -42,14 +42,7 @@ export class PropertiesPanelData {
     styleUrls: ["./properties-panel.component.scss"],
 })
 export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelData> {
-    private isEmpty = true;
-    private fieldNames: string[];
-    private fields: { [a: string]: [string, string, Type][] };
-    private element: { [a: string]: any };
-    private lookupSinapType: (a: string) => Type;
-    private lookupPluginType: (a: string) => Type;
-    private isUnionType = isUnionType;
-
+    private element?: ElementInfo;
 
     set data(value: PropertiesPanelData) {
         if (value) {
@@ -58,48 +51,36 @@ export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelD
         }
     }
 
-
-    private unionValues(t: UnionType) {
-        // substring necessary to strip the quote marks off the types
-        // that is, the union.types looks like ['"option a"', '"option b"', ...]
-        return [...t.types].map(t => t.name.substring(1, t.name.length - 1));
-    }
-
-    private clear() {
-        this.isEmpty = true;
-        this.fields = {};
-        this.fieldNames = [];
-    }
-
-    updateSelectedElements = (elements: Set<BridgingProxy> | null) => {
-        if (elements === null) {
-            this.clear();
+    updateSelectedElements = (elements: Set<Bridge> | undefined) => {
+        if (elements === undefined || elements.size === 0) {
+            this.element = undefined;
         } else {
-            this.isEmpty = false;
-            const bridge = elements.values().next().value;
-            const drawableType = bridge.graph.plugin.typeEnvironment.drawableTypes.get(bridge.core.kind)!;
-
-            if (bridge.core.type instanceof WrappedScriptObjectType) {
-                const pluginType = bridge.core.type;
-
-                // TODO: move this to function
-                const pluginFields = [...pluginType.members.entries()].map(([n, t]) => [n, pluginType.prettyNames.get(n), t] as [string, string, Type]);
-                const drawableFields = [...drawableType.members.entries()]
-                    .filter(([n, _]) => !pluginType.members.has(n))
-                    .map(([n, t]) => [n, drawableType.prettyNames.get(n), t] as [string, string, Type]);
-
-                this.fields = {
-                    "General": pluginFields,
-                    "Drawable": drawableFields
-                };
-                this.fieldNames = Object.keys(this.fields);
-                this.element = bridge.proxy;
-
-                this.lookupSinapType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupSinapType(a);
-                this.lookupPluginType = (a: string) => bridge.graph.plugin.typeEnvironment.lookupPluginType(a);
-            } else {
-                this.clear();
-            }
+            const element = elements.values().next().value.core;
+            this.element = new ElementInfo(element);
         }
     }
+}
+
+class ElementInfo {
+    public readonly pluginProperties: Property[];
+    public readonly drawableProperties: Property[];
+    public readonly kind: string;
+
+    constructor(public readonly element: ElementValue) {
+        const pluginType = element.type.pluginType;
+        const drawableType = element.type.drawableType;
+
+        this.kind = pluginType.name;
+
+        this.pluginProperties = [...pluginType.members.keys()]
+            .filter((k) => pluginType.isVisible(k))
+            .map((k) => new Property(pluginType.prettyName(k), element.get(k)));
+        this.drawableProperties = [...drawableType.members.keys()]
+            .filter((k) => !pluginType.members.has(k) && drawableType.isVisible(k))
+            .map((k) => new Property(pluginType.prettyName(k), element.get(k)));
+    }
+}
+
+class Property {
+    constructor(public readonly name: string, public readonly value: Value.Value) { };
 }

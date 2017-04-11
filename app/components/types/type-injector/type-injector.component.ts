@@ -3,14 +3,21 @@
 // Date created: February 22, 2017
 //
 
-import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type } from "@angular/core";
-import { CoreValue, Type as CoreType, isObjectType } from "sinap-core";
+import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type as AngularType } from "@angular/core";
+import * as Core from "sinap-core";
+import { Type, Value } from "sinap-types";
 
 import { StringTypeComponent } from "./../string-type/string-type.component";
 import { BooleanTypeComponent } from "./../boolean-type/boolean-type.component";
 import { ObjectTypeComponent } from "./../object-type/object-type.component";
 import { NodeTypeComponent } from "./../node-type/node-type.component";
 import { ListTypeComponent } from "./../list-type/list-type.component";
+import { UnionTypeComponent } from "./../union-type/union-type.component";
+import { NumberTypeComponent } from "./../number-type/number-type.component";
+import { ColorTypeComponent } from "./../color-type/color-type.component";
+import { MapTypeComponent } from "./../map-type/map-type.component";
+import { LiteralTypeComponent } from "./../literal-type/literal-type.component";
+import { PointTypeComponent } from "./../point-type/point-type.component";
 
 
 /**
@@ -21,7 +28,7 @@ import { ListTypeComponent } from "./../list-type/list-type.component";
  */
 @Component({
     selector: "sinap-type",
-    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, NodeTypeComponent, ListTypeComponent],
+    entryComponents: [StringTypeComponent, BooleanTypeComponent, ObjectTypeComponent, ColorTypeComponent, NumberTypeComponent, UnionTypeComponent, LiteralTypeComponent, PointTypeComponent, NodeTypeComponent, ListTypeComponent, MapTypeComponent],
     template: `<ng-template #container></ng-template>`,
 })
 export class TypeInjectorComponent {
@@ -29,7 +36,7 @@ export class TypeInjectorComponent {
 
     @ViewChild('container', { read: ViewContainerRef }) private container: ViewContainerRef;
     private component?: ComponentRef<any>;
-    private _value?: CoreValue;
+    private _value?: Value.Value;
     private _disabled: boolean = false;
 
     /**
@@ -43,14 +50,6 @@ export class TypeInjectorComponent {
      */
     @Input() focus: boolean = false;
 
-
-    private componentMap = new Map<string, Type<any>>(
-        [
-            ["getStringType", StringTypeComponent],
-            ["getBooleanType", BooleanTypeComponent],
-        ]
-    );
-
     @Input()
     set disabled(disabled: boolean) {
         this._disabled = disabled;
@@ -60,11 +59,11 @@ export class TypeInjectorComponent {
     }
 
     @Input()
-    set value(v: CoreValue | undefined) {
+    set value(v: Value.Value | undefined) {
         if (!v) {
             this.container.clear();
             this.component = undefined;
-        } else if (this.component && this._value && this.areEqual(this._value, v)) {
+        } else if (this.component && this._value && this._value.deepEqual(v)) {
             if (this._value !== v) {
                 this.component.instance.value = v;
             }
@@ -73,14 +72,14 @@ export class TypeInjectorComponent {
         }
     }
 
-    private areEqual(a: CoreValue, b: CoreValue) {
-        return (a.type.isAssignableTo(b.type) && b.type.isAssignableTo(a.type) && a.value === b.value);
-    }
-
-    private inject(value: CoreValue, readonly: boolean, disabled: boolean) {
+    private inject(value: Value.Value, readonly: boolean, disabled: boolean) {
         this._value = value;
 
         let componentType = this.getComponentType(value);
+        if (!componentType) {
+            console.log("unknown type for: ", value);
+            return;
+        }
 
         // console.log(value, componentType);
 
@@ -88,9 +87,9 @@ export class TypeInjectorComponent {
         let factory = this.resolver.resolveComponentFactory(componentType);
 
         this.component = factory.create(injector);
-        this.component.instance.value = value;
         this.component.instance.readonly = readonly;
         this.component.instance.disabled = disabled;
+        this.component.instance.value = value;
 
         this.container.clear();
         this.container.insert(this.component.hostView);
@@ -103,44 +102,63 @@ export class TypeInjectorComponent {
         }
     }
 
-    private getComponentType(value: CoreValue) {
-        const type = value.type;
-        const env = type.env;
+    private getComponentType(value: Value.Value): AngularType<any> | undefined {
+        try {
+            const type = value.type;
 
-        if (type.name === "NFANode[]") {
-            return ListTypeComponent;
-        }
-
-        if (type.isAssignableTo((env as any).lookupPluginType("Nodes"))) {
-            return NodeTypeComponent;
-        }
-
-        if (type.isAssignableTo((env as any).lookupPluginType("Error"))) {
-            return StringTypeComponent; // TODO: Make error component
-        }
-
-        for (let [func, componentType] of this.componentMap) {
-            if (type.isAssignableTo(((env as any)[func])() as CoreType)) {
-                return componentType;
+            if (value instanceof Value.Primitive) {
+                if (value.type.name === "boolean") {
+                    return BooleanTypeComponent;
+                }
+                if (value.type.name === "string") {
+                    return StringTypeComponent;
+                }
+                if (value.type.name === "color") {
+                    return ColorTypeComponent;
+                }
+                if (value.type.name === "number") {
+                    return NumberTypeComponent;
+                }
             }
+
+            if (value instanceof Value.CustomObject) {
+                return ObjectTypeComponent;
+            }
+
+            if (value instanceof Value.Union) {
+                return UnionTypeComponent;
+            }
+
+            if (value instanceof Value.Literal) {
+                return LiteralTypeComponent;
+            }
+
+            if (value instanceof Value.Record) {
+                if (value.type.name === "Point") {
+                    return PointTypeComponent;
+                } else {
+                    // TODO:
+                }
+            }
+
+            if (value instanceof Core.ElementValue) {
+                return NodeTypeComponent;
+            }
+
+            if (value instanceof Value.ArrayObject) {
+                return ListTypeComponent;
+            }
+
+            if (value instanceof Value.MapObject) {
+                return MapTypeComponent;
+            }
+
+            return undefined;
+        } catch (e) {
+            // TODO: No errors
+            console.log(e);
+            return undefined;
         }
 
-        if (isObjectType(type)) {
-            return ObjectTypeComponent;
-        }
-
-        if (typeof value.value === "object") {
-            const members = new Map<string, CoreType>();
-            Object.keys(value.value).forEach((k) => {
-                members.set(k, type.env.getBooleanType());
-            });
-
-            (value.type as any).members = members;
-
-            return ObjectTypeComponent;
-        }
-
-        console.log("Unknown type for Value: ", value);
-        return StringTypeComponent;
     }
 }

@@ -1,0 +1,14 @@
+@import '../../../styles/constants';
+
+div {
+    @extend %rounded;
+}
+
+.label {
+    vertical-align: middle;
+    padding-right: .25em;
+}
+
+#first {
+    padding-right: .5em;
+}

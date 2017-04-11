@@ -19,394 +19,313 @@ import {
     SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
 
-import { CoreModel, CoreElement, CoreElementKind, Plugin, validateEdge, ObjectType, WrappedScriptObjectType } from "sinap-core";
+import { Model, Plugin, ElementValue, ElementType } from "sinap-core";
+import { Value, Type } from "sinap-types";
 import { DoubleMap } from "./double-map";
 
-/**
- * Contains a reference to a `CoreElement` and a `Drawable`.
- *
- * Calls to get/set will update both. It also contains a
- * `proxy` field. Reads and writes to this will intelligently update
- * the core element and the drawable. For any of these uses, if
- * the backer object (core/drawable) references another core or drawable
- * this will return a `BridgingProxy` in its place. Sets will intelligently
- * sync the backends even if the set `v` is a `BridgingProxy`
- */
-export class BridgingProxy {
-    proxy: { [a: string]: any };
+export class UndoableEvent {
+    constructor(public undo: () => void) { }
+}
 
-    constructor(public core: CoreElement, public drawable: Drawable, public readonly graph: GraphController) {
-        this.proxy = new Proxy(core.data, {
-            set: (data, k, v) => this.set(k, v),
-            get: (data, k) => this.get(k),
-        });
+export class Bridge {
+    constructor(public core: ElementValue, public drawable: Drawable) { };
+}
+
+class OutOfSyncError extends Error {
+    constructor() {
+        super("Nodes/edges list out of sync");
     }
-
-    set(k: PropertyKey, v: any, updateDrawable = true) {
-        let drawableValue = v;
-        let coreValue = v;
-
-        // If v is a drawable element or a core element,
-        // then when it gets set in the various proxied data
-        // structures, set it differently.
-
-        if (v instanceof BridgingProxy) {
-            drawableValue = v.drawable;
-            coreValue = v.core;
-        } else if (v instanceof CoreElement) {
-            drawableValue = drawableFromAny(v, this.graph.bridges);
-        } else if (v instanceof Drawable) {
-            coreValue = coreFromAny(v, this.graph.bridges);
-        }
-
-        if (updateDrawable && Object.keys(this.drawable).indexOf(k.toString()) !== -1) {
-            (this.drawable as any)[k] = drawableValue;
-        }
-
-        const oldValue = this.core.data[k];
-        this.core.data[k] = coreValue;
-
-        this.graph.changed.emit(new UndoableChange(this, k, oldValue, coreValue));
-
-        return true;
-    }
-
-    get(k: PropertyKey) {
-        const coreValue = this.core.data[k];
-        // if this is something that should be proxied
-        const proxiedValue = this.graph.bridges.getB(coreValue);
-        // return the proxy. That is, any changes made to the returned
-        // object should propagate to both backers
-        return proxiedValue !== undefined ? proxiedValue : coreValue;
-    }
-}
-
-function drawableFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingProxy>) {
-    if (a instanceof CoreElement) {
-        const bridge = bridges.getB(a);
-        if (bridge === undefined) {
-            throw "trying to reference a core element that doesn't have an analogous drawable";
-        }
-        a = bridge.drawable;
-    }
-    return a;
-}
-
-function coreFromAny(a: any, bridges: DoubleMap<Drawable, CoreElement, BridgingProxy>) {
-    if (a instanceof Drawable) {
-        const bridge = bridges.getA(a);
-        if (bridge === undefined) {
-            throw "trying to reference a drawable element that doesn't have an analogous core";
-        }
-        a = bridge.core;
-    }
-    return a;
-}
-
-export type UndoableEvent = UndoableChange | UndoableCreate | UndoableDelete | UndoableMove;
-export class UndoableCreate {
-    constructor(public readonly elements: BridgingProxy[]) { }
-}
-
-export class UndoableDelete {
-    constructor(public readonly elements: BridgingProxy[]) { }
-}
-
-export class UndoableMove {
-    constructor(public readonly original: BridgingProxy, public readonly replacement: BridgingProxy) { }
-}
-
-// TODO: changes can also be adds or deletes
-export class UndoableChange {
-    constructor(
-        public readonly target: BridgingProxy,
-        public readonly key: PropertyKey,
-        public readonly oldValue: any,
-        public readonly newValue: any
-    ) { }
 }
 
 export class GraphController {
     drawable: DrawableGraph;
-    activeNodeType: string;
-    activeEdgeType: string;
+    activeNodeType: ElementType;
+    activeEdgeType: ElementType;
     public changed = new EventEmitter<UndoableEvent>();
-    private isApplyingUndo = false;
+    public selectionChanged = new EventEmitter<Set<Bridge>>();
 
-    selectedElements: Set<BridgingProxy>;
-    selectionChangedEvent = new EventEmitter<Set<BridgingProxy>>();
+    public selectedElements: Set<Bridge>;
 
-    public bridges = new DoubleMap<Drawable, CoreElement, BridgingProxy>();
+    public bridges = new DoubleMap<ElementValue, Drawable, Bridge>();
 
     validateEdgeHandler = (src: DrawableNode, dst?: DrawableNode, like?: DrawableEdge) => {
-        const source = this.bridges.getA(src);
-        const destination = dst ? this.bridges.getA(dst) : dst;
-
-        if (source === undefined || (dst !== undefined && destination === undefined)) {
-            console.log("backer out of sync");
-            return false;
+        const sourceBridge = this.bridges.getB(src);
+        if (!sourceBridge) {
+            throw new OutOfSyncError();
         }
+        const source = sourceBridge.core;
 
-        const sourceType = this.plugin.typeEnvironment.getElementType(source.core.kind, source.core.type.name);
-        const destinationType = destination !== undefined ? (this.plugin.typeEnvironment.getElementType(destination.core.kind, destination.core.type.name)) : undefined;
-
-        let edge: WrappedScriptObjectType;
-        if (like !== undefined) {
-            const e = this.bridges.getA(like);
-            if (e === undefined) {
-                console.log("backer out of sync");
-                return false;
+        let destination: ElementValue | undefined = undefined;
+        if (dst !== undefined) {
+            const destinationBridge = this.bridges.getB(dst);
+            if (!destinationBridge) {
+                throw new OutOfSyncError();
             }
-            edge = this.plugin.typeEnvironment.getElementType(e.core.kind, e.core.type.name);
-        } else {
-            edge = this.plugin.typeEnvironment.getElementType(CoreElementKind.Edge, this.activeEdgeType);
+
+            destination = destinationBridge.core;
         }
 
-        return validateEdge(edge, sourceType, destinationType);
+        // TODO: ...
+
+        return true;
     }
 
-    constructor(public core: CoreModel, public plugin: Plugin) {
-        this.activeEdgeType = this.plugin.elementTypes(CoreElementKind.Edge).next().value;
-        this.activeNodeType = this.plugin.elementTypes(CoreElementKind.Node).next().value;
+    constructor(public core: Model, public readonly plugin: Plugin) {
+        this.activeEdgeType = plugin.types.edges.types.values().next().value;
+        this.activeNodeType = plugin.types.nodes.types.values().next().value;
 
         this.drawable = new DrawableGraph(this.validateEdgeHandler);
-        let coreGraph: CoreElement | null = null;
-        const coreEdges: CoreElement[] = [];
+        this.addDrawable(this.drawable); // Will copy over properties from the core graph to the drawable graph
 
-        // each core element we iterate over needs to have a drawable equivalent made for it
-        for (const element of this.core.elements) {
-            // placeholder for the new drawable (if we make one)
-            let drawable: Drawable | null = null;
-            switch (element.kind) {
-                case CoreElementKind.Edge:
-                    // do edges last, they reference nodes
-                    coreEdges.push(element);
-                    break;
-                case CoreElementKind.Node:
-                    drawable = this.drawable.createNode();
-                    if (drawable === null) {
-                        throw "node creation canceled while loading from core";
-                    }
-                    this.copyProperties(element, drawable);
-                    break;
-                case CoreElementKind.Graph:
-                    drawable = this.drawable;
-                    // we want to keep track of the graph element
-                    if (coreGraph !== null) {
-                        throw "More than one graph found";
-                    }
-                    coreGraph = element;
-                    this.copyProperties(element, drawable);
-                    break;
+
+
+        /* Create drawable versions of nodes and edges in the give graph */
+        core.nodes.forEach((node) => {
+            const drawableNode = this.drawable.createNode();
+            if (!drawableNode) {
+                throw new Error("Node creation failed while loading graph.");
             }
-            if (drawable !== null) {
-                this.addDrawable(drawable, element);
-            }
-        }
-        // if we weren't given a graph object, make one
-        if (coreGraph === null) {
-            this.addDrawable(this.drawable, undefined);
-        }
+            this.addDrawable(drawableNode, node);
+        });
 
-        // now make the drawable edges
-        for (const edge of coreEdges) {
-            // nulls will get copied in by copyCoreToDrawable
-            const source = this.bridges.getB(edge.data['source'])!.drawable as DrawableNode;
-            const destination = this.bridges.getB(edge.data['destination'])!.drawable as DrawableNode;
-
-            const drawableEdge = this.drawable.createEdge(source, destination);
-            if (drawableEdge === null) {
-                throw "edge creation canceled while loading from core";
+        core.edges.forEach((edge) => {
+            // TODO: Avoid all this casting?
+            const sourceBridge = this.bridges.getA((edge.get("source") as Value.Union).value as ElementValue);
+            const destinationBridge = this.bridges.getA((edge.get("destination") as Value.Union).value as ElementValue);
+            if (!sourceBridge || !destinationBridge) {
+                throw new OutOfSyncError();
             }
 
-            this.copyProperties(edge, drawableEdge);
+            const drawableEdge = this.drawable.createEdge(sourceBridge.drawable as DrawableNode, destinationBridge.drawable as DrawableNode);
+            if (!drawableEdge) {
+                throw new Error("Edge creation failed while loading graph.");
+            }
+
             this.addDrawable(drawableEdge, edge);
-        }
+        });
+        /* ************************************************************* */
 
-        // finally set up all the listeners after we copy all the elements
+
+
+        /* finally set up all the listeners after we copy all the elements */
         this.drawable.addEventListener("created", (evt: DrawableEvent<DrawableElement>) => {
             const bridges = evt.detail.drawables.map(d => this.addDrawable(d));
-            if (!this.isApplyingUndo)
-                this.changed.emit(new UndoableCreate(bridges));
+            this.changed.emit(new UndoableEvent(() => {
+                // TODO
+            }));
         });
         this.drawable.addEventListener("deleted", (evt: DrawableEvent<DrawableElement>) => {
             const bridges = evt.detail.drawables.map(d => this.removeDrawable(d));
-            if (!this.isApplyingUndo)
-                this.changed.emit(new UndoableDelete(bridges));
+            this.changed.emit(new UndoableEvent(() => {
+                // TODO
+            }));
         });
         this.drawable.addEventListener("moved", (evt: MoveEdgeEvent) => {
             const original = this.removeDrawable(evt.detail.original);
             const replacement = this.addDrawable(evt.detail.replacement);
-            if (!this.isApplyingUndo)
-                this.changed.emit(new UndoableMove(original, replacement));
+            this.changed.emit(new UndoableEvent(() => {
+                // TODO
+            }));
         });
         this.drawable.addEventListener("change", (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail));
         this.drawable.addEventListener("select", (evt: SelectionChangedEvent) => this.setSelectedElements(evt.detail.curr));
+        /* ************************************************************* */
+
+
         // side effect of selecting the graph
         this.setSelectedElements(undefined);
     }
 
-    private addDrawable(drawable: Drawable, core?: CoreElement) {
-        // if a core element to pair with this
-        // drawable doesn't exist, make one
-        if (!core) {
+    private addDrawable(drawable: Drawable, _core?: ElementValue) {
+        let core: ElementValue;
+        if (!_core) {
             core = this.makeCoreFromDrawable(drawable);
+        } else {
+            core = _core;
+            this.copyPropertiesToDrawable(core, drawable);
         }
-        const bridge = new BridgingProxy(core, drawable, this);
-        this.bridges.set(drawable, core, bridge);
+        const bridge = new Bridge(core, drawable);
+        this.bridges.set(core, drawable, bridge);
 
-        drawable.addEventListener("change", (evt: PropertyChangedEvent<any>) => {
-            if (evt.detail.key === "position") {
-                bridge.set("position", evt.detail.curr, false);
-            }
-        });
+        core.environment.listen((_, value, other) => {
+            console.log(core, _, value, other);
+            [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => {
+                if (v === value) {
+                    return true;
+                } else if (v instanceof Value.Record) {
+                    for (const k of Object.keys(v.value)) {
+                        if (v.value[k] === value) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }).forEach(([k, _]) => {
+                drawable.removeEventListener("change", onChange);
+                setTimeout(() => {
+                    this.copyPropertyToDrawable(core, drawable, k);
+                    this.changed.emit(new UndoableEvent(() => {
+                        // TODO
+                    }));
+                    setTimeout(() => drawable.addEventListener("change", onChange), 0);
+                });
+            });
+        }, () => true, core);
+
+        const onChange = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
+
+        drawable.addEventListener("change", onChange);
 
         return bridge;
-    }
-
-    private makeCoreFromDrawable(drawable: Drawable) {
-        const kind = drawable instanceof DrawableEdge ?
-            CoreElementKind.Edge : (drawable instanceof DrawableNode ?
-                CoreElementKind.Node : CoreElementKind.Graph);
-
-        let type = undefined;
-        if (kind === CoreElementKind.Node) {
-            type = this.activeNodeType;
-        } else if (kind === CoreElementKind.Edge) {
-            type = this.activeEdgeType;
-        }
-
-        const core = this.core.addElement(kind, type);
-        this.copyProperties(drawable, core);
-
-        return core;
     }
 
     private removeDrawable(drawable: Drawable) {
-        const bridge = this.toBridges(drawable);
-        this.core.removeElement(bridge.core);
-        this.bridges.delete(bridge.drawable, bridge.core);
+        const bridge = this.bridges.getB(drawable);
+        if (bridge) {
+            this.core.delete(bridge.core);
+            this.bridges.delete(bridge.core, bridge.drawable);
+        } else {
+            throw new Error("Trying to delete core element that does not exist.");
+        }
 
         return bridge;
     }
 
-    public applyUndoableEvent(event: UndoableEvent) {
-        this.isApplyingUndo = true;
-        if (event instanceof UndoableCreate) {
-            const mapped: BridgingProxy[] = [];
-            this.drawable.delete(...event.elements.map(e => {
-                // `toBridges` because the deleted event is still captured and calls `removeDrawable`
-                const bridge = this.toBridges(e.drawable);
-                mapped.push(bridge);
-                return bridge.drawable as DrawableElement;
-            }));
-            this.changed.emit(new UndoableDelete(mapped));
-        }
-        else if (event instanceof UndoableDelete) {
-            this.drawable.recreateItems(...event.elements.map(e => e.drawable as DrawableElement));
-            const mapped = event.elements.map(e => {
-                // Remove the recreated drawable.
-                this.removeDrawable(e.drawable);
-                // Reinsert the core element and bridge.
-                this.core.elements.push(e.core);
-                this.bridges.set(e.drawable, e.core, e);
-                return this.toBridges(e.drawable);
-            });
-            this.changed.emit(new UndoableCreate(mapped));
-        }
-        else if (event instanceof UndoableMove) {
-            const replacement = event.replacement;
-            const original = event.original;
-            this.drawable.recreateItems(original.drawable as DrawableEdge);
-            this.removeDrawable(original.drawable);
-            this.core.elements.push(original.core);
-            this.bridges.set(original.drawable, original.core, original);
-            this.drawable.delete(replacement.drawable as DrawableEdge);
-            this.changed.emit(new UndoableMove(replacement, original));
-        }
-        else if (event instanceof UndoableChange) {
-            event.target.set(event.key, event.oldValue, true);
+
+    private makeCoreFromDrawable(drawable: Drawable) {
+        let core: ElementValue;
+
+        if (drawable instanceof DrawableNode) {
+            core = this.core.makeNode(this.activeNodeType);
+        } else if (drawable instanceof DrawableEdge) {
+            const srcB = this.bridges.getB(drawable.source);
+            const dstB = this.bridges.getB(drawable.destination);
+            if (!srcB || !dstB) {
+                throw new Error("Model missing source or destination for edge.");
+            }
+
+            core = this.core.makeEdge(this.activeEdgeType, srcB.core, dstB.core);
+        } else if (drawable instanceof DrawableGraph) {
+            core = this.core.graph;
         } else {
-            throw "Unrecognized event";
+            throw new Error("Unable to create core representation of unknown Drawable type.");
         }
-        this.isApplyingUndo = false;
+
+        this.copyPropertiesToCore(drawable, core);
+        return core;
+    }
+
+    public applyUndoableEvent(event: UndoableEvent) {
+        // TODO:
     }
 
     private onPropertyChanged(a: PropertyChangedEventDetail<any>) {
-        const bridge = this.bridges.getA(a.source);
+        const bridge = this.bridges.getB(a.source);
         if (bridge !== undefined) {
-            // TODO: maybe do an interface check to see if this matches
-            // do we want the list of nodes/edges to show up in the properties panel?
-            // probably not
-            // maybe this filtering should occur downstream?
-            if (a.key in bridge.drawable) {
-                bridge.set(a.key, a.curr, false);
+            const result = this.copyPropertyToCore(bridge.drawable, bridge.core, a.key.toString());
+            if (result) {
+                this.changed.emit(new UndoableEvent(() => {
+                    // TODO
+                }));
             }
         } else {
-            throw "Nodes/edges list out of sync";
+            throw new OutOfSyncError();
         }
     }
 
-    copyProperties<S extends CoreElement | Drawable, D extends CoreElement | Drawable>(src: S, dst: D) {
-        if (src instanceof CoreElement && dst instanceof Drawable) {
-            for (const key in dst) {
-                let keyD = key;
-                // TODO: deal with this better
-                if (key === "source") { continue; }
-                if (key === "destination") { continue; }
-                const val = drawableFromAny(src.data[keyD], this.bridges);
-                // val can be undefined when loading from a file that does not
-                // define the associated field from dst. In this case, the
-                // drawable will just keep its default initialized value.
-                //
-                // val must be explicitly checked if it is not undefined because
-                // it can be `false` as a value.
-                if (val !== undefined)
-                    (dst as any)[key] = val;
-            }
+    copyPropertiesToDrawable(core: ElementValue, drawable: Drawable) {
+        Object.keys(drawable).forEach(this.copyPropertyToDrawable.bind(this, core, drawable));
+    }
+
+    copyPropertiesToCore(drawable: Drawable, core: ElementValue) {
+        Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
+    }
+
+    private readonly primitives = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow"]);
+    private readonly unions = new Set(["shape", "borderStyle", "lineStyle"]);
+
+    copyPropertyToDrawable(core: ElementValue, drawable: Drawable, key: string) {
+        const value = core.get(key);
+
+        if (value instanceof Value.Primitive && this.primitives.has(key)) {
+            // TODO: Typesafe way to do this?
+            (drawable as any)[key] = value.value;
         }
-        else if (src instanceof Drawable && dst instanceof CoreElement) {
-            for (const key in src) {
-                let keyD = key;
-                // TODO: deal with this better
-                // if (key === "sourceNode") { keyD = "source" }
-                // if (key === "destinationNode") { keyD = "destination" }
-                dst.data[keyD] = coreFromAny((src as any)[key], this.bridges);
-            }
+
+        if (value instanceof Value.Union && this.unions.has(key) && value.value instanceof Value.Literal) {
+            (drawable as any)[key] = value.value.value;
+        }
+
+        if (value instanceof Value.Record && key === "position") {
+            (drawable as DrawableNode).position = {
+                x: (value.value.x as Value.Primitive).value as number,
+                y: (value.value.y as Value.Primitive).value as number
+            };
         }
     }
 
-    setSelectedElements(se: Iterable<Drawable | BridgingProxy | CoreElement> | undefined) {
+    copyPropertyToCore(drawable: Drawable, core: ElementValue, key: string): boolean {
+        console.log("Copying " + key + " to core.");
+        if (key === "source" || key === "destination") {
+            if (!(drawable instanceof DrawableEdge)) {
+                return false;
+            }
+
+            const bridge = this.bridges.getB((drawable as any)[key]);
+            if (!bridge) {
+                throw new Error("Edge is referencing a nonexistent node");
+            }
+
+            (core.get(key) as Value.Union).value = bridge.core;
+            return true;
+        }
+
+        let value = core.get(key);
+
+        if (value instanceof Value.Primitive && this.primitives.has(key)) {
+            value.value = (drawable as any)[key];
+            return true;
+        }
+
+        if (value instanceof Value.Union && this.unions.has(key)) {
+            // TODO: I'm assuming that all types of a union are literal
+            value.value = value.environment.make(new Type.Literal((drawable as any)[key]));
+            return true;
+        }
+
+        if (value instanceof Value.Record && key === "position") {
+            (value.value.x as Value.Primitive).value = (drawable as any)[key].x;
+            (value.value.y as Value.Primitive).value = (drawable as any)[key].y;
+            return true;
+        }
+
+        return false;
+    }
+
+    setSelectedElements(se: Iterable<Drawable> | undefined) {
         if (se === undefined) {
             se = [];
         }
 
         const values = [...se];
         if (values.length === 0) {
-            const br = this.bridges.getA(this.drawable);
+            const br = this.bridges.getB(this.drawable);
             if (br === undefined) {
-                throw "no graph element";
+                throw new Error("no graph element");
             }
             this.selectedElements = new Set([br]);
         } else {
-            this.selectedElements = new Set(values.map((e) => this.toBridges(e)));
+            this.selectedElements = new Set(values.map((d) => {
+                const bridge = this.bridges.getB(d);
+                if (bridge) {
+                    return bridge;
+                } else {
+                    throw new OutOfSyncError();
+                }
+            }));
         }
 
-        this.selectionChangedEvent.emit(this.selectedElements);
-    }
-
-    toBridges(e: Drawable | BridgingProxy | CoreElement): BridgingProxy {
-        let val: BridgingProxy | undefined;
-        if (e instanceof Drawable) {
-            val = this.bridges.getA(e);
-        } else if (e instanceof CoreElement) {
-            val = this.bridges.getB(e);
-        } else if (e instanceof BridgingProxy) {
-            val = e;
-        }
-        if (val === undefined) {
-            throw "element not found";
-        }
-        return val;
+        this.selectionChanged.emit(this.selectedElements);
     }
 }

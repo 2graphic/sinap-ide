@@ -4,24 +4,21 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue } from "sinap-core";
+import { BaseTypeComponent } from "../type-injector/base-classes";
+import { Value } from "sinap-types";
 
 @Component({
     selector: "sinap-list-type",
     templateUrl: "./list-type.component.html",
     styleUrls: ["./list-type.component.scss"]
 })
-export class ListTypeComponent {
-    @Input() _value: CoreValue;
-    @Input() readonly: boolean = true;
+export class ListTypeComponent extends BaseTypeComponent<Value.ArrayObject> {
+    private values: Value.Value[] = [];
 
-    private values: CoreValue[] = [];
+    set value(v: Value.ArrayObject) {
+        super.value = v;
+        this.values = [];
 
-    @Input()
-    set value(v: CoreValue) {
-        if (this.values.length === 0 && Array.isArray(v.value)) {
-            const type = (v.type.env as any).lookupPluginType("Nodes");
-            this.values = v.value.map((v) => new CoreValue(type, v));
-        }
+        // TODO:
     }
 }

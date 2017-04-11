@@ -4,14 +4,13 @@
 //
 
 import { Component, Input } from "@angular/core";
-import { CoreValue } from "sinap-core";
+import { BaseTypeComponent } from "../type-injector/base-classes";
+import { Value } from "sinap-types";
 
 @Component({
     selector: "sinap-boolean-type",
     templateUrl: "./boolean-type.component.html",
     styleUrls: ["./boolean-type.component.scss"]
 })
-export class BooleanTypeComponent {
-    @Input() value: CoreValue;
-    @Input() readonly: boolean = true;
+export class BooleanTypeComponent extends BaseTypeComponent<Value.Primitive> {
 }

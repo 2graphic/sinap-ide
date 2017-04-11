@@ -15,7 +15,7 @@
 
 
 import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef, EventEmitter } from "@angular/core";
-import { CoreElement, CoreModel, CoreElementKind, CoreValue, Program, SerialJSO } from "sinap-core";
+import { Program, Plugin, Model, readFile } from "sinap-core";
 
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
 
@@ -23,7 +23,7 @@ import { DynamicPanelComponent, DynamicPanelItem, DynamicTestPanelComponent } fr
 import { PropertiesPanelComponent, PropertiesPanelData } from "../properties-panel/properties-panel.component";
 import { FilesPanelComponent, FilesPanelData } from "../files-panel/files-panel.component";
 import { ToolsPanelComponent, ToolsPanelData } from "../tools-panel/tools-panel.component";
-import { InputPanelComponent, InputPanelDelegate } from "../input-panel/input-panel.component";
+import { InputPanelComponent } from "../input-panel/input-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
 
 import { StatusBarComponent } from "../status-bar/status-bar.component";
@@ -34,8 +34,6 @@ import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { MenuEventAction } from "../../models/menu";
 import { ModalInfo, ModalType } from './../../models/modal-window';
 
-import { LocalFileService, LocalFile, UntitledFile } from "../../services/files.service";
-import { SandboxService } from "../../services/sandbox.service";
 import { PluginService } from "../../services/plugin.service";
 import { WindowService } from "../../modal-windows/services/window.service";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
@@ -44,18 +42,21 @@ import { TabContext } from "./tab-context";
 import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "./icons";
 
 import { ResizeEvent } from 'angular-resizable-element';
+import { requestSaveFile, requestFiles, fileStat, compareFiles, writeData, getPath } from "../../util";
 
 const remote = require('electron').remote;
 const dialog = remote.dialog;
+
+import * as path from "path";
 
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.scss"],
-    providers: [MenuService, PluginService, WindowService, LocalFileService, SandboxService]
+    providers: [MenuService, PluginService, WindowService]
 })
 export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private fileService: LocalFileService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
         // Restore previously opened files.
@@ -63,35 +64,25 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             const openFilesJSON = localStorage.getItem("openFiles");
             if (openFilesJSON) {
                 const openFilenames = JSON.parse(openFilesJSON) as string[];
-
-                // Adding it again to be opened last will cause it to be selected.
                 const selectedFile = localStorage.getItem("selectedFile");
 
-                const promises = openFilenames.map((fileName) => this.fileService.fileByName(fileName))
-                    .map((p) => {
-                        return new Promise((resolve, reject) => {
-                            p.then((f) => {
-                                this.openFile(f).then(() => resolve()).catch((e) => {
-                                    console.log(e);
-                                    resolve();
-                                });
-                            }).catch((e) => {
-                                console.log(e);
-                                resolve();
-                            });
+                const promises = openFilenames.map((f) => {
+                    return new Promise((resolve, reject) => {
+                        this.openFile(f).then(resolve).catch((e) => {
+                            console.log(e);
+                            resolve();
                         });
                     });
+                });
 
                 if (selectedFile) {
                     Promise.all(promises).then(() => {
-                        this.fileService.fileByName(selectedFile).then((f) => {
-                            const found = [...this.tabs.entries()].find(([_, context]) => f.equals(context.file));
-                            if (found) {
-                                this.tabBar.active = found[0];
-                            }
-                        }).catch(() => {
+                        const found = [...this.tabs.entries()].find(([_, context]) => context.file !== undefined && compareFiles(selectedFile, context.file));
+                        if (found) {
+                            this.tabBar.active = found[0];
+                        } else {
                             console.log("Unable to select previously selected file: ", selectedFile);
-                        });
+                        }
                     });
                 }
             }
@@ -102,7 +93,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     private propertiesPanelData = new PropertiesPanelData();
     // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
-    private filesPanelData = new FilesPanelData("./examples", this.fileService);
+    private filesPanelData = new FilesPanelData("./examples");
     private toolsPanelData = new ToolsPanelData();
 
     private tabs = new Map<number, TabContext>();
@@ -154,8 +145,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     ngAfterViewChecked() {
         // TODO: Let HTML resize this for us.
         this.graphEditor.height =
-            this.graphEditorContainer.nativeElement.offsetHeight
-            - this.tabBar.offsetHeight - this.statusBar.offsetHeight;
+            this.graphEditorContainer.nativeElement.offsetHeight;
     }
 
     private _context?: TabContext;
@@ -168,7 +158,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             this.filesPanelData.selectedFile = context.file;
             this.statusBar.info = context.statusBarInfo;
 
-            context.graph.selectionChangedEvent.asObservable().subscribe(evt => this.propertiesPanelData.selectedElements = evt);
+            context.graph.selectionChanged.asObservable().subscribe(evt => this.propertiesPanelData.selectedElements = evt);
             this.propertiesPanelData.selectedElements = context.graph.selectedElements;
 
             if (this.toolsPanelData.shouldDisplay && this.sidePanels.length < 3) {
@@ -193,7 +183,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             this.filesPanelData.selectedFile = undefined;
             this.statusBar.info = undefined;
             this.toolsPanelData.graph = undefined;
-            this.propertiesPanelData.selectedElements = null;
+            this.propertiesPanelData.selectedElements = undefined;
             this.sidePanels = [
                 new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path)
             ];
@@ -202,34 +192,36 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     };
 
     /** Create a new tab and open it */
-    newFile(file: LocalFile, kind: string[], content?: SerialJSO) {
+    newFile(kind: string[], file?: string, name?: string, content?: any) {
         // TODO: have a more efficient way to get kind.
         return this.pluginService.getPluginByKind(kind).then((plugin) => {
-            const model = new CoreModel(plugin, content);
-
-            let tabNumber = this.tabBar.newTab(file);
+            const model = content ? Model.fromSerial(content, plugin) : new Model(plugin);
 
             const graph = new GraphController(model, plugin);
-            const context = new TabContext(tabNumber, graph, file, this.pluginService);
+            const context = file ? TabContext.getSavedTabContext(graph, plugin, kind, file) :
+                TabContext.getUnsavedTabContext(graph, plugin, kind, name);
+
+            let tabNumber = this.tabBar.newTab(context);
+            this.tabs.set(tabNumber, context);
 
             graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
-
-            this.tabs.set(tabNumber, context);
             this.selectedTab(tabNumber);
         });
     }
 
     onClose = (e: any): any => {
         // Save what files are open
-        const openFiles = [...this.tabs.values()].map((context) => context.file.getPath()).filter((path) => path !== undefined) as string[];
+        const openFiles = ([...this.tabs.values()]
+            .map((context) => context.file)
+            .filter((path) => path !== undefined) as string[])
+            .map((f) => getPath(f));
         localStorage.setItem("openFiles", JSON.stringify(openFiles));
 
         // Save what file is open
         localStorage.removeItem("selectedFile");
         if (this._context) {
-            const path = this._context.file.getPath();
-            if (path) {
-                localStorage.setItem("selectedFile", path);
+            if (this._context.file) {
+                localStorage.setItem("selectedFile", getPath(this._context.file));
             }
         }
 
@@ -251,72 +243,50 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         this.pluginService.pluginData.then((pluginData) => {
             let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginData);
             result.then((result: NewFileResult) => {
-                this.newFile(new UntitledFile(result.name), result.kind);
+                this.newFile(result.kind, undefined, result.name);
             });
         });
     }
 
-    saveFile() {
-        if (this._context) {
-            this.saveToFile(this._context.graph, this._context.file).then(() => {
-                this.changeDetectorRef.detectChanges();
-            });
-        }
+    saveFile(context: TabContext) {
+        // file should NOT be null.
+        context.save().then(() => {
+            this.changeDetectorRef.detectChanges();
+        });
     }
 
     saveAsFile() {
         if (this._context) {
             const c = this._context;
-            this.fileService.requestSaveFile(this._context.file.getPath()).then((f) => {
-                if (f.equals(c.file)) {
-                    // Saving as same file...
-                    this.saveToFile(c.graph, c.file).then(() => {
-                        this.changeDetectorRef.detectChanges();
-                    });
+            requestSaveFile(c.file).then(file => {
+                if (file === c.file) {
+                    this.saveFile(c);
                 } else {
-                    f.close();
-                    this.closeFile(f);
-                    this.saveToFile(c.graph, f).then(() => {
-                        this.openFile(f);
-                    });
+                    this.closeFile(file);
+                    this.saveToFile(c, file).then(() => this.openFile(file));
                 }
-            }).catch((e) => {
-                console.log(e);
-            });
+            }).catch(e => console.log(e));
         }
     }
 
-    public saveToFile(graph: GraphController, file: LocalFile) {
-        const pojo = graph.core.serialize();
-
-        return file.writeData(JSON.stringify(pojo, null, 4))
-            .catch((err) => {
-                dialog.showErrorBox("Unable to Save", `Error occurred while saving to file:\n${file.fullName}.`);
-                console.log(err);
-            });
+    saveToFile(context: TabContext, file: string) {
+        return writeData(context.getRawData(), file);
     }
 
     requestOpenFile() {
-        this.fileService.requestFiles()
-            .then((files: LocalFile[]) => {
-                files.forEach(this.openFile);
-            }).catch((e) => {
-                // User cancelled, do nothing
-                console.log(e);
-            });
+        requestFiles().then(files => files.forEach(file => this.openFile(file))).catch(e => console.log(e));
     }
 
-    openFile = (file: LocalFile) => {
+    openFile = (file: string) => {
         return new Promise((resolve, reject) => {
-            const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
+            const entry = [...this.tabs.entries()].find(([_, context]) => context.file !== undefined && compareFiles(file, context.file));
             if (entry) {
                 this.tabBar.active = entry[0];
                 resolve();
             } else {
-                file.readData().then((content) => {
+                readFile(file).then((content) => {
                     const pojo = JSON.parse(content);
-                    const kind = pojo.kind;
-                    this.newFile(file, kind, pojo).then(() => resolve()).catch(reject);
+                    this.newFile(pojo.kind, file, undefined, pojo.graph).then(() => resolve()).catch(reject);
                 }).catch((e) => {
                     reject(e);
                 });
@@ -324,8 +294,8 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         });
     }
 
-    closeFile(file: LocalFile) {
-        const entry = [...this.tabs.entries()].find(([_, context]) => file.equals(context.file));
+    closeFile(file: string) {
+        const entry = [...this.tabs.entries()].find(([_, context]) => file === context.file);
         if (entry) {
             this.tabBar.deleteTab(entry[0]);
         }
@@ -349,36 +319,30 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     /* ---------- TabBarDelegate ---------- */
     canDeleteTab(i: number) {
-        return new Promise((resolve, reject) => {
-            const toDelete = this.tabs.get(i);
-            if (toDelete && toDelete.file.dirty === true) {
+        const toDelete = this.tabs.get(i);
+        if (!toDelete || !toDelete.unsaved) {
+            return Promise.resolve(true);
+        } else {
+            return new Promise((resolve) => {
                 dialog.showMessageBox(remote.BrowserWindow.getFocusedWindow(), {
                     type: "question",
                     buttons: ["Save", "Don't Save", "Cancel"],
                     defaultId: 2,
                     cancelId: 2,
                     message: "Save file before closing?",
-                    detail: toDelete.file.getPath()
-                }, (r) => {
-                    if (r === 0) {
-                        this.saveToFile(toDelete.graph, toDelete.file).then(() => {
-                            resolve(true);
-                        });
-                    } else {
-                        resolve(r === 1);
-                    }
+                    detail: toDelete.file
+                }, (choice) => {
+                    if (choice === 0) {
+                        toDelete.save().then(() => resolve(true)).catch(() => resolve(false));
+                    } else resolve(choice === 1);
                 });
-            } else {
-                resolve(true);
-            }
-        });
+            });
+
+        }
     }
 
     deletedTab(i: number) {
         const toDelete = this.tabs.get(i);
-        if (toDelete) {
-            toDelete.file.close();
-        }
         this.tabs.delete(i);
     }
 
@@ -408,7 +372,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 this.requestOpenFile();
                 break;
             case MenuEventAction.SAVE_FILE:
-                this.saveFile();
+                if (this._context) {
+                    this.saveFile(this._context);
+                }
                 break;
             case MenuEventAction.SAVE_AS_FILE:
                 this.saveAsFile();
@@ -435,7 +401,10 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 break;
             case MenuEventAction.CLOSE:
                 if (this._context) {
-                    this.tabBar.deleteTab(this._context.index);
+                    const found = [...this.tabs.entries()].find((v) => v[1] === this._context);
+                    if (found) {
+                        this.tabBar.deleteTab(found[0]);
+                    }
                     e.preventDefault();
                 }
                 break;

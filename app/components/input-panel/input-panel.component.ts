@@ -11,11 +11,12 @@
  */
 
 import { Component, ElementRef, ViewChild, AfterViewChecked, EventEmitter } from "@angular/core";
-import { Type, Program, CoreValue, isObjectType, Plugin, FakeObjectType } from "sinap-core";
+import { Program, Plugin } from "sinap-core";
+import { Value, Type } from "sinap-types";
 import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
 
 export class InputPanelData {
-    constructor(public readonly delegate: InputPanelDelegate) { }
+    constructor() { }
 
     private _program?: Program;
 
@@ -23,11 +24,7 @@ export class InputPanelData {
     selected: ProgramResult;
     selectedState: State;
 
-    inputForPlugin?: CoreValue;
-
-    shouldScroll = false;
-
-    isObjectType = isObjectType;
+    inputForPlugin?: Value.Value;
 
     get program() {
         return this._program;
@@ -49,6 +46,7 @@ export class InputPanelData {
 })
 export class InputPanelComponent implements AfterViewChecked, PanelComponent<InputPanelData>, TitleBarItems {
     private _data: InputPanelData;
+    private shouldScroll = false;
 
     titlebarItems = [
         new TitlebarSpacer(),
@@ -66,47 +64,38 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     ngAfterViewChecked() {
-        if (this._data.shouldScroll) {
+        if (this.shouldScroll) {
             let el: Element = this.log.nativeElement;
             el.scrollTop = el.scrollHeight;
-            this._data.shouldScroll = false;
+            this.shouldScroll = false;
         }
     };
 
     @ViewChild('log') log: ElementRef;
 
-    private isErrorType(t: Type) {
-        return t.isAssignableTo((t.env as any).lookupPluginType("Error"));
+    private isErrorType(t: Type.Type) {
+        return false; // TODO
+    }
+
+    private isObjectValue(v: Value.Value): v is Value.CustomObject {
+        return v instanceof Value.CustomObject;
     }
 
     private selectState(state: State) {
         this._data.selectedState = state;
-        this._data.delegate.selectNode(state.state.value.active);
+        // TODO
     }
 
     private scrollToBottom() {
-        this._data.shouldScroll = true;
-    }
-
-    private getStringType(program: Program) {
-        return program.plugin.typeEnvironment.getStringType();
+        this.shouldScroll = true;
     }
 
     private setupInput() {
         if (this._data.program) {
-            let type = this._data.program.runArguments[0][0];
+            const plugin = ((this._data.program as any).plugin as Plugin);
+            const type = plugin.types.arguments[0];
 
-            if (type.name === "InputType") {
-                const members = new Map<string, Type>();
-                members.set("a", this._data.program.plugin.typeEnvironment.getBooleanType());
-                members.set("b", this._data.program.plugin.typeEnvironment.getBooleanType());
-                this._data.inputForPlugin = new CoreValue(new FakeObjectType(this._data.program.plugin.typeEnvironment, members), {
-                    "a": false,
-                    "b": false
-                });
-            } else {
-                this._data.inputForPlugin = new CoreValue(type, "");
-            }
+            this._data.inputForPlugin = this._data.program.model.environment.make(type);
         }
     }
 
@@ -153,51 +142,52 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         g();
     }
 
-    private onSubmit(input: CoreValue) {
-        const output = this.run(input);
-        if (output) {
-            const states = output.states.map(s => new State(s));
-            const result = new ProgramResult(input, new Output(states, output.result));
-            console.log(result);
+    private async onSubmit(input: Value.Value) {
+        const output = await this.run(input);
+        const states = output.steps.map(s => new State(s));
+        const result = new ProgramResult(input, new Output(states, output.result));
 
-            this._data.selected = result;
-            this._data.results.unshift(result);
+        console.log(result);
 
-            if (result.output.states.length > 0) {
-                this._data.selectedState = result.output.states[0];
-                result.steps++;
-                this.selectState(result.output.states[0]);
-            }
+        this._data.selected = result;
+        this._data.results.unshift(result);
 
-            this.setupInput();
-            this.scrollToBottom();
+        if (result.output.states.length > 0) {
+            this._data.selectedState = result.output.states[0];
+            result.steps++;
+            this.selectState(result.output.states[0]);
         }
+
+        this.setupInput();
+        this.scrollToBottom();
     }
 
-    private run(input: CoreValue) {
+    private async run(input: Value.Value) {
         if (this._data.program) {
-            return this._data.program.run([input]);
-        } else {
-            console.log("no graph to run!");
+            const output = await this._data.program.run([input]);
+            if (output.result) {
+                return {
+                    result: output.result,
+                    steps: output.steps
+                };
+            } else {
+                // TODO:
+                throw new Error("Daniel should fix this 1");
+            }
         }
-
-        return undefined;
+        throw new Error("Daniel should fix this 2");
     }
-}
-
-export interface InputPanelDelegate {
-    selectNode(n: any): void;
 }
 
 class Output {
-    constructor(public readonly states: State[], public readonly result: CoreValue) { };
+    constructor(public readonly states: State[], public readonly result: Value.Value) { };
 }
 
 class State {
-    message: CoreValue | undefined;
-    state: CoreValue;
+    message: Value.Value | undefined;
+    state: Value.Value;
 
-    constructor(value: CoreValue) {
+    constructor(value: Value.Value) {
         this.message = this.getMessage(value);
         this.state = this.stripMessage(value);
     }
@@ -205,22 +195,14 @@ class State {
     /**
      * Returns a new object value that doesn't have a message property.
      */
-    private stripMessage(state: CoreValue) {
-        if (isObjectType(state.type)) {
-            const members = new Map(state.type.members);
-            members.delete("message");
-            return new CoreValue(new FakeObjectType(state.type.env, members), state.value);
-        } else {
-            return state;
-        }
+    private stripMessage(state: Value.Value) {
+        // TODO
+        return state;
     }
 
-    private getMessage(state: CoreValue) {
-        if (isObjectType(state.type)) {
-            const type = state.type.members.get("message");
-            if (type) {
-                return new CoreValue(type, state.value.message);
-            }
+    private getMessage(state: Value.Value) {
+        if (state instanceof Value.CustomObject && state.type.members.has("message")) {
+            return state.get("message");
         }
 
         return undefined;
@@ -228,7 +210,7 @@ class State {
 }
 
 class ProgramResult {
-    constructor(public readonly input: CoreValue, public readonly output: Output) { };
+    constructor(public readonly input: Value.Value, public readonly output: Output) { };
     public steps = 0;
 
     public getStates() {
