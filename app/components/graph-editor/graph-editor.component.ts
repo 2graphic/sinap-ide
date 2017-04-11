@@ -291,7 +291,7 @@ export class GraphEditorComponent implements AfterViewInit {
         this.graphCanvas = new EditorCanvas(
             this.graphLayerElementRef.nativeElement.getContext("2d")
         );
-        this.graphLayerElementRef.nativeElement.onselectstart = function() { return false; };
+        this.graphLayerElementRef.nativeElement.onselectstart = () => false;
         this.resize();
     }
 
@@ -370,6 +370,7 @@ export class GraphEditorComponent implements AfterViewInit {
     private registerEventListeners() {
         const el = this.el.nativeElement as HTMLElement;
         el.addEventListener("keydown", this.onKeyDown);
+        el.addEventListener("keyup", this.onKeyUp);
         el.addEventListener("dblclick", this.onDoubleClick);
         el.addEventListener("mousedown", this.onMouseDown);
         el.addEventListener("mousemove", this.onMouseMove);
@@ -392,6 +393,7 @@ export class GraphEditorComponent implements AfterViewInit {
     private unregisterEventListeners() {
         const el = this.el.nativeElement as EventTarget;
         el.removeEventListener("keydown", this.onKeyDown);
+        el.removeEventListener("keyup", this.onKeyUp);
         el.removeEventListener("dblclick", this.onDoubleClick);
         el.removeEventListener("mousedown", this.onMouseDown);
         el.removeEventListener("mouseup", this.onMouseUp);
@@ -540,6 +542,16 @@ export class GraphEditorComponent implements AfterViewInit {
     }
 
     /**
+     * `onKeyUp`
+     *
+     *   Handles the keyup event.
+     */
+    private onKeyUp
+    = (evt: KeyboardEvent) => {
+        this.el.nativeElement.style.cursor = "default";
+    }
+
+    /**
      * `onDoubleClick`
      *
      *   Handles the double click event.
@@ -547,8 +559,10 @@ export class GraphEditorComponent implements AfterViewInit {
     private onDoubleClick
     = (evt: MouseEvent) => {
         const d = this._graph!.drawable.createNode();
-        if (d)
+        if (d) {
             d.position = this.graphCanvas.getCoordinates(evt);
+            this._graph!.drawable.setSelected(d);
+        }
     }
 
     /**
