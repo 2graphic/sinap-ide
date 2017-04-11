@@ -68,13 +68,6 @@ function moveTsFiles(buildLoc) {
     });
 }
 
-function afterExtract(buildPath, elecVersion, platform, arch, done) {
-    moveTsFiles(buildPath).then(() => done()).catch((err) => {
-        console.log(err);
-        done();
-    });
-}
-
 function main() {
     const args = process.argv;
     let packageOpts = {
@@ -84,8 +77,7 @@ function main() {
         overwrite: true,
         icon: "./app/images/icons/icon",
         prune: false,
-        name: "Sinap",
-        afterExtract: [afterExtract]
+        name: "Sinap"
     };
     if (args.length > 2) {
         packageOpts.platform = args[2];
@@ -96,7 +88,10 @@ function main() {
     const cleanBuild = deleteDir("./build").then(() => {createDir("./build")});
     const cleanDll = deleteDir("./dll");
     const cleanDist = deleteDir("./dist");
-    const copyStuff = cleanBuild.then(() => Promise.all([copyProm("./app/package.json", "./build/package.json"), copyProm("./plugins", "./build/plugins")]));
+    const copyStuff = cleanBuild.then(() => Promise.all([
+        copyProm("./app/package.json", "./build/package.json"),
+        copyProm("./plugins", "./build/plugins"),
+        moveTsFiles("./build")]));
 
     const buildDll = cleanDll.then(() => webpackProm(dllConfig));
     let env = {
