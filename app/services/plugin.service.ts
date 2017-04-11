@@ -10,11 +10,12 @@ import { TypescriptPluginLoader } from "sinap-typescript";
 
 
 export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app", "plugins") : "./plugins";
+export const ROOT_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app") : ".";
 
 @Injectable()
 export class PluginService {
     readonly plugins: Promise<Plugin[]>;
-    private loader: TypescriptPluginLoader = new TypescriptPluginLoader();
+    private loader: TypescriptPluginLoader = new TypescriptPluginLoader(ROOT_DIRECTORY);
 
     constructor() {
         this.plugins = this.loadPlugins();
