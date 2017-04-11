@@ -25,6 +25,30 @@ export function somePromises<T>(promises: Iterable<Promise<T>>): Promise<T[]> {
     return result;
 }
 
+export function getBasename(name: string, ext?: string) {
+    return path.basename(name, ext);
+}
+
+export function getPath(name: string) {
+    return path.normalize("/" + path.relative("/", name));
+}
+
+export function compareFiles(file1: string, file2: string) {
+    return getPath(file1) === getPath(file2);
+}
+
+export function writeData(file: string, data: string) {
+    return new Promise((resolve, reject) => {
+        fs.writeFile(file, data, (err: any) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
 export function fileStat(name: string): Promise<fs.Stats> {
     const result = new NodePromise<fs.Stats>();
     fs.stat(name, result.cb);
@@ -50,7 +74,9 @@ export function subdirs(dir: string): Promise<string[]> {
 
 // Only returns file names.
 export function dirFiles(dir: string): Promise<string[]> {
-    return readdir(dir).then(names => promFilter(names, name => fileStat(name).then(stats => stats.isFile())));
+    return readdir(dir)
+        .then(names => names.map(name => path.join(dir, name)))
+        .then(names => promFilter(names, name => fileStat(name).then(stats => stats.isFile())));
 }
 
 export function requestSaveFile(name?: string): Promise<string> {

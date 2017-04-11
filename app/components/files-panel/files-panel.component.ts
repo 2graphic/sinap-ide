@@ -13,11 +13,23 @@
 import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
-import { dirFiles } from "../../util";
+import { dirFiles, getBasename, compareFiles } from "../../util";
+
+class FileInfo {
+    public readonly name: string;
+
+    constructor(public readonly file: string) {
+        this.name = getBasename(file, ".sinap");
+    };
+
+    toString() {
+        return this.name;
+    }
+}
 
 export class FilesPanelData {
     public directory?: string;
-    public files: string[] = [];
+    public files: FileInfo[] = [];
 
     constructor(directoryToOpen: string) {
         this.setDirectory(directoryToOpen).catch(err => {
@@ -44,7 +56,7 @@ export class FilesPanelData {
     private setDirectory(value?: string): Promise<void> {
         if (value) {
             return dirFiles(value).then(files => {
-                this.files = files;
+                this.files = files.filter((file => file.indexOf(".sinap") > -1)).map(file => new FileInfo(file));
             });
         }
         else {
@@ -79,7 +91,7 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
 
     private updateSelectedFile = (value?: string) => {
         if (value) {
-            const found = this._data.files.find(f => f === value);
+            const found = this._data.files.find(f => compareFiles(f.file, value));
             this.filesList.selectedIndex = found ? this._data.files.indexOf(found) : -1;
         } else {
             this.filesList.selectedIndex = -1;
@@ -87,8 +99,8 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
     }
 
     private itemSelected(list: CollapsibleListComponent) {
-        const file = this._data.files[list.selectedIndex];
+        const fileInfo = this._data.files[list.selectedIndex];
         if (this._data)
-            this._data.openFile.emit(file);
+            this._data.openFile.emit(fileInfo.file);
     }
 }

@@ -223,10 +223,12 @@ export class GraphController {
     private onPropertyChanged(a: PropertyChangedEventDetail<any>) {
         const bridge = this.bridges.getB(a.source);
         if (bridge !== undefined) {
-            this.copyPropertyToCore(bridge.drawable, bridge.core, a.key.toString());
-            this.changed.emit(new UndoableEvent(() => {
-                // TODO
-            }));
+            const result = this.copyPropertyToCore(bridge.drawable, bridge.core, a.key.toString());
+            if (result) {
+                this.changed.emit(new UndoableEvent(() => {
+                    // TODO
+                }));
+            }
         } else {
             throw new OutOfSyncError();
         }
@@ -263,11 +265,11 @@ export class GraphController {
         }
     }
 
-    copyPropertyToCore(drawable: Drawable, core: ElementValue, key: string) {
+    copyPropertyToCore(drawable: Drawable, core: ElementValue, key: string): boolean {
         console.log("Copying " + key + " to core.");
         if (key === "source" || key === "destination") {
             if (!(drawable instanceof DrawableEdge)) {
-                return;
+                return false;
             }
 
             const bridge = this.bridges.getB((drawable as any)[key]);
@@ -276,24 +278,29 @@ export class GraphController {
             }
 
             (core.get(key) as Value.Union).value = bridge.core;
-            return;
+            return true;
         }
 
         let value = core.get(key);
 
         if (value instanceof Value.Primitive && this.primitives.has(key)) {
             value.value = (drawable as any)[key];
+            return true;
         }
 
         if (value instanceof Value.Union && this.unions.has(key)) {
             // TODO: I'm assuming that all types of a union are literal
             value.value = value.environment.make(new Type.Literal((drawable as any)[key]));
+            return true;
         }
 
         if (value instanceof Value.Record && key === "position") {
             (value.value.x as Value.Primitive).value = (drawable as any)[key].x;
             (value.value.y as Value.Primitive).value = (drawable as any)[key].y;
+            return true;
         }
+
+        return false;
     }
 
     setSelectedElements(se: Iterable<Drawable> | undefined) {
