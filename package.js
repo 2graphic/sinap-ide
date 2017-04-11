@@ -110,9 +110,6 @@ function main() {
 
     const mainBuild = Promise.all([cleanBuild, buildDll]).then(() => webpackProm(mainConfig(env)));
     mainBuild.then(() => runPackage(packageOpts)).then(() => {
-        // deleteDir("./build");
-        // deleteDir("./dll");
-
         glob("dist/*", function(er, files){
             for (const dir of files) {
                 zipFolder(dir, dir + '.zip', (err) => {

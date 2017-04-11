@@ -1,7 +1,8 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { somePromises, subdirs, arrayEquals } from "../util";
 import * as path from "path";
-import { app } from "electron";
+import { remote } from 'electron';
+let { app } = remote;
 import { IS_PRODUCTION } from "../constants";
 import { Plugin, PluginLoader, getInterpreterInfo, Program, PluginInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
