@@ -96,7 +96,7 @@ function main() {
     const cleanBuild = deleteDir("./build").then(() => {createDir("./build")});
     const cleanDll = deleteDir("./dll");
     const cleanDist = deleteDir("./dist");
-    const copyStuff = cleanBuild.then(() => Promise.all([copyProm("./package.json", "./build/package.json"), copyProm("./plugins", "./build/plugins")]));
+    const copyStuff = cleanBuild.then(() => Promise.all([copyProm("./app/package.json", "./build/package.json"), copyProm("./plugins", "./build/plugins")]));
 
     const buildDll = cleanDll.then(() => webpackProm(dllConfig));
     let env = {
@@ -110,8 +110,8 @@ function main() {
 
     const mainBuild = Promise.all([cleanBuild, buildDll]).then(() => webpackProm(mainConfig(env)));
     mainBuild.then(() => runPackage(packageOpts)).then(() => {
-        deleteDir("./build");
-        deleteDir("./dll");
+        // deleteDir("./build");
+        // deleteDir("./dll");
 
         glob("dist/*", function(er, files){
             for (const dir of files) {
