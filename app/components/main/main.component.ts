@@ -197,7 +197,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         return this.pluginService.getPluginByKind(kind).then((plugin) => {
             const model = content ? Model.fromSerial(content, plugin) : new Model(plugin);
 
-            const graph = new GraphController(model, plugin, kind);
+            const graph = new GraphController(model, plugin);
             const context = file ? TabContext.getSavedTabContext(graph, plugin, kind, file) :
                 TabContext.getUnsavedTabContext(graph, plugin, kind, name);
 

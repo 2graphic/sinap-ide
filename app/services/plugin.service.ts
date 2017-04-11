@@ -12,35 +12,35 @@ export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), ".."
 
 @Injectable()
 export class PluginService {
-    readonly plugins: Promise<[PluginInfo, Promise<Plugin>][]>;
+    readonly plugins: Promise<Plugin[]>;
     private loader: TypescriptPluginLoader = new TypescriptPluginLoader();
 
     constructor() {
         this.plugins = this.loadPlugins();
     }
 
-    private async loadPlugins() {
+    private loadPlugins() {
         return subdirs(PLUGIN_DIRECTORY)
             .then(dirs => somePromises(dirs.map(getInterpreterInfo)))
-            .then(infos => infos.map(info => [info, this.loader.load(info.interpreterInfo)]));
+            .then(infos => somePromises(infos.map(info => this.loader.load(info))));
     }
 
     public async getPluginByKind(kind: string[]): Promise<Plugin> {
         const plugins = await this.plugins;
-        const matches = plugins.filter((plugin) => arrayEquals(kind, plugin[0].pluginKind));
+        const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginInfo.pluginKind));
         const pluginName = JSON.stringify(kind);
         if (matches.length === 0) {
             throw new Error(`Could not find a plugin with kind ${pluginName}`);
         } else if (matches.length > 1) {
             throw new Error(`Found multiple plugins matching kind ${pluginName}`);
         } else {
-            return matches[0][1];
+            return matches[0];
         }
     }
 
     public get pluginData(): Promise<PluginInfo[]> {
         return this.plugins.then((plugins) => {
-            return plugins.map(([pluginInfo, _]) => pluginInfo);
+            return plugins.map((plugin) => plugin.pluginInfo);
         });
     }
 }

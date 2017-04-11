@@ -146,7 +146,7 @@ export class TabContext {
 
     public getRawData() {
         return JSON.stringify({
-            kind: this.graph.kind,
+            kind: this.graph.plugin.pluginInfo.pluginKind,
             graph: this.graph.core.serialize()
         }, null, 4);
     }
