@@ -1,39 +1,28 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
+import { somePromises, subdirs, arrayEquals } from "../util";
+import * as path from "path";
+import { app } from "electron";
+import { IS_PRODUCTION } from "../constants";
 import { Plugin, PluginLoader, getInterpreterInfo, Program, PluginInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
-import { LocalFileService } from "../services/files.service";
 
 
-function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
-    if (arr1.length !== arr2.length) {
-        return false;
-    }
 
-    for (let i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
+export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app", "plugins") : "./plugins";
 
 @Injectable()
 export class PluginService {
     readonly plugins: Promise<[PluginInfo, Promise<Plugin>][]>;
     private loader: TypescriptPluginLoader = new TypescriptPluginLoader();
 
-    constructor( @Inject(LocalFileService) private fileService: LocalFileService) {
+    constructor() {
         this.plugins = this.loadPlugins();
     }
 
     private async loadPlugins() {
-        const appLocations = await this.fileService.getAppLocations();
-        const pluginDirectories = await appLocations.pluginDirectory.getSubDirectories();
-        return Promise.all(pluginDirectories.map(async pluginDir => {
-            const info = await getInterpreterInfo(pluginDir.fullName);
-            return [info, this.loader.load(info.interpreterInfo)] as [PluginInfo, Promise<Plugin>];
-        }));
+        return subdirs(PLUGIN_DIRECTORY)
+            .then(dirs => somePromises(dirs.map(getInterpreterInfo)))
+            .then(infos => infos.map(info => [info, this.loader.load(info.interpreterInfo)]));
     }
 
     public async getPluginByKind(kind: string[]): Promise<Plugin> {
