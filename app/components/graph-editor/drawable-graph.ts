@@ -570,19 +570,17 @@ export class DrawableGraph extends Drawable {
     ) {
         const oldSelection = [...this._selected];
         move(src, dst, items, v => v.isSelected = (dst === this._selected));
-        if (oldSelection.length !== this._selected.size) {
-            this.dispatchEvent(
-                new TypedCustomEvent(
-                    "select",
-                    new PropertyChangedEventDetail<Iterable<DrawableElement>>(
-                        this,
-                        "selectedItems",
-                        oldSelection,
-                        [...this._selected]
-                    )
+        this.dispatchEvent(
+            new TypedCustomEvent(
+                "select",
+                new PropertyChangedEventDetail<Iterable<DrawableElement>>(
+                    this,
+                    "selectedItems",
+                    oldSelection,
+                    [...this._selected]
                 )
-            );
-        }
+            )
+        );
     }
 
 }

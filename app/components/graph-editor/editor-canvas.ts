@@ -477,7 +477,7 @@ export class EditorCanvas {
                 break;
 
             default:
-                this.g.setLineDash([1, 0]);
+                this.g.setLineDash([]);
         }
     }
 

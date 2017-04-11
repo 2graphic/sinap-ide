@@ -109,14 +109,6 @@ export class EditorGraph {
     = null;
 
     /**
-     * `stickyTimeout`
-     *
-     *   Timer reference for the sticky delay.
-     */
-    private stickyTimeout: NodeJS.Timer | number | null
-    = null;
-
-    /**
      * `selected`
      *
      *   The set of selected elements to prevent live selection from bombarding
@@ -177,7 +169,7 @@ export class EditorGraph {
      *   Gets whether or not an object is currently being dragged.
      */
     get isDragging() {
-        return this.dragPoint !== null;
+        return this.dragObject !== null;
     }
 
 
@@ -239,14 +231,9 @@ export class EditorGraph {
         this.dragPoint = pt;
         // Update the drag object.
         this.updateDragObject();
-        // Get the initial selection coordinate if nothing is being dragged and
-        // start a timer for creating a node.
-        if (!this.dragObject) {
+        // Get the initial selection coordinate if nothing is being dragged.
+        if (!this.dragObject)
             this.selectionPoint = this.dragPoint;
-            this.stickyTimeout = this.stickyTimeout ?
-                this.stickyTimeout :
-                setTimeout(this.onSticky, STICKY_DELAY);
-        }
     }
 
     /**
@@ -263,31 +250,20 @@ export class EditorGraph {
             // Get the change in x and y locations of the cursor.
             const dpt = MathEx.diff(this.dragPoint, pt);
 
-            // Update the canvas if waiting is not set.
-            if (!this.stickyTimeout) {
-                // Update the selection box if selecting.
-                if (!this.dragObject)
-                    this.updateSelectionBox(pt);
+            // Update the selection box if selecting.
+            if (!this.dragObject)
+                this.updateSelectionBox(pt);
 
-                // Update node position.
-                else {
-                    if (this.dragObject.isHidden &&
-                        this.updateHoverObject(pt)) {
-                        const hoverNode = this.hoverObject as EditorNode;
-                        pt = MathEx.sum(hoverNode.position, hoverNode.anchor);
-                        dpt.x = this.dragPoint.x - pt.x;
-                        dpt.y = this.dragPoint.y - pt.y;
-                    }
-                    this.updateDragNodes(this.dragObject, dpt);
+            // Update node position.
+            else {
+                if (this.dragObject.isHidden &&
+                    this.updateHoverObject(pt)) {
+                    const hoverNode = this.hoverObject as EditorNode;
+                    pt = MathEx.sum(hoverNode.position, hoverNode.anchor);
+                    dpt.x = this.dragPoint.x - pt.x;
+                    dpt.y = this.dragPoint.y - pt.y;
                 }
-            }
-
-            // Reset waiting if waiting is still active and the mouse has moved
-            // too far.
-            else if (MathEx.dot(dpt, dpt) > NUDGE * NUDGE) {
-                clearTimeout(this.stickyTimeout as NodeJS.Timer);
-                this.stickyTimeout = null;
-                this.drawable.clearSelection();
+                this.updateDragNodes(this.dragObject, dpt);
             }
 
             // Update the drag point.
@@ -310,30 +286,20 @@ export class EditorGraph {
         // Make sure a down event was previously captured.
         if (this.dragPoint) {
 
-            // Set the selected graph component if waiting.
-            if (this.stickyTimeout) {
-                if (this.moveEdge)
-                    this.drawable.setSelected(this.moveEdge.drawable);
-                else if (this.dragObject)
-                    this.drawable.setSelected(this.dragObject.drawable);
-                else
-                    this.drawable.clearSelection();
-            }
-
             // Finish selecting elements if nothing is being dragged.
-            else if (!this.dragObject) {
+            if (!this.dragObject) {
                 this.updateSelectionBox(pt);
                 this.drawable
                     .setSelected(...[...this.selected].map(v => v.drawable));
             }
 
             // Drop the edge if one is being dragged.
-            else if (this.dragObject && this.dragObject.isHidden) {
+            else if (this.dragObject.isHidden) {
                 this.dropEdge(pt);
             }
 
             // Drop the node if one is being dragged.
-            else if (this.dragObject) {
+            else {
                 this.dropNodes(
                     this.dragObject,
                     MathEx.diff(this.dragPoint, pt)
@@ -535,7 +501,6 @@ export class EditorGraph {
             this.hoverObject.isDragging = true;
             this.moveEdge = this.hoverObject;
             this.updateHoverObject();
-            this.draw();
         }
 
         // Clear the drag object if the hover object is not a node or edge.
@@ -886,10 +851,6 @@ export class EditorGraph {
      *   Resets input states.
      */
     private resetState() {
-        if (this.stickyTimeout) {
-            clearTimeout(this.stickyTimeout as NodeJS.Timer);
-            this.stickyTimeout = null;
-        }
         this._drawSelectionBox = MathEx.NOOP;
         this.dragPoint = null;
         this.selectionPoint = null;
@@ -979,33 +940,6 @@ export class EditorGraph {
             this.unselected.add(e);
         }
         this.draw();
-    }
-
-    /**
-     * `onSticky`
-     *
-     *   Delayed drag event for creating nodes.
-     */
-    private onSticky
-    = (): void => {
-        // Create a new node and reset sticky.
-        if (this.dragPoint) {
-            this.suspendDraw();
-            clearTimeout(this.stickyTimeout as NodeJS.Timer);
-            this.stickyTimeout = null;
-
-            // Create a new node and set it as the drag object.
-            const drawable = this.drawable.createNode();
-            this.dragObject = drawable ?
-                this.drawables.get(drawable)! as EditorNode :
-                null;
-            if (this.dragObject) {
-                this.drawable.clearSelection();
-                this.dragObject.position = this.dragPoint;
-                this.dragObject.isDragging = true;
-            }
-            this.resumeDraw();
-        }
     }
 
 }
