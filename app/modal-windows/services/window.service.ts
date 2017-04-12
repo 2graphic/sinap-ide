@@ -11,16 +11,28 @@ import { ModalInfo, ModalService, ModalType } from './../../models/modal-window'
 @Injectable()
 export class WindowService implements ModalService {
     private callbacks = new Map<Number, (data: any) => void>();
-    public windowInfo?: ModalInfo; // Main window will be null
+    private _windowDelegate?: WindowDelegate;
+
+    public set windowDelegate(delegate: WindowDelegate | undefined) {
+        this._windowDelegate = delegate;
+
+        if (this._windowDelegate && this.queuedWindow) {
+            this._windowDelegate.newWindow(this.queuedWindow);
+            this.queuedWindow = undefined;
+        }
+    }
+
+    private queuedWindow?: ModalInfo;
 
     constructor(private _ngZone: NgZone) {
         ipcRenderer.on("windowResult", (event, arg) => this.callback(arg as ModalInfo));
-
-        // TODO: sending synchronous IPC here could be a bad idea, a better idea would be to send it async and store windowInfo as a Promise
-        const r = ipcRenderer.sendSync("getWindowInfo", remote.getCurrentWindow().id);
-        if (r) {
-            this.windowInfo = r;
-        }
+        ipcRenderer.on("newWindow", (event, arg) => {
+            if (this._windowDelegate) {
+                this._windowDelegate.newWindow(arg as ModalInfo);
+            } else {
+                this.queuedWindow = arg as ModalInfo;
+            }
+        });
     }
 
     public createModal(selector: string, type: ModalType, data?: any): [ModalInfo, Promise<any>] {
@@ -36,19 +48,8 @@ export class WindowService implements ModalService {
      * data can be null, and if so the Promise isn't resolved.
      */
     public closeModal(modal: ModalInfo, data?: any) {
-        if (modal) {
-            modal.data = data;
-            ipcRenderer.send('windowResult', modal);
-        }
-    }
-
-    /**
-     * Closes the currently open window (wrapper for closeModal)
-     */
-    public closeWindow(data?: any) {
-        if (this.windowInfo) {
-            this.closeModal(this.windowInfo, data);
-        }
+        modal.data = data;
+        ipcRenderer.send('windowResult', modal);
     }
 
     /**
@@ -67,4 +68,8 @@ export class WindowService implements ModalService {
             });
         }
     }
+}
+
+export interface WindowDelegate {
+    newWindow: (info: ModalInfo) => void;
 }

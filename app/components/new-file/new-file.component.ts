@@ -3,7 +3,7 @@
 // Date created: January 17, 2017
 
 
-import { Component, Input, ViewChild, AfterViewInit, ChangeDetectorRef, ViewChildren, QueryList } from "@angular/core";
+import { Component, Input, ViewChild, AfterViewInit, ChangeDetectorRef, ViewChildren, QueryList, ElementRef } from "@angular/core";
 import { WindowService } from "./../../modal-windows/services/window.service";
 import { CollapsibleListComponent } from "./../../components/collapsible-list/collapsible-list.component";
 import { ModalInfo, ModalComponent } from "./../../models/modal-window";
@@ -22,7 +22,12 @@ export class NewFileResult {
     providers: [WindowService]
 })
 export class NewFileComponent implements ModalComponent, AfterViewInit {
+    private _modalInfo: ModalInfo;
+    private filename: string = "";
     set modalInfo(modalInfo: ModalInfo) {
+        this._modalInfo = modalInfo;
+        this.filename = "";
+
         const plugins: PluginInfo[] = modalInfo.data;
         // This code is extremely evil but necessary.
         for (const plugin of plugins) {
@@ -45,6 +50,7 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
     private selectedPlugin: PluginInfo;
     private width = 175;
     @ViewChild(CollapsibleListComponent) firstList: CollapsibleListComponent;
+    @ViewChild('filenameInput') filenameInput: ElementRef;
     @ViewChildren(CollapsibleListComponent) lists: QueryList<CollapsibleListComponent>;
 
     constructor(private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) { };
@@ -54,6 +60,9 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
             this.firstList.selectedIndex = 0;
             this.selectedPlugin = this.firstList.items[this.firstList.selectedIndex];
             this.changeDetectorRef.detectChanges();
+            if (this.filenameInput) {
+                this.filenameInput.nativeElement.focus();
+            }
         }
     }
 
@@ -74,13 +83,11 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
     }
 
     public createNewFile(filename: string) {
-        if (filename) {
-            this.windowService.closeWindow(new NewFileResult(filename, this.selectedPlugin.pluginKind));
-        }
+        this.windowService.closeModal(this._modalInfo, new NewFileResult(filename, this.selectedPlugin.pluginKind));
     }
 
     public cancel() {
-        this.windowService.closeWindow();
+        this.windowService.closeModal(this._modalInfo);
     }
 }
 

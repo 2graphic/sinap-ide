@@ -26,7 +26,8 @@ app.setName('Sinap');
  *   Keeps track of the main window so it does not accidentally get garbage
  *   collected while it is still being used.
  */
-let win: Electron.BrowserWindow | null;
+let win: Electron.BrowserWindow | undefined;
+let modalWindow: Electron.BrowserWindow | undefined;
 
 /**
  * createWindow
@@ -42,10 +43,37 @@ function createWindow() {
         show: false
     });
 
+
+
+    modalWindow = new BrowserWindow({
+        parent: win,
+        modal: true,
+        width: 600,
+        height: 450,
+        center: true,
+        resizable: true,
+        show: false
+    });
+
+    if (!IS_DEBUG) {
+        modalWindow.setMenu(null as any);
+    }
+
+    modalWindow.on('close', (e) => {
+        console.log("Trying to close here...");
+        modalWindow!.hide();
+        e.preventDefault();
+    });
+
+
+    modalWindow.loadURL(`file://${__dirname}/modal.html`);
     win.loadURL(`file://${__dirname}/index.html`);
 
     win.on("closed", () => {
-        win = null;
+        win = undefined;
+        if (modalWindow) {
+            modalWindow.destroy();
+        }
     });
 
     win.once("ready-to-show", () => {
@@ -69,13 +97,29 @@ app.on("window-all-closed", () => {
     app.quit();
 });
 
+/**
+ * Log the error and quit the app. (App is unresposive at this point.)
+ */
+process.on('uncaughtException', (e: Error) => {
+    console.log(e);
+    app.exit();
+});
+
+ipcMain.on('closeFocused', (event) => {
+    const focused = BrowserWindow.getFocusedWindow();
+    if (focused) {
+        if (focused === modalWindow) {
+            focused.hide();
+        } else {
+            focused.close();
+        }
+    }
+});
 
 
 
 /** Managing Additional Windows **/
 // TODO: probs should split this into it's own file.
-
-let childWindows = new Map<Number, [Electron.BrowserWindow, ModalInfo]>();
 
 ipcMain.on('createWindow', (event, selector, type, data) => {
     if (win) {
@@ -88,50 +132,22 @@ ipcMain.on('windowResult', (event, arg: ModalInfo) => {
         win.webContents.send('windowResult', arg);
     }
 
-    let window = childWindows.get(arg.id);
-    if (window) {
-        window[0].close();
+    if (modalWindow) {
+        modalWindow.hide();
     }
 });
 
-ipcMain.on('getWindowInfo', (event, arg: Number) => {
-    let window = childWindows.get(arg);
-    event.returnValue = window ? window[1] : null;
-});
-
 function createNewWindow(selector: string, type: ModalType, data: any): ModalInfo {
-    if (win) {
-        let newWindow = new BrowserWindow({
-            parent: win,
-            modal: (type === ModalType.MODAL),
-            width: 600,
-            height: 450,
-            center: true,
-            resizable: true,
-            show: false
-        });
-
+    if (win && modalWindow) {
         let info: ModalInfo = {
-            id: newWindow.id,
+            id: modalWindow.id,
             selector: selector,
             type: type,
             data: data
         };
 
-        if (!IS_DEBUG) {
-            newWindow.setMenu(null as any);
-        }
-        childWindows.set(info.id, [newWindow, info]);
-
-        newWindow.loadURL(`file://${__dirname}/modal.html`);
-
-        newWindow.on("closed", () => {
-            childWindows.delete(info.id);
-        });
-
-        newWindow.once("ready-to-show", () => {
-            newWindow.show();
-        });
+        modalWindow.webContents.send("newWindow", info);
+        modalWindow.show();
 
         return info;
     }
