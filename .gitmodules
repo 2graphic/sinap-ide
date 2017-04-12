@@ -1,12 +1,12 @@
 [submodule "plugins/nfa"]
 	path = plugins/nfa
-	url = git@github.com:2graphic/nfa-plugin.git
+	url = https://github.com/2graphic/nfa-plugin.git
 [submodule "plugins/turing-machine"]
 	path = plugins/turing-machine
-	url = git@github.com:2graphic/turing-machine-plugin.git
+	url = https://github.com/2graphic/turing-machine-plugin.git
 [submodule "plugins/circuits"]
 	path = plugins/circuits
-	url = git@github.com:2graphic/circuits-plugin.git
+	url = https://github.com/2graphic/circuits-plugin.git
 [submodule "plugins/dfa"]
 	path = plugins/dfa
-	url = git@github.com:2graphic/dfa-plugin.git
+	url = https://github.com/2graphic/dfa-plugin.git

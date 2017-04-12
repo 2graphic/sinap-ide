@@ -838,7 +838,7 @@ export class EditorGraph {
                 this.drawables.get(node)!.update(this.g);
                 this.draw();
             };
-            img.src = path.join(PLUGIN_DIRECTORY, node.image);
+            img.src = node.image;
         }
         else if (IMAGES.has(node.image)) {
             this.drawables.get(node)!.update(this.g);
