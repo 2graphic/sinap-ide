@@ -95,9 +95,7 @@ export class MenuService {
                 return makeAction("delete");
             case MenuEventAction.CLOSE:
                 if (process.platform === 'darwin') {
-                    return () => {
-                        ipcRenderer.send("closeFocused");
-                    };
+                    return remote.BrowserWindow.getFocusedWindow().close;
                 } else {
                     break;
                 }

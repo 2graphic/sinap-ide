@@ -79,13 +79,6 @@ process.on('uncaughtException', (e: Error) => {
     app.exit();
 });
 
-ipcMain.on('closeFocused', (event) => {
-    const focused = BrowserWindow.getFocusedWindow();
-    if (focused) {
-        focused.close();
-    }
-});
-
 
 
 /** Managing Additional Windows **/
