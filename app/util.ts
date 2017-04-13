@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { NodePromise, readdir } from "sinap-core";
-import { SINAP_FILE_FILTER } from "./constants";
+import { SINAP_FILE_FILTER, ZIP_FILE_FILTER } from "./constants";
 import * as zlib from "zlib";
 
 import { remote } from "electron";
@@ -11,9 +11,10 @@ import { ncp } from "ncp";
 import * as archiver from "archiver";
 import * as tmp from "tmp";
 import * as extract from "extract-zip";
+import * as rimraf from "rimraf";
 
 // Similar to Promise.all. However, this will always resolve and ignore rejected promises.
-export function somePromises<T>(promises: Iterable<Promise<T>>): Promise<T[]> {
+export function somePromises<T>(promises: Iterable<Promise<T>>, logger: Logger): Promise<T[]> {
     let result: Promise<T[]> = Promise.resolve([]);
 
     for (const promise of promises) {
@@ -22,7 +23,7 @@ export function somePromises<T>(promises: Iterable<Promise<T>>): Promise<T[]> {
                 arr.push(ele);
                 return arr;
             }).catch((err) => {
-                console.log(err);
+                logger.log(err);
                 return arr;
             });
         });
@@ -55,27 +56,39 @@ export function subdirs(dir: string): Promise<string[]> {
 }
 
 // Only returns file names.
-export function dirFiles(dir: string): Promise<string[]> {
-    return readdir(dir).then(names => promFilter(names, name => fileStat(name).then(stats => stats.isFile())));
+export async function dirFiles(dir: string): Promise<string[]> {
+    return readdir(dir).then(names => promFilter(names, name => 
+        fileStat(path.join(dir, name)).then(stats => stats.isFile())));
 }
 
-export function requestSaveFile(name?: string): Promise<string> {
+export function requestSaveFile(name?: string, filters = SINAP_FILE_FILTER): Promise<string> {
     const result = new NodePromise<string>();
     dialog.showSaveDialog(remote.BrowserWindow.getFocusedWindow(), {
         defaultPath: name,
-        filters: SINAP_FILE_FILTER
+        filters: filters
     }, name => result.cb(name ? null : "File selection cancelled", name));
     return result.promise;
 }
 
-export function requestFiles(name?: string): Promise<string[]> {
+export function requestFiles(name?: string, filters = SINAP_FILE_FILTER): Promise<string[]> {
     const result = new NodePromise<string[]>();
     dialog.showOpenDialog(remote.BrowserWindow.getFocusedWindow(), {
         properties: ["openFile", "multiSelections"],
-        filters: SINAP_FILE_FILTER,
+        filters: filters,
         defaultPath: name
     }, names => result.cb(names ? null : "File selection cancelled", names));
     return result.promise;
+}
+
+export async function requestOpenDirs(name?: string): Promise<string[]> {
+    const result = new NodePromise<string[]>();
+    dialog.showOpenDialog(remote.BrowserWindow.getFocusedWindow(), {
+        properties: ["openDirectory"],
+        filters: [ZIP_FILE_FILTER],
+        defaultPath: name
+    }, names => result.cb(names ? null : "Directory selection cancelled", names));
+
+    return await result.promise;
 }
 
 export function copy(src: string, dest: string): Promise<any> {
@@ -112,12 +125,11 @@ export interface Closeable {
 }
 
 export class TempDir implements Closeable {
-    constructor(public readonly path: string, private cleanup: () => void) {
+    constructor(public readonly path: string) {
     }
 
-    close(): Promise<any> {
-        this.cleanup();
-        return Promise.resolve();
+    close(): Promise<void> {
+        return removeDir(this.path);
     }
 }
 
@@ -127,6 +139,115 @@ export function closeAfter(prom: Promise<any>, toClose: Closeable) {
 
 export function tempDir(): Promise<TempDir> {
     const result = new NodePromise<TempDir>();
-    tmp.dir((err, path, cleanup) => result.cb(err, new TempDir(path, cleanup)));
+    tmp.dir((err, path) => result.cb(err, new TempDir(path)));
     return result.promise;
+}
+
+export class Logger {
+    constructor(public readonly domain: string) {
+    }
+
+    createMessage(original?: string) {
+        return `${this.domain}: ${original}`;
+    }
+
+    assert(value: any, message?: any, ...args: any[]): void {
+        console.assert(value, this.createMessage(message), ...args);
+    }
+
+    dir(obj: any) {
+        console.log({
+            logger: this.domain,
+            data: obj
+        });
+    }
+
+    error(data?: any, ...args: any[]): void {
+        console.error(this.createMessage(data), ...args);
+    }
+
+    info(data?: any, ...args: any[]): void {
+        console.info(this.createMessage(data), ...args);
+    }
+
+    log(data?: any, ...args: any[]): void {
+        console.log(this.createMessage(data), ...args);
+    }
+
+    private timeLabel(label: string): string {
+        return `${this.domain}.${label}`;
+    }
+
+    time(label: string): void {
+        console.time(this.timeLabel(label));
+    }
+
+    timeEnd(label: string): void {
+        console.timeEnd(this.timeLabel(label));
+    }
+
+    trace(message?: any, ...args: any[]): void {
+        console.trace(this.createMessage(message), ...args);
+    }
+
+    warn(data?: any, ...args: any[]): void {
+        console.warn(this.createMessage(data), ...args);
+    }
+}
+
+export class NullLogger extends Logger {
+    assert(value: any, message?: any, ...args: any[]): void {
+        console.assert(value, this.createMessage(message), ...args);
+    }
+
+    dir(obj: any) {
+        console.log({
+            logger: this.domain,
+            data: obj
+        });
+    }
+
+    error(data?: any, ...args: any[]): void {
+        console.error(this.createMessage(data), ...args);
+    }
+
+    info(data?: any, ...args: any[]): void {
+        console.info(this.createMessage(data), ...args);
+    }
+
+    log(data?: any, ...args: any[]): void {
+        console.log(this.createMessage(data), ...args);
+    }
+
+    time(label: string): void {
+    }
+
+    timeEnd(label: string): void {
+    }
+
+    trace(message?: any, ...args: any[]): void {
+    }
+
+    warn(data?: any, ...args: any[]): void {
+    }
+}
+
+// This exists so that we can have different loggers/disabled loggers.
+const LOGGER_MAP = new Map<string, Logger>();
+LOGGER_MAP.set("null", new NullLogger("null"));
+export function getLogger(domain: string): Logger {
+    let result = LOGGER_MAP.get(domain);
+    if (!result) {
+        LOGGER_MAP.set(domain, new Logger(domain));
+    }
+    return LOGGER_MAP.get(domain)!;
+}
+
+export function removeDir(dir: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        rimraf(dir, (err) => {
+            if (err) reject(err);
+            else resolve();
+        });
+    });
 }

@@ -252,6 +252,10 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         };
     }
 
+    async launchPluginManager() {
+        await this.windowService.createModal("plugin-manager", ModalType.MODAL);
+    }
+
     promptNewFile() {
         this.pluginService.pluginData.then((pluginData) => {
             let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginData);
@@ -442,6 +446,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                     this._context.redo();
                     e.preventDefault();
                 }
+                break;
+            case MenuEventAction.MANAGE_PLUGINS:
+                this.launchPluginManager();
                 break;
         }
     }

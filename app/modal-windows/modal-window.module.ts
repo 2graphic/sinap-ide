@@ -13,6 +13,8 @@ import { FormsModule } from '@angular/forms';
 import { NewFileComponent } from './../components/new-file/new-file.component';
 import { CollapsibleListComponent } from './../components/collapsible-list/collapsible-list.component';
 import { DynamicComponent } from './components/dynamic-component/dynamic-component.component';
+import { PluginManager } from "../components/plugin-manager/plugin-manager";
+import { PluginService } from "../services/plugin.service";
 
 @NgModule({
     imports: [
@@ -23,9 +25,12 @@ import { DynamicComponent } from './components/dynamic-component/dynamic-compone
         NewFileComponent,
         CollapsibleListComponent,
         DynamicComponent,
+        PluginManager
+
     ],
     providers: [
-        Title
+        Title,
+        PluginService
     ],
     bootstrap: [DynamicComponent]
 })

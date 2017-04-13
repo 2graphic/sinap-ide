@@ -10,13 +10,14 @@ import { WindowService } from './../../services/window.service';
 import { ModalComponent } from "./../../../models/modal-window";
 
 import { NewFileComponent } from './../../../components/new-file/new-file.component'; // TODO, shorter way to do this...?
+import { PluginManager } from "../../../components/plugin-manager/plugin-manager";
 
 /**
  * This component loads one of the components specified in componentMap depending on ModalInfo.kind for this window.
  */
 @Component({
     selector: 'sinap-dynamic-component',
-    entryComponents: [NewFileComponent],
+    entryComponents: [NewFileComponent, PluginManager],
     template: `<div #container></div>`,
     providers: [WindowService]
 })
@@ -38,6 +39,9 @@ export class DynamicComponent {
     constructor(private resolver: ComponentFactoryResolver, private titleService: Title, private windowService: WindowService) { }
 
     ngAfterViewInit() {
+        this.componentMap = new Map<string, [string, Type<ModalComponent>]>();
+        this.componentMap.set("sinap-new-file", ["New File", NewFileComponent]);
+        this.componentMap.set("plugin-manager", ["Manage Plugins", PluginManager]);
         const windowInfo = this.windowService.windowInfo;
         if (windowInfo) {
             const componentInfo = this.componentMap.get(windowInfo.selector);

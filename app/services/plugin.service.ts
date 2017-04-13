@@ -1,10 +1,13 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { Plugin, Program, getInterpreterInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
-import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter } from "../util";
+import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter, getLogger, dirFiles, removeDir } from "../util";
 import * as path from "path";
-import { app } from "electron";
+import { remote } from "electron";
 import { IS_PRODUCTION } from "../constants";
+
+const app = remote.app;
+const LOG = getLogger("plugin.service");
 
 export class PluginData {
     constructor(readonly path: string[], readonly description: string) {
@@ -43,8 +46,8 @@ export class PluginService {
 
     constructor() {
         this.plugins = subdirs(PLUGIN_DIRECTORY)
-            .then(dirs => somePromises(dirs.map(getInterpreterInfo)))
-            .then(infos => somePromises(infos.map(info => this.loader.load(info.interpreterInfo))));
+            .then(dirs => somePromises(dirs.map(getInterpreterInfo), LOG))
+            .then(infos => somePromises(infos.map(info => this.loader.load(info.interpreterInfo)), LOG));
     }
 
     public getPluginByKind(kind: string[]): Promise<Plugin> {
@@ -74,21 +77,16 @@ export class PluginService {
         });
     }
 
-    public importPlugins(dir: string): Promise<{}> {
+    public async importPlugin(dir: string): Promise<void> {
         // Recursively progress through directories until we get interpreter info.
-        return fileStat(dir).then((stats): Promise<{}> => {
-            if (stats.isFile()) {
-                return tempDir().then(temp => {
-                    const result = unzip(dir, temp.path).then(_ => this.importPlugins(temp.path));
-                    closeAfter(result, temp);
-                    return result;
-                });
-            } else {
-                return getInterpreterInfo(dir)
-                    .then(_ => copy(dir, PLUGIN_DIRECTORY))
-                    .catch(_ => subdirs(dir).then(dirs => somePromises(dirs.map(otherDir => this.importPlugins(otherDir)))));
-            }
-        });
+        const dest = path.join(PLUGIN_DIRECTORY, path.basename(dir));
+        LOG.log(`Importing plugins from ${dir} to ${dest}.`);
+        return await copy(dir, dest);
+    }
+
+    public async removePlugin(plugin: Plugin): Promise<void> {
+        LOG.info(`Removing the ${path.basename(plugin.pluginInfo.directory)} plugin.`);
+        await removeDir(plugin.pluginInfo.directory);
     }
 
     public exportPlugins(dest: string): Promise<void> {
