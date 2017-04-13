@@ -27,7 +27,6 @@ app.setName('Sinap');
  *   collected while it is still being used.
  */
 let win: Electron.BrowserWindow | undefined;
-let modalWindow: Electron.BrowserWindow | undefined;
 
 /**
  * createWindow
@@ -43,37 +42,11 @@ function createWindow() {
         show: false
     });
 
-
-
-    modalWindow = new BrowserWindow({
-        parent: win,
-        modal: true,
-        width: 600,
-        height: 450,
-        center: true,
-        resizable: true,
-        show: false
-    });
-
-    if (!IS_DEBUG) {
-        modalWindow.setMenu(null as any);
-    }
-
-    modalWindow.on('close', (e) => {
-        console.log("Trying to close here...");
-        modalWindow!.hide();
-        e.preventDefault();
-    });
-
-
-    modalWindow.loadURL(`file://${__dirname}/modal.html`);
     win.loadURL(`file://${__dirname}/index.html`);
 
     win.on("closed", () => {
         win = undefined;
-        if (modalWindow) {
-            modalWindow.destroy();
-        }
+        app.quit();
     });
 
     win.once("ready-to-show", () => {
@@ -87,6 +60,7 @@ function createWindow() {
 //
 app.on("ready", () => {
     createWindow();
+    bufferModalWindow();
 });
 
 
@@ -108,11 +82,7 @@ process.on('uncaughtException', (e: Error) => {
 ipcMain.on('closeFocused', (event) => {
     const focused = BrowserWindow.getFocusedWindow();
     if (focused) {
-        if (focused === modalWindow) {
-            focused.hide();
-        } else {
-            focused.close();
-        }
+        focused.close();
     }
 });
 
@@ -120,6 +90,30 @@ ipcMain.on('closeFocused', (event) => {
 
 /** Managing Additional Windows **/
 // TODO: probs should split this into it's own file.
+
+let nextModal: Electron.BrowserWindow | undefined;
+
+function bufferModalWindow() {
+    const r = nextModal;
+
+    nextModal = new BrowserWindow({
+        parent: win,
+        modal: true,
+        width: 600,
+        height: 450,
+        center: true,
+        resizable: true,
+        show: false
+    });
+
+    if (!IS_DEBUG) {
+        nextModal.setMenu(null as any);
+    }
+
+    nextModal.loadURL(`file://${__dirname}/modal.html`);
+
+    return r;
+}
 
 ipcMain.on('createWindow', (event, selector, type, data) => {
     if (win) {
@@ -132,12 +126,15 @@ ipcMain.on('windowResult', (event, arg: ModalInfo) => {
         win.webContents.send('windowResult', arg);
     }
 
+    const modalWindow = BrowserWindow.fromId(arg.id);
+
     if (modalWindow) {
-        modalWindow.hide();
+        modalWindow.close();
     }
 });
 
 function createNewWindow(selector: string, type: ModalType, data: any): ModalInfo {
+    const modalWindow = bufferModalWindow();
     if (win && modalWindow) {
         let info: ModalInfo = {
             id: modalWindow.id,
@@ -147,7 +144,6 @@ function createNewWindow(selector: string, type: ModalType, data: any): ModalInf
         };
 
         modalWindow.webContents.send("newWindow", info);
-        modalWindow.show();
 
         return info;
     }

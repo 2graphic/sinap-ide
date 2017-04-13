@@ -64,6 +64,10 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
                 this.filenameInput.nativeElement.focus();
             }
         }
+
+        setTimeout(() => {
+            this.windowService.showWindow(this._modalInfo.id);
+        }, 30); // TODO: Figure out how to reliably tell when the component has rendered.
     }
 
     private resizing(evt: ResizeEvent) {

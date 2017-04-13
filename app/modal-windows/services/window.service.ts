@@ -52,6 +52,13 @@ export class WindowService implements ModalService {
         ipcRenderer.send('windowResult', modal);
     }
 
+    public showWindow(id: number) {
+        const w = remote.BrowserWindow.fromId(id);
+        if (w) {
+            w.show();
+        }
+    }
+
     /**
      * A helper function for resolving the promises.
      */
