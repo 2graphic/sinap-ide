@@ -1,7 +1,7 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { Plugin, Program, getInterpreterInfo } from "sinap-core";
+import { Plugin, Program, getInterpreterInfo, PluginInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
-import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter, getLogger, dirFiles, removeDir } from "../util";
+import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter, getLogger, dirFiles, removeDir, arrayEquals } from "../util";
 import * as path from "path";
 import { remote } from "electron";
 import { IS_PRODUCTION } from "../constants";
@@ -9,71 +9,41 @@ import { IS_PRODUCTION } from "../constants";
 const app = remote.app;
 const LOG = getLogger("plugin.service");
 
-export class PluginData {
-    constructor(readonly path: string[], readonly description: string) {
-    }
-    get name(): string {
-        return this.path[this.path.length - 1];
-    }
-    get group(): string {
-        return this.path[this.path.length - 2];
-    }
-    toString() {
-        return this.name;
-    }
-}
-
-function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
-    if (arr1.length !== arr2.length) {
-        return false;
-    }
-
-    for (let i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
 
 export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app", "plugins") : "./plugins";
+export const ROOT_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app") : ".";
 
 @Injectable()
 export class PluginService {
     readonly plugins: Promise<Plugin[]>;
-    private loader = new TypescriptPluginLoader();
+    private loader: TypescriptPluginLoader = new TypescriptPluginLoader(ROOT_DIRECTORY);
 
     constructor() {
-        this.plugins = subdirs(PLUGIN_DIRECTORY)
+        this.plugins = this.loadPlugins();
+    }
+
+    private loadPlugins() {
+        return subdirs(PLUGIN_DIRECTORY)
             .then(dirs => somePromises(dirs.map(getInterpreterInfo), LOG))
-            .then(infos => somePromises(infos.map(info => this.loader.load(info.interpreterInfo)), LOG));
+            .then(infos => somePromises(infos.map(info => this.loader.load(info)), LOG));
     }
 
-    public getPluginByKind(kind: string[]): Promise<Plugin> {
-        return this.plugins.then((plugins) => {
-            // TODO
-            // const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginKind));
-            // const pluginName = JSON.stringify(kind);
-            // if (matches.length === 0) {
-            //     throw new Error(`Could not find a plugin with kind ${pluginName}`);
-            // } else if (matches.length > 1) {
-            //     throw new Error(`Found multiple plugins matching kind ${pluginName}`);
-            // } else {
-            //     return matches[0];
-            // }
-
-            if (plugins.length === 0) {
-                throw new Error("Oops no plugins");
-            }
-
-            return plugins[0];
-        });
+    public async getPluginByKind(kind: string[]): Promise<Plugin> {
+        const plugins = await this.plugins;
+        const matches = plugins.filter((plugin) => arrayEquals(kind, plugin.pluginInfo.pluginKind));
+        const pluginName = JSON.stringify(kind);
+        if (matches.length === 0) {
+            throw new Error(`Could not find a plugin with kind ${pluginName}`);
+        } else if (matches.length > 1) {
+            throw new Error(`Found multiple plugins matching kind ${pluginName}`);
+        } else {
+            return matches[0];
+        }
     }
 
-    public get pluginData(): Promise<PluginData[]> {
+    public get pluginData(): Promise<PluginInfo[]> {
         return this.plugins.then((plugins) => {
-            return plugins.map((plugin) => new PluginData(["FLAP", "DFA"], "Hardcoded"));
+            return plugins.map((plugin) => plugin.pluginInfo);
         });
     }
 
@@ -85,8 +55,8 @@ export class PluginService {
     }
 
     public async removePlugin(plugin: Plugin): Promise<void> {
-        LOG.info(`Removing the ${path.basename(plugin.pluginInfo.directory)} plugin.`);
-        await removeDir(plugin.pluginInfo.directory);
+        LOG.info(`Removing the ${plugin.pluginInfo.pluginKind.join(".")} plugin.`);
+        await removeDir(plugin.pluginInfo.interpreterInfo.directory);
     }
 
     public exportPlugins(dest: string): Promise<void> {

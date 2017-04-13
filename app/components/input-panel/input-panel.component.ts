@@ -95,7 +95,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
             const plugin = ((this._data.program as any).plugin as Plugin);
             const type = plugin.types.arguments[0];
 
-            this._data.inputForPlugin = this._data.program.environment.make(type);
+            this._data.inputForPlugin = this._data.program.model.environment.make(type);
         }
     }
 
@@ -142,37 +142,40 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         g();
     }
 
-    private onSubmit(input: Value.Value) {
-        const output = this.run(input);
+    private async onSubmit(input: Value.Value) {
+        const output = await this.run(input);
+        const states = output.steps.map(s => new State(s));
+        const result = new ProgramResult(input, new Output(states, output.result));
 
-        if (output && output.result) {
-            const states = output.steps.map(s => new State(s));
-            const result = new ProgramResult(input, new Output(states, output.result));
+        console.log(result);
 
-            console.log(result);
+        this._data.selected = result;
+        this._data.results.unshift(result);
 
-            this._data.selected = result;
-            this._data.results.unshift(result);
-
-            if (result.output.states.length > 0) {
-                this._data.selectedState = result.output.states[0];
-                result.steps++;
-                this.selectState(result.output.states[0]);
-            }
-
-            this.setupInput();
-            this.scrollToBottom();
-        } else {
-            // TODO
+        if (result.output.states.length > 0) {
+            this._data.selectedState = result.output.states[0];
+            result.steps++;
+            this.selectState(result.output.states[0]);
         }
+
+        this.setupInput();
+        this.scrollToBottom();
     }
 
-    private run(input: Value.Value) {
+    private async run(input: Value.Value) {
         if (this._data.program) {
-            return this._data.program.run([input]);
+            const output = await this._data.program.run([input]);
+            if (output.result) {
+                return {
+                    result: output.result,
+                    steps: output.steps
+                };
+            } else {
+                // TODO:
+                throw new Error("Daniel should fix this 1");
+            }
         }
-
-        return undefined;
+        throw new Error("Daniel should fix this 2");
     }
 }
 

@@ -7,6 +7,8 @@ const mainConfig = require("./webpack.config.js");
 const fs = require("fs");
 const process = require("process");
 const path = require("path");
+const zipFolder = require('zip-folder');
+const glob = require("glob");
 
 ncp.limit = 16;
 
@@ -66,13 +68,6 @@ function moveTsFiles(buildLoc) {
     });
 }
 
-function afterExtract(buildPath, elecVersion, platform, arch, done) {
-    moveTsFiles(buildPath).then(() => done()).catch((err) => {
-        console.log(err);
-        done();
-    });
-}
-
 function main() {
     const args = process.argv;
     let packageOpts = {
@@ -82,8 +77,7 @@ function main() {
         overwrite: true,
         icon: "./app/images/icons/icon",
         prune: false,
-        name: "Sinap",
-        afterExtract: [afterExtract]
+        name: "Sinap"
     };
     if (args.length > 2) {
         packageOpts.platform = args[2];
@@ -94,7 +88,10 @@ function main() {
     const cleanBuild = deleteDir("./build").then(() => {createDir("./build")});
     const cleanDll = deleteDir("./dll");
     const cleanDist = deleteDir("./dist");
-    const copyStuff = cleanBuild.then(() => Promise.all([copyProm("./package.json", "./build/package.json"), copyProm("./plugins", "./build/plugins")]));
+    const copyStuff = cleanBuild.then(() => Promise.all([
+        copyProm("./app/package.json", "./build/package.json"),
+        copyProm("./plugins", "./build/plugins"),
+        moveTsFiles("./build")]));
 
     const buildDll = cleanDll.then(() => webpackProm(dllConfig));
     let env = {
@@ -108,8 +105,17 @@ function main() {
 
     const mainBuild = Promise.all([cleanBuild, buildDll]).then(() => webpackProm(mainConfig(env)));
     mainBuild.then(() => runPackage(packageOpts)).then(() => {
-        deleteDir("./build");
-        deleteDir("./dll");
+        glob("dist/*", function(er, files){
+            for (const dir of files) {
+                zipFolder(dir, dir + '.zip', (err) => {
+                    if (err) {
+                        console.log("failed to make archive", dir)
+                    } else {
+                        console.log("finished", dir)
+                    }
+                })
+            }
+        });
     });
 }
 

@@ -32,6 +32,26 @@ export function somePromises<T>(promises: Iterable<Promise<T>>, logger: Logger):
     return result;
 }
 
+export function getPath(name: string) {
+    return path.normalize("/" + path.relative("/", name));
+}
+
+export function compareFiles(file1: string, file2: string) {
+    return getPath(file1) === getPath(file2);
+}
+
+export function writeData(file: string, data: string) {
+    return new Promise((resolve, reject) => {
+        fs.writeFile(file, data, (err: any) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
 export function fileStat(name: string): Promise<fs.Stats> {
     const result = new NodePromise<fs.Stats>();
     fs.stat(name, result.cb);
@@ -57,7 +77,7 @@ export function subdirs(dir: string): Promise<string[]> {
 
 // Only returns file names.
 export async function dirFiles(dir: string): Promise<string[]> {
-    return readdir(dir).then(names => promFilter(names, name => 
+    return readdir(dir).then(names => promFilter(names, name =>
         fileStat(path.join(dir, name)).then(stats => stats.isFile())));
 }
 
@@ -250,4 +270,18 @@ export function removeDir(dir: string): Promise<void> {
             else resolve();
         });
     });
+}
+
+export function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
+    if (arr1.length !== arr2.length) {
+        return false;
+    }
+
+    for (let i = 0; i < arr1.length; i++) {
+        if (arr1[i] !== arr2[i]) {
+            return false;
+        }
+    }
+
+    return true;
 }

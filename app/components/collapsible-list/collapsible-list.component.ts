@@ -21,7 +21,7 @@ import { Component, Input, Output, EventEmitter } from "@angular/core";
 })
 export class CollapsibleListComponent {
 
-    private _isExpanded: boolean = true;
+    public isExpanded: boolean = true;
     public selectedIndex: number = -1;
 
     @Input()
@@ -35,14 +35,6 @@ export class CollapsibleListComponent {
 
     @Output()
     selectedIndexChanged = new EventEmitter<CollapsibleListComponent>();
-
-    get isExpanded() {
-        return this._isExpanded;
-    }
-
-    set isExpanded(value: boolean) {
-        this._isExpanded = value;
-    }
 
     private toggleList() {
         this.isExpanded = !this.isExpanded;

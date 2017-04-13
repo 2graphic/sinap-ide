@@ -1,27 +1,19 @@
 @import "../../styles/side-panel";
+@import "../../styles/constants";
 
-.text {
-    background-color: #CCCCCC;
-    font-size: normal;
-    font-weight: 500;
-    padding: .25em;
+#wrapper {
+    height: 100%;
+    width: 100%;
 }
 
-.toggle {
-    text-align: center;
-    vertical-align: middle;
-    font-size: .45em;
-    width: 1.25em;
-    display: inline-block;
-}
-
-.label {
-    display: inline-block;
+ul {
+    @extend %rounded;
+    padding: 0;
+    overflow:hidden;
 }
 
 li {
     padding: .25em .15em;
-    padding-left: 1.75em;
     font-weight: normal;
     font-size: small;
 
@@ -33,5 +25,71 @@ li {
 }
 
 li:hover, .active {
-    background-color: #D3D3D3;
+    background-color: #EDEDED;
+}
+
+.expand-chevron-before {
+    border-right: thin solid lightgrey;
+}
+
+.expand-chevron-right {
+    width: 1px;
+    transform: scale(1.2);
+}
+
+.expand-chevron-down {
+    width: 1px;
+    background-color: aliceblue;
+    transform: scaleY(1.2) translateY(2px);
+    border: none;
+
+    span {
+        transform: rotate(90deg);
+    }
+}
+
+.chevron {
+    display: inline-block;
+    width: 1em;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: super;
+    color: grey;
+    font-size: large;
+}
+
+.clickable {
+   cursor: pointer;
+}
+
+table {
+    @extend %rounded;
+    padding: 0;
+    border-collapse: separate;
+    font-size: small;
+    margin: .25em;
+    overflow: hidden;
+}
+
+th {
+    font-size: normal;
+    padding: .25em;
+}
+
+th:first-child {
+    width: 100%;
+    white-space: nowrap;
+    text-align: left;
+    vertical-align: middle;
+    font-size: 1.2em;
+}
+
+.expanded {
+    background-color: aliceblue;
+    box-shadow: inset 0 1px 7px -4px black;
+
+    td {
+        padding: .25em;
+        padding-top: .5em;
+    }
 }

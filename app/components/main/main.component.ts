@@ -42,7 +42,7 @@ import { TabContext } from "./tab-context";
 import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "./icons";
 
 import { ResizeEvent } from 'angular-resizable-element';
-import { requestSaveFile, requestFiles, fileStat } from "../../util";
+import { requestSaveFile, requestFiles, fileStat, compareFiles, writeData, getPath } from "../../util";
 
 const remote = require('electron').remote;
 const dialog = remote.dialog;
@@ -59,48 +59,31 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
-        this.newFile(["FLAP", "dfa"], "Untitled");
-
         // Restore previously opened files.
-        // try {
-        //     const openFilesJSON = localStorage.getItem("openFiles");
-        //     if (openFilesJSON) {
-        //         const openFilenames = JSON.parse(openFilesJSON) as string[];
+        try {
+            const openFilesJSON = localStorage.getItem("openFiles");
+            if (openFilesJSON) {
+                const openFilenames = JSON.parse(openFilesJSON) as string[];
+                const selectedFile = localStorage.getItem("selectedFile");
 
-        //         // Adding it again to be opened last will cause it to be selected.
-        //         const selectedFile = localStorage.getItem("selectedFile");
+                const promises = openFilenames.map((f) => {
+                    return this.openFile(f);
+                });
 
-        //         const promises = openFilenames.map((fileName) => this.fileService.fileByName(fileName))
-        //             .map((p) => {
-        //                 return new Promise((resolve, reject) => {
-        //                     p.then((f) => {
-        //                         this.openFile(f).then(() => resolve()).catch((e) => {
-        //                             console.log(e);
-        //                             resolve();
-        //                         });
-        //                     }).catch((e) => {
-        //                         console.log(e);
-        //                         resolve();
-        //                     });
-        //                 });
-        //             });
-
-        //         if (selectedFile) {
-        //             Promise.all(promises).then(() => {
-        //                 this.fileService.fileByName(selectedFile).then((f) => {
-        //                     const found = [...this.tabs.entries()].find(([_, context]) => f.equals(context.file));
-        //                     if (found) {
-        //                         this.tabBar.active = found[0];
-        //                     }
-        //                 }).catch(() => {
-        //                     console.log("Unable to select previously selected file: ", selectedFile);
-        //                 });
-        //             });
-        //         }
-        //     }
-        // } catch (e) {
-        //     console.log(e);
-        // }
+                if (selectedFile) {
+                    Promise.all(promises).then(() => {
+                        const found = [...this.tabs.entries()].find(([_, context]) => context.file !== undefined && compareFiles(selectedFile, context.file));
+                        if (found) {
+                            this.tabBar.active = found[0];
+                        } else {
+                            console.log("Unable to select previously selected file: ", selectedFile);
+                        }
+                    });
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     private propertiesPanelData = new PropertiesPanelData();
@@ -204,37 +187,36 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     };
 
     /** Create a new tab and open it */
-    newFile(kind: string[], file: string, content?: any/*SerialJSO*/) {
+    newFile(kind: string[], file?: string, name?: string, content?: any) {
         // TODO: have a more efficient way to get kind.
         return this.pluginService.getPluginByKind(kind).then((plugin) => {
-            const model = new Model(plugin);
-
-            let tabNumber = this.tabBar.newTab(file);
+            const model = content ? Model.fromSerial(content, plugin) : new Model(plugin);
 
             const graph = new GraphController(model, plugin);
-            const context = fileStat(file).then(stats => stats.isFile() ? Promise.resolve() : Promise.reject(null))
-                .then(_ => new TabContext(tabNumber, graph, plugin, kind, path.basename(file, ".sinap"), file))
-                .catch(_ => new TabContext(tabNumber, graph, plugin, kind, file));
+            const context = file ? TabContext.getSavedTabContext(graph, plugin, kind, file) :
+                TabContext.getUnsavedTabContext(graph, plugin, kind, name);
 
-            context.then(context => {
-                graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
-                this.tabs.set(tabNumber, context);
-                this.selectedTab(tabNumber);
-            });
+            let tabNumber = this.tabBar.newTab(context);
+            this.tabs.set(tabNumber, context);
+
+            graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
+            this.selectedTab(tabNumber);
         });
     }
 
     onClose = (e: any): any => {
         // Save what files are open
-        const openFiles = [...this.tabs.values()].map((context) => context.file).filter((path) => path !== undefined) as string[];
+        const openFiles = ([...this.tabs.values()]
+            .map((context) => context.file)
+            .filter((path) => path !== undefined) as string[])
+            .map((f) => getPath(f));
         localStorage.setItem("openFiles", JSON.stringify(openFiles));
 
         // Save what file is open
         localStorage.removeItem("selectedFile");
         if (this._context) {
-            const path = this._context.file;
-            if (path) {
-                localStorage.setItem("selectedFile", path);
+            if (this._context.file) {
+                localStorage.setItem("selectedFile", getPath(this._context.file));
             }
         }
 
@@ -260,18 +242,16 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         this.pluginService.pluginData.then((pluginData) => {
             let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginData);
             result.then((result: NewFileResult) => {
-                this.newFile(result.kind, result.name);
+                this.newFile(result.kind, undefined, result.name);
             });
         });
     }
 
-    saveFile() {
-        if (this._context) {
-            // file should NOT be null.
-            this.saveToFile(this._context.graph, this._context.file!).then(() => {
-                this.changeDetectorRef.detectChanges();
-            });
-        }
+    saveFile(context: TabContext) {
+        // file should NOT be null.
+        context.save().then(() => {
+            this.changeDetectorRef.detectChanges();
+        });
     }
 
     saveAsFile() {
@@ -279,42 +259,38 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             const c = this._context;
             requestSaveFile(c.file).then(file => {
                 if (file === c.file) {
-                    this.saveToFile(c.graph, c.file).then(() => this.changeDetectorRef.detectChanges());
+                    this.saveFile(c);
                 } else {
                     this.closeFile(file);
-                    this.saveToFile(c.graph, file).then(() => this.openFile(file));
+                    this.saveToFile(c, file).then(() => this.openFile(file));
                 }
             }).catch(e => console.log(e));
         }
     }
 
-    public saveToFile(graph: GraphController, file?: string) {
-        return Promise.reject("Not implemented.");
-        // const pojo = graph.core.serialize();
-
-        // return file.writeData(JSON.stringify(pojo, null, 4))
-        //     .catch((err) => {
-        //         dialog.showErrorBox("Unable to Save", `Error occurred while saving to file:\n${file.fullName}.`);
-        //         console.log(err);
-        //     });
+    saveToFile(context: TabContext, file: string) {
+        return writeData(context.getRawData(), file);
     }
 
     requestOpenFile() {
         requestFiles().then(files => files.forEach(file => this.openFile(file))).catch(e => console.log(e));
     }
 
-    openFile(file: string): Promise<void> {
-        const entry = [...this.tabs.entries()].find(([_, context]) => file === context.file);
-        if (entry) {
-            this.tabBar.active = entry[0];
-            return Promise.resolve();
-        } else {
-            return readFile(file).then(content => {
-                const pojo = JSON.parse(content);
-                const kind = pojo.kind;
-                return this.newFile(kind, pojo, file);
-            });
-        }
+    openFile = (file: string) => {
+        return new Promise((resolve, reject) => {
+            const entry = [...this.tabs.entries()].find(([_, context]) => context.file !== undefined && compareFiles(file, context.file));
+            if (entry) {
+                this.tabBar.active = entry[0];
+                resolve();
+            } else {
+                readFile(file).then((content) => {
+                    const pojo = JSON.parse(content);
+                    this.newFile(pojo.kind, file, undefined, pojo.graph).then(() => resolve()).catch(reject);
+                }).catch((e) => {
+                    reject(e);
+                });
+            }
+        });
     }
 
     closeFile(file: string) {
@@ -343,13 +319,10 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     /* ---------- TabBarDelegate ---------- */
     canDeleteTab(i: number) {
         const toDelete = this.tabs.get(i);
-        if (!toDelete) {
+        if (!toDelete || !toDelete.unsaved) {
             return Promise.resolve(true);
-        }
-
-        return toDelete.unsavedChanges()
-            .then(unsavedChanges => {
-                const result = new NodePromise<number>();
+        } else {
+            return new Promise((resolve) => {
                 dialog.showMessageBox(remote.BrowserWindow.getFocusedWindow(), {
                     type: "question",
                     buttons: ["Save", "Don't Save", "Cancel"],
@@ -357,14 +330,14 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                     cancelId: 2,
                     message: "Save file before closing?",
                     detail: toDelete.file
-                }, (num) => result.cb(null, num));
-                return result.promise;
-            })
-            .then(choice => {
-                if (choice === 0) return this.saveToFile(toDelete.graph, toDelete.file);
-                else return Promise.resolve(choice === 1);
-            })
-            .then(_ => true);
+                }, (choice) => {
+                    if (choice === 0) {
+                        toDelete.save().then(() => resolve(true)).catch(() => resolve(false));
+                    } else resolve(choice === 1);
+                });
+            });
+
+        }
     }
 
     deletedTab(i: number) {
@@ -398,7 +371,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 this.requestOpenFile();
                 break;
             case MenuEventAction.SAVE_FILE:
-                this.saveFile();
+                if (this._context) {
+                    this.saveFile(this._context);
+                }
                 break;
             case MenuEventAction.SAVE_AS_FILE:
                 this.saveAsFile();
@@ -425,7 +400,10 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 break;
             case MenuEventAction.CLOSE:
                 if (this._context) {
-                    this.tabBar.deleteTab(this._context.index);
+                    const found = [...this.tabs.entries()].find((v) => v[1] === this._context);
+                    if (found) {
+                        this.tabBar.deleteTab(found[0]);
+                    }
                     e.preventDefault();
                 }
                 break;

@@ -43,9 +43,9 @@
     "reset-css": "2.2.0",
     "rimraf": "2.6.1",
     "rxjs": "5.2.0",
-    "sinap-core": "3.4.3",
-    "sinap-typescript": "0.1.2",
     "tmp": "0.0.31",
+    "sinap-core": "3.7.2",
+    "sinap-typescript": "0.4.1",
     "zone.js": "0.8.5"
   },
   "devDependencies": {
@@ -60,6 +60,7 @@
     "electron-packager": "8.6.0",
     "extract-loader": "0.1.0",
     "file-loader": "0.10.1",
+    "glob": "^7.1.1",
     "html-loader": "0.4.5",
     "node-sass": "4.5.1",
     "sass-loader": "6.0.3",
@@ -72,6 +73,7 @@
     "typescript-formatter": "5.1.2",
     "uglify-js": "git+https://github.com/mishoo/UglifyJS2.git#harmony",
     "webpack": "2.2.1",
-    "webpack-merge": "4.1.0"
+    "webpack-merge": "4.1.0",
+    "zip-folder": "^1.0.0"
   }
 }

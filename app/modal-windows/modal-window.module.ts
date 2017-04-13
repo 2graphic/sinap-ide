@@ -9,6 +9,8 @@
 import { NgModule } from "@angular/core";
 import { BrowserModule, Title } from "@angular/platform-browser";
 
+import { ResizableModule } from 'angular-resizable-element';
+
 import { FormsModule } from '@angular/forms';
 import { NewFileComponent } from './../components/new-file/new-file.component';
 import { CollapsibleListComponent } from './../components/collapsible-list/collapsible-list.component';
@@ -19,7 +21,8 @@ import { PluginService } from "../services/plugin.service";
 @NgModule({
     imports: [
         BrowserModule,
-        FormsModule
+        FormsModule,
+        ResizableModule
     ],
     declarations: [
         NewFileComponent,

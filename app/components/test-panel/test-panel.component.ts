@@ -126,14 +126,16 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
         });
     }
 
-    private runTest(test: Test) {
+    private async runTest(test: Test) {
         if (this._data.program) {
-            let out = this._data.program.run([test.input]);
+            const p = this._data.program;
 
+            const out = await p.run([test.input]);
+            // TODO: This should really be a .then.catch case (not optional result and error on out)
             if (out.result) {
                 test.output = out.result;
             } else {
-                test.output = new Value.Literal(new Type.Literal(out.error ? out.error.value.toString() : "Error"), this._data.program.environment);
+                test.output = new Value.Literal(new Type.Literal(out.error ? out.error.value.toString() : "Error"), p.model.environment);
             }
         }
     }
@@ -154,7 +156,7 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
             const test = {
                 input: this.getInput(this._data.program),
                 expected: this.getExpected(this._data.program),
-                output: new Value.Literal(new Type.Literal("Not ran yet."), this._data.program.environment)
+                output: new Value.Literal(new Type.Literal("Not ran yet."), this._data.program.model.environment)
             };
 
             test.input.environment.listen(this.testChanged.bind(this, test), () => true, test.input);
@@ -165,11 +167,11 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
     }
 
     private getInput(program: Program) {
-        return program.environment.make(program.plugin.types.arguments[0]);
+        return program.model.environment.make(program.plugin.types.arguments[0]);
     }
 
     private getExpected(program: Program) {
-        return program.environment.make(program.plugin.types.result);
+        return program.model.environment.make(program.plugin.types.result);
     }
 
     private areEqual(a: Value.Value, b: Value.Value) {
