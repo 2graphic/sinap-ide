@@ -11,7 +11,8 @@ export class DFANode3 {
     checkMe: boolean;
 
     get label() {
-        return this.checkMe.toString();
+        console.log(this);
+        return this.checkMe.toString() + Math.round(Math.random()*100).toString();
     }
 }
 
