@@ -8,6 +8,11 @@ export class DFANode {
 }
 
 export class DFANode3 {
+    checkMe: boolean;
+
+    get label() {
+        return this.checkMe.toString();
+    }
 }
 
 export class DFANode4 {
