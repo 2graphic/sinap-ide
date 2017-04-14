@@ -11,10 +11,10 @@
         </div>
         <div id="filename" class="flex-container-row">
             <div id="text-input">
-                <input type="text" [(ngModel)]="filename" placeholder="File Name" autofocus (keyup.enter)="createNewFile(filename)">
+                <input type="text" #filenameInput [(ngModel)]="filename" placeholder="File Name" (keyup.enter)="createNewFile(filename)">
             </div>
             <div id="submit-input">
-                <button (click)="createNewFile(filename)" [disabled]="!filename">Ok</button>
+                <button (click)="createNewFile(filename)">Ok</button>
             </div>
             <div id="cancel-input">
                 <button (click)="cancel()">Cancel</button>
