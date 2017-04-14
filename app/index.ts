@@ -26,7 +26,7 @@ app.setName('Sinap');
  *   Keeps track of the main window so it does not accidentally get garbage
  *   collected while it is still being used.
  */
-let win: Electron.BrowserWindow | null;
+let win: Electron.BrowserWindow | undefined;
 
 /**
  * createWindow
@@ -45,7 +45,8 @@ function createWindow() {
     win.loadURL(`file://${__dirname}/index.html`);
 
     win.on("closed", () => {
-        win = null;
+        win = undefined;
+        app.quit();
     });
 
     win.once("ready-to-show", () => {
@@ -59,6 +60,7 @@ function createWindow() {
 //
 app.on("ready", () => {
     createWindow();
+    bufferModalWindow();
 });
 
 
@@ -69,13 +71,42 @@ app.on("window-all-closed", () => {
     app.quit();
 });
 
+/**
+ * Log the error and quit the app. (App is unresposive at this point.)
+ */
+process.on('uncaughtException', (e: Error) => {
+    console.log(e);
+    app.exit();
+});
 
 
 
 /** Managing Additional Windows **/
 // TODO: probs should split this into it's own file.
 
-let childWindows = new Map<Number, [Electron.BrowserWindow, ModalInfo]>();
+let nextModal: Electron.BrowserWindow | undefined;
+
+function bufferModalWindow() {
+    const r = nextModal;
+
+    nextModal = new BrowserWindow({
+        parent: win,
+        modal: true,
+        width: 600,
+        height: 450,
+        center: true,
+        resizable: true,
+        show: false
+    });
+
+    if (!IS_DEBUG) {
+        nextModal.setMenu(null as any);
+    }
+
+    nextModal.loadURL(`file://${__dirname}/modal.html`);
+
+    return r;
+}
 
 ipcMain.on('createWindow', (event, selector, type, data) => {
     if (win) {
@@ -88,50 +119,24 @@ ipcMain.on('windowResult', (event, arg: ModalInfo) => {
         win.webContents.send('windowResult', arg);
     }
 
-    let window = childWindows.get(arg.id);
-    if (window) {
-        window[0].close();
+    const modalWindow = BrowserWindow.fromId(arg.id);
+
+    if (modalWindow) {
+        modalWindow.close();
     }
 });
 
-ipcMain.on('getWindowInfo', (event, arg: Number) => {
-    let window = childWindows.get(arg);
-    event.returnValue = window ? window[1] : null;
-});
-
 function createNewWindow(selector: string, type: ModalType, data: any): ModalInfo {
-    if (win) {
-        let newWindow = new BrowserWindow({
-            parent: win,
-            modal: (type === ModalType.MODAL),
-            width: 600,
-            height: 450,
-            center: true,
-            resizable: true,
-            show: false
-        });
-
+    const modalWindow = bufferModalWindow();
+    if (win && modalWindow) {
         let info: ModalInfo = {
-            id: newWindow.id,
+            id: modalWindow.id,
             selector: selector,
             type: type,
             data: data
         };
 
-        if (!IS_DEBUG) {
-            newWindow.setMenu(null as any);
-        }
-        childWindows.set(info.id, [newWindow, info]);
-
-        newWindow.loadURL(`file://${__dirname}/modal.html`);
-
-        newWindow.on("closed", () => {
-            childWindows.delete(info.id);
-        });
-
-        newWindow.once("ready-to-show", () => {
-            newWindow.show();
-        });
+        modalWindow.webContents.send("newWindow", info);
 
         return info;
     }
