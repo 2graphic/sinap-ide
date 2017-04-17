@@ -10,3 +10,6 @@
 [submodule "plugins/dfa"]
 	path = plugins/dfa
 	url = https://github.com/2graphic/dfa-plugin.git
+[submodule "plugins/pda"]
+	path = plugins/pda
+	url = https://github.com/2graphic/pda-plugin.git
