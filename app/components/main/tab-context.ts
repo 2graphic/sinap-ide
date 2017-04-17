@@ -141,7 +141,7 @@ export class TabContext {
 
 
     public get unsaved(): boolean {
-        return this.file ? this._unsaved : true;
+        return this._unsaved;
     }
 
     public getRawData() {
