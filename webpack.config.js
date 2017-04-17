@@ -35,9 +35,9 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
         module: {
             loaders: [
                 {
-                    test: /\.(png|jpg|gif|svg)$/,
+                    test: /\.(jpe?g|png|gif|jpg|eot|woff|ttf|svg|woff2)$/,
                     loader: "file-loader?name=[name]-[hash].[ext]"
-                }
+                },
             ]
         },
 
@@ -118,7 +118,7 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
                 },
                 {
                     test: /\.html$/,
-                    loader: "html-loader?interpolate&attrs[]=img:src&attrs[]=link:href"
+                    loader: "html-loader?interpolate"
                 },
                 {
                     test: /\.component.css$/,
