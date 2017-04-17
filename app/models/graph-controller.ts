@@ -18,10 +18,10 @@ import {
     PropertyChangedEventDetail,
     SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
-
 import { Model, Plugin, ElementValue, ElementType } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { DoubleMap } from "./double-map";
+import { getPath } from "../util";
 
 export class UndoableEvent {
     constructor(public undo: () => void) { }
@@ -242,13 +242,17 @@ export class GraphController {
         Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    private readonly primitives = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow"]);
+    private readonly primitives = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image"]);
     private readonly unions = new Set(["shape", "borderStyle", "lineStyle"]);
 
     copyPropertyToDrawable(core: ElementValue, drawable: Drawable, key: string) {
         const value = core.get(key);
 
-        if (value instanceof Value.Primitive && this.primitives.has(key)) {
+        if (((value instanceof Value.Literal) || (value instanceof Value.Primitive)) && key === "image") {
+            const path = getPath(this.plugin.pluginInfo.interpreterInfo.directory + "/" + value.value);
+            console.log(path);
+            (drawable as any)[key] = path;
+        } else if (value instanceof Value.Primitive && this.primitives.has(key)) {
             // TODO: Typesafe way to do this?
             (drawable as any)[key] = value.value;
         }

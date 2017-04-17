@@ -30,7 +30,7 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
     }
 
     // TODO: Move this into a util collection
-    private getPrimitiveAsString(v: Value.Intersection, key: string): string | undefined {
+    private getPrimitiveAsString(v: Value.CustomObject, key: string): string | undefined {
         if (v.type.members.has(key)) {
             const keyValue = v.get(key);
             if (keyValue instanceof Value.Primitive && typeof keyValue.value === "string") {
