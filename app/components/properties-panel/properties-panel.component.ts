@@ -59,6 +59,10 @@ export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelD
             this.element = new ElementInfo(element);
         }
     }
+
+    private isEmpty() {
+        return this.element === undefined || (this.element.drawableProperties.length === 0 && this.element.pluginProperties.length === 0);
+    }
 }
 
 class ElementInfo {

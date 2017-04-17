@@ -1,11 +1,11 @@
 <div id="wrapper">
-    <div *ngIf="element === undefined" id="empty">
-        <p>empty</p>
+    <div *ngIf="isEmpty()" id="empty">
+        <p>No Properties</p>
     </div>
-    <div *ngIf="element !== undefined">
-        <table>
+    <div *ngIf="!isEmpty()">
+        <table *ngIf="element.pluginProperties.length > 0">
             <tr>
-                <th class="expand-chevron-before">Plugin Properties - {{element.kind}}</th>
+                <th class="expand-chevron-before">Plugin - {{element.kind}}</th>
                 <th class="expand-chevron-down clickable"><span class="chevron">›</span></th>
             </tr>
             <tr class="expanded">
@@ -21,9 +21,9 @@
                 </td>
             </tr>
         </table>
-        <table>
+        <table *ngIf="element.drawableProperties.length > 0">
             <tr>
-                <th class="expand-chevron-before">Drawable Properties</th>
+                <th class="expand-chevron-before">Visual</th>
                 <th class="expand-chevron-down clickable"><span class="chevron">›</span></th>
             </tr>
             <tr class="expanded">
