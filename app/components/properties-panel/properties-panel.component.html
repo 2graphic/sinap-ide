@@ -11,10 +11,10 @@
             <tr class="expanded" *ngIf="!pluginHidden">
                 <td colspan="2">
                     <table class="expanded-table">
-                        <tr *ngFor="let property of element.pluginProperties">
+                        <tr *ngFor="let property of element.pluginProperties; let i = index">
                             <td>{{property.name}}</td>
                             <td>
-                                <sinap-type [value]="property.value" [readonly]="false"></sinap-type>
+                                <sinap-type [readonly]="false" [focus]="i === 0" [value]="property.value"></sinap-type>
                             </td>
                         </tr>
                     </table>

@@ -18,6 +18,9 @@ export class StringTypeComponent extends BaseTypeComponent<Value.Primitive> {
     focus() {
         if (this.input) {
             this.input.nativeElement.focus();
+            setTimeout(() => {
+                this.input.nativeElement.select();
+            });
         }
     }
 }
