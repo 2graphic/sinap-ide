@@ -5,10 +5,10 @@
     <div *ngIf="!isEmpty()">
         <table *ngIf="element.pluginProperties.length > 0">
             <tr>
-                <th class="expand-chevron-before">Plugin - {{element.kind}}</th>
-                <th class="expand-chevron-down clickable"><span class="chevron">›</span></th>
+                <th [class.expand-chevron-before]="!pluginHidden">Plugin - {{element.kind}}</th>
+                <th class="clickable" (click)="pluginHidden = !pluginHidden" [class.expand-chevron-down]="!pluginHidden" [class.expand-chevron-right]="pluginHidden"><span class="chevron">›</span></th>
             </tr>
-            <tr class="expanded">
+            <tr class="expanded" *ngIf="!pluginHidden">
                 <td colspan="2">
                     <table class="expanded-table">
                         <tr *ngFor="let property of element.pluginProperties">
@@ -23,10 +23,10 @@
         </table>
         <table *ngIf="element.drawableProperties.length > 0">
             <tr>
-                <th class="expand-chevron-before">Visual</th>
-                <th class="expand-chevron-down clickable"><span class="chevron">›</span></th>
+                <th [class.expand-chevron-before]="!visualHidden">Visual</th>
+                <th class="clickable" (click)="visualHidden = !visualHidden" [class.expand-chevron-down]="!visualHidden" [class.expand-chevron-right]="visualHidden"><span class="chevron">›</span></th>
             </tr>
-            <tr class="expanded">
+            <tr class="expanded" *ngIf="!visualHidden">
                 <td colspan="2">
                     <table class="expanded-table">
                         <tr *ngFor="let property of element.drawableProperties">
