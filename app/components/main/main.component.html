@@ -25,7 +25,9 @@
 
       <sinap-status-bar id="status-bar"
                         [zoom]="_context ? _context.graph.drawable.scale : 1"
-                        (zoomChange)="updateZoom($event)"></sinap-status-bar>
+                        (zoomChange)="updateZoom($event)"
+                        [fullscreen]="isFullscreen()"
+                        (toggledFullscreen)="toggleFullscreen()"></sinap-status-bar>
       
     </div>
 

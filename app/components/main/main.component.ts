@@ -440,6 +440,17 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         }
     }
 
+    private isFullscreen() {
+        return this.dynamicBottomPanel.isCollapsed && this.dynamicSidePanel.isCollapsed;
+    }
+
+    private toggleFullscreen() {
+        const hide = !this.isFullscreen();
+
+        this.dynamicSidePanel.isCollapsed = hide;
+        this.dynamicBottomPanel.isCollapsed = hide;
+    }
+
 
     /* -------------------------------------- */
 }

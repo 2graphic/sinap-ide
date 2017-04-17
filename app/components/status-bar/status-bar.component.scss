@@ -56,11 +56,19 @@ input.zoomText {
     border-width: 0;
     background-color: #0067b3;
     color: white;
-    width: 3.5em;
+    width: 3em;
     text-align: right;
 }
 
 input.zoomText:focus {
     background-color: white;
     color: black;
+}
+
+#fullscreen {
+    .material-icons {
+        line-height: 1.25em;
+        font-size: 20px;
+        cursor: pointer;
+    }
 }

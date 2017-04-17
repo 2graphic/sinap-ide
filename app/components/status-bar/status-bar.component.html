@@ -25,5 +25,10 @@
         <span id="zoomTextContainer">
             <input class="zoomText" type="text" [value]="zoomText" onfocus="this.select()" (blur)="updateZoom($event)" (keypress)="enterZoom($event)" />
         </span>
+        <span class="spacer"></span>
+        <span id="fullscreen" (click)="toggleFullscreen()">
+            <i *ngIf="!this.fullscreen" class="material-icons">fullscreen</i>
+            <i *ngIf="this.fullscreen" class="material-icons">fullscreen_exit</i>
+        </span>
     </div>
 </div>

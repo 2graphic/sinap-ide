@@ -43,7 +43,7 @@ export class DynamicPanelComponent {
     private _currentIndex: number
     = -1;
 
-    private _isCollapsed: boolean
+    public isCollapsed: boolean
     = false;
 
     private _height: number
@@ -135,10 +135,6 @@ export class DynamicPanelComponent {
             `${require('../../images/ic_chevron_right_black_24px.svg')}`;
     }
 
-    get isCollapsed() {
-        return this._isCollapsed;
-    }
-
     isEmpty() {
         return this._panels.length === 0;
     }
@@ -190,7 +186,7 @@ export class DynamicPanelComponent {
     }
 
     private toggleCollapse() {
-        this._isCollapsed = !this._isCollapsed;
+        this.isCollapsed = !this.isCollapsed;
     }
 
     private resizing(evt: ResizeEvent) {
