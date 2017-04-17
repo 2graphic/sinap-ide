@@ -4,7 +4,7 @@ import * as path from "path";
 import { remote } from 'electron';
 let { app } = remote;
 import { IS_PRODUCTION } from "../constants";
-import { Plugin, PluginLoader, getInterpreterInfo, Program, PluginInfo } from "sinap-core";
+import { Plugin, PluginLoader, getPluginInfo, Program, PluginInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
 
 
@@ -23,7 +23,7 @@ export class PluginService {
 
     private loadPlugins() {
         return subdirs(PLUGIN_DIRECTORY)
-            .then(dirs => somePromises(dirs.map(getInterpreterInfo)))
+            .then(dirs => somePromises(dirs.map(getPluginInfo)))
             .then(infos => somePromises(infos.map(info => this.loader.load(info))));
     }
 
