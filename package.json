@@ -37,6 +37,7 @@
     "rxjs": "5.2.0",
     "sinap-core": "3.9.4",
     "sinap-typescript": "0.4.12",
+    "sinap-types": "0.3.4",
     "zone.js": "0.8.5"
   },
   "devDependencies": {
