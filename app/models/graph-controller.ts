@@ -285,7 +285,7 @@ export class GraphController {
     }
 
     private readonly primitives = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image"]);
-    private readonly unions = new Set(["shape", "borderStyle", "lineStyle"]);
+    private readonly unions = new Set(["shape", "borderStyle", "lineStyle", "lineWidth"]);
 
     copyPropertyToDrawable(value: Value.Value | undefined, drawable: Drawable, key: string) {
         if (value === undefined) {
