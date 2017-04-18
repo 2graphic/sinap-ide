@@ -31,7 +31,10 @@ export class DynamicComponent implements WindowDelegate, OnInit {
      * Add the type information for each component you want this component to be able to create.
      */
     private componentMap = new Map<string, [string, Type<ModalComponent>]>(
-        [["sinap-new-file", ["New File", NewFileComponent]]]
+        [
+        ["sinap-new-file", ["New File", NewFileComponent]],
+        ["plugin-manager", ["Plugin Manager", PluginManager]]
+        ]
         // Preferences, etc...
     );
 

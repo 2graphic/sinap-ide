@@ -6,6 +6,7 @@ import { ZIP_FILE_FILTER } from "../../constants";
 import { ModalComponent, ModalInfo } from "../../models/modal-window";
 import { getPluginInfo, PluginInfo } from "sinap-core";
 import { dirFiles, subdirs, tempDir, unzip, TempDir } from "../../util";
+import { WindowService } from "./../../modal-windows/services/window.service";
 
 async function isPluginDir(dir: string) {
     const files = await dirFiles(dir);
@@ -45,7 +46,12 @@ const LOG = getLogger("plugin-manager");
 })
 export class PluginManager implements ModalComponent {
     public modalInfo: ModalInfo;
-    constructor( @Inject(PluginService) private pluginService: PluginService) {
+    constructor( @Inject(PluginService) private pluginService: PluginService,
+        @Inject(WindowService) private windowService: WindowService) {
+    }
+
+    ngAfterViewInit() {
+        setTimeout(() => this.windowService.showWindow(this.modalInfo.id), 30);
     }
 
     async exportPlugins() {
