@@ -70,14 +70,16 @@
 .icon {
     flex: none;
     width: 1.5em;
-    height: 1.5em;
-    padding: .25em;
     padding-right: .5em;
-    filter: opacity(55%) drop-shadow(1px 1px 0px whitesmoke);
+    filter: opacity(40%) drop-shadow(1px 1px 0px whitesmoke);
 }
 
 .icon:hover, .icon.active {
-    filter: opacity(100%) drop-shadow(1px 1px 0px whitesmoke);
+    filter: opacity(80%) drop-shadow(1px 1px 0px whitesmoke);
+}
+
+.icon.active .material-icons {
+    transform: scale(1.1);
 }
 
 .icon:hover {
@@ -93,22 +95,32 @@
 
 .titlebar-button {
     flex: none;
-    height: .75em;
-    width: .75em;
-    width: 1em;
-    padding: .25em;
+    display: block;
+    min-width: 1.25em;
+    text-align: center;
+    box-sizing: border-box;
+    padding: .15em;
     cursor: pointer;
     background: grey;
     border-radius: 4px;
-    margin: 1px;
+    margin: 0 .15em;
 }
 
 .titlebar-button.disabled {
     cursor: not-allowed;
+    background: lightgray;
 }
 
-.titlebar-button.toggled {
-    background: lightgray;
+.toolbar-icon {
+    font-size: 18px;
+    vertical-align: middle;
+    color: white;
+}
+
+.panel-icon {
+    font-size: 26px;
+    vertical-align: middle;
+    color: #333;
 }
 
 .titlebar-spacer {
@@ -117,9 +129,6 @@
     display: block;
 }
 
-:host /deep/ svg {
-    width: 100%;
-    height: 100%;
-    fill: #333;
-    stroke: #333;
+.material-icons {
+    vertical-align: middle;
 }

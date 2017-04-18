@@ -1,20 +1,20 @@
 export const PROPERTIES_ICON = {
-    path: `${require('../../images/properties.svg')}`,
+    path: 'info',
     name: 'Properties'
 };
 export const TOOLS_ICON = {
-    path: `${require('../../images/tools.svg')}`,
+    path: 'work',
     name: 'Tools'
 };
 export const FILES_ICON = {
-    path: `${require('../../images/files.svg')}`,
+    path: 'folder',
     name: 'Files'
 };
 export const INPUT_ICON = {
-    path: `${require('../../images/input.svg')}`,
+    path: 'assignment',
     name: 'Input'
 };
 export const TEST_ICON = {
-    path: `${require('../../images/test.svg')}`,
+    path: 'assignment_turned_in',
     name: 'Test'
 };

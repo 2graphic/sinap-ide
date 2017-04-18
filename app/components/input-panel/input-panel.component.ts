@@ -50,9 +50,9 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
 
     titlebarItems = [
         new TitlebarSpacer(),
-        new TitlebarButton(`${require('../../images/play.svg')}`, "Step", false, false, () => this.step()),
-        new TitlebarButton(`${require('../../images/play-finish.svg')}`, "Finish", false, false, () => this.stepFinish()),
-        new TitlebarButton(`${require('../../images/play-all.svg')}`, "Step to Completion", false, false, () => this.stepToCompletion())
+        new TitlebarButton("play_arrow", "Step", false, () => this.step()),
+        new TitlebarButton("last_page", "Finish", false, () => this.stepFinish()),
+        new TitlebarButton("sync", "Step to Completion", false, () => this.stepToCompletion())
     ];
 
     set data(value: InputPanelData) {

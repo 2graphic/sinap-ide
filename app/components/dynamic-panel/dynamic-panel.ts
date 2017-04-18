@@ -123,18 +123,6 @@ export class DynamicPanelComponent {
     isVertical: boolean
     = false;
 
-    get collapseIcon() {
-        return this.isVertical ?
-            `${require('../../images/ic_expand_more_black_24px.svg')}` :
-            `${require('../../images/ic_chevron_left_black_24px.svg')}`;
-    }
-
-    get expandIcon() {
-        return this.isVertical ?
-            `${require('../../images/ic_expand_less_black_24px.svg')}` :
-            `${require('../../images/ic_chevron_right_black_24px.svg')}`;
-    }
-
     isEmpty() {
         return this._panels.length === 0;
     }
@@ -218,20 +206,16 @@ export class TitlebarButton {
         public icon: string,
         public title: string,
         isDisabled?: boolean,
-        isToggled?: boolean,
         click?: (...args: any[]) => void
     ) {
         if (isDisabled !== undefined)
             this.isDisabled = isDisabled;
-        if (isToggled !== undefined)
-            this.isToggled = isToggled;
         if (click)
             this.click = click;
     }
     readonly kind = "button";
     isDisabled = false;
-    isToggled = false;
-    click: (...args: any[]) => void
+    click: (sender: TitlebarButton) => void
     = () => { };
 }
 
