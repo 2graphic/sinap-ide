@@ -153,7 +153,7 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
             const test = {
                 input: this.getInput(this._data.program),
                 expected: this.getExpected(this._data.program),
-                output: new Value.Literal(new Type.Literal("Not ran yet."), this._data.program.model.environment)
+                output: undefined
             };
 
             test.input.environment.listen(this.testChanged.bind(this, test), () => true, test.input);
@@ -169,10 +169,6 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
 
     private getExpected(program: Program) {
         return program.model.environment.make(program.plugin.types.result);
-    }
-
-    private areEqual(a: Value.Value, b: Value.Value) {
-        return a.deepEqual(b);
     }
 
     private select(test: Test) {
@@ -212,10 +208,22 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
         }
     }
 
+    private getTestIcon(test: Test) {
+        if (test.output) {
+            if (test.expected.deepEqual(test.output)) {
+                return ["check_circle", "green"];
+            } else {
+                return ["error", "red"];
+            }
+        }
+
+        return ["timer", "black"];
+    }
+
 }
 
 interface Test {
     input: Value.Value;
     expected: Value.Value;
-    output: Value.Value;
+    output?: Value.Value;
 }

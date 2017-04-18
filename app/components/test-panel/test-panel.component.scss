@@ -30,12 +30,12 @@ table {
     border-radius: 6px;
 }
 
-tr.bad {
-    background: #aa0000;
+td:first-child, .icon-column {
+    width: 1%;
 }
 
-td:first-child {
-    width: 1%;
+.icon-column .material-icons {
+    vertical-align: middle;
 }
 
 .checkbox {
