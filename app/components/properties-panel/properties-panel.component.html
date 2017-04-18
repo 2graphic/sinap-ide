@@ -17,6 +17,12 @@
                                 <sinap-type [value]="property.value" [readonly]="false"></sinap-type>
                             </td>
                         </tr>
+                        <tr *ngFor="let property of element.computed">
+                            <td>{{property.name}}</td>
+                            <td>
+                                <sinap-type [value]="property.value" [readonly]="true"></sinap-type>
+                            </td>
+                        </tr>
                     </table>
                 </td>
             </tr>

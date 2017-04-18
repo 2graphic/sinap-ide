@@ -18,10 +18,10 @@ import {
     PropertyChangedEventDetail,
     SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
-
 import { Model, Plugin, ElementValue, ElementType } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { DoubleMap } from "./double-map";
+import { getPath } from "../util";
 
 export class UndoableEvent {
     constructor(public undo: () => void) { }
@@ -34,6 +34,28 @@ export class Bridge {
 class OutOfSyncError extends Error {
     constructor() {
         super("Nodes/edges list out of sync");
+    }
+}
+
+export class ComputedPropertyContext {
+    public readonly properties = new Map<string, [string, Value.Value]>();
+    public onUpdate?: (() => void) = undefined;
+
+    constructor(public readonly value: ElementValue) {
+        this.update();
+    };
+
+    update() {
+        [...this.value.type.pluginType.methods.entries()].filter(([_, method]) => method.isGetter).forEach(([key, _]) => {
+            let v = this.value.call(key);
+            if (v) {
+                this.properties.set(key, [this.value.type.prettyName(key), v]);
+            }
+        });
+
+        if (this.onUpdate) {
+            this.onUpdate();
+        }
     }
 }
 
@@ -147,8 +169,28 @@ export class GraphController {
         const bridge = new Bridge(core, drawable);
         this.bridges.set(core, drawable, bridge);
 
+        const onChange = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
+
+        const computedPropertyContext = new ComputedPropertyContext(core);
+        core.context = computedPropertyContext;
+
+        const copyComputedProperties = () => {
+            [...computedPropertyContext.properties.entries()].forEach(([key, [name, value]]) => {
+                drawable.removeEventListener("change", onChange);
+                setTimeout(() => {
+                    this.copyPropertyToDrawable(value, drawable, key);
+                    setTimeout(() => drawable.addEventListener("change", onChange), 0);
+                });
+            });
+        };
+        copyComputedProperties();
+
         core.environment.listen((_, value, other) => {
             console.log(core, _, value, other);
+
+            computedPropertyContext.update();
+            copyComputedProperties();
+
             [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => {
                 if (v === value) {
                     return true;
@@ -164,7 +206,7 @@ export class GraphController {
             }).forEach(([k, _]) => {
                 drawable.removeEventListener("change", onChange);
                 setTimeout(() => {
-                    this.copyPropertyToDrawable(core, drawable, k);
+                    this.copyPropertyToDrawable(core.get(k), drawable, k);
                     this.changed.emit(new UndoableEvent(() => {
                         // TODO
                     }));
@@ -172,8 +214,6 @@ export class GraphController {
                 });
             });
         }, () => true, core);
-
-        const onChange = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
 
         drawable.addEventListener("change", onChange);
 
@@ -235,20 +275,28 @@ export class GraphController {
     }
 
     copyPropertiesToDrawable(core: ElementValue, drawable: Drawable) {
-        Object.keys(drawable).forEach(this.copyPropertyToDrawable.bind(this, core, drawable));
+        Object.keys(drawable).forEach((key) => {
+            this.copyPropertyToDrawable(core.get(key), drawable, key);
+        });
     }
 
     copyPropertiesToCore(drawable: Drawable, core: ElementValue) {
         Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    private readonly primitives = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow"]);
+    private readonly primitives = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image"]);
     private readonly unions = new Set(["shape", "borderStyle", "lineStyle"]);
 
-    copyPropertyToDrawable(core: ElementValue, drawable: Drawable, key: string) {
-        const value = core.get(key);
+    copyPropertyToDrawable(value: Value.Value | undefined, drawable: Drawable, key: string) {
+        if (value === undefined) {
+            return;
+        }
 
-        if (value instanceof Value.Primitive && this.primitives.has(key)) {
+        if (((value instanceof Value.Literal) || (value instanceof Value.Primitive)) && key === "image") {
+            const path = getPath(this.plugin.pluginInfo.interpreterInfo.directory + "/" + value.value);
+            console.log(path);
+            (drawable as any)[key] = path;
+        } else if (value instanceof Value.Primitive && this.primitives.has(key)) {
             // TODO: Typesafe way to do this?
             (drawable as any)[key] = value.value;
         }

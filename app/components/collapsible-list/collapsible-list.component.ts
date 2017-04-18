@@ -11,7 +11,7 @@
 //   collapsible list component.
 
 
-import { Component, Input, Output, EventEmitter } from "@angular/core";
+import { Component, Input, Output, EventEmitter, ChangeDetectorRef, Inject } from "@angular/core";
 
 
 @Component({
@@ -20,6 +20,8 @@ import { Component, Input, Output, EventEmitter } from "@angular/core";
     styleUrls: ["./collapsible-list.component.scss"]
 })
 export class CollapsibleListComponent {
+
+    constructor( @Inject(ChangeDetectorRef) private changeDetectorRef: ChangeDetectorRef) { };
 
     public isExpanded: boolean = true;
     public selectedIndex: number = -1;
@@ -38,6 +40,9 @@ export class CollapsibleListComponent {
 
     private toggleList() {
         this.isExpanded = !this.isExpanded;
+
+        // TODO: I have no idea why this is neccessary...
+        this.changeDetectorRef.detectChanges();
     }
 
     private clickItem(e: MouseEvent) {

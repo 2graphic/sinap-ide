@@ -4,7 +4,7 @@ import { requestSaveFile, requestOpenDirs, requestFiles, getLogger } from "../..
 import { remote } from "electron";
 import { ZIP_FILE_FILTER } from "../../constants";
 import { ModalComponent, ModalInfo } from "../../models/modal-window";
-import { getInterpreterInfo, PluginInfo } from "sinap-core";
+import { getPluginInfo, PluginInfo } from "sinap-core";
 import { dirFiles, subdirs, tempDir, unzip, TempDir } from "../../util";
 
 async function isPluginDir(dir: string) {
@@ -15,7 +15,7 @@ async function isPluginDir(dir: string) {
 async function recursiveInfo(dir: string): Promise<PluginInfo[]> {
     if (await isPluginDir(dir)) {
         LOG.log(`Getting info for ${dir}`);
-        return [await getInterpreterInfo(dir)];
+        return [await getPluginInfo(dir)];
     } else {
         LOG.log(`${dir} is not a plugin so check its children.`);
         const children = await subdirs(dir);

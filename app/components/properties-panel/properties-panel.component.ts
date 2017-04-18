@@ -13,7 +13,7 @@
 
 
 import { Component, Input, EventEmitter } from "@angular/core";
-import { Bridge } from "../../models/graph-controller";
+import { Bridge, ComputedPropertyContext } from "../../models/graph-controller";
 import { ElementValue } from "sinap-core";
 import { Value } from "sinap-types";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
@@ -62,8 +62,9 @@ export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelD
 }
 
 class ElementInfo {
-    public readonly pluginProperties: Property[];
-    public readonly drawableProperties: Property[];
+    public pluginProperties: Property[];
+    public computedProperties: Property[];
+    public drawableProperties: Property[];
     public readonly kind: string;
 
     constructor(public readonly element: ElementValue) {
@@ -72,11 +73,24 @@ class ElementInfo {
 
         this.kind = pluginType.name;
 
+        if (element.context instanceof ComputedPropertyContext) {
+            const context = element.context;
+
+            const updateComputedProperties = () => {
+                this.computedProperties = [...context.properties.entries()].map(([_, [name, value]]) => new Property(name, value));
+            };
+
+            element.context.onUpdate = updateComputedProperties;
+            updateComputedProperties();
+        } else {
+            this.computedProperties = [];
+        }
+
         this.pluginProperties = [...pluginType.members.keys()]
-            .filter((k) => pluginType.isVisible(k))
+            .filter((k) => pluginType.isVisible(k) && !element.type.pluginType.methods.has(k))
             .map((k) => new Property(pluginType.prettyName(k), element.get(k)));
         this.drawableProperties = [...drawableType.members.keys()]
-            .filter((k) => !pluginType.members.has(k) && drawableType.isVisible(k))
+            .filter((k) => !pluginType.members.has(k) && drawableType.isVisible(k) && !element.type.pluginType.methods.has(k))
             .map((k) => new Property(pluginType.prettyName(k), element.get(k)));
     }
 }

@@ -1,10 +1,11 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { Plugin, Program, getInterpreterInfo, PluginInfo } from "sinap-core";
-import { TypescriptPluginLoader } from "sinap-typescript";
 import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter, getLogger, dirFiles, removeDir, arrayEquals, createDir } from "../util";
 import * as path from "path";
 import { remote } from "electron";
 import { IS_PRODUCTION } from "../constants";
+import { Plugin, PluginLoader, getPluginInfo, Program, PluginInfo } from "sinap-core";
+import { TypescriptPluginLoader } from "sinap-typescript";
+
 
 const app = remote.app;
 const LOG = getLogger("plugin.service");
@@ -30,7 +31,7 @@ export class PluginService {
                     throw err;
                 }
             })
-            .then(dirs => somePromises(dirs.map(getInterpreterInfo), LOG))
+            .then(dirs => somePromises(dirs.map(getPluginInfo), LOG))
             .then(infos => somePromises(infos.map(info => this.loader.load(info)), LOG));
     }
 
