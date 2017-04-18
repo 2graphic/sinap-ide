@@ -24,6 +24,7 @@ import { PropertyChangedEvent } from "./events";
 import { NOOP, diff, sum } from "./math";
 import { EditorCanvas, point } from "./editor-canvas";
 import { DrawableGraph, EditorGraph } from "./editor-graph";
+import { DrawableElement } from "./drawable-element";
 
 
 // Re-exports //////////////////////////////////////////////////////////////////
@@ -358,6 +359,19 @@ export class GraphEditorComponent implements AfterViewInit {
         this.drawGraphDelegate();
     }
 
+    private clipboard: DrawableElement[]
+    = [];
+
+    saveSelection(cut: boolean = false) {
+        if (this._graph) {
+            this.clipboard = [...this._graph.drawable.selectedItems];
+        }
+    }
+
+    cloneSelection() {
+
+    }
+
 
     // Private methods /////////////////////////////////////////////////////////
 
@@ -380,9 +394,6 @@ export class GraphEditorComponent implements AfterViewInit {
         // https://developer.mozilla.org/en-US/docs/Web/API/Touch_events
         el.addEventListener("touchstart", (e: TouchEvent) => console.log(e));
         el.addEventListener("touchend", (e: TouchEvent) => console.log(e));
-        // hidden.addEventListener("copy", this.onCopy);
-        // hidden.addEventListener("cut", this.onCut);
-        // hidden.addEventListener("paste", this.onPaste);
     }
 
     /**
@@ -401,9 +412,6 @@ export class GraphEditorComponent implements AfterViewInit {
         el.removeEventListener("wheel", this.onWheel);
         // TODO:
         // remove touch event listeners.
-        // hidden.removeEventListener("copy", this.onCopy);
-        // hidden.removeEventListener("cut", this.onCut);
-        // hidden.removeEventListener("paste", this.onPaste);
     }
 
     /**

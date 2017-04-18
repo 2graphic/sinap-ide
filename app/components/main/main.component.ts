@@ -427,13 +427,25 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 }
                 break;
             case MenuEventAction.CUT:
-                document.execCommand("cut");
+                if (this.focusIsChildOf("graph-editor-container")) {
+                    if (this.graphEditor.graph)
+                        this.graphEditor.saveSelection(true);
+                    e.preventDefault();
+                }
                 break;
             case MenuEventAction.COPY:
-                document.execCommand("copy");
+                if (this.focusIsChildOf("graph-editor-container")) {
+                    if (this.graphEditor.graph)
+                        this.graphEditor.saveSelection();
+                    e.preventDefault();
+                }
                 break;
             case MenuEventAction.PASTE:
-                document.execCommand("paste");
+                if (this.focusIsChildOf("graph-editor-container")) {
+                    if (this.graphEditor.graph)
+                        this.graphEditor.cloneSelection();
+                    e.preventDefault();
+                }
                 break;
         }
     }
