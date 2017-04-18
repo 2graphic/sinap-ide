@@ -6,10 +6,10 @@
 
 import { Component, ViewContainerRef, ViewChild, ComponentFactoryResolver, ComponentRef, OnInit, Type, ReflectiveInjector } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { WindowService } from './../../services/window.service';
-import { ModalComponent } from "./../../../models/modal-window";
+import { WindowService, WindowDelegate } from './../../services/window.service';
+import { ModalComponent, ModalInfo } from "./../../../models/modal-window";
 
-import { NewFileComponent } from './../../../components/new-file/new-file.component'; // TODO, shorter way to do this...?
+import { NewFileComponent } from './../../../components/new-file/new-file.component';
 
 /**
  * This component loads one of the components specified in componentMap depending on ModalInfo.kind for this window.
@@ -20,13 +20,12 @@ import { NewFileComponent } from './../../../components/new-file/new-file.compon
     template: `<div #container></div>`,
     providers: [WindowService]
 })
-export class DynamicComponent {
+export class DynamicComponent implements WindowDelegate, OnInit {
     private currentComponent: ComponentRef<any>;
 
     @ViewChild('container', { read: ViewContainerRef })
     private container: ViewContainerRef;
 
-    // TODO: I wish there was a better way to do this.
     /**
      * Add the type information for each component you want this component to be able to create.
      */
@@ -37,24 +36,27 @@ export class DynamicComponent {
 
     constructor(private resolver: ComponentFactoryResolver, private titleService: Title, private windowService: WindowService) { }
 
-    ngAfterViewInit() {
-        const windowInfo = this.windowService.windowInfo;
-        if (windowInfo) {
-            const componentInfo = this.componentMap.get(windowInfo.selector);
-            if (componentInfo) {
-                const injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
+    ngOnInit() {
+        this.windowService.windowDelegate = this;
+    }
 
-                const [name, componentType] = componentInfo;
+    newWindow = (windowInfo: ModalInfo) => {
+        this.container.clear();
+        const componentInfo = this.componentMap.get(windowInfo.selector);
 
-                this.titleService.setTitle(name);
+        if (componentInfo) {
+            const injector = ReflectiveInjector.fromResolvedProviders([], this.container.parentInjector);
 
-                const factory = this.resolver.resolveComponentFactory(componentType);
-                const component = factory.create(injector);
-                this.container.insert(component.hostView);
+            const [name, componentType] = componentInfo;
 
-                component.instance.modalInfo = windowInfo;
-                component.changeDetectorRef.detectChanges();
-            }
-        }
+            this.titleService.setTitle(name);
+
+            const factory = this.resolver.resolveComponentFactory(componentType);
+            const component = factory.create(injector);
+            component.instance.modalInfo = windowInfo;
+            this.container.insert(component.hostView);
+
+            component.changeDetectorRef.detectChanges();
+        };
     }
 }

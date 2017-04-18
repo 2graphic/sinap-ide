@@ -35,8 +35,8 @@
     "reflect-metadata": "0.1.10",
     "reset-css": "2.2.0",
     "rxjs": "5.2.0",
-    "sinap-core": "3.9.2",
-    "sinap-typescript": "0.4.5",
+    "sinap-core": "3.9.4",
+    "sinap-typescript": "0.4.12",
     "zone.js": "0.8.5"
   },
   "devDependencies": {

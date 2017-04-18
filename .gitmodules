@@ -1,0 +1,15 @@
+[submodule "plugins/nfa"]
+	path = plugins/nfa
+	url = https://github.com/2graphic/nfa-plugin.git
+[submodule "plugins/turing-machine"]
+	path = plugins/turing-machine
+	url = https://github.com/2graphic/turing-machine-plugin.git
+[submodule "plugins/circuits"]
+	path = plugins/circuits
+	url = https://github.com/2graphic/circuits-plugin.git
+[submodule "plugins/dfa"]
+	path = plugins/dfa
+	url = https://github.com/2graphic/dfa-plugin.git
+[submodule "plugins/pda"]
+	path = plugins/pda
+	url = https://github.com/2graphic/pda-plugin.git
