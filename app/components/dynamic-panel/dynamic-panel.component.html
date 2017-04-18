@@ -1,6 +1,11 @@
 <div *ngIf="isCollapsed" id="collapsed-container" [class.vertical]="isVertical" [class.horizontal]="!isVertical">
-    <div class="icon" (click)="toggleCollapse()">
-        <i class="material-icons">keyboard_arrow_{{isVertical ? "up" : "right"}}</i>
+    <div id="icons">
+        <div class="icon collapsed-chevron" (click)="toggleCollapse()">
+            <i class="material-icons">keyboard_arrow_{{isVertical ? "up" : "right"}}</i>
+        </div>
+        <div class="icon" *ngFor="let panel of panels" (click)="updateContent(panel)">
+            <i class="material-icons panel-icon">{{panel.icon}}</i>
+        </div>
     </div>
 </div>
 

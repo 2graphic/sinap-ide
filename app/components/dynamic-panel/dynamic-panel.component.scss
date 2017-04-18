@@ -1,15 +1,22 @@
 @import "../../styles/constants";
 
 #collapsed-container.horizontal {
-    position: absolute;
-    z-index: 99;
-    margin-top: $TOOLBAR_HEIGHT;
-    border: none;
+
 }
 
 #collapsed-container.vertical {
-    display: flex;
-    justify-content: flex-end;
+
+}
+
+#collapsed-container {
+    background: whitesmoke;
+    border: thin solid lightgray;
+    border-radius: 8px;
+    padding-left: .25em;
+
+    .collapsed-chevron {
+        padding-right: 0px;
+    }
 }
 
 #container {

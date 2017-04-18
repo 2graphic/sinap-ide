@@ -17,6 +17,22 @@ div {
   flex: 0 0 auto;
 }
 
+#left-panel-group.collapsed {
+  flex:none;
+  z-index: 999;
+  position: absolute;
+  left: .4em;
+  top: calc(#{$TOOLBAR_HEIGHT} + .4em)
+}
+
+#bottom-panel-group.collapsed {
+  flex:none;
+  z-index: 999;
+  position: absolute;
+  right: .4em;
+  bottom: calc(20px + .4em)
+}
+
 #right-panel-group {
   flex: 1 1 auto;
   display: flex;

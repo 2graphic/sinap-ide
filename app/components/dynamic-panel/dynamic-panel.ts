@@ -153,7 +153,10 @@ export class DynamicPanelComponent {
     titlebarItems?: TitlebarItem[];
 
     private updateContent(panel: DynamicPanelItem | null) {
-        if (!this.isCollapsed && this.dynamicContent) {
+        if (this.isCollapsed) {
+            this.toggleCollapse();
+        }
+        if (this.dynamicContent) {
             const containerRef = this.dynamicContent.viewContainerRef;
             containerRef.clear();
             if (panel) {

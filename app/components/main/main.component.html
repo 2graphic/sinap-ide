@@ -1,6 +1,6 @@
 <div id="window">
 
-  <div id="left-panel-group">
+  <div id="left-panel-group" [class.collapsed]="dynamicSidePanel.isCollapsed">
     <dynamic-panel #dynamicSidePanel
                    [panels]="sidePanels"
                    [maximumWidth]="maxSidePanelWidth"
@@ -38,7 +38,7 @@
       <a>Click to create a new graph</a>
     </div>
 
-    <div id="bottom-panel-group" [hidden]="dynamicBottomPanel.isEmpty()">
+    <div id="bottom-panel-group" [class.collapsed]="dynamicBottomPanel.isCollapsed">
       <dynamic-panel #dynamicBottomPanel
                      [panels]="bottomPanels"
                      [isVertical]="true"
