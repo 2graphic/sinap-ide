@@ -34,8 +34,18 @@ tr.bad {
     background: #aa0000;
 }
 
+td:first-child {
+    width: 1%;
+}
+
+.checkbox {
+    width: initial;
+}
+
 .header {
-    border-bottom: 1px solid #777;
+    td {
+        border-bottom: thin solid Gainsboro;
+    }
 }
 
 tr {

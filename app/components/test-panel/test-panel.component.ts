@@ -203,6 +203,18 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
         this._data.clearSelected();
     }
 
+    private allSelected() {
+        return this._data.selectedSize === this._data.tests.length;
+    }
+
+    private selectAll() {
+        const toggle = !this.allSelected();
+        this._data.clearSelected();
+        if (toggle) {
+            this._data.tests.forEach((t) => this._data.addSelected(t));
+        }
+    }
+
 }
 
 interface Test {

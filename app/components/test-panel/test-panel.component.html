@@ -2,12 +2,13 @@
     <div *ngIf="_data.tests.length > 0" id="tests">
         <table>
             <tr class="header">
+                <td><input type="checkbox" class="checkbox" (click)="selectAll()" [checked]="allSelected()"></td>
                 <td>Input</td>
                 <td>Expected Result</td>
                 <td>Actual Result</td>
             </tr>
-            <tr *ngFor="let test of _data.tests" [class.bad]="test.output == null || !areEqual(test.output, test.expected)" [class.selected]="_data.selected.has(test)"
-                (click)="select(test)">
+            <tr *ngFor="let test of _data.tests" [class.bad]="test.output == null || !areEqual(test.output, test.expected)">
+                <td><input type="checkbox" class="checkbox" [checked]="_data.selected.has(test)" (click)="select(test)"></td>
                 <td><sinap-type [value]="test.input" [readonly]="false" [focus]="true"></sinap-type></td>
                 <td><sinap-type [value]="test.expected" [readonly]="false"></sinap-type></td>
                 <td><sinap-type [value]="test.output"></sinap-type></td>

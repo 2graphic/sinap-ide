@@ -22,6 +22,8 @@
 
 #titlebar {
     display: flex;
+    align-items: center;
+    height: $TOOLBAR_HEIGHT;
 }
 
 #header {
@@ -38,7 +40,8 @@
     font-size: 1.35em;
     font-weight: 600;
     color: #333;
-    padding: .5em;
+    padding-left: .5em;
+    box-sizing: border-box;
     text-shadow: 1px 1px 0px whitesmoke;
 }
 
@@ -111,6 +114,7 @@
 .titlebar-spacer {
     flex: none;
     width: .7em;
+    display: block;
 }
 
 :host /deep/ svg {
