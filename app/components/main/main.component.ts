@@ -426,6 +426,15 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                     e.preventDefault();
                 }
                 break;
+            case MenuEventAction.CUT:
+                document.execCommand("cut");
+                break;
+            case MenuEventAction.COPY:
+                document.execCommand("copy");
+                break;
+            case MenuEventAction.PASTE:
+                document.execCommand("paste");
+                break;
         }
     }
     /* --------------------------------------- */

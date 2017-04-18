@@ -380,7 +380,9 @@ export class DrawableGraph extends Drawable {
             this.dispatchEvent(
                 new TypedCustomEvent(
                     "created",
-                    new DrawableEventDetail(this, items)
+                    new DrawableEventDetail(this, items.map(
+                        v => [v, undefined] as [DrawableElement, undefined]
+                    ))
                 )
             );
         }
@@ -401,7 +403,7 @@ export class DrawableGraph extends Drawable {
         if (!this.dispatchEvent(
             new TypedCustomEvent(
                 "creating",
-                new DrawableEventDetail(this, [item], like)
+                new DrawableEventDetail(this, [[item, like]])
             )
         ))
             return null;
@@ -410,7 +412,7 @@ export class DrawableGraph extends Drawable {
         this.dispatchEvent(
             new TypedCustomEvent(
                 "created",
-                new DrawableEventDetail(this, [item], like)
+                new DrawableEventDetail(this, [[item, like]])
             )
         );
         return item;
@@ -465,7 +467,9 @@ export class DrawableGraph extends Drawable {
             this.dispatchEvent(
                 new TypedCustomEvent(
                     "deleted",
-                    new DrawableEventDetail(this, deleted)
+                    new DrawableEventDetail(this, deleted.map(
+                        v => [v, undefined] as [DrawableElement, undefined]
+                    ))
                 )
             );
             return true;
