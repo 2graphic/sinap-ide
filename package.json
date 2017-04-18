@@ -36,7 +36,7 @@
     "reset-css": "2.2.0",
     "rxjs": "5.2.0",
     "sinap-core": "3.9.2",
-    "sinap-typescript": "0.4.6",
+    "sinap-typescript": "0.4.9",
     "zone.js": "0.8.5"
   },
   "devDependencies": {
