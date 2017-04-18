@@ -42,7 +42,7 @@ export class ComputedPropertyContext {
     public onUpdate?: (() => void) = undefined;
 
     constructor(public readonly value: ElementValue) {
-        this.update;
+        this.update();
     };
 
     update() {
@@ -169,6 +169,8 @@ export class GraphController {
         const bridge = new Bridge(core, drawable);
         this.bridges.set(core, drawable, bridge);
 
+        const onChange = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
+
         const computedPropertyContext = new ComputedPropertyContext(core);
         core.context = computedPropertyContext;
 
@@ -212,8 +214,6 @@ export class GraphController {
                 });
             });
         }, () => true, core);
-
-        const onChange = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
 
         drawable.addEventListener("change", onChange);
 
