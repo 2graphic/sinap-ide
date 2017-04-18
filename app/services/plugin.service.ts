@@ -1,7 +1,7 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
 import { Plugin, Program, getInterpreterInfo, PluginInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
-import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter, getLogger, dirFiles, removeDir, arrayEquals } from "../util";
+import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter, getLogger, dirFiles, removeDir, arrayEquals, createDir } from "../util";
 import * as path from "path";
 import { remote } from "electron";
 import { IS_PRODUCTION } from "../constants";
@@ -9,8 +9,7 @@ import { IS_PRODUCTION } from "../constants";
 const app = remote.app;
 const LOG = getLogger("plugin.service");
 
-
-export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app", "plugins") : "./plugins";
+export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getPath("userData"), "plugins") : "./plugins";
 export const ROOT_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app") : ".";
 
 @Injectable()
@@ -22,8 +21,15 @@ export class PluginService {
         this.plugins = this.loadPlugins();
     }
 
-    private loadPlugins() {
+    private loadPlugins(): Promise<Plugin[]> {
         return subdirs(PLUGIN_DIRECTORY)
+            .catch(async err => {
+                if (err && err.code === "ENOENT") {
+                    return createDir(PLUGIN_DIRECTORY).then(_ => []);
+                } else {
+                    throw err;
+                }
+            })
             .then(dirs => somePromises(dirs.map(getInterpreterInfo), LOG))
             .then(infos => somePromises(infos.map(info => this.loader.load(info)), LOG));
     }

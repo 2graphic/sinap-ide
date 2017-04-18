@@ -285,3 +285,10 @@ export function arrayEquals<T>(arr1: T[], arr2: T[]): boolean {
 
     return true;
 }
+
+export function createDir(name: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => fs.mkdir(name, err => {
+        if (err) reject(err);
+        else resolve();
+    }));
+}
