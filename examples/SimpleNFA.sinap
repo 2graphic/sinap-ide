@@ -420,7 +420,7 @@
                 }
             },
             "4d12d594-8310-4f8d-a7b6-3c5b4a1f2fdb": {
-                "type": "file",
+                "type": "string",
                 "rep": ""
             },
             "23b61249-3871-41bd-9a12-9f1fde70a150": {
@@ -503,7 +503,7 @@
                 }
             },
             "a78f5cb2-0f4b-4573-9d13-e18e9066df02": {
-                "type": "file",
+                "type": "string",
                 "rep": ""
             },
             "f15a1aef-e0a0-458a-bba8-267ffde42f08": {
@@ -684,7 +684,7 @@
                 }
             },
             "69934170-953a-4e77-af55-30adb4d52ed4": {
-                "type": "file",
+                "type": "string",
                 "rep": ""
             },
             "3f703410-0838-4bd5-8c44-646d02cc8563": {
