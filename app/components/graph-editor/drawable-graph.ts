@@ -7,7 +7,7 @@
  */
 
 
-import { SCALE_MIN, SCALE_MAX } from "./defaults";
+import { GRID_SPACING, SCALE_MIN, SCALE_MAX } from "./defaults";
 import { filterSet, move } from "./generic-functions";
 import { point } from "./editor-canvas";
 import { Drawable } from "./drawable";
@@ -302,6 +302,62 @@ export class DrawableGraph extends Drawable {
         );
     }
 
+    /**
+     * `cloneElements`
+     * 
+     * @param items
+     */
+    cloneElements(...items: DrawableElement[]) {
+        const creating = new Map<DrawableElement, DrawableElement>();
+        const details: [DrawableElement, DrawableElement][]
+            = [];
+
+        // TODO:
+        // Make sure that this still works if items in the clipboard have been
+        // previously deleted.
+
+        for (const n of items.filter(
+            v => v instanceof DrawableNode
+        ) as DrawableNode[]) {
+            const nn = new DrawableNode(this, n);
+            creating.set(n, nn);
+            details.push([nn, n]);
+            nn.position = {
+                x: n.position.x + GRID_SPACING,
+                y: n.position.y + GRID_SPACING
+            };
+        }
+
+        for (const e of items.filter(
+            v => v instanceof DrawableEdge
+        ) as DrawableEdge[]) {
+            let src = creating.get(e.source) as DrawableNode;
+            let dst = creating.get(e.destination) as DrawableNode;
+            if (!src)
+                src = e.source;
+            if (!dst)
+                dst = e.destination;
+            const ee = new DrawableEdge(this, src, dst, e);
+            creating.set(e, ee);
+            details.push([ee, e]);
+        }
+
+        if (!this.dispatchEvent(
+            new TypedCustomEvent(
+                "creating",
+                new DrawableEventDetail(this, details)
+            )
+        ))
+            return null;
+        details.map(v => this._unselected.add(v[0]));
+        this.dispatchEvent(
+            new TypedCustomEvent(
+                "created",
+                new DrawableEventDetail(this, details)
+            )
+        );
+        return details.map(v => v[0]);
+    }
 
     /**
      * `moveEdge`

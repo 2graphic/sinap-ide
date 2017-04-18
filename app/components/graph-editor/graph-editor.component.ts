@@ -363,13 +363,17 @@ export class GraphEditorComponent implements AfterViewInit {
     = [];
 
     saveSelection(cut: boolean = false) {
+        console.log("save selection");
         if (this._graph) {
             this.clipboard = [...this._graph.drawable.selectedItems];
         }
     }
 
     cloneSelection() {
-
+        console.log("clone selection");
+        if (this._graph) {
+            this._graph.drawable.cloneElements(...this.clipboard);
+        }
     }
 
 
@@ -436,6 +440,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private unregisterGraph(graph: DrawableGraph) {
         this._graph = null;
+        this.clipboard = [];
         graph.removeEventListener("change", this.onDrawablePropertyChanged);
     }
 
