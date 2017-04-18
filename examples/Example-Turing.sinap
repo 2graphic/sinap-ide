@@ -212,14 +212,6 @@
                         "kind": "value-reference",
                         "uuid": "4d4082b9-77de-43b4-b693-1e5e33d337e5"
                     },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "6c14da23-5fae-422c-9158-514d89b599ed"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "16c6f43d-348f-46b9-8cd8-583e8996549d"
-                    },
                     "label": {
                         "kind": "value-reference",
                         "uuid": "7b001f20-89b9-4a28-8927-4a7197f3e85d"
@@ -243,6 +235,14 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "de3e6a8d-650a-450b-a96b-b76ea24c6399"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "16c6f43d-348f-46b9-8cd8-583e8996549d"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "6c14da23-5fae-422c-9158-514d89b599ed"
                     }
                 }
             },
@@ -260,14 +260,6 @@
                     "move": {
                         "kind": "value-reference",
                         "uuid": "99525e00-c227-4263-b99e-fa6670805774"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "25dea637-a424-4322-8a18-0e28acc6b0bb"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "2562e7ba-eb6f-4e56-9855-e6bad583d3e8"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -292,6 +284,14 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "6096f54b-69a4-4ca2-a5e9-4b6ccca06e2d"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "2562e7ba-eb6f-4e56-9855-e6bad583d3e8"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "25dea637-a424-4322-8a18-0e28acc6b0bb"
                     }
                 }
             },
@@ -309,14 +309,6 @@
                     "move": {
                         "kind": "value-reference",
                         "uuid": "5c1236c2-22ab-4aaf-82b7-274f66686847"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "5b4b9fec-a168-4442-bf1a-831b105aaaaf"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "0312bc85-d28f-4db1-8e9b-6810a431a218"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -341,6 +333,14 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "e1afec3e-09ef-4a10-87db-3eecc99bd222"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "0312bc85-d28f-4db1-8e9b-6810a431a218"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "5b4b9fec-a168-4442-bf1a-831b105aaaaf"
                     }
                 }
             }
@@ -545,7 +545,7 @@
             },
             "7b001f20-89b9-4a28-8927-4a7197f3e85d": {
                 "type": "string",
-                "rep": ""
+                "rep": "1;2;R"
             },
             "116657d1-2465-4899-a2ff-dbc6c53c590a": {
                 "type": "color",
@@ -609,7 +609,7 @@
             },
             "1f96a020-c29c-4e19-a9d2-b7be92f92a80": {
                 "type": "string",
-                "rep": ""
+                "rep": "1;2;R"
             },
             "810cbc02-8887-441f-91bf-e60feb15873f": {
                 "type": "color",
@@ -678,11 +678,11 @@
             },
             "33f31977-a958-40bd-9eed-0c24a232813a": {
                 "type": "number",
-                "rep": 543
+                "rep": 548
             },
             "2620b9c9-5300-41af-972a-fd5b18c5c074": {
                 "type": "number",
-                "rep": 212
+                "rep": 219
             },
             "a3678fbd-4e41-485f-a419-90d35340a0f9": {
                 "type": "Point",
@@ -752,7 +752,7 @@
             },
             "8943ce68-f0ad-4ef3-ae65-0a3e75c1fdc2": {
                 "type": "string",
-                "rep": ""
+                "rep": "K;K;L"
             },
             "29a1d88d-c363-45e7-8494-7b3c1f69a5e4": {
                 "type": "color",

@@ -143,14 +143,6 @@
                         "kind": "value-reference",
                         "uuid": "c958a1e7-4b77-47c2-9b05-6138a24fc2e4"
                     },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "95e41280-4cdf-4541-a292-15942fe6b3e5"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "82bf076c-3602-4464-acd0-243237e1e4de"
-                    },
                     "label": {
                         "kind": "value-reference",
                         "uuid": "e7594aed-6657-46ba-bf86-f1a5ba2fdb5b"
@@ -174,6 +166,14 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "6186984d-0392-40b6-8451-17814000dab3"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "82bf076c-3602-4464-acd0-243237e1e4de"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "95e41280-4cdf-4541-a292-15942fe6b3e5"
                     }
                 }
             },
@@ -183,14 +183,6 @@
                     "symbol": {
                         "kind": "value-reference",
                         "uuid": "acb7c45c-6030-47d3-8a93-e67f463f1953"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "a8171944-7737-4b07-8f7d-ba74e28bc47d"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "90eff6c3-ce37-41c3-b948-0b059778b760"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -215,6 +207,14 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "78636f9c-ebf7-4ec0-b3bd-81e56c93d959"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "90eff6c3-ce37-41c3-b948-0b059778b760"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "a8171944-7737-4b07-8f7d-ba74e28bc47d"
                     }
                 }
             }
@@ -230,7 +230,7 @@
             },
             "3be3dbdb-f3c4-4f89-a9c6-27804d921826": {
                 "type": "boolean",
-                "rep": false
+                "rep": true
             },
             "2b6fdab7-be8d-4b42-8679-629d5171108d": {
                 "type": "boolean",
@@ -242,7 +242,7 @@
             },
             "4e7c9889-6e41-4b65-94b3-1583ea9be35f": {
                 "type": "string",
-                "rep": ""
+                "rep": "q0"
             },
             "0df7a768-156e-4d6e-b6f7-df839d5738f6": {
                 "type": "(Array)[1]",
@@ -317,7 +317,7 @@
             },
             "b8ced90e-de2a-4c9c-ae01-5f088204b5fc": {
                 "type": "boolean",
-                "rep": false
+                "rep": true
             },
             "2a55543a-4a9d-49c7-bfd1-aa537f17ac2d": {
                 "type": "(Array)[0]",
@@ -325,7 +325,7 @@
             },
             "f8b129cf-4357-438d-8a31-a996cfbe1440": {
                 "type": "string",
-                "rep": ""
+                "rep": "q1"
             },
             "fb0d9298-74de-477b-b632-dc133e65b385": {
                 "type": "(Array)[1]",
@@ -337,11 +337,11 @@
             },
             "f89405ff-55d1-4bcb-a4c3-597190a91d39": {
                 "type": "number",
-                "rep": 426
+                "rep": 429.0000000000001
             },
             "1be2e196-cc70-4be0-93e2-6363c843564e": {
                 "type": "number",
-                "rep": 317
+                "rep": 252
             },
             "fe898be6-1c29-4251-8b8e-3fb6f61205b8": {
                 "type": "Point",
@@ -396,11 +396,11 @@
             },
             "c958a1e7-4b77-47c2-9b05-6138a24fc2e4": {
                 "type": "string",
-                "rep": ""
+                "rep": "0"
             },
             "e7594aed-6657-46ba-bf86-f1a5ba2fdb5b": {
                 "type": "string",
-                "rep": ""
+                "rep": "0"
             },
             "a275b244-4408-4423-8967-21e12b901ee9": {
                 "type": "color",
@@ -445,11 +445,11 @@
             },
             "acb7c45c-6030-47d3-8a93-e67f463f1953": {
                 "type": "string",
-                "rep": ""
+                "rep": "1"
             },
             "94216200-4966-464b-88e2-4872a5080437": {
                 "type": "string",
-                "rep": ""
+                "rep": "1"
             },
             "a5578c86-b13a-4870-b9b1-d24af28c1c94": {
                 "type": "color",
