@@ -13,7 +13,7 @@
 import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
-import { dirFiles, compareFiles } from "../../util";
+import { dirFullFiles, compareFiles } from "../../util";
 
 import * as path from "path";
 
@@ -57,7 +57,7 @@ export class FilesPanelData {
 
     private setDirectory(value?: string): Promise<void> {
         if (value) {
-            return dirFiles(value).then(files => {
+            return dirFullFiles(value).then(files => {
                 this.files = files.filter((file => file.indexOf(".sinap") > -1)).map(file => new FileInfo(file));
             });
         }

@@ -81,6 +81,13 @@ export async function dirFiles(dir: string): Promise<string[]> {
         fileStat(path.join(dir, name)).then(stats => stats.isFile())));
 }
 
+export async function dirFullFiles(dir: string): Promise<string[]> {
+    return readdir(dir)
+        .then(names => names.map(name => path.join(dir, name)))
+        .then(names => promFilter(names, name =>
+            fileStat(name).then(stats => stats.isFile())));
+}
+
 export function requestSaveFile(name?: string, filters = SINAP_FILE_FILTER): Promise<string> {
     const result = new NodePromise<string>();
     dialog.showSaveDialog(remote.BrowserWindow.getFocusedWindow(), {
