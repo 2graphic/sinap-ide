@@ -22,6 +22,11 @@ export class PluginService {
         this.plugins = this.loadPlugins();
     }
 
+    public async reload() {
+        this.plugins = this.loadPlugins();
+        await this.plugins;
+    }
+
     private loadPlugins(): Promise<Plugin[]> {
         return subdirs(PLUGIN_DIRECTORY)
             .catch(async err => {
@@ -58,7 +63,8 @@ export class PluginService {
         // Recursively progress through directories until we get interpreter info.
         const dest = path.join(PLUGIN_DIRECTORY, path.basename(dir));
         LOG.log(`Importing plugins from ${dir} to ${dest}.`);
-        return await copy(dir, dest);
+        await copy(dir, dest);
+        this.plugins = this.loadPlugins();
     }
 
     public async removePlugin(plugin: Plugin): Promise<void> {
