@@ -65,6 +65,9 @@ export class Bridge {
                     return false;
                 }).forEach(([k, _]) => {
                     this.graph.copyPropertyToDrawable(core.get(k), drawable, k);
+                    this.graph.changed.emit(new UndoableEvent(() => {
+                        // TODO
+                    }));
                 });
             });
         }, () => true, core);
