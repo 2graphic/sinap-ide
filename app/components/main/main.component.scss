@@ -73,6 +73,33 @@ div {
 
 #graph-editor-container {
   background-color: red;
+  position: relative;
+
+  #instructions {
+    position: absolute;
+    z-index: 999;
+    bottom: .4em;
+    left: .4em;
+
+    padding: .2em;
+    font-size: small;
+
+    background: whitesmoke;
+    border: thin solid lightgray;
+    border-radius: 8px;
+
+    opacity: .75;
+    user-select: none;
+    cursor: default;
+
+    em {
+      font-weight: bold;
+    }
+  }
+
+  #instructions:hover {
+    opacity: .25;
+  }
 }
 
 .dock-fill {

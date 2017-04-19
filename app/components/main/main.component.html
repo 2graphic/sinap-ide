@@ -19,6 +19,8 @@
       <div #graphEditorContainer
            id="graph-editor-container"
            class="dock-fill">
+           <p id="instructions">Hold <em>shift</em> to select or <em>alt</em> to pan</p>
+           <!-- TODO: OS specific -->
         <sinap-graph-editor id="graph-editor"
                             [graph]="_context ? _context.graph.drawable : null"></sinap-graph-editor>
       </div>
