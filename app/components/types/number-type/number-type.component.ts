@@ -24,4 +24,8 @@ export class NumberTypeComponent extends BaseTypeComponent<Value.Primitive> {
     private round(n: number) {
         return Math.round(n * 10) / 10;
     }
+
+    private setValue(n: number | null) {
+        this.value.value = n ? n : 0;
+    }
 }
