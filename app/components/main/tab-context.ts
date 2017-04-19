@@ -8,11 +8,13 @@ import { Program, Plugin } from "sinap-core";
 import { StatusBarInfo } from "../../components/status-bar/status-bar.component";
 import { InputPanelData } from "../input-panel/input-panel.component";
 import { TestPanelData } from "../test-panel/test-panel.component";
-import { getBasename, writeData } from "../../util";
+import { writeData } from "../../util";
 import { SINAP_FILE_FILTER } from "../../constants";
 
 import { remote } from 'electron';
 const { dialog, app } = remote;
+
+import * as path from "path";
 
 /**
  * Stores the state of each open tab.
@@ -26,7 +28,7 @@ export class TabContext {
         graph.changed.asObservable().subscribe(this.addUndoableEvent);
 
         if (file) {
-            this.name = getBasename(file).replace(".sinap", "");
+            this.name = path.basename(file, ".sinap");
         } else if (tempName) {
             this.name = tempName;
         } else {
@@ -52,6 +54,7 @@ export class TabContext {
     private name: string;
     private stack = this.undoHistory;
     private isRedoing = false;
+    private lastUpdated: Date;
 
     public inputPanelData: InputPanelData = new InputPanelData();
     public testPanelData: TestPanelData = new TestPanelData();
@@ -90,6 +93,7 @@ export class TabContext {
                     this.statusBarInfo.items = [];
                 }
                 this.inputPanelData.program = program;
+                this._dirty = false;
                 this.testPanelData.program = program;
                 return program;
             }
@@ -138,8 +142,6 @@ export class TabContext {
         }
     }
 
-
-
     public get unsaved(): boolean {
         return this._unsaved;
     }
@@ -183,7 +185,7 @@ export class TabContext {
             }, (name) => {
                 if (name) {
                     this.file = name;
-                    this.name = getBasename(name).replace(".sinap", "");
+                    this.name = path.basename(name, ".sinap");
                     resolve(this.file);
                 }
             });

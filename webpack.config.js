@@ -13,7 +13,7 @@ const webpackMerge = require('webpack-merge');
 
 module.exports = (env = {}) => { // pass command line arguments like `webpack ... --env.arg=value`
     const ENV = env.ENV ? env.ENV : 'development';
-    const DEBUG = env.DEBUG;
+    const DEBUG = env.DEBUG != false ? true : false;
 
     /**
      * Common configuration for all targets

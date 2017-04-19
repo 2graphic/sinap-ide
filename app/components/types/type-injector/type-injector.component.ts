@@ -19,6 +19,7 @@ import { MapTypeComponent } from "./../map-type/map-type.component";
 import { LiteralTypeComponent } from "./../literal-type/literal-type.component";
 import { PointTypeComponent } from "./../point-type/point-type.component";
 
+import { PointType } from "../point-type/point-type.component";
 
 /**
  *
@@ -140,7 +141,7 @@ export class TypeInjectorComponent {
             }
 
             if (value instanceof Value.Record) {
-                if (value.type.name === "Point") {
+                if (value.type.equals(PointType)) {
                     return PointTypeComponent;
                 } else {
                     // TODO:

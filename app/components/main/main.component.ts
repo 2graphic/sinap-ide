@@ -15,7 +15,7 @@
 
 
 import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef, EventEmitter } from "@angular/core";
-import { Program, Plugin, Model, readFile } from "sinap-core";
+import { Program, Plugin, Model, readFile, NodePromise } from "sinap-core";
 
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
 
@@ -67,12 +67,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 const selectedFile = localStorage.getItem("selectedFile");
 
                 const promises = openFilenames.map((f) => {
-                    return new Promise((resolve, reject) => {
-                        this.openFile(f).then(resolve).catch((e) => {
-                            console.log(e);
-                            resolve();
-                        });
-                    });
+                    return this.openFile(f);
                 });
 
                 if (selectedFile) {
@@ -237,6 +232,12 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         return (change: UndoableEvent) => {
             context.compileProgram();
         };
+    }
+
+    async launchPluginManager() {
+        const [info, result] = this.windowService.createModal("plugin-manager", ModalType.MODAL);
+        await result;
+        await this.pluginService.reload();
     }
 
     promptNewFile() {
@@ -425,6 +426,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                     this._context.redo();
                     e.preventDefault();
                 }
+                break;
+            case MenuEventAction.MANAGE_PLUGINS:
+                this.launchPluginManager();
                 break;
         }
     }
