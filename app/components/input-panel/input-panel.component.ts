@@ -96,10 +96,26 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
 
     private setupInput() {
         if (this._data.program) {
-            const plugin = ((this._data.program as any).plugin as Plugin);
+            const program = this._data.program;
+            const plugin = program.plugin;
             const type = plugin.types.arguments[0];
 
-            this._data.inputForPlugin = this._data.program.model.environment.make(type);
+            const inputForPlugin = program.model.environment.make(type);
+
+            if (inputForPlugin instanceof Value.MapObject) {
+                const keyType = inputForPlugin.type.keyType;
+
+                if ([...plugin.types.nodes.types.values()].find((t) => Type.isSubtype!(keyType, t.pluginType))) {
+                    program.model.nodes.forEach((n) => {
+                        if (Type.isSubtype(n.type.pluginType, keyType)) {
+                            console.log(n);
+                            inputForPlugin.set(n, program.model.environment.make(inputForPlugin.type.valueType));
+                        }
+                    })
+                }
+            }
+
+            this._data.inputForPlugin = inputForPlugin;
         }
     }
 

@@ -22,6 +22,6 @@ export class MapTypeComponent extends BaseTypeComponent<Value.MapObject> {
         super.value = v;
         this.values = [];
 
-        // TODO
+        this.values = v.simpleRepresentation;
     }
 }

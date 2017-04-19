@@ -63,12 +63,20 @@ export class TypeInjectorComponent {
         if (!v) {
             this.container.clear();
             this.component = undefined;
-        } else if (this.component && this._value && this._value.deepEqual(v)) {
+        } else if (this.component && this._value && this.areEqual(this._value, v)) {
             if (this._value !== v) {
                 this.component.instance.value = v;
             }
         } else {
             this.inject(v, this.readonly, this._disabled);
+        }
+    }
+
+    private areEqual(a: Value.Value, b: Value.Value) {
+        try {
+            return a.deepEqual(b);
+        } catch(e) {
+            return false;
         }
     }
 
