@@ -5,10 +5,10 @@
     <div *ngIf="!isEmpty()">
         <table *ngIf="element.pluginProperties.length > 0">
             <tr>
-                <th [class.expand-chevron-before]="!pluginHidden">Plugin - {{element.kind}}</th>
-                <th class="clickable" (click)="pluginHidden = !pluginHidden" [class.expand-chevron-down]="!pluginHidden" [class.expand-chevron-right]="pluginHidden"><span class="chevron">›</span></th>
+                <th [class.expand-chevron-before]="!_data.pluginHidden">Plugin - {{element.kind}}</th>
+                <th class="clickable" (click)="_data.pluginHidden = !_data.pluginHidden" [class.expand-chevron-down]="!_data.pluginHidden" [class.expand-chevron-right]="_data.pluginHidden"><span class="chevron">›</span></th>
             </tr>
-            <tr class="expanded" *ngIf="!pluginHidden">
+            <tr class="expanded" *ngIf="!_data.pluginHidden">
                 <td colspan="2">
                     <table class="expanded-table">
                         <tr *ngFor="let property of element.pluginProperties; let i = index">
@@ -29,10 +29,10 @@
         </table>
         <table *ngIf="element.drawableProperties.length > 0">
             <tr>
-                <th [class.expand-chevron-before]="!visualHidden">Visual</th>
-                <th class="clickable" (click)="visualHidden = !visualHidden" [class.expand-chevron-down]="!visualHidden" [class.expand-chevron-right]="visualHidden"><span class="chevron">›</span></th>
+                <th [class.expand-chevron-before]="!_data.visualHidden">Visual</th>
+                <th class="clickable" (click)="_data.visualHidden = !_data.visualHidden" [class.expand-chevron-down]="!_data.visualHidden" [class.expand-chevron-right]="_data.visualHidden"><span class="chevron">›</span></th>
             </tr>
-            <tr class="expanded" *ngIf="!visualHidden">
+            <tr class="expanded" *ngIf="!_data.visualHidden">
                 <td colspan="2">
                     <table class="expanded-table">
                         <tr *ngFor="let property of element.drawableProperties">
