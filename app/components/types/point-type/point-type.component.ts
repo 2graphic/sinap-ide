@@ -5,12 +5,15 @@
 
 import { Component, Input } from "@angular/core";
 import { BaseTypeComponent } from "../type-injector/base-classes";
-import { Value } from "sinap-types";
+import { Value, Type } from "sinap-types";
 
 interface Point {
     x: Value.Value;
     y: Value.Value;
 }
+
+export const PointType = new Type.Record(new Map([["x", new Type.Primitive("number")], ["y", new Type.Primitive("number")]]));
+
 
 @Component({
     selector: "sinap-point-type",
@@ -22,8 +25,8 @@ export class PointTypeComponent extends BaseTypeComponent<Value.Record> {
     private point: Point;
 
     set value(v: Value.Record) {
-        if (v.type.name !== "Point") {
-            throw new Error(v.type.name + " is not a Point");
+        if (!v.type.equals(PointType)) {
+            throw new Error("Passed record is not a Point");
         }
 
         super.value = v;
