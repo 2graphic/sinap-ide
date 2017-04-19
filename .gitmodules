@@ -15,4 +15,4 @@
 	url = https://github.com/2graphic/pda-plugin.git
 [submodule "plugins/bfs"]
 	path = plugins/bfs
-	url = git@github.com:Sheyne/sinap-bfs-plugin.git
+	url = https://github.com/Sheyne/sinap-bfs-plugin.git
