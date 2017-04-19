@@ -35,13 +35,16 @@
                 </div>
                 <div id="input-button">
                     <button (click)="onSubmit(_data.inputForPlugin)">
-                        <i class="material-icons">play_arrow</i>
+                        <i class="material-icons">bug_report</i>
                     </button>
                 </div>
             </div>
         </div>
 
         <div class="right" #log>
+            <div id="empty" *ngIf="!_data.selected">
+                <i class="material-icons">bug_report</i>
+            </div>
             <table *ngIf="_data.selected">
                 <tr>
                     <td colspan="2">
