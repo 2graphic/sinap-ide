@@ -1,7 +1,7 @@
 <div id="wrapper">
 
     <div id="content" *ngIf="_data.inputForPlugin" (keyup.enter)="onSubmit(_data.inputForPlugin)">
-        <div class="left">
+        <div class="left" mwlResizable [style.width]="_data.leftPanelWidth+'px'" [resizeEdges]="{right: true}" (resizing)="resizing($event)">
             <div id="output">
                 <div class="program-result clickable" *ngFor="let result of _data.results" (click)="selectResult(result)" [class.selected]="_data.selected == result">
                     <table *ngIf="_data.selected">

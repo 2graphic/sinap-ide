@@ -15,6 +15,8 @@ import { Program, Plugin } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
 
+import { ResizeEvent } from 'angular-resizable-element';
+
 export class InputPanelData {
     constructor() { }
 
@@ -23,6 +25,8 @@ export class InputPanelData {
     results: ProgramResult[] = [];
     selected: ProgramResult;
     selectedState: State;
+
+    leftPanelWidth = 300;
 
     inputForPlugin?: Value.Value;
 
@@ -176,6 +180,12 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
             }
         }
         throw new Error("Daniel should fix this 2");
+    }
+
+    private resizing(evt: ResizeEvent) {
+        if (evt.rectangle.width) {
+            this._data.leftPanelWidth = Math.max(evt.rectangle.width, 200); // TODO, max value
+        }
     }
 }
 
