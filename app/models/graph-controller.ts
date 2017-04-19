@@ -28,7 +28,65 @@ export class UndoableEvent {
 }
 
 export class Bridge {
-    constructor(public core: ElementValue, public drawable: Drawable) { };
+    private isSyncing = false;
+
+    constructor(private graph: GraphController, public core: ElementValue, public drawable: Drawable) {
+        const computedPropertyContext = new ComputedPropertyContext(core);
+        core.context = computedPropertyContext;
+
+        // Copy computed properties for the first time.
+        const copyComputedProperties = () => {
+            [...computedPropertyContext.properties.entries()].forEach(([key, [name, value]]) => {
+                this.graph.copyPropertyToDrawable(value, drawable, key);
+            });
+        };
+        copyComputedProperties();
+
+        core.environment.listen((_, value, other) => {
+            this.sync(() => {
+                // console.log(core, _, value, other);
+
+                computedPropertyContext.update();
+                copyComputedProperties();
+
+                [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => {
+                    if (v === value) {
+                        return true;
+                    } else if (v instanceof Value.Record) {
+                        for (const k of Object.keys(v.value)) {
+                            if (v.value[k] === value) {
+                                return true;
+                            }
+                        }
+                    } else if (v instanceof Value.Union && v.value === value) {
+                        return true;
+                    }
+
+                    return false;
+                }).forEach(([k, _]) => {
+                    this.graph.copyPropertyToDrawable(core.get(k), drawable, k);
+                });
+            });
+        }, () => true, core);
+
+        drawable.addEventListener("change", (evt: PropertyChangedEvent<any>) => {
+            this.sync(() => {
+                const result = this.graph.copyPropertyToCore(this.drawable, this.core, evt.detail.key.toString());
+                if (result) {
+                    this.graph.changed.emit(new UndoableEvent(() => {
+                        // TODO
+                    }));
+                }
+            });
+        });
+    };
+
+    private sync(f: () => void) {
+        if (this.isSyncing) return;
+        this.isSyncing = true;
+        f();
+        this.isSyncing = false;
+    }
 }
 
 class OutOfSyncError extends Error {
@@ -149,7 +207,7 @@ export class GraphController {
                 // TODO
             }));
         });
-        this.drawable.addEventListener("change", (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail));
+
         this.drawable.addEventListener("select", (evt: SelectionChangedEvent) => this.setSelectedElements(evt.detail.curr));
         /* ************************************************************* */
 
@@ -166,58 +224,8 @@ export class GraphController {
             core = _core;
             this.copyPropertiesToDrawable(core, drawable);
         }
-        const bridge = new Bridge(core, drawable);
+        const bridge = new Bridge(this, core, drawable);
         this.bridges.set(core, drawable, bridge);
-
-        const onChange = (evt: PropertyChangedEvent<any>) => this.onPropertyChanged(evt.detail);
-
-        const computedPropertyContext = new ComputedPropertyContext(core);
-        core.context = computedPropertyContext;
-
-        const copyComputedProperties = () => {
-            [...computedPropertyContext.properties.entries()].forEach(([key, [name, value]]) => {
-                drawable.removeEventListener("change", onChange);
-                setTimeout(() => {
-                    this.copyPropertyToDrawable(value, drawable, key);
-                    setTimeout(() => drawable.addEventListener("change", onChange), 0);
-                });
-            });
-        };
-        copyComputedProperties();
-
-        core.environment.listen((_, value, other) => {
-            // console.log(core, _, value, other);
-
-            computedPropertyContext.update();
-            copyComputedProperties();
-
-            [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => {
-                if (v === value) {
-                    return true;
-                } else if (v instanceof Value.Record) {
-                    for (const k of Object.keys(v.value)) {
-                        if (v.value[k] === value) {
-                            return true;
-                        }
-                    }
-                } else if (v instanceof Value.Union && v.value === value) {
-                    return true;
-                }
-
-                return false;
-            }).forEach(([k, _]) => {
-                drawable.removeEventListener("change", onChange);
-                setTimeout(() => {
-                    this.copyPropertyToDrawable(core.get(k), drawable, k);
-                    this.changed.emit(new UndoableEvent(() => {
-                        // TODO
-                    }));
-                    setTimeout(() => drawable.addEventListener("change", onChange), 0);
-                });
-            });
-        }, () => true, core);
-
-        drawable.addEventListener("change", onChange);
 
         return bridge;
     }
@@ -262,19 +270,7 @@ export class GraphController {
         // TODO:
     }
 
-    private onPropertyChanged(a: PropertyChangedEventDetail<any>) {
-        const bridge = this.bridges.getB(a.source);
-        if (bridge !== undefined) {
-            const result = this.copyPropertyToCore(bridge.drawable, bridge.core, a.key.toString());
-            if (result) {
-                this.changed.emit(new UndoableEvent(() => {
-                    // TODO
-                }));
-            }
-        } else {
-            throw new OutOfSyncError();
-        }
-    }
+
 
     copyPropertiesToDrawable(core: ElementValue, drawable: Drawable) {
         Object.keys(drawable).forEach((key) => {
