@@ -53,6 +53,7 @@ let fileMenu: Electron.MenuItemOptions = {
         },
         {
             label: "Manage Plugins",
+            accelerator: 'CmdOrCtrl+u',
             click: clickHandlerMake(MenuEventAction.MANAGE_PLUGINS)
         }
     ]

@@ -1,4 +1,4 @@
-import { Component, Inject } from "@angular/core";
+import { Component, Inject, Output, ChangeDetectorRef } from "@angular/core";
 import { PluginService } from "../../services/plugin.service";
 import { requestSaveFile, requestOpenDirs, requestFiles, getLogger } from "../../util";
 import { remote } from "electron";
@@ -42,12 +42,22 @@ const DEFAULT_DIR = remote.app.getPath("home");
 const LOG = getLogger("plugin-manager");
 @Component({
     selector: "plugin-manager",
-    templateUrl: "./plugin-manager.html"
+    templateUrl: "./plugin-manager.component.html",
+    styleUrls: ["plugin-manager.component.scss"]
 })
 export class PluginManager implements ModalComponent {
     public modalInfo: ModalInfo;
+    private plugins: PluginInfo[];
+    private selectedPlugin: PluginInfo;
+
     constructor( @Inject(PluginService) private pluginService: PluginService,
-        @Inject(WindowService) private windowService: WindowService) {
+        @Inject(WindowService) private windowService: WindowService,
+        private changeDetectorRef: ChangeDetectorRef) {
+    }
+
+    async ngOnInit() {
+        this.plugins = await this.pluginService.pluginData;
+        this.changeDetectorRef.detectChanges();
     }
 
     ngAfterViewInit() {
@@ -64,6 +74,8 @@ export class PluginManager implements ModalComponent {
         const infos = ([] as PluginInfo[]).concat(... await Promise.all(dirNames.map(recursiveInfo)));
         LOG.info("Found info, now try to import them all."); // TODO: Prompt for which ones to import.
         infos.forEach(info => this.pluginService.importPlugin(info.interpreterInfo.directory));
+        this.plugins = await this.pluginService.pluginData;
+        this.changeDetectorRef.detectChanges();
     }
 
     async importPlugins() {
@@ -71,10 +83,15 @@ export class PluginManager implements ModalComponent {
         await this.importMany(dirNames);
     }
 
-    async deletePlugins() {
-        LOG.info("Deleting all plugins");
-        const plugins = await this.pluginService.plugins;
-        plugins.forEach(plugin => this.pluginService.removePlugin(plugin));
+    async deletePlugin() {
+        await this.pluginService.removePlugin(await this.pluginService.getPluginByKind(this.selectedPlugin.pluginKind));
+        this.plugins = await this.pluginService.pluginData;
+        this.changeDetectorRef.detectChanges();
+    }
+
+    pluginSelected(plugin: PluginInfo) {
+        this.selectedPlugin = plugin;
+        this.changeDetectorRef.detectChanges();
     }
 
     async importFromZip() {

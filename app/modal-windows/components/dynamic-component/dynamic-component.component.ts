@@ -10,7 +10,7 @@ import { WindowService, WindowDelegate } from './../../services/window.service';
 import { ModalComponent, ModalInfo } from "./../../../models/modal-window";
 
 import { NewFileComponent } from './../../../components/new-file/new-file.component'; // TODO, shorter way to do this...?
-import { PluginManager } from "../../../components/plugin-manager/plugin-manager";
+import { PluginManager } from "../../../components/plugin-manager/plugin-manager.component";
 
 /**
  * This component loads one of the components specified in componentMap depending on ModalInfo.kind for this window.
@@ -32,8 +32,8 @@ export class DynamicComponent implements WindowDelegate, OnInit {
      */
     private componentMap = new Map<string, [string, Type<ModalComponent>]>(
         [
-        ["sinap-new-file", ["New File", NewFileComponent]],
-        ["plugin-manager", ["Plugin Manager", PluginManager]]
+            ["sinap-new-file", ["New File", NewFileComponent]],
+            ["plugin-manager", ["Plugin Manager", PluginManager]]
         ]
         // Preferences, etc...
     );

@@ -15,7 +15,7 @@ export const ROOT_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", 
 
 @Injectable()
 export class PluginService {
-    readonly plugins: Promise<Plugin[]>;
+    plugins: Promise<Plugin[]>;
     private loader: TypescriptPluginLoader = new TypescriptPluginLoader(ROOT_DIRECTORY);
 
     constructor() {
@@ -64,6 +64,7 @@ export class PluginService {
     public async removePlugin(plugin: Plugin): Promise<void> {
         LOG.info(`Removing the ${plugin.pluginInfo.pluginKind.join(".")} plugin.`);
         await removeDir(plugin.pluginInfo.interpreterInfo.directory);
+        this.plugins = this.loadPlugins();
     }
 
     public exportPlugins(dest: string): Promise<void> {
