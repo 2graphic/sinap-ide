@@ -73,7 +73,8 @@ export class PluginManager implements ModalComponent {
         LOG.info(`Finding info for ${JSON.stringify(dirNames)}.`);
         const infos = ([] as PluginInfo[]).concat(... await Promise.all(dirNames.map(recursiveInfo)));
         LOG.info("Found info, now try to import them all."); // TODO: Prompt for which ones to import.
-        infos.forEach(info => this.pluginService.importPlugin(info.interpreterInfo.directory));
+        const proms = infos.map(info => this.pluginService.importPlugin(info.interpreterInfo.directory));
+        await Promise.all(proms);
         this.plugins = await this.pluginService.pluginData;
         this.changeDetectorRef.detectChanges();
     }
@@ -102,6 +103,7 @@ export class PluginManager implements ModalComponent {
                 tempDirs.push(await unzipToTemp(fileNames[i])); // Need to be careful for cleanup.
             }
             await this.importMany(tempDirs.map(tempDir => tempDir.path));
+            tempDirs.forEach(tempDir => tempDir.close());
         } finally {
             tempDirs.forEach(tempDir => tempDir.close());
         }

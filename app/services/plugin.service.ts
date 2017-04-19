@@ -1,5 +1,5 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter, getLogger, dirFiles, removeDir, arrayEquals, createDir } from "../util";
+import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter, getLogger, dirFiles, removeDir, arrayEquals, createDir, sleep } from "../util";
 import * as path from "path";
 import { remote } from "electron";
 import { IS_PRODUCTION } from "../constants";
@@ -28,6 +28,7 @@ export class PluginService {
     }
 
     private loadPlugins(): Promise<Plugin[]> {
+        LOG.info(`Reloading plugins from ${PLUGIN_DIRECTORY}`);
         return subdirs(PLUGIN_DIRECTORY)
             .catch(async err => {
                 if (err && err.code === "ENOENT") {
@@ -36,8 +37,11 @@ export class PluginService {
                     throw err;
                 }
             })
-            .then(dirs => somePromises(dirs.map(getPluginInfo), LOG))
-            .then(infos => somePromises(infos.map(info => this.loader.load(info)), LOG));
+            .then(dirs => somePromises(dirs.map((dir) => this.loadPlugin(dir)), LOG))
+    }
+
+    private async loadPlugin(dir: string): Promise<Plugin> {
+        return await this.loader.load(await getPluginInfo(dir));
     }
 
     public async getPluginByKind(kind: string[]): Promise<Plugin> {
@@ -64,13 +68,13 @@ export class PluginService {
         const dest = path.join(PLUGIN_DIRECTORY, path.basename(dir));
         LOG.log(`Importing plugins from ${dir} to ${dest}.`);
         await copy(dir, dest);
-        this.plugins = this.loadPlugins();
+        await this.reload();
     }
 
     public async removePlugin(plugin: Plugin): Promise<void> {
         LOG.info(`Removing the ${plugin.pluginInfo.pluginKind.join(".")} plugin.`);
         await removeDir(plugin.pluginInfo.interpreterInfo.directory);
-        this.plugins = this.loadPlugins();
+        await this.reload();
     }
 
     public exportPlugins(dest: string): Promise<void> {
