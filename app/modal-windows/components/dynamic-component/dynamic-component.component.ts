@@ -9,14 +9,15 @@ import { Title } from '@angular/platform-browser';
 import { WindowService, WindowDelegate } from './../../services/window.service';
 import { ModalComponent, ModalInfo } from "./../../../models/modal-window";
 
-import { NewFileComponent } from './../../../components/new-file/new-file.component';
+import { NewFileComponent } from './../../../components/new-file/new-file.component'; // TODO, shorter way to do this...?
+import { PluginManager } from "../../../components/plugin-manager/plugin-manager.component";
 
 /**
  * This component loads one of the components specified in componentMap depending on ModalInfo.kind for this window.
  */
 @Component({
     selector: 'sinap-dynamic-component',
-    entryComponents: [NewFileComponent],
+    entryComponents: [NewFileComponent, PluginManager],
     template: `<div #container></div>`,
     providers: [WindowService]
 })
@@ -30,7 +31,10 @@ export class DynamicComponent implements WindowDelegate, OnInit {
      * Add the type information for each component you want this component to be able to create.
      */
     private componentMap = new Map<string, [string, Type<ModalComponent>]>(
-        [["sinap-new-file", ["New File", NewFileComponent]]]
+        [
+            ["sinap-new-file", ["New File", NewFileComponent]],
+            ["plugin-manager", ["Plugin Manager", PluginManager]]
+        ]
         // Preferences, etc...
     );
 

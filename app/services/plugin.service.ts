@@ -1,30 +1,43 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { somePromises, subdirs, arrayEquals } from "../util";
+import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter, getLogger, dirFiles, removeDir, arrayEquals, createDir } from "../util";
 import * as path from "path";
-import { remote } from 'electron';
-let { app } = remote;
+import { remote } from "electron";
 import { IS_PRODUCTION } from "../constants";
 import { Plugin, PluginLoader, getPluginInfo, Program, PluginInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
 
 
+const app = remote.app;
+const LOG = getLogger("plugin.service");
 
-export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app", "plugins") : "./plugins";
+export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getPath("userData"), "plugins") : "./plugins";
 export const ROOT_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app") : ".";
 
 @Injectable()
 export class PluginService {
-    readonly plugins: Promise<Plugin[]>;
+    plugins: Promise<Plugin[]>;
     private loader: TypescriptPluginLoader = new TypescriptPluginLoader(ROOT_DIRECTORY);
 
     constructor() {
         this.plugins = this.loadPlugins();
     }
 
-    private loadPlugins() {
+    public async reload() {
+        this.plugins = this.loadPlugins();
+        await this.plugins;
+    }
+
+    private loadPlugins(): Promise<Plugin[]> {
         return subdirs(PLUGIN_DIRECTORY)
-            .then(dirs => somePromises(dirs.map(getPluginInfo)))
-            .then(infos => somePromises(infos.map(info => this.loader.load(info))));
+            .catch(async err => {
+                if (err && err.code === "ENOENT") {
+                    return createDir(PLUGIN_DIRECTORY).then(_ => []);
+                } else {
+                    throw err;
+                }
+            })
+            .then(dirs => somePromises(dirs.map(getPluginInfo), LOG))
+            .then(infos => somePromises(infos.map(info => this.loader.load(info)), LOG));
     }
 
     public async getPluginByKind(kind: string[]): Promise<Plugin> {
@@ -44,5 +57,23 @@ export class PluginService {
         return this.plugins.then((plugins) => {
             return plugins.map((plugin) => plugin.pluginInfo);
         });
+    }
+
+    public async importPlugin(dir: string): Promise<void> {
+        // Recursively progress through directories until we get interpreter info.
+        const dest = path.join(PLUGIN_DIRECTORY, path.basename(dir));
+        LOG.log(`Importing plugins from ${dir} to ${dest}.`);
+        await copy(dir, dest);
+        this.plugins = this.loadPlugins();
+    }
+
+    public async removePlugin(plugin: Plugin): Promise<void> {
+        LOG.info(`Removing the ${plugin.pluginInfo.pluginKind.join(".")} plugin.`);
+        await removeDir(plugin.pluginInfo.interpreterInfo.directory);
+        this.plugins = this.loadPlugins();
+    }
+
+    public exportPlugins(dest: string): Promise<void> {
+        return zipFiles(PLUGIN_DIRECTORY, dest);
     }
 }
