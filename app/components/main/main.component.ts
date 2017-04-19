@@ -427,7 +427,6 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                     e.preventDefault();
                 }
                 break;
-<<<<<<< HEAD
             case MenuEventAction.CUT:
                 if (this.focusIsChildOf("graph-editor-container")) {
                     if (this.graphEditor.graph)
@@ -448,10 +447,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                         this.graphEditor.cloneSelection();
                     e.preventDefault();
                 }
-=======
+                break;
             case MenuEventAction.MANAGE_PLUGINS:
                 this.launchPluginManager();
->>>>>>> master
                 break;
         }
     }

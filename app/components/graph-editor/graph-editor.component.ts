@@ -19,7 +19,7 @@ import {
 } from "@angular/core";
 
 import * as MathEx from "./math";
-import { STICKY_DELAY, NUDGE } from "./defaults";
+import { STICKY_DELAY, NUDGE, GRID_SPACING } from "./defaults";
 import { PropertyChangedEvent } from "./events";
 import { NOOP, diff, sum } from "./math";
 import { EditorCanvas, point } from "./editor-canvas";
@@ -132,6 +132,22 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private readonly graphCache: Map<DrawableGraph, EditorGraph>
     = new Map<DrawableGraph, EditorGraph>();
+
+    /**
+     * `clipboard`
+     *
+     *   The cached selection of elements to be pasted.
+     */
+    private clipboard: DrawableElement[]
+    = [];
+
+    /**
+     * `pasteOffset`
+     *
+     *   The offset position for pasting nodes.
+     */
+    private pasteOffset: number
+    = GRID_SPACING;
 
     /**
      * `downPt`
@@ -359,20 +375,35 @@ export class GraphEditorComponent implements AfterViewInit {
         this.drawGraphDelegate();
     }
 
-    private clipboard: DrawableElement[]
-    = [];
-
+    /**
+     * `saveSelection`
+     *
+     *   Saves the collection of selected elements for pasting.
+     *
+     * @param cut
+     *   Whether or not the selection should be deleted after saving.
+     */
     saveSelection(cut: boolean = false) {
-        console.log("save selection");
         if (this._graph) {
+            this.pasteOffset = GRID_SPACING;
             this.clipboard = [...this._graph.drawable.selectedItems];
+            if (cut)
+                this._graph.drawable.deleteSelected();
         }
     }
 
+    /**
+     * `cloneSelection`
+     *
+     *   Pastes the previously saved selection of elements.
+     */
     cloneSelection() {
-        console.log("clone selection");
         if (this._graph) {
-            this._graph.drawable.cloneElements(...this.clipboard);
+            this._graph.drawable.cloneElements(
+                this.clipboard,
+                { x: this.pasteOffset, y: this.pasteOffset }
+            );
+            this.pasteOffset += GRID_SPACING;
         }
     }
 
@@ -440,7 +471,6 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private unregisterGraph(graph: DrawableGraph) {
         this._graph = null;
-        this.clipboard = [];
         graph.removeEventListener("change", this.onDrawablePropertyChanged);
     }
 

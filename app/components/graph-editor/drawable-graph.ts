@@ -7,7 +7,7 @@
  */
 
 
-import { GRID_SPACING, SCALE_MIN, SCALE_MAX } from "./defaults";
+import { SCALE_MIN, SCALE_MAX } from "./defaults";
 import { filterSet, move } from "./generic-functions";
 import { point } from "./editor-canvas";
 import { Drawable } from "./drawable";
@@ -305,43 +305,53 @@ export class DrawableGraph extends Drawable {
     /**
      * `cloneElements`
      *
-     *   Clones a collection of elements and adds a offset to any node positions
-     *   that are cloned.
+     *   Clones a collection of elements and adds an offset to any node
+     *   positions that are cloned.
      *
      * @param items
+     *   The elements to be cloned.
+     *
+     * @param offsetPt
+     *   The offset with which to place the cloned nodes.
+     *
+     * @returns
+     *   The collection of successfully cloned items or null if the operation
+     *   was cancelled prematurely.
      */
-    cloneElements(...items: DrawableElement[]) {
-        const creating = new Map<DrawableElement, DrawableElement>();
+    cloneElements(items: DrawableElement[], offsetPt: point = { x: 0, y: 0 }) {
+        if (items.length > 0 && items[0].graph !== this) {
+            console.log("error: attempting to clone elements from other graph");
+            return null;
+        }
+
+        const nodes = new Map<DrawableNode, DrawableNode>();
         const details: [DrawableElement, DrawableElement][]
             = [];
-
-        // TODO:
-        // Make sure that this still works if items in the clipboard have been
-        // previously deleted.
 
         for (const n of items.filter(
             v => v instanceof DrawableNode
         ) as DrawableNode[]) {
             const nn = new DrawableNode(this, n);
-            creating.set(n, nn);
+            nodes.set(n, nn);
             details.push([nn, n]);
             nn.position = {
-                x: n.position.x + GRID_SPACING,
-                y: n.position.y + GRID_SPACING
+                x: n.position.x + offsetPt.x,
+                y: n.position.y + offsetPt.y
             };
         }
 
         for (const e of items.filter(
             v => v instanceof DrawableEdge
         ) as DrawableEdge[]) {
-            let src = creating.get(e.source) as DrawableNode;
-            let dst = creating.get(e.destination) as DrawableNode;
-            if (!src)
+            let src = nodes.get(e.source) as DrawableNode;
+            let dst = nodes.get(e.destination) as DrawableNode;
+            if (!src && this._nodes.has(e.source))
                 src = e.source;
-            if (!dst)
+            if (!dst && this._nodes.has(e.destination))
                 dst = e.destination;
+            if (!src || !dst)
+                continue;
             const ee = new DrawableEdge(this, src, dst, e);
-            creating.set(e, ee);
             details.push([ee, e]);
         }
 
@@ -352,7 +362,13 @@ export class DrawableGraph extends Drawable {
             )
         ))
             return null;
-        details.map(v => this._unselected.add(v[0]));
+        details.map(v => {
+            this._unselected.add(v[0]);
+            if (v[0] instanceof DrawableNode)
+                this._nodes.add(v[0] as DrawableNode);
+            else if (v[0] instanceof DrawableEdge)
+                this._edges.add(v[0] as DrawableEdge);
+        });
         this.dispatchEvent(
             new TypedCustomEvent(
                 "created",
