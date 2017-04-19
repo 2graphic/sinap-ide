@@ -124,6 +124,10 @@ export class TypeInjectorComponent {
             }
 
             if (value instanceof Value.CustomObject) {
+                if (value.type instanceof Core.ElementType) {
+                    return NodeTypeComponent;
+                }
+
                 return ObjectTypeComponent;
             }
 
@@ -141,10 +145,6 @@ export class TypeInjectorComponent {
                 } else {
                     // TODO:
                 }
-            }
-
-            if (value instanceof Core.ElementValue) {
-                return NodeTypeComponent;
             }
 
             if (value instanceof Value.ArrayObject) {

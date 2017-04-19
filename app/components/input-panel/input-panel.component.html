@@ -55,12 +55,12 @@
                     </td>
                 </tr>
 
-                <tbody *ngFor="let state of _data.selected.getStates()" class="clickable" (click)="selectState(state)">
+                <tbody *ngFor="let state of _data.selected.getStates()" (click)="selectState(state)">
                         <tr *ngIf="state.message !== undefined">
                             <td [class.expand-chevron-before]="_data.selectedState === state">
                                 <sinap-type [value]="state.message"></sinap-type>
                             </td>
-                            <td [class.expand-chevron-down]="_data.selectedState === state" [class.expand-chevron-right]="_data.selectedState !== state">
+                            <td [class.clickable]="_data.selectedState !== state" [class.expand-chevron-down]="_data.selectedState === state" [class.expand-chevron-right]="_data.selectedState !== state">
                                 <span class="chevron">›</span>
                             </td>
                         </tr>
