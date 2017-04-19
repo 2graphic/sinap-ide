@@ -304,7 +304,10 @@ export class DrawableGraph extends Drawable {
 
     /**
      * `cloneElements`
-     * 
+     *
+     *   Clones a collection of elements and adds a offset to any node positions
+     *   that are cloned.
+     *
      * @param items
      */
     cloneElements(...items: DrawableElement[]) {
