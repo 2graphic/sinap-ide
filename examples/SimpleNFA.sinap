@@ -7,14 +7,14 @@
         "graph": {
             "9a65e8b9-aac0-401d-94b3-10dfde2fcae6": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "NFAGraph"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableGraph"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "nodes": {
@@ -31,14 +31,14 @@
         "nodes": {
             "e2f06935-1f62-4b43-8c66-0d2476245f96": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "NFANode"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableNode"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "isStartState": {
@@ -97,14 +97,14 @@
             },
             "b65a6527-0703-4432-8cb6-19c197151ba8": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "NFANode"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableNode"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "isStartState": {
@@ -163,14 +163,14 @@
             },
             "39461682-a15a-434e-85ba-87247fa53514": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "NFANode"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableNode"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "isStartState": {
@@ -231,27 +231,19 @@
         "edges": {
             "3fad1e9d-2e9f-4e8f-ab9e-71bcdc44714b": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "NFAEdge"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableEdge"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "symbol": {
                         "kind": "value-reference",
                         "uuid": "d79c284e-2c7f-44ec-ab0d-7439309c5ed1"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "6b03ca75-f3bb-48e5-89af-8e3733ddbf5b"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "f5241f0d-a03b-43f2-a4ca-2b0cc9049dcc"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -276,32 +268,32 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "dc2425a7-a476-409a-a5ee-9c0db7f34395"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "f5241f0d-a03b-43f2-a4ca-2b0cc9049dcc"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "6b03ca75-f3bb-48e5-89af-8e3733ddbf5b"
                     }
                 }
             },
             "9ccbc2c4-a053-44f6-b8c6-2d5eada0fcec": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "NFAEdge"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableEdge"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "symbol": {
                         "kind": "value-reference",
                         "uuid": "c134857d-6759-46c1-9c52-3b39ae100016"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "8f799f9b-ea77-46ef-a6e3-875f5a2db88e"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "5e4139c1-2bed-4126-8e73-7ff0c04818fa"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -326,32 +318,32 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "10a874c1-6f2b-4fff-881a-e5aea23cdc19"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "5e4139c1-2bed-4126-8e73-7ff0c04818fa"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "8f799f9b-ea77-46ef-a6e3-875f5a2db88e"
                     }
                 }
             },
             "6bdea3bd-f341-454e-b2e3-b3475b9a2474": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "NFAEdge"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableEdge"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "symbol": {
                         "kind": "value-reference",
                         "uuid": "75315e8f-ee89-40f7-a7d5-3f3064645836"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "cd5994ce-c1b5-4085-9b91-f0901db1d345"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "2806be1a-67c6-448e-a3bd-b56f23fb24b3"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -376,32 +368,32 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "172038f0-9f27-49ef-af95-5cfcf3ff4e54"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "2806be1a-67c6-448e-a3bd-b56f23fb24b3"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "cd5994ce-c1b5-4085-9b91-f0901db1d345"
                     }
                 }
             },
             "6d8a4cc6-b060-4fca-87a8-5562fb02a7ac": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "NFAEdge"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableEdge"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "symbol": {
                         "kind": "value-reference",
                         "uuid": "6df3a541-63e1-49e1-bc5a-37cf2593fd18"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "09c829eb-7483-4746-b6bb-bd37f473b50a"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "688b7ef1-0ab2-4574-a587-972b8a95c678"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -426,6 +418,14 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "d7b2fa17-5133-4ba9-896b-171600d5122a"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "688b7ef1-0ab2-4574-a587-972b8a95c678"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "09c829eb-7483-4746-b6bb-bd37f473b50a"
                     }
                 }
             }
@@ -448,14 +448,14 @@
                     "array": {
                         "union": [
                             {
-                                "intersection": [
-                                    {
+                                "element": {
+                                    "plugin": {
                                         "object": "NFAEdge"
                                     },
-                                    {
+                                    "drawable": {
                                         "object": "DrawableEdge"
                                     }
-                                ]
+                                }
                             }
                         ]
                     }
@@ -497,14 +497,14 @@
                     "array": {
                         "union": [
                             {
-                                "intersection": [
-                                    {
+                                "element": {
+                                    "plugin": {
                                         "object": "NFAEdge"
                                     },
-                                    {
+                                    "drawable": {
                                         "object": "DrawableEdge"
                                     }
-                                ]
+                                }
                             }
                         ]
                     }
@@ -580,7 +580,7 @@
                 "type": {
                     "primitive": "string"
                 },
-                "rep": ""
+                "rep": "/Users/sheyne/Documents/sinap-ide/plugins/nfa/start_state.svg"
             },
             "f17a5d33-c5b9-4254-afac-584c2e8d1223": {
                 "type": {
@@ -697,14 +697,14 @@
                     "array": {
                         "union": [
                             {
-                                "intersection": [
-                                    {
+                                "element": {
+                                    "plugin": {
                                         "object": "NFAEdge"
                                     },
-                                    {
+                                    "drawable": {
                                         "object": "DrawableEdge"
                                     }
-                                ]
+                                }
                             }
                         ]
                     }
@@ -780,7 +780,7 @@
                 "type": {
                     "primitive": "string"
                 },
-                "rep": ""
+                "rep": "/Users/sheyne/Documents/sinap-ide/plugins/nfa/accept_state.svg"
             },
             "69f923e8-7cc1-47c4-8471-ee0f75ebe350": {
                 "type": {
@@ -897,14 +897,14 @@
                     "array": {
                         "union": [
                             {
-                                "intersection": [
-                                    {
+                                "element": {
+                                    "plugin": {
                                         "object": "NFAEdge"
                                     },
-                                    {
+                                    "drawable": {
                                         "object": "DrawableEdge"
                                     }
-                                ]
+                                }
                             }
                         ]
                     }
@@ -973,7 +973,7 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "291ee0dc-38f3-49f8-92ab-873786752229"
+                    "uuid": "a101409f-36bc-4f22-8dcf-243de507f1c8"
                 }
             },
             "4f0a2c4d-3f46-46b1-b859-01db9636edb1": {
@@ -1043,12 +1043,6 @@
                     "kind": "value-reference",
                     "uuid": "b83cea18-21cc-4db6-9760-2ec5aa049694"
                 }
-            },
-            "291ee0dc-38f3-49f8-92ab-873786752229": {
-                "type": {
-                    "literal": "ellipse"
-                },
-                "rep": "ellipse"
             },
             "b83cea18-21cc-4db6-9760-2ec5aa049694": {
                 "type": {
@@ -1497,6 +1491,12 @@
                     "literal": 2
                 },
                 "rep": 2
+            },
+            "a101409f-36bc-4f22-8dcf-243de507f1c8": {
+                "type": {
+                    "literal": "circle"
+                },
+                "rep": "circle"
             }
         }
     }

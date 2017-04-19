@@ -7,14 +7,14 @@
         "graph": {
             "f8fc14d0-fa78-40dd-adaf-03d81a2f9bda": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "DFAGraph"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableGraph"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "nodes": {
@@ -31,14 +31,14 @@
         "nodes": {
             "48121d7d-d67f-4fe5-9f58-7b1699900442": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "DFANode"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableNode"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "isStartState": {
@@ -97,14 +97,14 @@
             },
             "b9ff9751-899e-49d9-926c-76796bf321e5": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "DFANode"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableNode"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "isStartState": {
@@ -163,14 +163,14 @@
             },
             "60bc9b5b-6183-4bb5-9593-65337bcbf515": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "DFANode"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableNode"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "isStartState": {
@@ -231,27 +231,19 @@
         "edges": {
             "0ed51a89-e2bb-4f84-bb0d-e94ca7f72d02": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "DFAEdge"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableEdge"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "symbol": {
                         "kind": "value-reference",
                         "uuid": "081007c6-11cb-43b0-a9f8-6fa6752e8495"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "939a9157-011b-46ba-94e1-60f33e99757a"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "6a135e0a-831c-4221-83e2-0c36a5759781"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -276,32 +268,32 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "8af22d9c-0c1d-499c-ae32-2a74e8355dac"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "6a135e0a-831c-4221-83e2-0c36a5759781"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "939a9157-011b-46ba-94e1-60f33e99757a"
                     }
                 }
             },
             "a8269d63-4eef-4c33-8dbe-7bac0f1dc70b": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "DFAEdge"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableEdge"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "symbol": {
                         "kind": "value-reference",
                         "uuid": "5557a79a-cc44-46e2-aa19-772f3a9bd0a9"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "76965879-68b2-4c0d-8553-2bd6f313ca76"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "80ee7685-3f21-40b6-95ca-67c4b2f35e41"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -326,32 +318,32 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "eb5dfcc4-7902-4129-9292-80bd5e00b0f1"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "80ee7685-3f21-40b6-95ca-67c4b2f35e41"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "76965879-68b2-4c0d-8553-2bd6f313ca76"
                     }
                 }
             },
             "d49d8000-6ae6-42cf-8109-3732e297f39e": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "DFAEdge"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableEdge"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "symbol": {
                         "kind": "value-reference",
                         "uuid": "1efc009e-8c19-4d5f-9f16-961527ae7bc0"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "f72f1952-f637-49f6-b146-0f788967af56"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "34632798-5cfb-4f94-b433-fca4a5de8ec4"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -376,32 +368,32 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "6542613c-72ea-4aa5-a640-181f0da26561"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "34632798-5cfb-4f94-b433-fca4a5de8ec4"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "f72f1952-f637-49f6-b146-0f788967af56"
                     }
                 }
             },
             "b660482c-53a1-4dcc-845a-c8ff51d540c1": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "DFAEdge"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableEdge"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "symbol": {
                         "kind": "value-reference",
                         "uuid": "d758a9a9-f975-4241-b74b-7e48a1ce8c52"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "0f750755-3a62-474c-996b-34bc757eb890"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "57cebd2f-65f5-4b2d-93ab-4bc92599fa90"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -426,32 +418,32 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "1f53ab44-29c1-422b-b252-f2182c5b5ca8"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "57cebd2f-65f5-4b2d-93ab-4bc92599fa90"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "0f750755-3a62-474c-996b-34bc757eb890"
                     }
                 }
             },
             "f26aaddd-25e4-4582-9915-9551f9806fc0": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "DFAEdge"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableEdge"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "symbol": {
                         "kind": "value-reference",
                         "uuid": "fb79c85d-e384-4fc9-bd31-d21d7be3e951"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "9c48f054-61f9-4cf0-981d-9481e923849a"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "547e5e89-1f71-453c-8ef7-ebd28af4dbd0"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -476,32 +468,32 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "3752271e-d59f-4976-b3fc-f16298032c91"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "547e5e89-1f71-453c-8ef7-ebd28af4dbd0"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "9c48f054-61f9-4cf0-981d-9481e923849a"
                     }
                 }
             },
             "ad8e558c-5638-4a0c-88af-9130fcb7c94a": {
                 "type": {
-                    "intersection": [
-                        {
+                    "element": {
+                        "plugin": {
                             "object": "DFAEdge"
                         },
-                        {
+                        "drawable": {
                             "object": "DrawableEdge"
                         }
-                    ]
+                    }
                 },
                 "rep": {
                     "symbol": {
                         "kind": "value-reference",
                         "uuid": "515a13bb-81be-414a-82ae-a9a91d65515b"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "1902e7ee-f1db-4ce4-b113-439606fb11b1"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "bcb6cb48-059a-4156-82b7-aeafb0c0746f"
                     },
                     "label": {
                         "kind": "value-reference",
@@ -526,6 +518,14 @@
                     "showDestinationArrow": {
                         "kind": "value-reference",
                         "uuid": "397a7c9c-904a-4713-ac01-1eb1999fc739"
+                    },
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "bcb6cb48-059a-4156-82b7-aeafb0c0746f"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "1902e7ee-f1db-4ce4-b113-439606fb11b1"
                     }
                 }
             }
@@ -548,14 +548,14 @@
                     "array": {
                         "union": [
                             {
-                                "intersection": [
-                                    {
+                                "element": {
+                                    "plugin": {
                                         "object": "DFAEdge"
                                     },
-                                    {
+                                    "drawable": {
                                         "object": "DrawableEdge"
                                     }
-                                ]
+                                }
                             }
                         ]
                     }
@@ -597,14 +597,14 @@
                     "array": {
                         "union": [
                             {
-                                "intersection": [
-                                    {
+                                "element": {
+                                    "plugin": {
                                         "object": "DFAEdge"
                                     },
-                                    {
+                                    "drawable": {
                                         "object": "DrawableEdge"
                                     }
-                                ]
+                                }
                             }
                         ]
                     }
@@ -797,14 +797,14 @@
                     "array": {
                         "union": [
                             {
-                                "intersection": [
-                                    {
+                                "element": {
+                                    "plugin": {
                                         "object": "DFAEdge"
                                     },
-                                    {
+                                    "drawable": {
                                         "object": "DrawableEdge"
                                     }
-                                ]
+                                }
                             }
                         ]
                     }
@@ -997,14 +997,14 @@
                     "array": {
                         "union": [
                             {
-                                "intersection": [
-                                    {
+                                "element": {
+                                    "plugin": {
                                         "object": "DFAEdge"
                                     },
-                                    {
+                                    "drawable": {
                                         "object": "DrawableEdge"
                                     }
-                                ]
+                                }
                             }
                         ]
                     }
@@ -1172,7 +1172,7 @@
                 "type": {
                     "primitive": "string"
                 },
-                "rep": "λ"
+                "rep": "1"
             },
             "4d9ff8b3-b6bb-443d-a99d-7bde18ed7d63": {
                 "type": {
@@ -1281,7 +1281,7 @@
                 "type": {
                     "primitive": "string"
                 },
-                "rep": "λ"
+                "rep": "0"
             },
             "690bbd14-6188-4d86-b6c5-f5dcf74370dd": {
                 "type": {
@@ -1390,7 +1390,7 @@
                 "type": {
                     "primitive": "string"
                 },
-                "rep": "λ"
+                "rep": "0"
             },
             "321102e1-8c83-42d8-9532-ce193f5cdeb0": {
                 "type": {
@@ -1499,7 +1499,7 @@
                 "type": {
                     "primitive": "string"
                 },
-                "rep": "λ"
+                "rep": "1"
             },
             "5afea1af-aa4e-4a65-a354-23e2997c12ad": {
                 "type": {
@@ -1608,7 +1608,7 @@
                 "type": {
                     "primitive": "string"
                 },
-                "rep": "λ"
+                "rep": "0"
             },
             "1245b43d-76fd-4204-b294-f14e9cf9d67a": {
                 "type": {
@@ -1717,7 +1717,7 @@
                 "type": {
                     "primitive": "string"
                 },
-                "rep": "λ"
+                "rep": "1"
             },
             "332cfa4d-f6ab-4163-a340-39c9d2d9d890": {
                 "type": {
