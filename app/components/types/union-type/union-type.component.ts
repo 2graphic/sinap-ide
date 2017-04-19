@@ -18,13 +18,23 @@ export class UnionTypeComponent extends BaseTypeComponent<Value.Union> {
     private selectedValue: Value.Value | undefined = undefined;
     private set selected(selected: Type.Type) {
         this._selected = selected;
-        this.value.value = this.value.environment.make(selected);
 
-        if (this.value.value instanceof Value.Literal) {
+        const previousValue = this.value.value;
+
+        const newValue = this.value.environment.make(selected);
+
+        if (newValue instanceof Value.Literal) {
             this.selectedValue = undefined;
         } else {
-            this.selectedValue = this.value.value;
+            if (previousValue instanceof Value.Literal && newValue instanceof Value.Primitive
+                && Type.isSubtype(previousValue.type, newValue.type)) {
+                newValue.value = previousValue.value;
+            }
+
+            this.selectedValue = newValue;
         }
+
+        this.value.value = newValue;
     }
     private get selected() {
         return this._selected;

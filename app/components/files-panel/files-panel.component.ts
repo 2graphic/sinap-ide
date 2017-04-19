@@ -13,13 +13,15 @@
 import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
-import { dirFiles, getBasename, compareFiles } from "../../util";
+import { dirFiles, compareFiles } from "../../util";
+
+import * as path from "path";
 
 class FileInfo {
     public readonly name: string;
 
     constructor(public readonly file: string) {
-        this.name = getBasename(file, ".sinap");
+        this.name = path.basename(file, ".sinap");
     };
 
     toString() {

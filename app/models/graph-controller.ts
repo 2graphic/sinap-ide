@@ -186,7 +186,7 @@ export class GraphController {
         copyComputedProperties();
 
         core.environment.listen((_, value, other) => {
-            console.log(core, _, value, other);
+            // console.log(core, _, value, other);
 
             computedPropertyContext.update();
             copyComputedProperties();
@@ -200,6 +200,8 @@ export class GraphController {
                             return true;
                         }
                     }
+                } else if (v instanceof Value.Union && v.value === value) {
+                    return true;
                 }
 
                 return false;
@@ -284,25 +286,27 @@ export class GraphController {
         Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    private readonly primitives = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image"]);
-    private readonly unions = new Set(["shape", "borderStyle", "lineStyle"]);
+    private readonly drawableKeys = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image", "shape", "borderStyle", "lineStyle", "position"]);
 
     copyPropertyToDrawable(value: Value.Value | undefined, drawable: Drawable, key: string) {
-        if (value === undefined) {
+        if (value === undefined || !this.drawableKeys.has(key)) {
             return;
         }
 
         if (((value instanceof Value.Literal) || (value instanceof Value.Primitive)) && key === "image") {
-            const path = getPath(this.plugin.pluginInfo.interpreterInfo.directory + "/" + value.value);
-            console.log(path);
-            (drawable as any)[key] = path;
-        } else if (value instanceof Value.Primitive && this.primitives.has(key)) {
+            if (value.value && value.value !== "") {
+                const path = getPath(this.plugin.pluginInfo.interpreterInfo.directory + "/" + value.value);
+                (drawable as any)[key] = path;
+            }
+        } else if (value instanceof Value.Primitive) {
             // TODO: Typesafe way to do this?
             (drawable as any)[key] = value.value;
         }
 
-        if (value instanceof Value.Union && this.unions.has(key) && value.value instanceof Value.Literal) {
-            (drawable as any)[key] = value.value.value;
+        if (value instanceof Value.Union) {
+            if (value.value instanceof Value.Literal || value.value instanceof Value.Primitive) {
+                (drawable as any)[key] = value.value.value;
+            }
         }
 
         if (value instanceof Value.Record && key === "position") {
@@ -314,7 +318,6 @@ export class GraphController {
     }
 
     copyPropertyToCore(drawable: Drawable, core: ElementValue, key: string): boolean {
-        console.log("Copying " + key + " to core.");
         if (key === "source" || key === "destination") {
             if (!(drawable instanceof DrawableEdge)) {
                 return false;
@@ -329,14 +332,18 @@ export class GraphController {
             return true;
         }
 
+        if (!this.drawableKeys.has(key)) {
+            return false;
+        }
+
         let value = core.get(key);
 
-        if (value instanceof Value.Primitive && this.primitives.has(key)) {
+        if (value instanceof Value.Primitive) {
             value.value = (drawable as any)[key];
             return true;
         }
 
-        if (value instanceof Value.Union && this.unions.has(key)) {
+        if (value instanceof Value.Union) {
             // TODO: I'm assuming that all types of a union are literal
             value.value = value.environment.make(new Type.Literal((drawable as any)[key]));
             return true;
