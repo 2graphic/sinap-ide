@@ -14,7 +14,7 @@
                         <tr *ngFor="let property of element.pluginProperties; let i = index">
                             <td>{{property.name}}</td>
                             <td>
-                                <sinap-type [readonly]="false" [focus]="i === 0" [value]="property.value"></sinap-type>
+                                <sinap-type [readonly]="false" [value]="property.value"></sinap-type>
                             </td>
                         </tr>
                         <tr *ngFor="let property of element.computed">
