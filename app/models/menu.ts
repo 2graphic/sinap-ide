@@ -17,7 +17,8 @@ export enum MenuEventAction {
     CLOSE,
     PREVIOUS_TAB,
     NEXT_TAB,
-    MANAGE_PLUGINS
+    MANAGE_PLUGINS,
+    REFRESH_PLUGINS
 }
 
 function clickHandlerMake(event: MenuEventAction) {
@@ -55,6 +56,11 @@ let fileMenu: Electron.MenuItemOptions = {
             label: "Manage Plugins",
             accelerator: 'CmdOrCtrl+u',
             click: clickHandlerMake(MenuEventAction.MANAGE_PLUGINS)
+        },
+        {
+            label: "Refresh Plugins",
+            accelerator: 'CmdOrCtrl+shift+r',
+            click: clickHandlerMake(MenuEventAction.REFRESH_PLUGINS)
         }
     ]
 };
