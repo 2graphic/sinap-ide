@@ -64,17 +64,19 @@ export class TypeInjectorComponent {
         if (!v) {
             this.container.clear();
             this.component = undefined;
-        } else if (this.component && this._value && this._value.deepEqual(v)) {
-            if (this._value !== v) {
-                this.component.instance.value = v;
-            }
-        } else {
+        } 
+        // TODO: fix this DANIEL LIKE RIGHT NOW
+        // else if (this.component && this._value && this._value.deepEqual(v)) {
+        //     if (this._value !== v) {
+        //         this.component.instance.value = v;
+        //     }
+        // } 
+        else {
             this.inject(v, this.readonly, this._disabled);
         }
     }
 
     get value() {
-        debugger;
         if (this.component) {
             return this.component.instance.value as Value.Value;
         } else {

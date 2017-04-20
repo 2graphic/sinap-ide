@@ -7,6 +7,7 @@ import { Component, Input } from "@angular/core";
 import { BaseTypeComponent } from "../type-injector/base-classes";
 import { Value, Type } from "sinap-types";
 import { ElementValue } from "sinap-core";
+import { imap, ifilter } from "sinap-types/lib/util";
 
 @Component({
     selector: "sinap-node-type",
@@ -33,11 +34,8 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
         super.value = value;
 
         if (!this.readonly) {
-            console.log(value, "here");
-
-            this.options = [...value.environment.values.entries()].map((v) => v[1]).filter((v) => {
-                return Type.isSubtype(v.type, value.type)
-            }).map((n): [string, Value.Value] => [this.getPrimitiveAsString(n as Value.CustomObject, "label")!, n]);
+            const matchingValues = ifilter((v) => Type.isSubtype(v.type, value.type), value.environment.values.values());
+            this.options = [...imap((n): [string, Value.Value] => [this.getPrimitiveAsString(n as Value.CustomObject, "label")!, n], matchingValues)];
         } else this.options = [];
 
         this.selectedOption(value);

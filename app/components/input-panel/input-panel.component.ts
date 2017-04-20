@@ -11,7 +11,7 @@
  */
 
 import { Component, ElementRef, ViewChild, AfterViewChecked, EventEmitter } from "@angular/core";
-import { Program, Plugin } from "sinap-core";
+import { Program, Plugin, ElementType } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
 import { TypeInjectorComponent } from "../types/type-injector/type-injector.component"
@@ -77,7 +77,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     };
 
     @ViewChild('log') log: ElementRef;
-    @ViewChild(TypeInjectorComponent) inputComponent: TypeInjectorComponent 
+    @ViewChild('inputComponent') inputComponent: TypeInjectorComponent;
 
     private isErrorType(t: Type.Type) {
         return false; // TODO
@@ -111,7 +111,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
 
             this._data.inputForPlugin = inputForPlugin ? inputForPlugin : this._data.program.model.environment.make(type);
 
-            console.log(this._data.inputForPlugin);
+            console.log("Input for plugin", this._data.inputForPlugin);
         }
     }
 
@@ -159,15 +159,25 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private async onSubmit() {
-        const input = this.inputComponent.value!;
+        let input = this.inputComponent.value!;
 
-        debugger;
+        let inputDifferent: Value.Value | undefined;
+        if (this._data.program) {
+            inputDifferent = this._data.program.model.environment.values.get(input.uuid);
+        }
+        if (inputDifferent) {
+            input = inputDifferent;
+        }
+
+
+        if (input.type instanceof ElementType) {
+        }
 
         const output = await this.run(input);
         const states = output.steps.map(s => new State(s));
         const result = new ProgramResult(input, new Output(states, output.result));
 
-        console.log(result);
+        console.log("Run result", result);
 
         this._data.selected = result;
         this._data.results.unshift(result);
