@@ -24,10 +24,11 @@ export function getInput(program: Program) {
 
     if ([...plugin.types.nodes.types.values()].find((t) => Type.isSubtype!(type, t.pluginType))) {
         inputForPlugin = program.model.nodes.values().next().value;
+        return inputForPlugin;
     }
 
 
-    return inputForPlugin ? inputForPlugin : program.model.environment.make(type);
+    return program.model.environment.make(type);
 }
 
 export function getExpected(program: Program) {
