@@ -5,6 +5,7 @@ import { remote } from "electron";
 import { IS_PRODUCTION } from "../constants";
 import { Plugin, PluginLoader, getPluginInfo, Program, PluginInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
+import * as fs from "fs";
 
 
 const app = remote.app;
@@ -13,31 +14,134 @@ const LOG = getLogger("plugin.service");
 export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getPath("userData"), "plugins") : "./plugins";
 export const ROOT_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app") : ".";
 
-@Injectable()
-export class PluginService {
-    plugins: Promise<Plugin[]>;
-    private loader: TypescriptPluginLoader = new TypescriptPluginLoader(ROOT_DIRECTORY);
+class PluginHolder {
+    private _plugin: Plugin;
+    private watchers: fs.FSWatcher[];
+
+    constructor(private loader: PluginLoader, private lock: PromiseLock, plugin: Plugin) {
+        this.watchers = [];
+        this.plugin = plugin;
+    }
+
+    close() {
+        for (const watcher of this.watchers) {
+            try {
+                watcher.close();
+            } catch (err) {
+                LOG.error(err);
+            }
+        }
+
+        this.watchers = [];
+    }
+
+    get plugin(): Plugin {
+        return this._plugin;
+    }
+
+    set plugin(plugin: Plugin) {
+        this._plugin = plugin;
+        this.close();
+        this.addWatcher(plugin.pluginInfo.interpreterInfo.directory);
+    }
+
+    private async addWatcher(dir: string) {
+        const watcher = fs.watch(dir, {
+            persistent: false,
+            recursive: false
+        }, async (event, fname) => {
+            // This may need to be debounced for performance.
+            await this.lock.acquire();
+            try {
+                this.plugin = await this.loader.load(await getPluginInfo(this.plugin.pluginInfo.interpreterInfo.directory));
+            } finally {
+                this.lock.release();
+            }
+        });
+    }
+}
+
+export class PromiseLock {
+    private queue: (() => void)[];
+    private locked: boolean;
 
     constructor() {
-        this.plugins = this.loadPlugins();
+        this.locked = false;
+        this.queue = [];
     }
 
-    public async reload() {
-        this.plugins = this.loadPlugins();
-        await this.plugins;
+    acquire(): Promise<void> {
+        if (this.locked) {
+            return new Promise<void>((resolve, reject) => {
+                this.queue.push(resolve);
+            });
+        } else {
+            this.locked = true;
+            return Promise.resolve();
+        }
     }
 
-    private loadPlugins(): Promise<Plugin[]> {
+    release() {
+        if (this.queue.length === 0) {
+            this.locked = false;
+        } else {
+            const next = this.queue.shift();
+            next!();
+        }
+    }
+}
+
+@Injectable()
+export class PluginService {
+    private loader: TypescriptPluginLoader = new TypescriptPluginLoader(ROOT_DIRECTORY);
+    private holders: PluginHolder[];
+    private lock: PromiseLock;
+
+    get plugins(): Promise<Plugin[]> {
+        return this.lock.acquire().then(_ => {
+            const result = this.holders.map(holder => holder.plugin);
+            this.lock.release();
+            return result;
+        });
+    }
+
+    constructor() {
+        this.lock = new PromiseLock();
+        this.holders = [];
+        fs.watch(PLUGIN_DIRECTORY, {
+            persistent: false,
+            recursive: false
+        }, (event, fname) => this.reload());
+        this.reload();
+    }
+
+    async reload(): Promise<void> {
+        await this.lock.acquire();
+        try {
+            for (const holder of this.holders) {
+                holder.close();
+            }
+            this.holders = await this.loadPlugins();
+        } finally {
+            this.lock.release();
+        }
+    }
+
+    private async loadPlugins(): Promise<PluginHolder[]> {
         LOG.info(`Reloading plugins from ${PLUGIN_DIRECTORY}`);
-        return subdirs(PLUGIN_DIRECTORY)
-            .catch(async err => {
-                if (err && err.code === "ENOENT") {
-                    return createDir(PLUGIN_DIRECTORY).then(_ => []);
-                } else {
-                    throw err;
-                }
-            })
-            .then(dirs => somePromises(dirs.map((dir) => this.loadPlugin(dir)), LOG));
+        let dirs: string[] = [];
+
+        try {
+            dirs = await subdirs(PLUGIN_DIRECTORY);
+        } catch (err) {
+            if (err && err.code === "ENOENT") {
+                await createDir(PLUGIN_DIRECTORY);
+                dirs = [];
+            }
+        }
+
+        const plugins = await somePromises(dirs.map(dir => this.loadPlugin(dir)), LOG);
+        return plugins.map(plugin => new PluginHolder(this.loader, this.lock, plugin));
     }
 
     private async loadPlugin(dir: string): Promise<Plugin> {
@@ -68,13 +172,11 @@ export class PluginService {
         const dest = path.join(PLUGIN_DIRECTORY, path.basename(dir));
         LOG.log(`Importing plugins from ${dir} to ${dest}.`);
         await copy(dir, dest);
-        await this.reload();
     }
 
     public async removePlugin(plugin: Plugin): Promise<void> {
         LOG.info(`Removing the ${plugin.pluginInfo.pluginKind.join(".")} plugin.`);
         await removeDir(plugin.pluginInfo.interpreterInfo.directory);
-        await this.reload();
     }
 
     public exportPlugins(dest: string): Promise<void> {
