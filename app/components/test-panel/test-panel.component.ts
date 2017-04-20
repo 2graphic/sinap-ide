@@ -11,11 +11,12 @@
  * @see {@link https://angular.io/docs/ts/latest/cookbook/dynamic-component-loader.html}
  */
 
-import { Component, Input, EventEmitter } from "@angular/core";
+import { Component, Input, EventEmitter, ViewChild } from "@angular/core";
 import { Program } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
 import { getInput, getExpected } from "../../util";
+import { TypeInjectorComponent } from "../types/type-injector/type-injector.component";
 
 export class TestPanelData {
     private _program?: Program;
@@ -88,6 +89,8 @@ export class TestPanelData {
 export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleBarItems {
     private _data: TestPanelData;
 
+    @ViewChild('inputComponent') inputComponent: TypeInjectorComponent;
+
     titlebarItems = [
         new TitlebarSpacer(),
         new TitlebarButton("add", "Add test", false, () => this.newTest()),
@@ -128,7 +131,14 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
         if (this._data.program) {
             const p = this._data.program;
 
-            const out = await p.run([test.input]);
+            let input = (test as any).injector ? (test as any).injector.value : test.input;
+
+            let inputDifferent = p.model.environment.values.get(input.uuid);
+            if (inputDifferent) {
+                input = inputDifferent;
+            }
+
+            const out = await p.run([input]);
             // TODO: This should really be a .then.catch case (not optional result and error on out)
             if (out.result) {
                 test.output = out.result;
@@ -151,11 +161,8 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
 
     private newTest() {
         if (this._data.program) {
-            const test = {
-                input: getInput(this._data.program),
-                expected: getExpected(this._data.program),
-                output: undefined
-            };
+            console.log("Creating new test.");
+            const test = new Test(getInput(this._data.program), getExpected(this._data.program), undefined);
 
             test.input.environment.listen(this.testChanged.bind(this, test), () => true, test.input);
 
@@ -215,8 +222,6 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
 
 }
 
-interface Test {
-    input: Value.Value;
-    expected: Value.Value;
-    output?: Value.Value;
+class Test {
+    constructor(public input: Value.Value, public expected: Value.Value, public output?: Value.Value) {};
 }

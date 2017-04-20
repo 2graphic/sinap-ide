@@ -3,7 +3,7 @@
 // Date created: February 22, 2017
 //
 
-import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type as AngularType, Output } from "@angular/core";
+import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type as AngularType, Output, EventEmitter } from "@angular/core";
 import * as Core from "sinap-core";
 import { Type, Value } from "sinap-types";
 
@@ -45,6 +45,9 @@ export class TypeInjectorComponent {
     @Input()
     public graph: GraphController;
 
+    @Output()
+    injected = new EventEmitter<TypeInjectorComponent>();
+
     /**
      * Whether the component should be readonly.
      * IE a string that is not readonly is an <input> element, otherwise it's just text.
@@ -66,6 +69,8 @@ export class TypeInjectorComponent {
 
     @Input()
     set value(v: Value.Value | undefined) {
+        this.injected.emit(this);
+
         if (!v) {
             this.container.clear();
             this.component = undefined;
