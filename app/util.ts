@@ -30,6 +30,10 @@ export function getInput(program: Program) {
     return inputForPlugin ? inputForPlugin : program.model.environment.make(type);
 }
 
+export function getExpected(program: Program) {
+    return program.model.environment.make(program.plugin.types.result);
+}
+
 
 
 // Similar to Promise.all. However, this will always resolve and ignore rejected promises.
