@@ -18,6 +18,8 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
     private _borderColor?: string;
     private _color?: string;
 
+    private options: [string, Value.Value][] = [];
+
     get borderColor() {
         return this._borderColor ? this._borderColor : "#000000";
     }
@@ -30,16 +32,15 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
     set value(value: ElementValue) {
         super.value = value;
 
-        this._borderColor = this.getPrimitiveAsString(value, "borderColor");
-        this._color = this.getPrimitiveAsString(value, "color");
+        if (!this.readonly) {
+            console.log(value, "here");
 
-        const label = this.getPrimitiveAsString(value, "label");
+            this.options = [...value.environment.values.entries()].map((v) => v[1]).filter((v) => {
+                return Type.isSubtype(v.type, value.type)
+            }).map((n): [string, Value.Value] => [this.getPrimitiveAsString(n as Value.CustomObject, "label")!, n]);
+        } else this.options = [];
 
-        const index = [...value.environment.values.entries()].map((v) => v[1]).filter((v) => {
-            return Type.isSubtype(v.type, value.type);
-        }).indexOf(value);
-
-        this.label = label ? label : value.type.pluginType.name + " " + index;
+        this.selectedOption(value);
     }
 
     // TODO: Move this into a util collection
@@ -52,5 +53,20 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
         }
 
         return undefined;
+    }
+
+    selectedOption(option: ElementValue) {
+        super.value = option;
+
+        this._borderColor = this.getPrimitiveAsString(option, "borderColor");
+        this._color = this.getPrimitiveAsString(option, "color");
+
+        const label = this.getPrimitiveAsString(option, "label");
+
+        const index = [...option.environment.values.entries()].map((v) => v[1]).filter((v) => {
+            return Type.isSubtype(v.type, option.type);
+        }).indexOf(option);
+
+        this.label = label ? label : option.type.pluginType.name + " " + index;
     }
 }

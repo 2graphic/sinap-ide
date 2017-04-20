@@ -3,7 +3,7 @@
 // Date created: February 22, 2017
 //
 
-import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type as AngularType } from "@angular/core";
+import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type as AngularType, Output } from "@angular/core";
 import * as Core from "sinap-core";
 import { Type, Value } from "sinap-types";
 
@@ -70,6 +70,15 @@ export class TypeInjectorComponent {
             }
         } else {
             this.inject(v, this.readonly, this._disabled);
+        }
+    }
+
+    get value() {
+        debugger;
+        if (this.component) {
+            return this.component.instance.value as Value.Value;
+        } else {
+            return this._value;
         }
     }
 

@@ -1,0 +1,806 @@
+{
+    "kind": [
+        "Algorithms",
+        "BFS"
+    ],
+    "graph": {
+        "graph": {
+            "06d73543-e176-498d-b5c2-f8981549a266": {
+                "type": {
+                    "element": {
+                        "plugin": {
+                            "object": "Graph"
+                        },
+                        "drawable": {
+                            "object": "DrawableGraph"
+                        }
+                    }
+                },
+                "rep": {
+                    "nodes": {
+                        "kind": "value-reference",
+                        "uuid": "5665db9e-d075-4a14-a031-09713bc15ac1"
+                    },
+                    "edges": {
+                        "kind": "value-reference",
+                        "uuid": "14172f8a-9b00-43bb-9a78-2c357d6b2c54"
+                    }
+                }
+            }
+        },
+        "nodes": {
+            "50ee47e8-aebf-4d19-a6f8-f7ca2b409367": {
+                "type": {
+                    "element": {
+                        "plugin": {
+                            "object": "Node"
+                        },
+                        "drawable": {
+                            "object": "DrawableNode"
+                        }
+                    }
+                },
+                "rep": {
+                    "children": {
+                        "kind": "value-reference",
+                        "uuid": "05617ed0-90c6-47ef-9086-af4a9d71467c"
+                    },
+                    "parents": {
+                        "kind": "value-reference",
+                        "uuid": "c2635409-a3f3-4c85-a670-a14811114d4f"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "0f45bee3-74c6-4831-b2f5-6702a9fa71b3"
+                    },
+                    "color": {
+                        "kind": "value-reference",
+                        "uuid": "18892ce3-8929-4495-8e18-d8388e7f677f"
+                    },
+                    "position": {
+                        "kind": "value-reference",
+                        "uuid": "3f437b9e-9bf7-4770-9e3e-0606eb73d8c0"
+                    },
+                    "shape": {
+                        "kind": "value-reference",
+                        "uuid": "745c7876-c358-4581-9599-479f92896f67"
+                    },
+                    "image": {
+                        "kind": "value-reference",
+                        "uuid": "549fec64-29cd-4238-8f90-72412fc5e516"
+                    },
+                    "anchorPoints": {
+                        "kind": "value-reference",
+                        "uuid": "98a56a1b-0c75-4e96-b6e8-7f69b0bf2491"
+                    },
+                    "borderColor": {
+                        "kind": "value-reference",
+                        "uuid": "ee31f3bd-c216-47b8-9d6f-078b972bd2ce"
+                    },
+                    "borderStyle": {
+                        "kind": "value-reference",
+                        "uuid": "6b207fae-841e-49f2-805d-9a7a9961c448"
+                    },
+                    "borderWidth": {
+                        "kind": "value-reference",
+                        "uuid": "a5b7bc0a-9dd8-4100-a16c-69624e14228d"
+                    }
+                }
+            },
+            "ffe6a864-81e9-4f85-a7de-cbb3a0cbbef3": {
+                "type": {
+                    "element": {
+                        "plugin": {
+                            "object": "Node"
+                        },
+                        "drawable": {
+                            "object": "DrawableNode"
+                        }
+                    }
+                },
+                "rep": {
+                    "children": {
+                        "kind": "value-reference",
+                        "uuid": "58f0f7bd-6d56-4643-888f-12116c25bee2"
+                    },
+                    "parents": {
+                        "kind": "value-reference",
+                        "uuid": "b74e896a-82b1-4903-9319-28e46cf851a6"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "502c3ccd-f410-4af6-9893-8bcf6548fab2"
+                    },
+                    "color": {
+                        "kind": "value-reference",
+                        "uuid": "e188a51d-e6ed-42bd-9bee-952a36c12527"
+                    },
+                    "position": {
+                        "kind": "value-reference",
+                        "uuid": "b816ac2d-0a8e-4a3f-a8b4-5fbc9705d816"
+                    },
+                    "shape": {
+                        "kind": "value-reference",
+                        "uuid": "bb119224-6ae8-43d2-895b-a28623820bcf"
+                    },
+                    "image": {
+                        "kind": "value-reference",
+                        "uuid": "dec53404-9951-47f3-a4ea-67ee2332cfdd"
+                    },
+                    "anchorPoints": {
+                        "kind": "value-reference",
+                        "uuid": "21393a1e-8810-4a6a-9ab8-465a1978e644"
+                    },
+                    "borderColor": {
+                        "kind": "value-reference",
+                        "uuid": "bbcbf7dc-0d25-468a-8a68-6faab304b398"
+                    },
+                    "borderStyle": {
+                        "kind": "value-reference",
+                        "uuid": "b72d6b6f-0b19-4ffe-8afc-c93b0effb483"
+                    },
+                    "borderWidth": {
+                        "kind": "value-reference",
+                        "uuid": "e490b6ce-317a-4f55-9f61-a9fa34fd2dfb"
+                    }
+                }
+            },
+            "2d03581c-1cec-418a-bdc0-839fcbac311c": {
+                "type": {
+                    "element": {
+                        "plugin": {
+                            "object": "Node"
+                        },
+                        "drawable": {
+                            "object": "DrawableNode"
+                        }
+                    }
+                },
+                "rep": {
+                    "children": {
+                        "kind": "value-reference",
+                        "uuid": "b100ad73-bdd8-4172-8970-2f5f710581c8"
+                    },
+                    "parents": {
+                        "kind": "value-reference",
+                        "uuid": "2dc2c807-53ef-4b78-9421-fd5b7a1bf99f"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "9130e32a-8fea-4617-9fd0-011bf2931d99"
+                    },
+                    "color": {
+                        "kind": "value-reference",
+                        "uuid": "a8e003e4-638c-4c8f-bca2-edb6e4683f5e"
+                    },
+                    "position": {
+                        "kind": "value-reference",
+                        "uuid": "9a7505aa-6013-4cad-93ef-3df6cc7e894a"
+                    },
+                    "shape": {
+                        "kind": "value-reference",
+                        "uuid": "0189c95f-5876-4be2-bc5f-a9a2693c6f94"
+                    },
+                    "image": {
+                        "kind": "value-reference",
+                        "uuid": "f38089c1-852d-43c4-a64a-b446cc1c45e8"
+                    },
+                    "anchorPoints": {
+                        "kind": "value-reference",
+                        "uuid": "9bb2804c-dfc6-47fa-ac66-e256d56954f5"
+                    },
+                    "borderColor": {
+                        "kind": "value-reference",
+                        "uuid": "ef77e6d7-d8a1-4fc4-af00-a9cd7c09d8c1"
+                    },
+                    "borderStyle": {
+                        "kind": "value-reference",
+                        "uuid": "86a18aa0-8df0-47ad-90c9-026a1355d520"
+                    },
+                    "borderWidth": {
+                        "kind": "value-reference",
+                        "uuid": "42153742-eb34-44c7-a6f0-a2ffc2bb539d"
+                    }
+                }
+            }
+        },
+        "edges": {},
+        "others": {
+            "5665db9e-d075-4a14-a031-09713bc15ac1": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "object": "Node"
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "14172f8a-9b00-43bb-9a78-2c357d6b2c54": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Edge"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "05617ed0-90c6-47ef-9086-af4a9d71467c": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "object": "Edge"
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "c2635409-a3f3-4c85-a670-a14811114d4f": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Edge"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "0f45bee3-74c6-4831-b2f5-6702a9fa71b3": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": "q1"
+            },
+            "18892ce3-8929-4495-8e18-d8388e7f677f": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#fff200"
+            },
+            "651d294f-52bc-444b-96ce-6cce9c317e01": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 217
+            },
+            "e8961b2e-60e4-4d88-a3d7-08ef930f8e92": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 167
+            },
+            "3f437b9e-9bf7-4770-9e3e-0606eb73d8c0": {
+                "type": {
+                    "record": {
+                        "x": {
+                            "primitive": "number"
+                        },
+                        "y": {
+                            "primitive": "number"
+                        }
+                    }
+                },
+                "rep": {
+                    "x": {
+                        "kind": "value-reference",
+                        "uuid": "651d294f-52bc-444b-96ce-6cce9c317e01"
+                    },
+                    "y": {
+                        "kind": "value-reference",
+                        "uuid": "e8961b2e-60e4-4d88-a3d7-08ef930f8e92"
+                    }
+                }
+            },
+            "745c7876-c358-4581-9599-479f92896f67": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "circle"
+                        },
+                        {
+                            "literal": "square"
+                        },
+                        {
+                            "literal": "ellipse"
+                        },
+                        {
+                            "literal": "rectangle"
+                        },
+                        {
+                            "literal": "image"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "7e6c1a0d-7a4f-4f31-a5ad-332a0fcb08e8"
+                }
+            },
+            "549fec64-29cd-4238-8f90-72412fc5e516": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": ""
+            },
+            "98a56a1b-0c75-4e96-b6e8-7f69b0bf2491": {
+                "type": {
+                    "array": {
+                        "record": {
+                            "x": {
+                                "primitive": "number"
+                            },
+                            "y": {
+                                "primitive": "number"
+                            }
+                        }
+                    }
+                },
+                "rep": []
+            },
+            "ee31f3bd-c216-47b8-9d6f-078b972bd2ce": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#000"
+            },
+            "6b207fae-841e-49f2-805d-9a7a9961c448": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "solid"
+                        },
+                        {
+                            "literal": "dotted"
+                        },
+                        {
+                            "literal": "dashed"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "71771dde-0541-4fe6-a915-6f087114d1ee"
+                }
+            },
+            "a5b7bc0a-9dd8-4100-a16c-69624e14228d": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "thin"
+                        },
+                        {
+                            "literal": "medium"
+                        },
+                        {
+                            "literal": "thick"
+                        },
+                        {
+                            "primitive": "number"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "899b3096-aac3-4b21-a991-67c6320ae40b"
+                }
+            },
+            "7e6c1a0d-7a4f-4f31-a5ad-332a0fcb08e8": {
+                "type": {
+                    "literal": "ellipse"
+                },
+                "rep": "ellipse"
+            },
+            "899b3096-aac3-4b21-a991-67c6320ae40b": {
+                "type": {
+                    "literal": 2
+                },
+                "rep": 2
+            },
+            "71771dde-0541-4fe6-a915-6f087114d1ee": {
+                "type": {
+                    "literal": "solid"
+                },
+                "rep": "solid"
+            },
+            "58f0f7bd-6d56-4643-888f-12116c25bee2": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "object": "Edge"
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "b74e896a-82b1-4903-9319-28e46cf851a6": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Edge"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "502c3ccd-f410-4af6-9893-8bcf6548fab2": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": "q2"
+            },
+            "e188a51d-e6ed-42bd-9bee-952a36c12527": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#fff200"
+            },
+            "71e7c3dc-14eb-4724-a91a-7818ee062926": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 254
+            },
+            "8e4f4ab1-b2b0-4fa6-bd6f-88ef58dc0aa8": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 277
+            },
+            "b816ac2d-0a8e-4a3f-a8b4-5fbc9705d816": {
+                "type": {
+                    "record": {
+                        "x": {
+                            "primitive": "number"
+                        },
+                        "y": {
+                            "primitive": "number"
+                        }
+                    }
+                },
+                "rep": {
+                    "x": {
+                        "kind": "value-reference",
+                        "uuid": "71e7c3dc-14eb-4724-a91a-7818ee062926"
+                    },
+                    "y": {
+                        "kind": "value-reference",
+                        "uuid": "8e4f4ab1-b2b0-4fa6-bd6f-88ef58dc0aa8"
+                    }
+                }
+            },
+            "bb119224-6ae8-43d2-895b-a28623820bcf": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "circle"
+                        },
+                        {
+                            "literal": "square"
+                        },
+                        {
+                            "literal": "ellipse"
+                        },
+                        {
+                            "literal": "rectangle"
+                        },
+                        {
+                            "literal": "image"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "fc9624e0-f67e-4a4f-91c1-a8b42af41ad2"
+                }
+            },
+            "dec53404-9951-47f3-a4ea-67ee2332cfdd": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": ""
+            },
+            "21393a1e-8810-4a6a-9ab8-465a1978e644": {
+                "type": {
+                    "array": {
+                        "record": {
+                            "x": {
+                                "primitive": "number"
+                            },
+                            "y": {
+                                "primitive": "number"
+                            }
+                        }
+                    }
+                },
+                "rep": []
+            },
+            "bbcbf7dc-0d25-468a-8a68-6faab304b398": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#000"
+            },
+            "b72d6b6f-0b19-4ffe-8afc-c93b0effb483": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "solid"
+                        },
+                        {
+                            "literal": "dotted"
+                        },
+                        {
+                            "literal": "dashed"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "7485a7a7-565d-4a24-9d07-bacaadbfdce7"
+                }
+            },
+            "e490b6ce-317a-4f55-9f61-a9fa34fd2dfb": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "thin"
+                        },
+                        {
+                            "literal": "medium"
+                        },
+                        {
+                            "literal": "thick"
+                        },
+                        {
+                            "primitive": "number"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "a17cb77c-da09-4b86-b198-ae0a2faf18e1"
+                }
+            },
+            "fc9624e0-f67e-4a4f-91c1-a8b42af41ad2": {
+                "type": {
+                    "literal": "ellipse"
+                },
+                "rep": "ellipse"
+            },
+            "a17cb77c-da09-4b86-b198-ae0a2faf18e1": {
+                "type": {
+                    "literal": 2
+                },
+                "rep": 2
+            },
+            "7485a7a7-565d-4a24-9d07-bacaadbfdce7": {
+                "type": {
+                    "literal": "solid"
+                },
+                "rep": "solid"
+            },
+            "b100ad73-bdd8-4172-8970-2f5f710581c8": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "object": "Edge"
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "2dc2c807-53ef-4b78-9421-fd5b7a1bf99f": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Edge"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "9130e32a-8fea-4617-9fd0-011bf2931d99": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": "q3"
+            },
+            "a8e003e4-638c-4c8f-bca2-edb6e4683f5e": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#fff200"
+            },
+            "10c3ed54-80ec-46d7-bbef-bb8f832ac2f6": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 477.00000000000006
+            },
+            "a7e37290-c43d-4a4d-acaa-165915d01ae4": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 214
+            },
+            "9a7505aa-6013-4cad-93ef-3df6cc7e894a": {
+                "type": {
+                    "record": {
+                        "x": {
+                            "primitive": "number"
+                        },
+                        "y": {
+                            "primitive": "number"
+                        }
+                    }
+                },
+                "rep": {
+                    "x": {
+                        "kind": "value-reference",
+                        "uuid": "10c3ed54-80ec-46d7-bbef-bb8f832ac2f6"
+                    },
+                    "y": {
+                        "kind": "value-reference",
+                        "uuid": "a7e37290-c43d-4a4d-acaa-165915d01ae4"
+                    }
+                }
+            },
+            "0189c95f-5876-4be2-bc5f-a9a2693c6f94": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "circle"
+                        },
+                        {
+                            "literal": "square"
+                        },
+                        {
+                            "literal": "ellipse"
+                        },
+                        {
+                            "literal": "rectangle"
+                        },
+                        {
+                            "literal": "image"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "1608848c-4451-45af-8997-888b669b572a"
+                }
+            },
+            "f38089c1-852d-43c4-a64a-b446cc1c45e8": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": ""
+            },
+            "9bb2804c-dfc6-47fa-ac66-e256d56954f5": {
+                "type": {
+                    "array": {
+                        "record": {
+                            "x": {
+                                "primitive": "number"
+                            },
+                            "y": {
+                                "primitive": "number"
+                            }
+                        }
+                    }
+                },
+                "rep": []
+            },
+            "ef77e6d7-d8a1-4fc4-af00-a9cd7c09d8c1": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#000"
+            },
+            "86a18aa0-8df0-47ad-90c9-026a1355d520": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "solid"
+                        },
+                        {
+                            "literal": "dotted"
+                        },
+                        {
+                            "literal": "dashed"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "58487c7f-3895-4d61-aa85-f47c8acd1cfa"
+                }
+            },
+            "42153742-eb34-44c7-a6f0-a2ffc2bb539d": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "thin"
+                        },
+                        {
+                            "literal": "medium"
+                        },
+                        {
+                            "literal": "thick"
+                        },
+                        {
+                            "primitive": "number"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "4adaf2a2-615e-46c4-99ba-64c5020c4b58"
+                }
+            },
+            "1608848c-4451-45af-8997-888b669b572a": {
+                "type": {
+                    "literal": "ellipse"
+                },
+                "rep": "ellipse"
+            },
+            "4adaf2a2-615e-46c4-99ba-64c5020c4b58": {
+                "type": {
+                    "literal": 2
+                },
+                "rep": 2
+            },
+            "58487c7f-3895-4d61-aa85-f47c8acd1cfa": {
+                "type": {
+                    "literal": "solid"
+                },
+                "rep": "solid"
+            }
+        }
+    }
+}

@@ -14,6 +14,7 @@ import { Component, ElementRef, ViewChild, AfterViewChecked, EventEmitter } from
 import { Program, Plugin } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
+import { TypeInjectorComponent } from "../types/type-injector/type-injector.component"
 
 import { ResizeEvent } from 'angular-resizable-element';
 
@@ -76,6 +77,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     };
 
     @ViewChild('log') log: ElementRef;
+    @ViewChild(TypeInjectorComponent) inputComponent: TypeInjectorComponent 
 
     private isErrorType(t: Type.Type) {
         return false; // TODO
@@ -96,10 +98,20 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
 
     private setupInput() {
         if (this._data.program) {
+            const program = this._data.program;
             const plugin = ((this._data.program as any).plugin as Plugin);
             const type = plugin.types.arguments[0];
 
-            this._data.inputForPlugin = this._data.program.model.environment.make(type);
+            let inputForPlugin: Value.Value | undefined = undefined;
+
+            if ([...plugin.types.nodes.types.values()].find((t) => Type.isSubtype!(type, t.pluginType))) {
+                inputForPlugin = program.model.nodes.values().next().value;
+            }
+
+
+            this._data.inputForPlugin = inputForPlugin ? inputForPlugin : this._data.program.model.environment.make(type);
+
+            console.log(this._data.inputForPlugin);
         }
     }
 
@@ -146,7 +158,11 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         g();
     }
 
-    private async onSubmit(input: Value.Value) {
+    private async onSubmit() {
+        const input = this.inputComponent.value!;
+
+        debugger;
+
         const output = await this.run(input);
         const states = output.steps.map(s => new State(s));
         const result = new ProgramResult(input, new Output(states, output.result));
