@@ -37,7 +37,7 @@ export class PluginService {
                     throw err;
                 }
             })
-            .then(dirs => somePromises(dirs.map((dir) => this.loadPlugin(dir)), LOG))
+            .then(dirs => somePromises(dirs.map((dir) => this.loadPlugin(dir)), LOG));
     }
 
     private async loadPlugin(dir: string): Promise<Plugin> {
