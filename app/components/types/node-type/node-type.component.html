@@ -3,7 +3,7 @@
         <td><select [ngModel]="value" (ngModelChange)="selectedOption($event)">
         <option *ngFor="let option of options" [ngValue]="option[1]">{{option[0]}}</option>
     </select></td>
-        <td><span [style.border-color]="borderColor" [style.background-color]="color" (click)="selectNode()">{{label}}</span></td>
+        <td><span [style.border-color]="borderColor" [style.background-color]="color" (click)="selectNode($event)">{{label}}</span></td>
     </tr>
 </table>
-<span *ngIf="options.length === 0" [style.border-color]="borderColor" [style.background-color]="color" (click)="selectNode()">{{label}}</span>
+<span *ngIf="options.length === 0" [style.border-color]="borderColor" [style.background-color]="color" (click)="selectNode($event)">{{label}}</span>

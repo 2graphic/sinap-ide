@@ -76,9 +76,10 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
         this.label = this.getLabel(option);
     }
 
-    selectNode() {
+    selectNode(e: Event) {
         const found = [...this.graph.core.nodes.values()].find((n) => n.uuid === this._value.uuid);
         if (found) {
+            e.stopPropagation();
             this.graph.selectElements(found);
         }
     }
