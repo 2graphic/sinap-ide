@@ -9,7 +9,7 @@
                             <td>
                                 <div class="input">
                                     <span class="chevron">&gt;</span>
-                                    <sinap-type [value]="result.input"></sinap-type>
+                                    <sinap-type [graph]="_data.programInfo.graph" [value]="result.input"></sinap-type>
                                 </div>
                             </td>
                         </tr>
@@ -19,7 +19,7 @@
                                     <span class="chevron">&lt;</span>
                                     <span>
                                         <span [class.error]="isErrorType(result.output.result.type)">
-                                            <sinap-type [value]="result.output.result"></sinap-type>
+                                            <sinap-type [graph]="_data.programInfo.graph" [value]="result.output.result"></sinap-type>
                                         </span>
                                     </span>
                                 </div>
@@ -31,7 +31,7 @@
 
             <div id="input">
                 <div id="input-value">
-                    <sinap-type #inputComponent [readonly]="false" [focus]="true" [disabled]="!_data.program" [value]="_data.inputForPlugin"></sinap-type>                    
+                    <sinap-type [graph]="_data.programInfo.graph" #inputComponent [readonly]="false" [focus]="true" [disabled]="!_data.program" [value]="_data.inputForPlugin"></sinap-type>                    
                 </div>
                 <div id="input-button">
                     <button (click)="onSubmit()">
@@ -50,7 +50,7 @@
                     <td colspan="2">
                         <div class="input">
                             <span class="chevron">&gt;</span>
-                            <sinap-type [value]="_data.selected.input"></sinap-type>
+                            <sinap-type [graph]="_data.programInfo.graph" [value]="_data.selected.input"></sinap-type>
                         </div>
                     </td>
                 </tr>
@@ -58,7 +58,7 @@
                 <tbody *ngFor="let state of _data.selected.getStates()" (click)="selectState(state)">
                         <tr *ngIf="state.message !== undefined">
                             <td [class.expand-chevron-before]="_data.selectedState === state">
-                                <sinap-type [value]="state.message"></sinap-type>
+                                <sinap-type [graph]="_data.programInfo.graph" [value]="state.message"></sinap-type>
                             </td>
                             <td [class.clickable]="_data.selectedState !== state" [class.expand-chevron-down]="_data.selectedState === state" [class.expand-chevron-right]="_data.selectedState !== state">
                                 <span class="chevron">›</span>
@@ -67,13 +67,13 @@
 
                         <tr *ngIf="state.message !== undefined && _data.selectedState == state" class="expanded">
                             <td colspan="2">
-                                <sinap-type [value]="state.state"></sinap-type>
+                                <sinap-type [graph]="_data.programInfo.graph" [value]="state.state"></sinap-type>
                             </td>
                         </tr>
 
                         <tr *ngIf="state.message === undefined">
                             <td colspan="2">
-                                <sinap-type [value]="state.state"></sinap-type>
+                                <sinap-type [graph]="_data.programInfo.graph" [value]="state.state"></sinap-type>
                             </td>
                         </tr>
                 </tbody>
@@ -83,7 +83,7 @@
                         <div class="result">
                             <span class="chevron">&lt;</span>
                             <span [class.error]="isErrorType(_data.selected.output.result.type)">
-                                <sinap-type [value]="_data.selected.output.result"></sinap-type>
+                                <sinap-type [graph]="_data.programInfo.graph" [value]="_data.selected.output.result"></sinap-type>
                             </span>
                         </div>
                     </td>

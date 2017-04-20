@@ -1,6 +1,6 @@
 <table>
     <tr *ngFor="let key of keys">
         <td>{{key}}</td>
-        <td><sinap-type [value]="values.get(key)" [readonly]="readonly"></sinap-type></td>
+        <td><sinap-type [graph]="graph" [value]="values.get(key)" [readonly]="readonly"></sinap-type></td>
     </tr>
 </table>

@@ -1,4 +1,4 @@
 <select [ngModel]="selected" (ngModelChange)="selectedOption($event)">
     <option *ngFor="let option of options" [ngValue]="option[1]">{{option[0]}}</option>
 </select>
-<sinap-type *ngIf="selectedValue !== undefined" [value]="selectedValue" [readonly]="readonly"></sinap-type>
+<sinap-type [graph]="graph" *ngIf="selectedValue !== undefined" [value]="selectedValue" [readonly]="readonly"></sinap-type>

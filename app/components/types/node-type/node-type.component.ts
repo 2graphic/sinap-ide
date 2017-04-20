@@ -34,8 +34,9 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
     @Input()
     set value(value: ElementValue) {
         if (!this.readonly) {
+            // TODO: Once graph is the graph controller for the program's model, this can use that instead of environment.
             const matchingValues = ifilter((v) => Type.isSubtype(v.type, value.type), value.environment.values.values());
-            this.options = [...imap((n): [string, Value.Value] => [this.getPrimitiveAsString(n as Value.CustomObject, "label")!, n], matchingValues)];
+            this.options = [...imap((n): [string, Value.Value] => [this.getLabel(n as ElementValue), n], matchingValues)];
         } else this.options = [];
 
         this.selectedOption(value);
@@ -57,18 +58,28 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
         return undefined;
     }
 
+    private getLabel(node: ElementValue) {
+        const label = this.getPrimitiveAsString(node, "label");
+
+        const index = [...node.environment.values.entries()].map((v) => v[1]).filter((v) => {
+            return Type.isSubtype(v.type, node.type);
+        }).indexOf(node);
+
+        return label ? label : node.type.pluginType.name + " " + index;
+    }
+
     selectedOption(option: ElementValue) {
         this._value = option;
 
         this._borderColor = this.getPrimitiveAsString(option, "borderColor");
         this._color = this.getPrimitiveAsString(option, "color");
+        this.label = this.getLabel(option);
+    }
 
-        const label = this.getPrimitiveAsString(option, "label");
-
-        const index = [...option.environment.values.entries()].map((v) => v[1]).filter((v) => {
-            return Type.isSubtype(v.type, option.type);
-        }).indexOf(option);
-
-        this.label = label ? label : option.type.pluginType.name + " " + index;
+    selectNode() {
+        const found = [...this.graph.core.nodes.values()].find((n) => n.uuid === this._value.uuid);
+        if (found) {
+            this.graph.selectElements(found);
+        }
     }
 }

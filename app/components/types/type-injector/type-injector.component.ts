@@ -19,6 +19,8 @@ import { MapTypeComponent } from "./../map-type/map-type.component";
 import { LiteralTypeComponent } from "./../literal-type/literal-type.component";
 import { PointTypeComponent } from "./../point-type/point-type.component";
 
+import { GraphController } from "../../../models/graph-controller";
+
 import { PointType } from "../point-type/point-type.component";
 
 /**
@@ -39,6 +41,9 @@ export class TypeInjectorComponent {
     private component?: ComponentRef<any>;
     private _value?: Value.Value;
     private _disabled: boolean = false;
+
+    @Input()
+    public graph: GraphController;
 
     /**
      * Whether the component should be readonly.
@@ -72,7 +77,7 @@ export class TypeInjectorComponent {
             }
         }
         else {
-            this.inject(v, this.readonly, this._disabled);
+            this.inject(v, this.readonly, this._disabled, this.graph);
         }
     }
 
@@ -84,7 +89,7 @@ export class TypeInjectorComponent {
         }
     }
 
-    private inject(value: Value.Value, readonly: boolean, disabled: boolean) {
+    private inject(value: Value.Value, readonly: boolean, disabled: boolean, graph: GraphController) {
         this._value = value;
 
         let componentType = this.getComponentType(value);
@@ -99,6 +104,7 @@ export class TypeInjectorComponent {
         let factory = this.resolver.resolveComponentFactory(componentType);
 
         this.component = factory.create(injector);
+        this.component.instance.graph = graph;
         this.component.instance.readonly = readonly;
         this.component.instance.disabled = disabled;
         this.component.instance.value = value;

@@ -357,7 +357,14 @@ export class GraphController {
         return false;
     }
 
-    setSelectedElements(se: Iterable<Drawable> | undefined) {
+    public selectElements(...items: ElementValue[]) {
+        const toSelect = items.filter((n) => this.bridges.getA(n))
+            .map((n) => this.bridges.getA(n)!.drawable)
+            .filter((n) => (n instanceof DrawableElement)) as DrawableElement[];
+        this.drawable.setSelected(...toSelect);
+    }
+
+    private setSelectedElements(se: Iterable<Drawable> | undefined) {
         if (se === undefined) {
             se = [];
         }

@@ -15,13 +15,18 @@ import { Program, Plugin, ElementType } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
 import { TypeInjectorComponent } from "../types/type-injector/type-injector.component";
+import { GraphController } from "../../models/graph-controller";
 
 import { ResizeEvent } from 'angular-resizable-element';
+
+export class ProgramInfo {
+    constructor(public readonly program: Program, public readonly graph: GraphController) { };
+}
 
 export class InputPanelData {
     constructor() { }
 
-    private _program?: Program;
+    private _programInfo?: ProgramInfo;
 
     results: ProgramResult[] = [];
     selected: ProgramResult;
@@ -31,17 +36,17 @@ export class InputPanelData {
 
     inputForPlugin?: Value.Value;
 
-    get program() {
-        return this._program;
+    get programInfo() {
+        return this._programInfo;
     }
 
-    set program(value: Program | undefined) {
-        this._program = value;
+    set programInfo(value: ProgramInfo | undefined) {
+        this._programInfo = value;
         this.programChanged.emit(value);
     }
 
     readonly programChanged
-    = new EventEmitter<Program | undefined>();
+    = new EventEmitter<ProgramInfo | undefined>();
 }
 
 @Component({
@@ -97,9 +102,9 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private setupInput() {
-        if (this._data.program) {
-            const program = this._data.program;
-            const plugin = ((this._data.program as any).plugin as Plugin);
+        if (this._data.programInfo) {
+            const program = this._data.programInfo.program;
+            const plugin = ((this._data.programInfo.program as any).plugin as Plugin);
             const type = plugin.types.arguments[0];
 
             let inputForPlugin: Value.Value | undefined = undefined;
@@ -109,7 +114,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
             }
 
 
-            this._data.inputForPlugin = inputForPlugin ? inputForPlugin : this._data.program.model.environment.make(type);
+            this._data.inputForPlugin = inputForPlugin ? inputForPlugin : this._data.programInfo.program.model.environment.make(type);
 
             console.log("Input for plugin", this._data.inputForPlugin);
         }
@@ -162,15 +167,11 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         let input = this.inputComponent.value!;
 
         let inputDifferent: Value.Value | undefined;
-        if (this._data.program) {
-            inputDifferent = this._data.program.model.environment.values.get(input.uuid);
+        if (this._data.programInfo) {
+            inputDifferent = this._data.programInfo.program.model.environment.values.get(input.uuid);
         }
         if (inputDifferent) {
             input = inputDifferent;
-        }
-
-
-        if (input.type instanceof ElementType) {
         }
 
         const output = await this.run(input);
@@ -193,8 +194,8 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private async run(input: Value.Value) {
-        if (this._data.program) {
-            const output = await this._data.program.run([input]);
+        if (this._data.programInfo) {
+            const output = await this._data.programInfo.program.run([input]);
             if (output.result) {
                 return {
                     result: output.result,
