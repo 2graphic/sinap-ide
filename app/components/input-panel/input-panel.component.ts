@@ -31,6 +31,7 @@ export class InputPanelData {
     results: ProgramResult[] = [];
     selected: ProgramResult;
     selectedState: State;
+    isDebugging = true;
 
     leftPanelWidth = 300;
 
@@ -58,20 +59,29 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private _data: InputPanelData;
     private shouldScroll = false;
 
-    private stepFirst = new TitlebarButton("first_page", "Finish", false, () => { });
-    private stepBackward = new TitlebarButton("arrow_back", "Step", false, () => { });
-    private stepForward = new TitlebarButton("arrow_forward", "Step", false, () => this.step());
-    private stepLast = new TitlebarButton("last_page", "Finish", false, () => this.stepFinish());
-    private sync = new TitlebarButton("sync", "Step to Completion", false, () => this.stepToCompletion());
+    private stepFirstButton = new TitlebarButton("first_page", "Finish", false, this.stepFirst.bind(this));
+    private stepBackwardButton = new TitlebarButton("arrow_back", "Step", false, this.stepBackward.bind(this));
+    private stepForwardButton = new TitlebarButton("arrow_forward", "Step", false, this.step.bind(this));
+    private stepLastButton = new TitlebarButton("last_page", "Finish", false, this.stepFinish.bind(this));
+    private syncButton = new TitlebarButton("sync", "Step to Completion", false, this.stepToCompletion.bind(this));
+
+    private updateButtons() {
+        if (this._data.selected && this._data.isDebugging === true) {
+            [this.stepForwardButton, this.stepLastButton, this.syncButton].forEach((b) => b.isDisabled = (this._data.selected.steps === this._data.selected.totalSteps));
+            [this.stepFirstButton, this.stepBackwardButton].forEach((b) => b.isDisabled = (this._data.selected.steps === 0));
+        } else {
+            [this.stepFirstButton, this.stepBackwardButton, this.stepForwardButton, this.stepLastButton, this.syncButton].forEach((b) => b.isDisabled = true);
+        }
+    }
 
     titlebarItems = [
         new TitlebarSpacer(),
-        this.stepFirst,
-        this.stepBackward,
-        this.stepForward,
-        this.stepLast,
+        this.stepFirstButton,
+        this.stepBackwardButton,
+        this.stepForwardButton,
+        this.stepLastButton,
         new TitlebarSpacer(),
-        this.sync
+        this.syncButton
     ];
 
     set data(value: InputPanelData) {
@@ -80,6 +90,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
             this.setupInput();
         });
         this.setupInput();
+        this.updateButtons();
     }
 
     ngAfterViewChecked() {
@@ -113,6 +124,8 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
                 }
             }
         }
+
+        this.updateButtons();
     }
 
     private scrollToBottom() {
@@ -141,12 +154,33 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private selectResult(c: ProgramResult) {
         this._data.selected = c;
         this.scrollToBottom();
+        this.updateButtons();
+    }
+
+    private stepFirst() {
+        if (this._data.selected) {
+            this._data.selected.steps = 0;
+            this.scrollToBottom();
+            this.updateButtons();
+        }
+    }
+
+    private stepBackward() {
+        if (this._data.selected && (this._data.selected.steps > 0)) {
+            this._data.selected.steps--;
+            if (this._data.selected.steps > 0) {
+                this.selectState(this._data.selected.output.states[this._data.selected.steps - 1]);
+            }
+            this.scrollToBottom();
+            this.updateButtons();
+        }
     }
 
     private step(): boolean {
         if (this._data.selected && (this._data.selected.steps < this._data.selected.output.states.length)) {
             this.selectState(this._data.selected.output.states[this._data.selected.steps++]);
             this.scrollToBottom();
+            this.updateButtons();
             return true;
         }
 
@@ -158,6 +192,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
             this._data.selected.steps = this._data.selected.output.states.length - 1;
             this.selectState(this._data.selected.output.states[this._data.selected.steps++]);
             this.scrollToBottom();
+            this.updateButtons();
         }
     }
 
@@ -200,13 +235,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
 
         this._data.selected = result;
         this._data.results.unshift(result);
-
-        if (result.output.states.length > 0) {
-            this._data.selectedState = result.output.states[0];
-            result.steps++;
-            this.selectState(result.output.states[0]);
-        }
-
+        this.updateButtons();
         this.setupInput();
         this.scrollToBottom();
     }
@@ -270,5 +299,9 @@ class ProgramResult {
 
     public getStates() {
         return this.output.states.slice(0, this.steps);
+    }
+
+    public get totalSteps() {
+        return this.output.states.length;
     }
 }
