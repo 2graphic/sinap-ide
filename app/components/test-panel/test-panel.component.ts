@@ -15,6 +15,7 @@ import { Component, Input, EventEmitter } from "@angular/core";
 import { Program } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
+import { getInput } from "../../util";
 
 export class TestPanelData {
     private _program?: Program;
@@ -151,7 +152,7 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
     private newTest() {
         if (this._data.program) {
             const test = {
-                input: this.getInput(this._data.program),
+                input: getInput(this._data.program),
                 expected: this.getExpected(this._data.program),
                 output: undefined
             };
@@ -161,10 +162,6 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
             this._data.tests.push(test);
             this.runTest(test);
         }
-    }
-
-    private getInput(program: Program) {
-        return program.model.environment.make(program.plugin.types.arguments[0]);
     }
 
     private getExpected(program: Program) {

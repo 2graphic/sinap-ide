@@ -16,6 +16,7 @@ import { Value, Type } from "sinap-types";
 import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
 import { TypeInjectorComponent } from "../types/type-injector/type-injector.component";
 import { GraphController } from "../../models/graph-controller";
+import { getInput } from "../../util";
 
 import { ResizeEvent } from 'angular-resizable-element';
 
@@ -135,20 +136,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
 
     private setupInput() {
         if (this._data.programInfo) {
-            const program = this._data.programInfo.program;
-            const plugin = ((this._data.programInfo.program as any).plugin as Plugin);
-            const type = plugin.types.arguments[0];
-
-            let inputForPlugin: Value.Value | undefined = undefined;
-
-            if ([...plugin.types.nodes.types.values()].find((t) => Type.isSubtype!(type, t.pluginType))) {
-                inputForPlugin = program.model.nodes.values().next().value;
-            }
-
-
-            this._data.inputForPlugin = inputForPlugin ? inputForPlugin : this._data.programInfo.program.model.environment.make(type);
-
-            console.log("Input for plugin", this._data.inputForPlugin);
+            this._data.inputForPlugin = getInput(this._data.programInfo.program);
         }
     }
 
