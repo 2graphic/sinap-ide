@@ -1,4 +1,9 @@
-<select *ngIf="options.length > 0" [ngModel]="value" (ngModelChange)="selectedOption($event)">
-    <option *ngFor="let option of options" [ngValue]="option[1]">{{option[0]}}</option>
-</select>
-<span [style.border-color]="borderColor" [style.background-color]="color" (click)="selectNode()">{{label}}</span>
+<table *ngIf="options.length > 0">
+    <tr>
+        <td><select [ngModel]="value" (ngModelChange)="selectedOption($event)">
+        <option *ngFor="let option of options" [ngValue]="option[1]">{{option[0]}}</option>
+    </select></td>
+        <td><span [style.border-color]="borderColor" [style.background-color]="color" (click)="selectNode()">{{label}}</span></td>
+    </tr>
+</table>
+<span *ngIf="options.length === 0" [style.border-color]="borderColor" [style.background-color]="color" (click)="selectNode()">{{label}}</span>
