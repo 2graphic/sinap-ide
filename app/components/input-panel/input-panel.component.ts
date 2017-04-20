@@ -59,6 +59,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private _data: InputPanelData;
     private shouldScroll = false;
 
+    private toolbarSpacer = new TitlebarSpacer(240);
     private stepFirstButton = new TitlebarButton("first_page", "Finish", false, this.stepFirst.bind(this));
     private stepBackwardButton = new TitlebarButton("arrow_back", "Step", false, this.stepBackward.bind(this));
     private stepForwardButton = new TitlebarButton("arrow_forward", "Step", false, this.step.bind(this));
@@ -75,7 +76,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     titlebarItems = [
-        new TitlebarSpacer(),
+        this.toolbarSpacer,
         this.stepFirstButton,
         this.stepBackwardButton,
         this.stepForwardButton,
@@ -259,6 +260,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private resizing(evt: ResizeEvent) {
         if (evt.rectangle.width) {
             this._data.leftPanelWidth = Math.max(evt.rectangle.width, 200); // TODO, max value
+            this.toolbarSpacer.width = this._data.leftPanelWidth - 60;
         }
     }
 }
