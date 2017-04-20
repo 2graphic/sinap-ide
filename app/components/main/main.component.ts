@@ -437,6 +437,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             case MenuEventAction.MANAGE_PLUGINS:
                 this.launchPluginManager();
                 break;
+            case MenuEventAction.REFRESH_PLUGINS:
+                this.pluginService.reload();
+                break;
         }
     }
     /* --------------------------------------- */
