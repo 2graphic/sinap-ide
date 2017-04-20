@@ -14,7 +14,7 @@ import { Component, ElementRef, ViewChild, AfterViewChecked, EventEmitter } from
 import { Program, Plugin, ElementType } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
-import { TypeInjectorComponent } from "../types/type-injector/type-injector.component"
+import { TypeInjectorComponent } from "../types/type-injector/type-injector.component";
 
 import { ResizeEvent } from 'angular-resizable-element';
 
