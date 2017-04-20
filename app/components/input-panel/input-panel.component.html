@@ -31,7 +31,7 @@
 
             <div id="input">
                 <div id="input-value">
-                    <sinap-type [graph]="_data.programInfo.graph" #inputComponent [readonly]="false" [focus]="true" [disabled]="!_data.program" [value]="_data.inputForPlugin"></sinap-type>                    
+                    <sinap-type [graph]="_data.programInfo.graph" #inputComponent [readonly]="false" [focus]="true" [disabled]="!_data.programInfo" [value]="_data.inputForPlugin"></sinap-type>                    
                 </div>
                 <div id="input-button">
                     <button (click)="onSubmit()">
