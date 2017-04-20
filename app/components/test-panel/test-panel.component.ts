@@ -223,5 +223,5 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
 }
 
 class Test {
-    constructor(public input: Value.Value, public expected: Value.Value, public output?: Value.Value) {};
+    constructor(public input: Value.Value, public expected: Value.Value, public output?: Value.Value) { };
 }
