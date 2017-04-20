@@ -19,6 +19,8 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
     private _borderColor?: string;
     private _color?: string;
 
+    private _value: ElementValue;
+
     private options: [string, Value.Value][] = [];
 
     get borderColor() {
@@ -31,14 +33,16 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
 
     @Input()
     set value(value: ElementValue) {
-        super.value = value;
-
         if (!this.readonly) {
             const matchingValues = ifilter((v) => Type.isSubtype(v.type, value.type), value.environment.values.values());
             this.options = [...imap((n): [string, Value.Value] => [this.getPrimitiveAsString(n as Value.CustomObject, "label")!, n], matchingValues)];
         } else this.options = [];
 
         this.selectedOption(value);
+    }
+
+    get value() {
+        return this._value;
     }
 
     // TODO: Move this into a util collection
@@ -54,7 +58,7 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
     }
 
     selectedOption(option: ElementValue) {
-        super.value = option;
+        this._value = option;
 
         this._borderColor = this.getPrimitiveAsString(option, "borderColor");
         this._color = this.getPrimitiveAsString(option, "color");
