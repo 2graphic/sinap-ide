@@ -869,7 +869,7 @@ export class EditorGraph {
     private onCreated
     = (evt: DrawableEvent<DrawableElement>) => {
         for (const e of evt.detail.drawables)
-            this.registerDrawable(e);
+            this.registerDrawable(e[0]);
     }
 
     /**
@@ -881,7 +881,7 @@ export class EditorGraph {
     private onDeleted
     = (evt: DrawableEvent<DrawableElement>) => {
         for (const e of evt.detail.drawables) {
-            this.unregisterDrawable(e);
+            this.unregisterDrawable(e[0]);
         }
     }
 
