@@ -1,4 +1,5 @@
-var webpack = require('webpack')
+var webpack = require('webpack');
+var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
     entry: {
@@ -13,6 +14,16 @@ module.exports = {
 
     module: {
         exprContextCritical: false, //https://github.com/angular/angular/issues/11580
+        loaders: [
+            {
+                test: /material-design-icons.css$/,
+                loaders: ExtractTextPlugin.extract({ fallback: 'style-loader', use: 'css-loader' })
+            },
+            {
+                test: /\.(jpe?g|png|gif|jpg|eot|woff|ttf|svg|woff2)$/,
+                loader: "file-loader?name=[name]-[hash].[ext]"
+            }
+        ]
     },
 
     plugins: [
@@ -27,5 +38,6 @@ module.exports = {
                 comments: false
             },
         }),
+        new ExtractTextPlugin( {filename: "[name].css", allChunks: true }),
     ],
 }

@@ -20,7 +20,9 @@ export class StatusBarComponent {
 
     @Input() info: StatusBarInfo | undefined;
     @Input() zoom: number;
+    @Input() fullscreen: boolean = false;
     @Output() zoomChange = new EventEmitter<number>();
+    @Output() toggledFullscreen = new EventEmitter();
 
     get offsetHeight() {
         return this.el.nativeElement.offsetHeight;
@@ -72,6 +74,10 @@ export class StatusBarComponent {
         const target = evt.currentTarget as HTMLInputElement;
         if (evt.key === "Enter")
             target.blur();
+    }
+
+    private toggleFullscreen() {
+        this.toggledFullscreen.emit();
     }
 }
 

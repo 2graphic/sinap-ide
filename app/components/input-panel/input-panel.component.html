@@ -1,7 +1,7 @@
 <div id="wrapper">
 
     <div id="content" *ngIf="_data.inputForPlugin" (keyup.enter)="onSubmit(_data.inputForPlugin)">
-        <div class="left">
+        <div class="left" mwlResizable [style.width]="_data.leftPanelWidth+'px'" [resizeEdges]="{right: true}" (resizing)="resizing($event)">
             <div id="output">
                 <div class="program-result clickable" *ngFor="let result of _data.results" (click)="selectResult(result)" [class.selected]="_data.selected == result">
                     <table *ngIf="_data.selected">
@@ -35,13 +35,16 @@
                 </div>
                 <div id="input-button">
                     <button (click)="onSubmit(_data.inputForPlugin)">
-                        <div [inlineSVG]="'${require('../../images/play.svg')}'"></div>
+                        <i class="material-icons">bug_report</i>
                     </button>
                 </div>
             </div>
         </div>
 
         <div class="right" #log>
+            <div id="empty" *ngIf="!_data.selected">
+                <i class="material-icons">bug_report</i>
+            </div>
             <table *ngIf="_data.selected">
                 <tr>
                     <td colspan="2">
@@ -52,12 +55,12 @@
                     </td>
                 </tr>
 
-                <tbody *ngFor="let state of _data.selected.getStates()" class="clickable" (click)="selectState(state)">
+                <tbody *ngFor="let state of _data.selected.getStates()" (click)="selectState(state)">
                         <tr *ngIf="state.message !== undefined">
                             <td [class.expand-chevron-before]="_data.selectedState === state">
                                 <sinap-type [value]="state.message"></sinap-type>
                             </td>
-                            <td [class.expand-chevron-down]="_data.selectedState === state" [class.expand-chevron-right]="_data.selectedState !== state">
+                            <td [class.clickable]="_data.selectedState !== state" [class.expand-chevron-down]="_data.selectedState === state" [class.expand-chevron-right]="_data.selectedState !== state">
                                 <span class="chevron">›</span>
                             </td>
                         </tr>

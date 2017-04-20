@@ -22,6 +22,9 @@ import { PanelComponent } from "../dynamic-panel/dynamic-panel";
 export class PropertiesPanelData {
     private _selectedElements?: Set<Bridge>;
 
+    public pluginHidden = false;
+    public visualHidden = false;
+
     get selectedElements() {
         return this._selectedElements;
     }
@@ -43,8 +46,11 @@ export class PropertiesPanelData {
 })
 export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelData> {
     private element?: ElementInfo;
+    private _data: PropertiesPanelData;
 
     set data(value: PropertiesPanelData) {
+        this._data = value;
+
         if (value) {
             value.selectedElementsChanged.asObservable().subscribe(this.updateSelectedElements);
             this.updateSelectedElements(value.selectedElements);
@@ -58,6 +64,10 @@ export class PropertiesPanelComponent implements PanelComponent<PropertiesPanelD
             const element = elements.values().next().value.core;
             this.element = new ElementInfo(element);
         }
+    }
+
+    private isEmpty() {
+        return this.element === undefined || (this.element.drawableProperties.length === 0 && this.element.pluginProperties.length === 0);
     }
 }
 

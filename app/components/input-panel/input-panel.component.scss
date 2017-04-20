@@ -32,19 +32,26 @@
 
 #input-button {
     flex: 0 0 auto;
-    width: 4em;
+    min-width: 2em;
+
+    .material-icons {
+        vertical-align: middle;
+        font-size: 18px;
+        color: #333;
+    }
 
     button {
         width: calc(100% - .5em);
         height: 100%;
+        padding: 0;
         margin-left: .5em;
         border-radius: 4px;
-        background-color: whitesmoke;
+        background-color: white;
         border: thin solid black;
     }
 
     button:hover {
-        background-color: lightgrey;
+        background-color: whitesmoke;
         cursor: pointer;
     }
 
@@ -53,9 +60,25 @@
     }
 }
 
+#empty {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    text-align: center;
+
+    .material-icons {
+        width: 100%;
+        display: block;
+        font-size: 128px;
+        color: #D5D5D5;
+    }
+}
+
 
 .left {
-    flex: 1 1 50%;
+    flex: none;
+
     box-sizing: border-box;
     border-right: thin solid lightgrey;
     padding: .25em;
@@ -66,7 +89,7 @@
 }
 
 .right {
-    flex: 1 1 50%;
+    flex: 1;
     box-sizing: border-box;
     padding: .25em;
     overflow-y: scroll;
@@ -154,175 +177,6 @@ td.last {
     border: none;
 }
 
-:host /deep/ svg, :host /deep/ path {
-    stroke: black;
-    fill: black;
-}
-
-:host /deep/ svg {
-    width: 1em;
-    height: 1em;
-}
-
 ::-webkit-scrollbar {
     display: none;
 }
-
-
-
-// .flex-container-row {
-//   display: flex;
-//   flex-direction: row;
-
-//   height: 100%;
-//   width: 100%;
-//   max-width: 100%;
-// }
-
-// #left-panel, #log {
-//     flex: 1;
-// }
-
-// #left-panel {
-//     height: 100%;
-//     box-sizing: border-box;
-//     padding: .25em;
-//     display: flex;
-//     flex-direction: column;
-//     align-items: stretch;
-//     /* Make space for the title bar */
-//     // padding-top: calc(#{$TOOLBAR_HEIGHT} + .25em);
-//     // margin-top: -$TOOLBAR_HEIGHT;
-// }
-
-// #log {
-//     border-left: thin solid lightgrey;
-// }
-
-// #left-panel-input {
-//     flex: none;
-//     display: flex;
-//     flex-direction: row;
-// }
-
-// #input-value {
-//     flex: 1;
-// }
-
-// #input-button {
-//     flex: none;
-//     width: 4em;
-
-//     button {
-//         width: calc(100% - .5em);
-//         height: 100%;
-//         margin-left: .5em;
-//         border-radius: 4px;
-//         background-color: whitesmoke;
-//         border: thin solid black;
-//     }
-
-//     button:hover {
-//         background-color: lightgrey;
-//         cursor: pointer;
-//     }
-
-//     button:focus {
-//         outline: none;
-//     }
-// }
-
-// .program-result {
-//     filter: opacity(60%);
-//     margin-bottom: .25em;
-//     cursor: pointer;
-// }
-
-// .error {
-//     color: darkred;
-// }
-
-// .clickable {
-//    cursor: pointer;
-// }
-
-// .program-result.selected {
-//     filter: opacity(100%);
-// }
-
-// .expanded {
-//     background-color: aliceblue;
-//     box-shadow: inset 0 1px 7px -4px black;
-
-//     td {
-//         padding: .25em;
-//         padding-top: .5em;
-//     }
-// }
-
-// .expand-chevron-before {
-//     border-right: thin solid lightgrey;
-// }
-
-// .expand-chevron-right {
-//     width: 1px;
-// }
-
-// .expand-chevron-down {
-//     width: 1px;
-//     background-color: aliceblue;
-//     transform: scaleY(1.2) translateY(2px);
-//     border: none;
-
-//     span {
-//         transform: rotate(90deg);
-//     }
-// }
-
-// #left-panel-output {
-//     flex: 1 1 auto;
-//     display: flex;
-//     font-size: 1em;
-//     overflow-y: auto;
-//     flex-direction: column-reverse;
-// }
-
-// .chevron {
-//     display: inline-block;
-//     width: 1em;
-//     font-weight: bold;
-//     text-align: center;
-//     vertical-align: bottom;
-//     color: grey;
-// }
-
-// #log {
-//     height: calc(100% - #{$TOOLBAR_HEIGHT} - .5em);
-
-//     padding: .25em;
-
-//     overflow-y: scroll;
-//     overflow-x: hidden;
-// }
-
-// table {
-//     background-color: white;
-//     border-collapse: separate;
-//     border: thin solid grey;
-//     border-radius: 4px;
-
-//     width: 100%;
-// }
-
-// tr {
-//     text-align: left;
-// }
-
-// td {
-//     padding: .15em;
-//     border-bottom: thin solid lightgrey;
-// }
-
-// td.last {
-//     border: none;
-// }

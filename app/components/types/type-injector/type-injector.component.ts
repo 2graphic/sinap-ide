@@ -97,8 +97,10 @@ export class TypeInjectorComponent {
 
         this.component.changeDetectorRef.detectChanges();
 
-        if (this.focus && this.component.instance.focus && document.activeElement.tagName.toLocaleLowerCase() === "body") {
+        if (this.focus && this.component.instance.focus && (document.activeElement.tagName.toLocaleLowerCase() === "body"
+            || document.activeElement.tagName.toLocaleLowerCase() === "canvas")) {
             // Make sure we're not yanking the focus away from something important
+
             this.component.instance.focus();
         }
     }
@@ -123,6 +125,10 @@ export class TypeInjectorComponent {
             }
 
             if (value instanceof Value.CustomObject) {
+                if (value.type instanceof Core.ElementType) {
+                    return NodeTypeComponent;
+                }
+
                 return ObjectTypeComponent;
             }
 
@@ -140,10 +146,6 @@ export class TypeInjectorComponent {
                 } else {
                     // TODO:
                 }
-            }
-
-            if (value instanceof Core.ElementValue) {
-                return NodeTypeComponent;
             }
 
             if (value instanceof Value.ArrayObject) {

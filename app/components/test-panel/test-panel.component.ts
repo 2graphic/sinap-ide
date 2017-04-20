@@ -89,13 +89,12 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
 
     titlebarItems = [
         new TitlebarSpacer(),
-        new TitlebarButton(`${require('../../images/plus.svg')}`, "Add test", false, false, () => this.newTest()),
-        new TitlebarButton(`${require('../../images/minus.svg')}`, "Remove Selected Tests", false, false, () => this.removeSelected()),
+        new TitlebarButton("add", "Add test", false, () => this.newTest()),
+        new TitlebarButton("delete", "Remove Selected Tests", false, () => this.removeSelected()),
         new TitlebarSpacer(),
-        new TitlebarButton(`${require('../../images/autoplay.svg')}`, "Autorun is off", false, false, () => this.toggleAutoplay()),
+        new TitlebarButton("timer", "Autorun is on", false, () => this.toggleAutoplay()),
         new TitlebarSpacer(),
-        new TitlebarButton(`${require('../../images/play-all.svg')}`, "Run all tests", false, false, () => this.runTests()),
-        new TitlebarButton(`${require('../../images/play.svg')}`, "Run selected tests", false, false, () => this.runSelectedTests()),
+        new TitlebarButton("play_arrow", "Run selected tests", false, () => this.runSelectedTests()),
     ];
 
     set data(value: TestPanelData) {
@@ -106,16 +105,14 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
         });
         value.selectedChanged.asObservable().subscribe(d => {
             (this.titlebarItems[2] as TitlebarButton).isDisabled = d.selectedSize === 0;
-            (this.titlebarItems[7] as TitlebarButton).isDisabled = d.selectedSize === 0;
+            (this.titlebarItems[6] as TitlebarButton).isDisabled = d.selectedSize === 0;
         });
         value.autoplayChanged.asObservable().subscribe(v => {
-            (this.titlebarItems[4] as TitlebarButton).isToggled = v;
-            (this.titlebarItems[4] as TitlebarButton).title = "Autorun is " + v ? "on" : "off";
+            (this.titlebarItems[4] as TitlebarButton).icon = v ? "timer" : "timer_off";
+            (this.titlebarItems[4] as TitlebarButton).title = "Autorun is " + (v ? "on" : "off");
         });
-        (this.titlebarItems[2] as TitlebarButton).isDisabled = value.selectedSize === 0;
-        (this.titlebarItems[7] as TitlebarButton).isDisabled = value.selectedSize === 0;
-        (this.titlebarItems[4] as TitlebarButton).isToggled = value.autoplay;
-        (this.titlebarItems[4] as TitlebarButton).title = "Autorun is " + value.autoplay ? "on" : "off";
+        value.selectedChanged.emit(value);
+        value.autoplayChanged.emit(value.autoplay);
         if (value.program && value.autoplay)
             this.runTests();
     }
@@ -156,7 +153,7 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
             const test = {
                 input: this.getInput(this._data.program),
                 expected: this.getExpected(this._data.program),
-                output: new Value.Literal(new Type.Literal("Not ran yet."), this._data.program.model.environment)
+                output: undefined
             };
 
             test.input.environment.listen(this.testChanged.bind(this, test), () => true, test.input);
@@ -172,10 +169,6 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
 
     private getExpected(program: Program) {
         return program.model.environment.make(program.plugin.types.result);
-    }
-
-    private areEqual(a: Value.Value, b: Value.Value) {
-        return a.deepEqual(b);
     }
 
     private select(test: Test) {
@@ -203,10 +196,34 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
         this._data.clearSelected();
     }
 
+    private allSelected() {
+        return this._data.selectedSize === this._data.tests.length;
+    }
+
+    private selectAll() {
+        const toggle = !this.allSelected();
+        this._data.clearSelected();
+        if (toggle) {
+            this._data.tests.forEach((t) => this._data.addSelected(t));
+        }
+    }
+
+    private getTestIcon(test: Test) {
+        if (test.output) {
+            if (test.expected.deepEqual(test.output)) {
+                return ["check_circle", "green"];
+            } else {
+                return ["error", "red"];
+            }
+        }
+
+        return ["timer", "black"];
+    }
+
 }
 
 interface Test {
     input: Value.Value;
     expected: Value.Value;
-    output: Value.Value;
+    output?: Value.Value;
 }

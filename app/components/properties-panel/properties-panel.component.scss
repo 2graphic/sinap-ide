@@ -68,7 +68,7 @@ table {
 
 th {
     font-size: normal;
-    padding: .25em;
+    padding: .35em;
 }
 
 td {
@@ -79,7 +79,7 @@ td {
 th:first-child {
     width: 100%;
     white-space: nowrap;
-    text-align: left;
+    text-align: center;
     vertical-align: middle;
     font-size: 1.2em;
 }
@@ -89,11 +89,12 @@ th:first-child {
 }
 
 .expand-chevron-right {
-    width: 1px;
+    width: 1%;
+    transform: scale(1.2)
 }
 
 .expand-chevron-down {
-    width: 1px;
+    width: 1%;
     background-color: aliceblue;
     transform: scaleY(1.2) translateY(2px);
     border: none;

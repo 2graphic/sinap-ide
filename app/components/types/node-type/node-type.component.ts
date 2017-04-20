@@ -15,10 +15,23 @@ import { ElementValue } from "sinap-core";
 })
 export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
     private label: string = "";
+    private _borderColor?: string;
+    private _color?: string;
+
+    get borderColor() {
+        return this._borderColor ? this._borderColor : "#000000";
+    }
+
+    get color() {
+        return this._color ? this._color : "#fff2000";
+    }
 
     @Input()
     set value(value: ElementValue) {
         super.value = value;
+
+        this._borderColor = this.getPrimitiveAsString(value, "borderColor");
+        this._color = this.getPrimitiveAsString(value, "color");
 
         const label = this.getPrimitiveAsString(value, "label");
 

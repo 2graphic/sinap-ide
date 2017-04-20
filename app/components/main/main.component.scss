@@ -17,6 +17,22 @@ div {
   flex: 0 0 auto;
 }
 
+#left-panel-group.collapsed {
+  flex:none;
+  z-index: 999;
+  position: absolute;
+  left: .4em;
+  top: calc(#{$TOOLBAR_HEIGHT} + .4em)
+}
+
+#bottom-panel-group.collapsed {
+  flex:none;
+  z-index: 999;
+  position: absolute;
+  right: .4em;
+  bottom: calc(20px + .4em)
+}
+
 #right-panel-group {
   flex: 1 1 auto;
   display: flex;
@@ -57,6 +73,33 @@ div {
 
 #graph-editor-container {
   background-color: red;
+  position: relative;
+
+  #instructions {
+    position: absolute;
+    z-index: 999;
+    bottom: .4em;
+    left: .4em;
+
+    padding: .2em;
+    font-size: small;
+
+    background: whitesmoke;
+    border: thin solid lightgray;
+    border-radius: 8px;
+
+    opacity: .75;
+    user-select: none;
+    cursor: default;
+
+    em {
+      font-weight: bold;
+    }
+  }
+
+  #instructions:hover {
+    opacity: .25;
+  }
 }
 
 .dock-fill {

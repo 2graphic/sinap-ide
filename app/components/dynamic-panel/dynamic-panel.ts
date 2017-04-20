@@ -43,7 +43,7 @@ export class DynamicPanelComponent {
     private _currentIndex: number
     = -1;
 
-    private _isCollapsed: boolean
+    public isCollapsed: boolean
     = false;
 
     private _height: number
@@ -123,22 +123,6 @@ export class DynamicPanelComponent {
     isVertical: boolean
     = false;
 
-    get collapseIcon() {
-        return this.isVertical ?
-            `${require('../../images/ic_expand_more_black_24px.svg')}` :
-            `${require('../../images/ic_chevron_left_black_24px.svg')}`;
-    }
-
-    get expandIcon() {
-        return this.isVertical ?
-            `${require('../../images/ic_expand_less_black_24px.svg')}` :
-            `${require('../../images/ic_chevron_right_black_24px.svg')}`;
-    }
-
-    get isCollapsed() {
-        return this._isCollapsed;
-    }
-
     isEmpty() {
         return this._panels.length === 0;
     }
@@ -169,7 +153,10 @@ export class DynamicPanelComponent {
     titlebarItems?: TitlebarItem[];
 
     private updateContent(panel: DynamicPanelItem | null) {
-        if (!this.isCollapsed && this.dynamicContent) {
+        if (this.isCollapsed) {
+            this.toggleCollapse();
+        }
+        if (this.dynamicContent) {
             const containerRef = this.dynamicContent.viewContainerRef;
             containerRef.clear();
             if (panel) {
@@ -190,7 +177,7 @@ export class DynamicPanelComponent {
     }
 
     private toggleCollapse() {
-        this._isCollapsed = !this._isCollapsed;
+        this.isCollapsed = !this.isCollapsed;
     }
 
     private resizing(evt: ResizeEvent) {
@@ -222,20 +209,16 @@ export class TitlebarButton {
         public icon: string,
         public title: string,
         isDisabled?: boolean,
-        isToggled?: boolean,
         click?: (...args: any[]) => void
     ) {
         if (isDisabled !== undefined)
             this.isDisabled = isDisabled;
-        if (isToggled !== undefined)
-            this.isToggled = isToggled;
         if (click)
             this.click = click;
     }
     readonly kind = "button";
     isDisabled = false;
-    isToggled = false;
-    click: (...args: any[]) => void
+    click: (sender: TitlebarButton) => void
     = () => { };
 }
 

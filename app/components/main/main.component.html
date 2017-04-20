@@ -1,6 +1,6 @@
 <div id="window">
 
-  <div id="left-panel-group">
+  <div id="left-panel-group" [class.collapsed]="dynamicSidePanel.isCollapsed">
     <dynamic-panel #dynamicSidePanel
                    [panels]="sidePanels"
                    [maximumWidth]="maxSidePanelWidth"
@@ -19,13 +19,17 @@
       <div #graphEditorContainer
            id="graph-editor-container"
            class="dock-fill">
+           <p id="instructions">Hold <em>shift</em> to select or <em>alt</em> to pan</p>
+           <!-- TODO: OS specific -->
         <sinap-graph-editor id="graph-editor"
                             [graph]="_context ? _context.graph.drawable : null"></sinap-graph-editor>
       </div>
 
       <sinap-status-bar id="status-bar"
                         [zoom]="_context ? _context.graph.drawable.scale : 1"
-                        (zoomChange)="updateZoom($event)"></sinap-status-bar>
+                        (zoomChange)="updateZoom($event)"
+                        [fullscreen]="isFullscreen()"
+                        (toggledFullscreen)="toggleFullscreen()"></sinap-status-bar>
       
     </div>
 
@@ -36,7 +40,7 @@
       <a>Click to create a new graph</a>
     </div>
 
-    <div id="bottom-panel-group" [hidden]="dynamicBottomPanel.isEmpty()">
+    <div id="bottom-panel-group" [class.collapsed]="dynamicBottomPanel.isCollapsed" [hidden]="dynamicBottomPanel.isEmpty()">
       <dynamic-panel #dynamicBottomPanel
                      [panels]="bottomPanels"
                      [isVertical]="true"
