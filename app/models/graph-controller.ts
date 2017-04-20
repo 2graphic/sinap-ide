@@ -310,7 +310,7 @@ export class GraphController {
             }
             return;
         }
-        
+
         if (value instanceof Value.Primitive) {
             (drawable as any)[key] = value.value;
             return;
@@ -382,8 +382,9 @@ export class GraphController {
     }
 
     public selectElements(...items: ElementValue[]) {
-        const toSelect = items.filter((n) => this.bridges.getA(n))
-            .map((n) => this.bridges.getA(n)!.drawable)
+        const toSelect = items.map((i) => this.core.environment.values.get(i.uuid) as ElementValue | undefined)
+            .filter((n) => n && this.bridges.getA(n))
+            .map((n) => this.bridges.getA(n!)!.drawable)
             .filter((n) => (n instanceof DrawableElement)) as DrawableElement[];
         this.drawable.setSelected(...toSelect);
     }

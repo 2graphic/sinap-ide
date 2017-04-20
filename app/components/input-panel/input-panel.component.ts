@@ -11,7 +11,7 @@
  */
 
 import { Component, ElementRef, ViewChild, AfterViewChecked, EventEmitter } from "@angular/core";
-import { Program, Plugin, ElementType } from "sinap-core";
+import { Program, Plugin, ElementType, ElementValue } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { PanelComponent, TitlebarButton, TitleBarItems, TitlebarSpacer } from "../dynamic-panel/dynamic-panel";
 import { TypeInjectorComponent } from "../types/type-injector/type-injector.component";
@@ -58,11 +58,20 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private _data: InputPanelData;
     private shouldScroll = false;
 
+    private stepFirst = new TitlebarButton("first_page", "Finish", false, () => { });
+    private stepBackward = new TitlebarButton("arrow_back", "Step", false, () => { });
+    private stepForward = new TitlebarButton("arrow_forward", "Step", false, () => this.step());
+    private stepLast = new TitlebarButton("last_page", "Finish", false, () => this.stepFinish());
+    private sync = new TitlebarButton("sync", "Step to Completion", false, () => this.stepToCompletion());
+
     titlebarItems = [
         new TitlebarSpacer(),
-        new TitlebarButton("play_arrow", "Step", false, () => this.step()),
-        new TitlebarButton("last_page", "Finish", false, () => this.stepFinish()),
-        new TitlebarButton("sync", "Step to Completion", false, () => this.stepToCompletion())
+        this.stepFirst,
+        this.stepBackward,
+        this.stepForward,
+        this.stepLast,
+        new TitlebarSpacer(),
+        this.sync
     ];
 
     set data(value: InputPanelData) {
@@ -94,7 +103,16 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
 
     private selectState(state: State) {
         this._data.selectedState = state;
-        // TODO
+        if (this._data.programInfo) {
+            if (state.state instanceof Value.CustomObject && state.state.type.members.has("active")) {
+                const active = state.state.get("active");
+                if (active instanceof Value.ArrayObject || active instanceof Value.SetObject) {
+                    this._data.programInfo.graph.selectElements(...active.simpleRepresentation as ElementValue[]);
+                } else if (active.type instanceof ElementType) {
+                    this._data.programInfo.graph.selectElements(active as ElementValue);
+                }
+            }
+        }
     }
 
     private scrollToBottom() {
