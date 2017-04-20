@@ -8,6 +8,8 @@ import { getPluginInfo, PluginInfo } from "sinap-core";
 import { dirFiles, subdirs, tempDir, unzip, TempDir } from "../../util";
 import { WindowService } from "./../../modal-windows/services/window.service";
 
+let exec = require('child_process').exec;
+
 async function isPluginDir(dir: string) {
     const files = await dirFiles(dir);
     return files.find(name => name === "package.json");
@@ -57,6 +59,9 @@ export class PluginManager implements ModalComponent {
 
     async ngOnInit() {
         this.plugins = await this.pluginService.pluginData;
+        if (this.plugins.length > 0) {
+            this.pluginSelected(this.plugins[0]);
+        }
         this.changeDetectorRef.detectChanges();
     }
 
@@ -88,6 +93,12 @@ export class PluginManager implements ModalComponent {
         await this.pluginService.removePlugin(await this.pluginService.getPluginByKind(this.selectedPlugin.pluginKind));
         this.plugins = await this.pluginService.pluginData;
         this.changeDetectorRef.detectChanges();
+    }
+
+    editButton() {
+        const command = "code " + this.selectedPlugin.interpreterInfo.directory;
+        console.log(command, exec);
+        exec(command, function() { console.log(arguments); });
     }
 
     pluginSelected(plugin: PluginInfo) {
