@@ -8,6 +8,8 @@ import { getPluginInfo, PluginInfo } from "sinap-core";
 import { dirFiles, subdirs, tempDir, unzip, TempDir } from "../../util";
 import { WindowService } from "./../../modal-windows/services/window.service";
 
+let exec = require('child_process').exec;
+
 async function isPluginDir(dir: string) {
     const files = await dirFiles(dir);
     return files.find(name => name === "package.json");
@@ -57,6 +59,9 @@ export class PluginManager implements ModalComponent {
 
     async ngOnInit() {
         this.plugins = await this.pluginService.pluginData;
+        if (this.plugins.length > 0) {
+            this.pluginSelected(this.plugins[0]);
+        }
         this.changeDetectorRef.detectChanges();
     }
 
@@ -73,7 +78,8 @@ export class PluginManager implements ModalComponent {
         LOG.info(`Finding info for ${JSON.stringify(dirNames)}.`);
         const infos = ([] as PluginInfo[]).concat(... await Promise.all(dirNames.map(recursiveInfo)));
         LOG.info("Found info, now try to import them all."); // TODO: Prompt for which ones to import.
-        infos.forEach(info => this.pluginService.importPlugin(info.interpreterInfo.directory));
+        const proms = infos.map(info => this.pluginService.importPlugin(info.interpreterInfo.directory));
+        await Promise.all(proms);
         this.plugins = await this.pluginService.pluginData;
         this.changeDetectorRef.detectChanges();
     }
@@ -89,6 +95,12 @@ export class PluginManager implements ModalComponent {
         this.changeDetectorRef.detectChanges();
     }
 
+    editButton() {
+        const command = "/usr/local/bin/code '" + this.selectedPlugin.interpreterInfo.directory + "'";
+        console.log(command, exec);
+        exec(command, function() { console.log(arguments); });
+    }
+
     pluginSelected(plugin: PluginInfo) {
         this.selectedPlugin = plugin;
         this.changeDetectorRef.detectChanges();
@@ -102,6 +114,7 @@ export class PluginManager implements ModalComponent {
                 tempDirs.push(await unzipToTemp(fileNames[i])); // Need to be careful for cleanup.
             }
             await this.importMany(tempDirs.map(tempDir => tempDir.path));
+            tempDirs.forEach(tempDir => tempDir.close());
         } finally {
             tempDirs.forEach(tempDir => tempDir.close());
         }

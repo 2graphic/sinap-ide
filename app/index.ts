@@ -137,6 +137,11 @@ function createNewWindow(selector: string, type: ModalType, data: any): ModalInf
         };
 
         modalWindow.webContents.send("newWindow", info);
+        modalWindow.on("closed", () => {
+            if (win) {
+                win.webContents.send("windowClosed", info);
+            }
+        });
 
         return info;
     }

@@ -141,10 +141,49 @@ export async function requestOpenDirs(name?: string): Promise<string[]> {
     return await result.promise;
 }
 
-export function copy(src: string, dest: string): Promise<any> {
-    const result = new NodePromise<any>();
-    ncp(src, dest, err => err ? result.cb(err, null) : result.cb(null, null));
-    return result.promise;
+export async function copyFile(src: string, dest: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        let cbCalled = false;
+        function done(err: any) {
+            if (!cbCalled) {
+                reject(err);
+                cbCalled = true;
+            }
+        }
+
+        const readStream = fs.createReadStream(src);
+        readStream.on("err", done);
+
+        const writeStream = fs.createWriteStream(dest);
+        writeStream.on("err", done);
+        writeStream.on("close", (_: any) => resolve());
+
+        readStream.pipe(writeStream);
+    });
+}
+
+export async function copy(src: string, dest: string): Promise<any> {
+    const srcStats = await fileStat(src);
+    if (srcStats.isDirectory()) {
+        try {
+            await fileStat(dest);
+        } catch (err) {
+            if (err.code === "ENOENT") {
+                await createDir(dest);
+            } else {
+                throw err;
+            }
+        }
+
+        const children = await readdir(src);
+        await Promise.all(children.map(child => copy(path.join(src, child), path.join(dest, child))));
+    } else if (srcStats.isFile()) {
+        const name = path.basename(src);
+        if (path.basename(dest) !== name) {
+            dest = path.join(dest, name);
+        }
+        copyFile(src, dest);
+    }
 }
 
 export function zipFiles(src: string, dest: string): Promise<void> {
@@ -321,4 +360,10 @@ export function createDir(name: string): Promise<void> {
         if (err) reject(err);
         else resolve();
     }));
+}
+
+export function sleep(time: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        setTimeout(() => resolve(), time);
+    });
 }
