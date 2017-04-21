@@ -105,7 +105,7 @@ export class PluginManager implements ModalComponent {
     }
 
     editButton() {
-        const command = "/usr/local/bin/code '" + this.selectedPlugin.interpreterInfo.directory + "'";
+        const command = "/usr/bin/env code '" + this.selectedPlugin.interpreterInfo.directory + "'";
         console.log(command, exec);
         exec(command, function() { console.log(arguments); });
     }
