@@ -52,8 +52,6 @@ export class TabContext {
     private readonly undoHistory: UndoableEvent[] = [];
     private readonly redoHistory: UndoableEvent[] = [];
     private name: string;
-    private stack = this.undoHistory;
-    private isRedoing = false;
     private lastUpdated: Date;
 
     public inputPanelData: InputPanelData = new InputPanelData();
@@ -111,35 +109,33 @@ export class TabContext {
     public undo() {
         const change = this.undoHistory.pop();
         if (change) {
-            // If undoing causes a change, push it to the redoHistory stack.
-            this.stack = this.redoHistory;
-            this.graph.applyUndoableEvent(change);
-            this.stack = this.undoHistory;
+            const redo = change.undo();
+            if (redo.reloadProgram) this.invalidateProgram();
+            this.redoHistory.push(redo);
         }
     }
 
     public redo() {
         const change = this.redoHistory.pop();
         if (change) {
-            this.isRedoing = true;
-            this.graph.applyUndoableEvent(change);
-            this.isRedoing = false;
+            const undo = change.undo();
+            if (undo.reloadProgram) this.invalidateProgram();
+            this.undoHistory.push(undo);
         }
     }
 
     public addUndoableEvent = (change: UndoableEvent) => {
-        this.invalidateProgram();
+        console.log(change);
+        if (change.reloadProgram) this.invalidateProgram();
         this._unsaved = true;
 
-        this.stack.push(change);
-        if (this.stack === this.undoHistory && !this.isRedoing) {
-            this.redoHistory.length = 0;
+        this.redoHistory.length = 0;
+
+        if (this.undoHistory.length >= this.UNDO_HISTORY_LENGTH) {
+            return;
         }
 
-
-        if (this.undoHistory.length > this.UNDO_HISTORY_LENGTH) {
-            this.undoHistory.shift();
-        }
+        this.undoHistory.push(change);
     }
 
     public get unsaved(): boolean {
