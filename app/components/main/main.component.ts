@@ -234,9 +234,19 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         };
     }
 
-    async launchPluginManager() {
-        const [info, result] = this.windowService.createModal("plugin-manager", ModalType.MODAL);
-        await result;
+    launchPluginManager() {
+        this.pluginService.pluginData.then((pluginData) => {
+            console.log(pluginData);
+            this.windowService.createModal("plugin-manager", ModalType.MODAL, pluginData.map((d) => {
+                return {
+                    // TODO: Not make these getters, so this class can be serialized.
+                    description: d.description,
+                    interpreterInfo: d.interpreterInfo,
+                    packageJson: d.packageJson,
+                    pluginKind: d.pluginKind,
+                };
+            }));
+        });
     }
 
     promptNewFile() {

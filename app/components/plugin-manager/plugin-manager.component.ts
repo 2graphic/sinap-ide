@@ -48,7 +48,7 @@ const LOG = getLogger("plugin-manager");
     styleUrls: ["plugin-manager.component.scss"]
 })
 export class PluginManager implements ModalComponent {
-    public modalInfo: ModalInfo;
+    private _modalInfo: ModalInfo;
     private plugins: PluginInfo[];
     private selectedPlugin: PluginInfo;
 
@@ -57,12 +57,18 @@ export class PluginManager implements ModalComponent {
         private changeDetectorRef: ChangeDetectorRef) {
     }
 
-    async ngOnInit() {
-        this.plugins = await this.pluginService.pluginData;
+    set modalInfo(modalInfo: ModalInfo) {
+        this._modalInfo = modalInfo;
+
+        this.plugins = modalInfo.data;
         if (this.plugins.length > 0) {
             this.pluginSelected(this.plugins[0]);
         }
         this.changeDetectorRef.detectChanges();
+    }
+
+    get modalInfo() {
+        return this._modalInfo;
     }
 
     ngAfterViewInit() {

@@ -53,7 +53,9 @@ class PluginHolder {
             // This may need to be debounced for performance.
             await this.lock.acquire();
             try {
+                console.log("updating plugin at " + dir);
                 this.plugin = await this.loader.load(await getPluginInfo(this.plugin.pluginInfo.interpreterInfo.directory));
+                console.log("updated plugin at " + dir, this.plugin);
             } finally {
                 this.lock.release();
             }
