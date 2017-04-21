@@ -189,13 +189,13 @@ export class GraphController {
 
         /* finally set up all the listeners after we copy all the elements */
         this.drawable.addEventListener("created", (evt: DrawableEvent<DrawableElement>) => {
-            const bridges = evt.detail.drawables.map(d => this.addDrawable(d));
+            const bridges = evt.detail.drawables.map(d => this.addDrawable(d[0]));
             this.changed.emit(new UndoableEvent(() => {
                 // TODO
             }));
         });
         this.drawable.addEventListener("deleted", (evt: DrawableEvent<DrawableElement>) => {
-            const bridges = evt.detail.drawables.map(d => this.removeDrawable(d));
+            const bridges = evt.detail.drawables.map(d => this.removeDrawable(d[0]));
             this.changed.emit(new UndoableEvent(() => {
                 // TODO
             }));
