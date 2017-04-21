@@ -1,22 +1,10 @@
-import { EventEmitter } from "@angular/core";
 import {
-    DrawableElement,
     Drawable,
-    DrawableGraph,
-    DrawableEdge,
-    DrawableNode,
-    EdgeValidator,
-    DrawableEvent,
-    MoveEdgeEvent,
     PropertyChangedEvent,
-    PropertyChangedEventDetail,
-    SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
-import { Model, Plugin, ElementValue, ElementType } from "sinap-core";
-import { Value, Type } from "sinap-types";
-import { DoubleMap } from "./double-map";
+import { ElementValue, } from "sinap-core";
+import { Value } from "sinap-types";
 import { GraphController, UndoableEvent } from "./graph-controller";
-import { getPath } from "../util";
 
 export class Bridge {
     private isSyncing = false;
@@ -118,7 +106,6 @@ export class Bridge {
     };
 
     public undeleted() {
-        console.log("undeleted");
         this.core.environment.listen(this.coreListener, () => true, this.core);
         this.drawable.addEventListener("change", this.drawableListener);
     }

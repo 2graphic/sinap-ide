@@ -25,8 +25,6 @@ export class TabContext {
             title: kind.length > 0 ? kind[kind.length - 1] : "",
             items: []
         };
-        graph.changed.asObservable().subscribe(this.addUndoableEvent);
-
         if (file) {
             this.name = path.basename(file, ".sinap");
         } else if (tempName) {
@@ -34,6 +32,10 @@ export class TabContext {
         } else {
             this.name = "Untitled";
         }
+
+        this.compileProgram();
+
+        graph.changed.asObservable().subscribe(this.addUndoableEvent);
     };
 
     static getUnsavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], name?: string) {
@@ -57,9 +59,6 @@ export class TabContext {
     public inputPanelData: InputPanelData = new InputPanelData();
     public testPanelData: TestPanelData = new TestPanelData();
 
-    /** Whether a change has happened since the last time a program was compiled */
-    private _dirty = true;
-
     /** Whether the files this tab represents needs to be saved */
     private _unsaved = false;
 
@@ -76,42 +75,37 @@ export class TabContext {
 
 
     /** Compile the graph with the plugin, and retains a cached copy for subsequent calls. */
-    public compileProgram = (() => {
-        let program: Program;
+    public compileProgram() {
+        const program = this.plugin.makeProgram(this.graph.core);
+        const validation = program.validate();
+        if (validation) {
+            this.statusBarInfo.items = [validation.value.toString()];
+        } else {
+            this.statusBarInfo.items = [];
+        }
+        this.inputPanelData.programInfo = new ProgramInfo(program, this.graph);
+        this.testPanelData.program = program;
 
-        return () => {
-            if (!program || this._dirty) {
-                this._dirty = false;
-
-                program = this.plugin.makeProgram(this.graph.core);
-                const validation = program.validate();
-                if (validation) {
-                    this.statusBarInfo.items = [validation.value.toString()];
-                } else {
-                    this.statusBarInfo.items = [];
-                }
-                this.inputPanelData.programInfo = new ProgramInfo(program, this.graph);
-                this._dirty = false;
-                this.testPanelData.program = program;
-                return program;
-            }
-
-            return program;
-        };
-    })();
-
-    public invalidateProgram() {
-        this._dirty = true;
+        return program;
     }
 
 
+    private hasOverflowedUndo = false;
 
     public undo() {
         const change = this.undoHistory.pop();
         if (change) {
             const redo = change.undo();
-            if (redo.reloadProgram) this.invalidateProgram();
+            if (redo.reloadProgram) this.compileProgram();
             this.redoHistory.push(redo);
+
+            if (this.undoHistory.length === 0 && !this.hasOverflowedUndo) {
+                this._unsaved = false;
+            }
+        }
+
+        if (this.undoHistory.length === 0) {
+            this.hasOverflowedUndo = false;
         }
     }
 
@@ -119,19 +113,20 @@ export class TabContext {
         const change = this.redoHistory.pop();
         if (change) {
             const undo = change.undo();
-            if (undo.reloadProgram) this.invalidateProgram();
+            if (undo.reloadProgram) this.compileProgram();
+            this._unsaved = true;
             this.undoHistory.push(undo);
         }
     }
 
     public addUndoableEvent = (change: UndoableEvent) => {
-        console.log(change);
-        if (change.reloadProgram) this.invalidateProgram();
+        if (change.reloadProgram) this.compileProgram();
         this._unsaved = true;
 
         this.redoHistory.length = 0;
 
         if (this.undoHistory.length >= this.UNDO_HISTORY_LENGTH) {
+            this.hasOverflowedUndo = true;
             return;
         }
 
