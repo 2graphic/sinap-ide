@@ -16,3 +16,6 @@
 [submodule "plugins/bfs"]
 	path = plugins/bfs
 	url = https://github.com/Sheyne/sinap-bfs-plugin.git
+[submodule "plugins/dfa-python"]
+	path = plugins/dfa-python
+	url = https://github.com/2graphic/dfa-python-plugin.git

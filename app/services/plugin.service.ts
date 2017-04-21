@@ -5,6 +5,7 @@ import { remote } from "electron";
 import { IS_PRODUCTION } from "../constants";
 import { Plugin, PluginLoader, getPluginInfo, Program, PluginInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
+import { PythonPluginLoader } from "sinap-python-loader";
 
 
 const app = remote.app;
@@ -16,7 +17,10 @@ export const ROOT_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", 
 @Injectable()
 export class PluginService {
     plugins: Promise<Plugin[]>;
-    private loader: TypescriptPluginLoader = new TypescriptPluginLoader(ROOT_DIRECTORY);
+    private loaders: Map<string, PluginLoader> = new Map([
+        ["typescript", new TypescriptPluginLoader(ROOT_DIRECTORY)],
+        ["python", new PythonPluginLoader()],
+    ]);
 
     constructor() {
         this.plugins = this.loadPlugins();
@@ -41,7 +45,12 @@ export class PluginService {
     }
 
     private async loadPlugin(dir: string): Promise<Plugin> {
-        return await this.loader.load(await getPluginInfo(dir));
+        const info = await getPluginInfo(dir);
+        const loader = this.loaders.get(info.interpreterInfo.loader);
+        if (!loader) {
+            throw new Error(`loader: "${info.interpreterInfo.loader}" not found`);
+        }
+        return await loader.load(info);
     }
 
     public async getPluginByKind(kind: string[]): Promise<Plugin> {
