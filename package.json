@@ -46,7 +46,7 @@
     "tmp": "0.0.31",
     "sinap-core": "3.10.3",
     "sinap-typescript": "0.4.15",
-    "sinap-python-loader": "0.0.1",
+    "sinap-python-loader": "0.0.2",
     "sinap-types": "0.4.0",
     "zone.js": "0.8.5"
   },
