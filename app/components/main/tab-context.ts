@@ -6,7 +6,7 @@
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { Program, Plugin } from "sinap-core";
 import { StatusBarInfo } from "../../components/status-bar/status-bar.component";
-import { InputPanelData } from "../input-panel/input-panel.component";
+import { InputPanelData, ProgramInfo } from "../input-panel/input-panel.component";
 import { TestPanelData } from "../test-panel/test-panel.component";
 import { writeData } from "../../util";
 import { SINAP_FILE_FILTER } from "../../constants";
@@ -92,7 +92,7 @@ export class TabContext {
                 } else {
                     this.statusBarInfo.items = [];
                 }
-                this.inputPanelData.program = program;
+                this.inputPanelData.programInfo = new ProgramInfo(program, this.graph);
                 this._dirty = false;
                 this.testPanelData.program = program;
                 return program;

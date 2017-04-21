@@ -65,6 +65,9 @@ export class Bridge {
                     return false;
                 }).forEach(([k, _]) => {
                     this.graph.copyPropertyToDrawable(core.get(k), drawable, k);
+                    this.graph.changed.emit(new UndoableEvent(() => {
+                        // TODO
+                    }));
                 });
             });
         }, () => true, core);
@@ -289,20 +292,36 @@ export class GraphController {
             return;
         }
 
+        if (value instanceof Value.Union && (key === "lineWidth" || key === "borderWidth")) {
+            if (value.value instanceof Value.Literal) {
+                const lineWidth = value.value.value;
+                (drawable as any)[key] = lineWidth === "thin" ? 1 : (lineWidth === "thick" ? 3 : 2); // medium = 2;
+            } else if (value.value instanceof Value.Primitive) {
+                (drawable as any)[key] = value.value.value;
+            }
+
+            return;
+        }
+
         if (((value instanceof Value.Literal) || (value instanceof Value.Primitive)) && key === "image") {
             if (value.value && value.value !== "") {
                 const path = getPath(this.plugin.pluginInfo.interpreterInfo.directory + "/" + value.value);
                 (drawable as any)[key] = path;
             }
-        } else if (value instanceof Value.Primitive) {
-            // TODO: Typesafe way to do this?
+            return;
+        }
+
+        if (value instanceof Value.Primitive) {
             (drawable as any)[key] = value.value;
+            return;
         }
 
         if (value instanceof Value.Union) {
             if (value.value instanceof Value.Literal || value.value instanceof Value.Primitive) {
                 (drawable as any)[key] = value.value.value;
             }
+
+            return;
         }
 
         if (value instanceof Value.Record && key === "position") {
@@ -310,6 +329,8 @@ export class GraphController {
                 x: (value.value.x as Value.Primitive).value as number,
                 y: (value.value.y as Value.Primitive).value as number
             };
+
+            return;
         }
     }
 
@@ -334,6 +355,12 @@ export class GraphController {
 
         let value = core.get(key);
 
+        if (value instanceof Value.Union && (key === "lineWidth" || key === "borderWidth")) {
+            // TODO: maybe try to match this up.
+            value.value = value.environment.make(new Type.Literal("medium"));
+            return true;
+        }
+
         if (value instanceof Value.Primitive) {
             value.value = (drawable as any)[key];
             return true;
@@ -354,7 +381,15 @@ export class GraphController {
         return false;
     }
 
-    setSelectedElements(se: Iterable<Drawable> | undefined) {
+    public selectElements(...items: ElementValue[]) {
+        const toSelect = items.map((i) => this.core.environment.values.get(i.uuid) as ElementValue | undefined)
+            .filter((n) => n && this.bridges.getA(n))
+            .map((n) => this.bridges.getA(n!)!.drawable)
+            .filter((n) => (n instanceof DrawableElement)) as DrawableElement[];
+        this.drawable.setSelected(...toSelect);
+    }
+
+    private setSelectedElements(se: Iterable<Drawable> | undefined) {
         if (se === undefined) {
             se = [];
         }

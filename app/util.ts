@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
-import { NodePromise, readdir } from "sinap-core";
+import { NodePromise, readdir, Program } from "sinap-core";
+import { Value, Type } from "sinap-types";
 import { SINAP_FILE_FILTER, ZIP_FILE_FILTER } from "./constants";
 import * as zlib from "zlib";
 
@@ -12,6 +13,29 @@ import * as archiver from "archiver";
 import * as tmp from "tmp";
 import * as extract from "extract-zip";
 import * as rimraf from "rimraf";
+
+
+
+export function getInput(program: Program) {
+    const plugin = program.plugin;
+    const type = plugin.types.arguments[0];
+
+    let inputForPlugin: Value.Value | undefined = undefined;
+
+    if ([...plugin.types.nodes.types.values()].find((t) => Type.isSubtype!(type, t.pluginType))) {
+        inputForPlugin = program.model.nodes.values().next().value;
+        return inputForPlugin;
+    }
+
+
+    return program.model.environment.make(type);
+}
+
+export function getExpected(program: Program) {
+    return program.model.environment.make(program.plugin.types.result);
+}
+
+
 
 // Similar to Promise.all. However, this will always resolve and ignore rejected promises.
 export function somePromises<T>(promises: Iterable<Promise<T>>, logger: Logger): Promise<T[]> {

@@ -17,7 +17,7 @@
             <div *ngIf="titlebarItems" class="titlebar-items">
                 <div *ngFor="let item of titlebarItems">
                     <div *ngIf="item.kind === 'spacer'">
-                        <span class="titlebar-spacer"></span>
+                        <span class="titlebar-spacer" [style.width]="item.width ? (item.width + 'px') : '.7em'"></span>
                     </div>
                     <div *ngIf="item.kind === 'button'">
                         <span class="titlebar-button " title="{{item.title}}" [class.disabled]="item.isDisabled"

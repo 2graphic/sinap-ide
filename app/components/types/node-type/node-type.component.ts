@@ -7,6 +7,7 @@ import { Component, Input } from "@angular/core";
 import { BaseTypeComponent } from "../type-injector/base-classes";
 import { Value, Type } from "sinap-types";
 import { ElementValue } from "sinap-core";
+import { imap, ifilter } from "sinap-types/lib/util";
 
 @Component({
     selector: "sinap-node-type",
@@ -18,6 +19,10 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
     private _borderColor?: string;
     private _color?: string;
 
+    private _value: ElementValue;
+
+    private options: [string, Value.Value][] = [];
+
     get borderColor() {
         return this._borderColor ? this._borderColor : "#000000";
     }
@@ -28,18 +33,17 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
 
     @Input()
     set value(value: ElementValue) {
-        super.value = value;
+        if (!this.readonly) {
+            // TODO: Once graph is the graph controller for the program's model, this can use that instead of environment.
+            const matchingValues = ifilter((v) => Type.isSubtype(v.type, value.type), value.environment.values.values());
+            this.options = [...imap((n): [string, Value.Value] => [this.getLabel(n as ElementValue), n], matchingValues)];
+        } else this.options = [];
 
-        this._borderColor = this.getPrimitiveAsString(value, "borderColor");
-        this._color = this.getPrimitiveAsString(value, "color");
+        this.selectedOption(value);
+    }
 
-        const label = this.getPrimitiveAsString(value, "label");
-
-        const index = [...value.environment.values.entries()].map((v) => v[1]).filter((v) => {
-            return Type.isSubtype(v.type, value.type);
-        }).indexOf(value);
-
-        this.label = label ? label : value.type.pluginType.name + " " + index;
+    get value() {
+        return this._value;
     }
 
     // TODO: Move this into a util collection
@@ -52,5 +56,32 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
         }
 
         return undefined;
+    }
+
+    private getLabel(node: ElementValue) {
+        const label = this.getPrimitiveAsString(node, "label");
+
+        const index = [...node.environment.values.entries()].map((v) => v[1]).filter((v) => {
+            return Type.isSubtype(v.type, node.type);
+        }).indexOf(node);
+
+        return label ? label : node.type.pluginType.name + " " + index;
+    }
+
+    selectedOption(option: ElementValue) {
+        this._value = option;
+
+        this._borderColor = this.getPrimitiveAsString(option, "borderColor");
+        this._color = this.getPrimitiveAsString(option, "color");
+        this.label = this.getLabel(option);
+    }
+
+    selectNode(e: Event) {
+        if (!this.graph) return;
+        const found = [...this.graph.core.nodes.values()].find((n) => n.uuid === this._value.uuid);
+        if (found) {
+            e.stopPropagation();
+            this.graph.selectElements(found);
+        }
     }
 }

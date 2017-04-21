@@ -9,7 +9,7 @@
             </tr>
             <tr *ngFor="let test of _data.tests">
                 <td><input type="checkbox" class="checkbox" [checked]="_data.selected.has(test)" (click)="select(test)"></td>
-                <td><sinap-type [value]="test.input" [readonly]="false" [focus]="true"></sinap-type></td>
+                <td><sinap-type [readonly]="false" [focus]="true" [value]="test.input" (injected)="test.injector = $event"></sinap-type></td>
                 <td><sinap-type [value]="test.expected" [readonly]="false"></sinap-type></td>
                 <td><sinap-type *ngIf="test.output" [value]="test.output"></sinap-type>
                     <span *ngIf="!test.output">Has not ran.</span></td>
