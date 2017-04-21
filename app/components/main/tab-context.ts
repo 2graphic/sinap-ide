@@ -51,8 +51,8 @@ export class TabContext {
         return this.name + (this._unsaved ? " ●" : "");
     }
 
-    private readonly undoHistory: UndoableEvent[] = [];
-    private readonly redoHistory: UndoableEvent[] = [];
+    private readonly undoHistory: UndoableEvent[][] = [];
+    private readonly redoHistory: UndoableEvent[][] = [];
     private name: string;
     private lastUpdated: Date;
 
@@ -95,8 +95,8 @@ export class TabContext {
     public undo() {
         const change = this.undoHistory.pop();
         if (change) {
-            const redo = change.undo();
-            if (redo.reloadProgram) this.compileProgram();
+            const redo = change.reverse().map(c => c.undo());
+            this.recompileIfNeccesary(redo);
             this.redoHistory.push(redo);
 
             if (this.undoHistory.length === 0 && !this.hasOverflowedUndo) {
@@ -112,25 +112,39 @@ export class TabContext {
     public redo() {
         const change = this.redoHistory.pop();
         if (change) {
-            const undo = change.undo();
-            if (undo.reloadProgram) this.compileProgram();
+            const undo = change.reverse().map(c => c.undo());
+            this.recompileIfNeccesary(undo);
             this._unsaved = true;
             this.undoHistory.push(undo);
         }
     }
 
+    private timeoutId: number | undefined = undefined;
+    private pendingChanges: UndoableEvent[] = [];
+
     public addUndoableEvent = (change: UndoableEvent) => {
-        if (change.reloadProgram) this.compileProgram();
-        this._unsaved = true;
+        if (this.timeoutId !== undefined) clearTimeout(this.timeoutId);
 
-        this.redoHistory.length = 0;
+        this.pendingChanges.push(change);
 
-        if (this.undoHistory.length >= this.UNDO_HISTORY_LENGTH) {
-            this.hasOverflowedUndo = true;
-            return;
-        }
+        this.timeoutId = setTimeout(() => {
+            this.recompileIfNeccesary(this.pendingChanges);
+            this._unsaved = true;
 
-        this.undoHistory.push(change);
+            this.redoHistory.length = 0;
+
+            if (this.undoHistory.length >= this.UNDO_HISTORY_LENGTH) {
+                this.hasOverflowedUndo = true;
+                return;
+            }
+
+            this.undoHistory.push(this.pendingChanges);
+            this.pendingChanges = [];
+        }, 200) as any;
+    }
+
+    private recompileIfNeccesary(changes: UndoableEvent[]) {
+        if (changes.reduce((b, c) => c.reloadProgram || b, false)) this.compileProgram();
     }
 
     public get unsaved(): boolean {
