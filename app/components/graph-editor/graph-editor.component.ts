@@ -19,11 +19,12 @@ import {
 } from "@angular/core";
 
 import * as MathEx from "./math";
-import { STICKY_DELAY, NUDGE } from "./defaults";
+import { STICKY_DELAY, NUDGE, GRID_SPACING } from "./defaults";
 import { PropertyChangedEvent } from "./events";
 import { NOOP, diff, sum } from "./math";
 import { EditorCanvas, point } from "./editor-canvas";
 import { DrawableGraph, EditorGraph } from "./editor-graph";
+import { DrawableElement } from "./drawable-element";
 
 
 // Re-exports //////////////////////////////////////////////////////////////////
@@ -131,6 +132,22 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private readonly graphCache: Map<DrawableGraph, EditorGraph>
     = new Map<DrawableGraph, EditorGraph>();
+
+    /**
+     * `clipboard`
+     *
+     *   The cached selection of elements to be pasted.
+     */
+    private clipboard: DrawableElement[]
+    = [];
+
+    /**
+     * `pasteOffset`
+     *
+     *   The offset position for pasting nodes.
+     */
+    private pasteOffset: number
+    = GRID_SPACING;
 
     /**
      * `downPt`
@@ -358,6 +375,38 @@ export class GraphEditorComponent implements AfterViewInit {
         this.drawGraphDelegate();
     }
 
+    /**
+     * `saveSelection`
+     *
+     *   Saves the collection of selected elements for pasting.
+     *
+     * @param cut
+     *   Whether or not the selection should be deleted after saving.
+     */
+    saveSelection(cut: boolean = false) {
+        if (this._graph) {
+            this.pasteOffset = GRID_SPACING;
+            this.clipboard = [...this._graph.drawable.selectedItems];
+            if (cut)
+                this._graph.drawable.deleteSelected();
+        }
+    }
+
+    /**
+     * `cloneSelection`
+     *
+     *   Pastes the previously saved selection of elements.
+     */
+    cloneSelection() {
+        if (this._graph) {
+            this._graph.drawable.cloneElements(
+                this.clipboard,
+                { x: this.pasteOffset, y: this.pasteOffset }
+            );
+            this.pasteOffset += GRID_SPACING;
+        }
+    }
+
 
     // Private methods /////////////////////////////////////////////////////////
 
@@ -380,9 +429,6 @@ export class GraphEditorComponent implements AfterViewInit {
         // https://developer.mozilla.org/en-US/docs/Web/API/Touch_events
         el.addEventListener("touchstart", (e: TouchEvent) => console.log(e));
         el.addEventListener("touchend", (e: TouchEvent) => console.log(e));
-        // hidden.addEventListener("copy", this.onCopy);
-        // hidden.addEventListener("cut", this.onCut);
-        // hidden.addEventListener("paste", this.onPaste);
     }
 
     /**
@@ -401,9 +447,6 @@ export class GraphEditorComponent implements AfterViewInit {
         el.removeEventListener("wheel", this.onWheel);
         // TODO:
         // remove touch event listeners.
-        // hidden.removeEventListener("copy", this.onCopy);
-        // hidden.removeEventListener("cut", this.onCut);
-        // hidden.removeEventListener("paste", this.onPaste);
     }
 
     /**

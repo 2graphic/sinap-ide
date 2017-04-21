@@ -4,6 +4,9 @@
  *
  * @author CJ Dimaano
  *   <c.j.s.dimaano@gmail.com>
+ *
+ * @todo
+ * - SIMD?
  */
 
 

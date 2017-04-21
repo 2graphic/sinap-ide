@@ -72,8 +72,14 @@ export class PropertyChangedEventDetail<T> {
 export class DrawableEventDetail<D extends DrawableElement> {
     constructor(
         public readonly source: any,
-        public readonly drawables: D[],
-        public readonly like?: D
+        /**
+         * `drawables`
+         *
+         *   A list of pairs where the first of the pair is the drawable that
+         *   was created, and the second is the drawable element on which it is
+         *   based (i.e. the `like` parameter supplied to the `create` method).
+         */
+        public readonly drawables: [D, D | undefined][]
     ) { }
 }
 
