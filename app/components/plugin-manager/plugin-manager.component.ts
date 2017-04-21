@@ -1,12 +1,13 @@
 import { Component, Inject, Output, ChangeDetectorRef } from "@angular/core";
-import { PluginService } from "../../services/plugin.service";
+import { PluginService, PLUGIN_DIRECTORY } from "../../services/plugin.service";
 import { requestSaveFile, requestOpenDirs, requestFiles, getLogger } from "../../util";
-import { remote } from "electron";
+import { remote, shell } from "electron";
 import { ZIP_FILE_FILTER } from "../../constants";
 import { ModalComponent, ModalInfo } from "../../models/modal-window";
 import { getPluginInfo, PluginInfo } from "sinap-core";
-import { dirFiles, subdirs, tempDir, unzip, TempDir } from "../../util";
+import { dirFiles, subdirs, tempDir, unzip, TempDir, getPath } from "../../util";
 import { WindowService } from "./../../modal-windows/services/window.service";
+import * as path from "path";
 
 let exec = require('child_process').exec;
 
@@ -82,6 +83,14 @@ export class PluginManager implements ModalComponent {
         await Promise.all(proms);
         this.plugins = await this.pluginService.pluginData;
         this.changeDetectorRef.detectChanges();
+    }
+
+    private showInFolder() {
+        const directory = getPath(path.join(this.selectedPlugin.interpreterInfo.directory, "package.json"));
+        LOG.info(`Opening ${directory} in file manager.`);
+        if (!shell.showItemInFolder(directory)) {
+            LOG.error(`Could not open ${directory} in file manager.`);
+        }
     }
 
     async importPlugins() {
