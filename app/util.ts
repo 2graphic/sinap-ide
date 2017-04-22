@@ -57,7 +57,7 @@ export function somePromises<T>(promises: Iterable<Promise<T>>, logger: Logger):
 }
 
 export function getPath(name: string) {
-    return path.normalize("/" + path.relative("/", name));
+    return path.resolve(path.normalize(name));
 }
 
 export function compareFiles(file1: string, file2: string) {
