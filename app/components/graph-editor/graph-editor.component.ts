@@ -480,11 +480,11 @@ export class GraphEditorComponent implements AfterViewInit {
      *
      *   Repositions the origin point of the canvas.
      */
-    private pan(evt: MouseEvent) {
+    private pan(evt: { x: number, y: number }) {
         const canvas = this.graphCanvas;
         this.origin = {
-            x: canvas.origin.x + evt.movementX / canvas.scale,
-            y: canvas.origin.y + evt.movementY / canvas.scale
+            x: canvas.origin.x + evt.x / canvas.scale,
+            y: canvas.origin.y + evt.y / canvas.scale
         };
         this.redraw();
     }
@@ -679,7 +679,7 @@ export class GraphEditorComponent implements AfterViewInit {
             case 1: {
                 if (this.isPanning) {
                     this.el.nativeElement.style.cursor = "-webkit-grabbing";
-                    this.pan(evt);
+                    this.pan({ x: evt.movementX, y: evt.movementY });
                 }
                 else if (this.stickyTimeout) {
                     const dpt = MathEx.diff(evt, this.downPt!);
@@ -745,10 +745,7 @@ export class GraphEditorComponent implements AfterViewInit {
             else if (e.deltaY < 0)
                 this.zoom(e, 1.05);
         } else {
-            this.pan({
-                movementX: -e.deltaX,
-                movementY: -e.deltaY,
-            } as MouseEvent);
+            this.pan({ x: -e.deltaX, y: -e.deltaY });
         }
     }
 
