@@ -223,7 +223,7 @@ export class TitlebarButton {
 }
 
 export class TitlebarSpacer {
-    constructor() { }
+    constructor(public width?: number) { }
     readonly kind = "spacer";
 }
 

@@ -176,6 +176,19 @@ export class GraphEditorComponent implements AfterViewInit {
     = false;
 
     /**
+     * `preventDblClick`
+     *
+     *   Prevents double click from creating a node to address double clicking
+     *   and dragging to select.
+     *
+     * @private
+     * @type {boolean}
+     * @memberOf GraphEditorComponent
+     */
+    private preventDblClick: boolean
+    = false;
+
+    /**
      * `drawGridDelegate`
      *
      *   Delegate for drawing the grid.
@@ -387,8 +400,10 @@ export class GraphEditorComponent implements AfterViewInit {
         if (this._graph) {
             this.pasteOffset = GRID_SPACING;
             this.clipboard = [...this._graph.drawable.selectedItems];
-            if (cut)
+            if (cut) {
+                this.pasteOffset = 0;
                 this._graph.drawable.deleteSelected();
+            }
         }
     }
 
@@ -424,11 +439,6 @@ export class GraphEditorComponent implements AfterViewInit {
         el.addEventListener("mousedown", this.onMouseDown);
         el.addEventListener("mousemove", this.onMouseMove);
         el.addEventListener("wheel", this.onWheel);
-        // TODO:
-        // Use touch events to handle gesture pan and zoom.
-        // https://developer.mozilla.org/en-US/docs/Web/API/Touch_events
-        el.addEventListener("touchstart", (e: TouchEvent) => console.log(e));
-        el.addEventListener("touchend", (e: TouchEvent) => console.log(e));
     }
 
     /**
@@ -445,8 +455,6 @@ export class GraphEditorComponent implements AfterViewInit {
         el.removeEventListener("mouseup", this.onMouseUp);
         el.removeEventListener("mousemove", this.onMouseMove);
         el.removeEventListener("wheel", this.onWheel);
-        // TODO:
-        // remove touch event listeners.
     }
 
     /**
@@ -480,11 +488,11 @@ export class GraphEditorComponent implements AfterViewInit {
      *
      *   Repositions the origin point of the canvas.
      */
-    private pan(evt: MouseEvent) {
+    private pan(evt: { x: number, y: number }) {
         const canvas = this.graphCanvas;
         this.origin = {
-            x: canvas.origin.x + evt.movementX / canvas.scale,
-            y: canvas.origin.y + evt.movementY / canvas.scale
+            x: canvas.origin.x + evt.x / canvas.scale,
+            y: canvas.origin.y + evt.y / canvas.scale
         };
         this.redraw();
     }
@@ -513,74 +521,13 @@ export class GraphEditorComponent implements AfterViewInit {
 
 
     /**
-     * `onCopy`
-     *
-     *   Handles the copy event.
-     */
-    private onCopy
-    = (evt: ClipboardEvent) => {
-        const dt = evt.clipboardData;
-        dt.clearData();
-        dt.dropEffect = "copy";
-        dt.effectAllowed = "copy";
-
-        // TODO:
-        // - Serialize selection into dt.
-        // dt.setData("application/sinapObjects", )
-        console.log("copy");
-
-        evt.preventDefault();
-    }
-
-    /**
-     * `onCut`
-     *
-     *   Handles the cut event.
-     */
-    private onCut
-    = (evt: ClipboardEvent) => {
-        const dt = evt.clipboardData;
-        dt.clearData();
-        dt.dropEffect = "move";
-        dt.effectAllowed = "move";
-
-        // TODO:
-        // - Serialize selection into dt.
-        // - Delete selection.
-        // dt.setData("application/sinapObjects", )
-        console.log("cut");
-
-        evt.preventDefault();
-    }
-
-    /**
-     * `onPaste`
-     *
-     *   Handles the paste event.
-     */
-    private onPaste
-    = (evt: ClipboardEvent) => {
-        const dt = evt.clipboardData;
-        if (dt.effectAllowed === "copy" || dt.effectAllowed === "move") {
-            // TODO:
-            // - Deserialize selection from dt.
-            // dt.getData("application/sinapObjects")
-            console.log("paste");
-
-            if (dt.effectAllowed === "move")
-                dt.clearData();
-            evt.preventDefault();
-        }
-    }
-
-    /**
      * `onKeyDown`
      *
      *   Handles the keydown event.
      */
     private onKeyDown
     = (evt: KeyboardEvent) => {
-        if (evt.altKey)
+        if (!this.isPanning && evt.altKey)
             this.el.nativeElement.style.cursor = "-webkit-grab";
     }
 
@@ -601,11 +548,15 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private onDoubleClick
     = (evt: MouseEvent) => {
-        const d = this._graph!.drawable.createNode();
-        if (d) {
-            d.position = this.graphCanvas.getCoordinates(evt);
-            this._graph!.drawable.setSelected(d);
+        if (!this.preventDblClick) {
+            const d = this._graph!.drawable.createNode();
+            if (d) {
+                d.position = this.graphCanvas.getCoordinates(evt);
+                this._graph!.drawable.setSelected(d);
+            }
         }
+        else
+            this.preventDblClick = false;
     }
 
     /**
@@ -679,7 +630,7 @@ export class GraphEditorComponent implements AfterViewInit {
             case 1: {
                 if (this.isPanning) {
                     this.el.nativeElement.style.cursor = "-webkit-grabbing";
-                    this.pan(evt);
+                    this.pan({ x: evt.movementX, y: evt.movementY });
                 }
                 else if (this.stickyTimeout) {
                     const dpt = MathEx.diff(evt, this.downPt!);
@@ -690,11 +641,13 @@ export class GraphEditorComponent implements AfterViewInit {
                         this._graph!
                             .dragStart(this.graphCanvas.getCoordinates(evt));
                         this._graph!.drag(ept);
+                        this.preventDblClick = true;
                     }
                 }
                 else {
                     this.el.nativeElement.style.cursor = "default";
                     this._graph!.drag(ept);
+                    this.preventDblClick = true;
                 }
             } break;
         }
@@ -738,11 +691,15 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private onWheel
     = (e: WheelEvent) => {
-        // Apply zoom.
-        if (e.deltaY > 0)
-            this.zoom(e, 1 / 1.05);
-        else if (e.deltaY < 0)
-            this.zoom(e, 1.05);
+        if (e.ctrlKey || process.platform === "win32") {
+            // Apply zoom.
+            if (e.deltaY > 0)
+                this.zoom(e, 1 / 1.05);
+            else if (e.deltaY < 0)
+                this.zoom(e, 1.05);
+        } else {
+            this.pan({ x: -e.deltaX, y: -e.deltaY });
+        }
     }
 
     /**

@@ -17,8 +17,6 @@ export class ListTypeComponent extends BaseTypeComponent<Value.ArrayObject> {
 
     set value(v: Value.ArrayObject) {
         super.value = v;
-        this.values = [];
-
-        // TODO:
+        this.values = v.simpleRepresentation;
     }
 }

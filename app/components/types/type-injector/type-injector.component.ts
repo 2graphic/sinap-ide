@@ -3,7 +3,7 @@
 // Date created: February 22, 2017
 //
 
-import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type as AngularType } from "@angular/core";
+import { Component, Input, ViewContainerRef, ViewChild, ComponentFactoryResolver, ReflectiveInjector, ComponentRef, OnInit, Type as AngularType, Output, EventEmitter } from "@angular/core";
 import * as Core from "sinap-core";
 import { Type, Value } from "sinap-types";
 
@@ -18,6 +18,8 @@ import { ColorTypeComponent } from "./../color-type/color-type.component";
 import { MapTypeComponent } from "./../map-type/map-type.component";
 import { LiteralTypeComponent } from "./../literal-type/literal-type.component";
 import { PointTypeComponent } from "./../point-type/point-type.component";
+
+import { GraphController } from "../../../models/graph-controller";
 
 import { PointType } from "../point-type/point-type.component";
 
@@ -40,6 +42,12 @@ export class TypeInjectorComponent {
     private _value?: Value.Value;
     private _disabled: boolean = false;
 
+    @Input()
+    public graph: GraphController;
+
+    @Output()
+    injected = new EventEmitter<TypeInjectorComponent>();
+
     /**
      * Whether the component should be readonly.
      * IE a string that is not readonly is an <input> element, otherwise it's just text.
@@ -61,19 +69,33 @@ export class TypeInjectorComponent {
 
     @Input()
     set value(v: Value.Value | undefined) {
+        this.injected.emit(this);
+
         if (!v) {
             this.container.clear();
             this.component = undefined;
-        } else if (this.component && this._value && this._value.deepEqual(v)) {
-            if (this._value !== v) {
-                this.component.instance.value = v;
-            }
-        } else {
-            this.inject(v, this.readonly, this._disabled);
+        }
+        // TODO: Sheyne, deepEqual after a couple recursive calls throws an exception.
+        // else if (this.component && this._value && this._value.deepEqual(v)) {
+        //     if (this._value !== v) {
+        //         this._value = v;
+        //         this.component.instance.value = v;
+        //     }
+        // }
+        else {
+            this.inject(v, this.readonly, this._disabled, this.graph);
         }
     }
 
-    private inject(value: Value.Value, readonly: boolean, disabled: boolean) {
+    get value() {
+        if (this.component) {
+            return this.component.instance.value as Value.Value;
+        } else {
+            return this._value;
+        }
+    }
+
+    private inject(value: Value.Value, readonly: boolean, disabled: boolean, graph: GraphController) {
         this._value = value;
 
         let componentType = this.getComponentType(value);
@@ -88,6 +110,7 @@ export class TypeInjectorComponent {
         let factory = this.resolver.resolveComponentFactory(componentType);
 
         this.component = factory.create(injector);
+        this.component.instance.graph = graph;
         this.component.instance.readonly = readonly;
         this.component.instance.disabled = disabled;
         this.component.instance.value = value;

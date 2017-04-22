@@ -1,12 +1,13 @@
 import { Component, Inject, Output, ChangeDetectorRef } from "@angular/core";
-import { PluginService } from "../../services/plugin.service";
+import { PluginService, PLUGIN_DIRECTORY } from "../../services/plugin.service";
 import { requestSaveFile, requestOpenDirs, requestFiles, getLogger } from "../../util";
-import { remote } from "electron";
+import { remote, shell } from "electron";
 import { ZIP_FILE_FILTER } from "../../constants";
 import { ModalComponent, ModalInfo } from "../../models/modal-window";
 import { getPluginInfo, PluginInfo } from "sinap-core";
-import { dirFiles, subdirs, tempDir, unzip, TempDir } from "../../util";
+import { dirFiles, subdirs, tempDir, unzip, TempDir, getPath } from "../../util";
 import { WindowService } from "./../../modal-windows/services/window.service";
+import * as path from "path";
 
 let exec = require('child_process').exec;
 
@@ -90,6 +91,22 @@ export class PluginManager implements ModalComponent {
         this.changeDetectorRef.detectChanges();
     }
 
+    private showInFolder() {
+        const directory = getPath(path.join(this.selectedPlugin.interpreterInfo.directory, "package.json"));
+        LOG.info(`Opening ${directory} in file manager.`);
+        if (!shell.showItemInFolder(directory)) {
+            LOG.error(`Could not open ${directory} in file manager.`);
+        }
+    }
+
+    private getFileManagerText() {
+        if (process.platform === 'darwin') {
+            return "Reveal in Finder";
+        } else {
+            return "Open in Explorer";
+        }
+    }
+
     async importPlugins() {
         const dirNames = await requestOpenDirs(DEFAULT_DIR);
         await this.importMany(dirNames);
@@ -102,7 +119,7 @@ export class PluginManager implements ModalComponent {
     }
 
     editButton() {
-        const command = "/usr/local/bin/code '" + this.selectedPlugin.interpreterInfo.directory + "'";
+        const command = "/usr/bin/env code '" + this.selectedPlugin.interpreterInfo.directory + "'";
         console.log(command, exec);
         exec(command, function() { console.log(arguments); });
     }

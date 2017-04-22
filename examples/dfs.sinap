@@ -1,15 +1,15 @@
 {
     "kind": [
-        "Formal Languages",
-        "NFA"
+        "Algorithms",
+        "BFS"
     ],
     "graph": {
         "graph": {
-            "9a65e8b9-aac0-401d-94b3-10dfde2fcae6": {
+            "06d73543-e176-498d-b5c2-f8981549a266": {
                 "type": {
                     "element": {
                         "plugin": {
-                            "object": "NFAGraph"
+                            "object": "Graph"
                         },
                         "drawable": {
                             "object": "DrawableGraph"
@@ -19,21 +19,21 @@
                 "rep": {
                     "nodes": {
                         "kind": "value-reference",
-                        "uuid": "1a5b535c-fee9-4d71-94fb-1a3c98c9c579"
+                        "uuid": "5665db9e-d075-4a14-a031-09713bc15ac1"
                     },
                     "edges": {
                         "kind": "value-reference",
-                        "uuid": "bb4bffdc-58a5-4b28-8a72-1afb9e82580d"
+                        "uuid": "14172f8a-9b00-43bb-9a78-2c357d6b2c54"
                     }
                 }
             }
         },
         "nodes": {
-            "e2f06935-1f62-4b43-8c66-0d2476245f96": {
+            "50ee47e8-aebf-4d19-a6f8-f7ca2b409367": {
                 "type": {
                     "element": {
                         "plugin": {
-                            "object": "NFANode"
+                            "object": "Node"
                         },
                         "drawable": {
                             "object": "DrawableNode"
@@ -41,65 +41,57 @@
                     }
                 },
                 "rep": {
-                    "isStartState": {
-                        "kind": "value-reference",
-                        "uuid": "73b1120c-fe99-4a5f-a683-f3d625ae36e7"
-                    },
-                    "isAcceptState": {
-                        "kind": "value-reference",
-                        "uuid": "0f24b51f-353b-49f4-80a9-11472ad2d027"
-                    },
                     "children": {
                         "kind": "value-reference",
-                        "uuid": "65385a6a-a96f-4975-8fdb-8bba71fd9e19"
-                    },
-                    "label": {
-                        "kind": "value-reference",
-                        "uuid": "4230a09d-95f7-4b25-9479-95788689b582"
+                        "uuid": "05617ed0-90c6-47ef-9086-af4a9d71467c"
                     },
                     "parents": {
                         "kind": "value-reference",
-                        "uuid": "fbe2d3a8-5185-485a-8b1a-32294ac208b0"
+                        "uuid": "c2635409-a3f3-4c85-a670-a14811114d4f"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "0f45bee3-74c6-4831-b2f5-6702a9fa71b3"
                     },
                     "color": {
                         "kind": "value-reference",
-                        "uuid": "53291c1f-0025-4866-93a4-4f33e6094b86"
+                        "uuid": "18892ce3-8929-4495-8e18-d8388e7f677f"
                     },
                     "position": {
                         "kind": "value-reference",
-                        "uuid": "a2109f00-5bb2-4ff4-9e8b-b77936ec2661"
+                        "uuid": "3f437b9e-9bf7-4770-9e3e-0606eb73d8c0"
                     },
                     "shape": {
                         "kind": "value-reference",
-                        "uuid": "a1167fd9-0a07-43c7-8359-e4451cddbdf1"
+                        "uuid": "745c7876-c358-4581-9599-479f92896f67"
                     },
                     "image": {
                         "kind": "value-reference",
-                        "uuid": "adc31dcf-46f2-4563-b1eb-300295f56072"
+                        "uuid": "549fec64-29cd-4238-8f90-72412fc5e516"
                     },
                     "anchorPoints": {
                         "kind": "value-reference",
-                        "uuid": "f17a5d33-c5b9-4254-afac-584c2e8d1223"
+                        "uuid": "98a56a1b-0c75-4e96-b6e8-7f69b0bf2491"
                     },
                     "borderColor": {
                         "kind": "value-reference",
-                        "uuid": "1cf19333-925d-4fa5-83c3-8fed203d2114"
+                        "uuid": "ee31f3bd-c216-47b8-9d6f-078b972bd2ce"
                     },
                     "borderStyle": {
                         "kind": "value-reference",
-                        "uuid": "6f813cbe-1fcc-43f1-8b6d-4780504184c3"
+                        "uuid": "6b207fae-841e-49f2-805d-9a7a9961c448"
                     },
                     "borderWidth": {
                         "kind": "value-reference",
-                        "uuid": "07cdd374-23f8-49c9-a9a2-686de1153480"
+                        "uuid": "a5b7bc0a-9dd8-4100-a16c-69624e14228d"
                     }
                 }
             },
-            "b65a6527-0703-4432-8cb6-19c197151ba8": {
+            "ffe6a864-81e9-4f85-a7de-cbb3a0cbbef3": {
                 "type": {
                     "element": {
                         "plugin": {
-                            "object": "NFANode"
+                            "object": "Node"
                         },
                         "drawable": {
                             "object": "DrawableNode"
@@ -107,65 +99,57 @@
                     }
                 },
                 "rep": {
-                    "isStartState": {
-                        "kind": "value-reference",
-                        "uuid": "4fa00747-be33-428b-9eb2-d3ec2a964dea"
-                    },
-                    "isAcceptState": {
-                        "kind": "value-reference",
-                        "uuid": "3922ad31-7162-4483-b937-601314f25f75"
-                    },
                     "children": {
                         "kind": "value-reference",
-                        "uuid": "77c6c266-7bf9-4591-b7f5-0b1b23938971"
-                    },
-                    "label": {
-                        "kind": "value-reference",
-                        "uuid": "d9152c9a-ce04-471c-8a6b-42c0d87b091e"
+                        "uuid": "58f0f7bd-6d56-4643-888f-12116c25bee2"
                     },
                     "parents": {
                         "kind": "value-reference",
-                        "uuid": "dbfb39a5-41e7-499f-b26c-6ac6e3306af1"
+                        "uuid": "b74e896a-82b1-4903-9319-28e46cf851a6"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "502c3ccd-f410-4af6-9893-8bcf6548fab2"
                     },
                     "color": {
                         "kind": "value-reference",
-                        "uuid": "9832b8d2-74c9-4930-aec5-ee0a5956c1d0"
+                        "uuid": "e188a51d-e6ed-42bd-9bee-952a36c12527"
                     },
                     "position": {
                         "kind": "value-reference",
-                        "uuid": "968e012d-9ba4-4d2d-9543-3dce8ccff4de"
+                        "uuid": "b816ac2d-0a8e-4a3f-a8b4-5fbc9705d816"
                     },
                     "shape": {
                         "kind": "value-reference",
-                        "uuid": "c042b486-25fa-4557-acde-a01e7ff9bf55"
+                        "uuid": "bb119224-6ae8-43d2-895b-a28623820bcf"
                     },
                     "image": {
                         "kind": "value-reference",
-                        "uuid": "c4202ab4-e54a-43be-91a7-698ba9226973"
+                        "uuid": "dec53404-9951-47f3-a4ea-67ee2332cfdd"
                     },
                     "anchorPoints": {
                         "kind": "value-reference",
-                        "uuid": "69f923e8-7cc1-47c4-8471-ee0f75ebe350"
+                        "uuid": "21393a1e-8810-4a6a-9ab8-465a1978e644"
                     },
                     "borderColor": {
                         "kind": "value-reference",
-                        "uuid": "c158c777-9775-4190-bb0a-e595b63277ee"
+                        "uuid": "bbcbf7dc-0d25-468a-8a68-6faab304b398"
                     },
                     "borderStyle": {
                         "kind": "value-reference",
-                        "uuid": "4be9ac0f-3b88-41fe-8dde-ee8e015f7e97"
+                        "uuid": "b72d6b6f-0b19-4ffe-8afc-c93b0effb483"
                     },
                     "borderWidth": {
                         "kind": "value-reference",
-                        "uuid": "f0a9e707-5e4a-4095-b0a9-cb31491ae9ac"
+                        "uuid": "e490b6ce-317a-4f55-9f61-a9fa34fd2dfb"
                     }
                 }
             },
-            "39461682-a15a-434e-85ba-87247fa53514": {
+            "2d03581c-1cec-418a-bdc0-839fcbac311c": {
                 "type": {
                     "element": {
                         "plugin": {
-                            "object": "NFANode"
+                            "object": "Node"
                         },
                         "drawable": {
                             "object": "DrawableNode"
@@ -173,67 +157,117 @@
                     }
                 },
                 "rep": {
-                    "isStartState": {
-                        "kind": "value-reference",
-                        "uuid": "3169effc-acee-4373-9a8a-032196b7e59d"
-                    },
-                    "isAcceptState": {
-                        "kind": "value-reference",
-                        "uuid": "afc6c727-13f5-4f69-8b30-2f6683112145"
-                    },
                     "children": {
                         "kind": "value-reference",
-                        "uuid": "345aea6a-7211-4af6-8bf6-72ab8f3c16ac"
-                    },
-                    "label": {
-                        "kind": "value-reference",
-                        "uuid": "e9718187-8d6a-4ca0-ab52-e584eb791d9b"
+                        "uuid": "b100ad73-bdd8-4172-8970-2f5f710581c8"
                     },
                     "parents": {
                         "kind": "value-reference",
-                        "uuid": "18e37ef2-8c2f-44af-ae65-522a6a64dc33"
+                        "uuid": "2dc2c807-53ef-4b78-9421-fd5b7a1bf99f"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "9130e32a-8fea-4617-9fd0-011bf2931d99"
                     },
                     "color": {
                         "kind": "value-reference",
-                        "uuid": "d6b869bc-2ff1-4a76-a148-7910f09f6c4c"
+                        "uuid": "a8e003e4-638c-4c8f-bca2-edb6e4683f5e"
                     },
                     "position": {
                         "kind": "value-reference",
-                        "uuid": "2287c619-10c5-40dd-b5e7-2c56e64deb0a"
+                        "uuid": "9a7505aa-6013-4cad-93ef-3df6cc7e894a"
                     },
                     "shape": {
                         "kind": "value-reference",
-                        "uuid": "2f3ae1f0-0d57-441b-a3be-42974c1a4620"
+                        "uuid": "0189c95f-5876-4be2-bc5f-a9a2693c6f94"
                     },
                     "image": {
                         "kind": "value-reference",
-                        "uuid": "4f0a2c4d-3f46-46b1-b859-01db9636edb1"
+                        "uuid": "f38089c1-852d-43c4-a64a-b446cc1c45e8"
                     },
                     "anchorPoints": {
                         "kind": "value-reference",
-                        "uuid": "7533bcf6-8a81-47ad-8ab8-755e53266671"
+                        "uuid": "9bb2804c-dfc6-47fa-ac66-e256d56954f5"
                     },
                     "borderColor": {
                         "kind": "value-reference",
-                        "uuid": "9edba272-73d3-4e17-b800-06b375b3622e"
+                        "uuid": "ef77e6d7-d8a1-4fc4-af00-a9cd7c09d8c1"
                     },
                     "borderStyle": {
                         "kind": "value-reference",
-                        "uuid": "61abfa74-ef2f-49c1-8f71-c75c0768c58d"
+                        "uuid": "86a18aa0-8df0-47ad-90c9-026a1355d520"
                     },
                     "borderWidth": {
                         "kind": "value-reference",
-                        "uuid": "8b21871d-3398-4bcf-888e-8f93f9358934"
+                        "uuid": "42153742-eb34-44c7-a6f0-a2ffc2bb539d"
+                    }
+                }
+            },
+            "fb6d3bc3-529b-4d61-bb45-900ba2f8ad47": {
+                "type": {
+                    "element": {
+                        "plugin": {
+                            "object": "Node"
+                        },
+                        "drawable": {
+                            "object": "DrawableNode"
+                        }
+                    }
+                },
+                "rep": {
+                    "children": {
+                        "kind": "value-reference",
+                        "uuid": "0b2af52b-6c6a-4db2-9891-df300f180397"
+                    },
+                    "parents": {
+                        "kind": "value-reference",
+                        "uuid": "e35f2032-3cbf-4029-af5f-d955156981a1"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "1d0fbc6f-7309-4ba9-bcb0-e87237afb7ba"
+                    },
+                    "color": {
+                        "kind": "value-reference",
+                        "uuid": "c9254c2d-aafe-44b6-b350-609ff7106279"
+                    },
+                    "position": {
+                        "kind": "value-reference",
+                        "uuid": "a26bc73e-87ce-4519-8096-5913bb820ede"
+                    },
+                    "shape": {
+                        "kind": "value-reference",
+                        "uuid": "f6544b0f-ddc5-408f-8113-6a62b87f4083"
+                    },
+                    "image": {
+                        "kind": "value-reference",
+                        "uuid": "5044ff21-e598-4d93-920a-81e2ebdfffc5"
+                    },
+                    "anchorPoints": {
+                        "kind": "value-reference",
+                        "uuid": "ebe0af7d-21e0-4a09-a582-67b9e6998836"
+                    },
+                    "borderColor": {
+                        "kind": "value-reference",
+                        "uuid": "d635eec2-acac-4a3e-9b73-97707a31b372"
+                    },
+                    "borderStyle": {
+                        "kind": "value-reference",
+                        "uuid": "04448147-c84b-40b0-8ec5-a97340db11a4"
+                    },
+                    "borderWidth": {
+                        "kind": "value-reference",
+                        "uuid": "b82746d3-3246-4543-aee2-2aabfb55db17"
                     }
                 }
             }
         },
         "edges": {
-            "3fad1e9d-2e9f-4e8f-ab9e-71bcdc44714b": {
+            "44b93ff8-2a49-4194-99ad-4ac143c6531a": {
                 "type": {
                     "element": {
                         "plugin": {
-                            "object": "NFAEdge"
+                            "object": "Edge"
                         },
                         "drawable": {
                             "object": "DrawableEdge"
@@ -241,49 +275,45 @@
                     }
                 },
                 "rep": {
-                    "symbol": {
-                        "kind": "value-reference",
-                        "uuid": "d79c284e-2c7f-44ec-ab0d-7439309c5ed1"
-                    },
                     "label": {
                         "kind": "value-reference",
-                        "uuid": "750234fe-a496-4b19-a7e5-9d2795db97d1"
+                        "uuid": "34ec62d2-8ec3-4cf9-a362-566dd6fcd3c8"
                     },
                     "color": {
                         "kind": "value-reference",
-                        "uuid": "0d5c3b10-9870-4467-8647-4bffb4543a43"
+                        "uuid": "8c912577-eede-4fbb-b488-4375f1b4d983"
                     },
                     "lineStyle": {
                         "kind": "value-reference",
-                        "uuid": "aaf272c2-bed3-4d8b-b371-346544734944"
+                        "uuid": "e3c44cc9-bf73-4f30-9274-95e969c96c86"
                     },
                     "lineWidth": {
                         "kind": "value-reference",
-                        "uuid": "743680eb-2e80-4355-ba4f-b60a7a8721e0"
+                        "uuid": "e3ae292e-e1cd-4451-8fec-006440902498"
                     },
                     "showSourceArrow": {
                         "kind": "value-reference",
-                        "uuid": "aab23e1e-ad74-4857-bd07-3ff44bf68a16"
+                        "uuid": "04f87da8-0263-441b-bd8c-36f9b9321aed"
                     },
                     "showDestinationArrow": {
                         "kind": "value-reference",
-                        "uuid": "dc2425a7-a476-409a-a5ee-9c0db7f34395"
+                        "uuid": "c5b8cc7f-854b-4575-b1af-f147de151457"
                     },
                     "source": {
                         "kind": "value-reference",
-                        "uuid": "f5241f0d-a03b-43f2-a4ca-2b0cc9049dcc"
+                        "uuid": "da4df745-2bb3-46e6-9dc0-ef1b9a6d015c"
                     },
                     "destination": {
                         "kind": "value-reference",
-                        "uuid": "6b03ca75-f3bb-48e5-89af-8e3733ddbf5b"
+                        "uuid": "0b002e6a-9e0a-4925-a874-914b700559a6"
                     }
                 }
             },
-            "9ccbc2c4-a053-44f6-b8c6-2d5eada0fcec": {
+            "4983eb63-6210-4991-ad60-5fa24e717cd5": {
                 "type": {
                     "element": {
                         "plugin": {
-                            "object": "NFAEdge"
+                            "object": "Edge"
                         },
                         "drawable": {
                             "object": "DrawableEdge"
@@ -291,166 +321,62 @@
                     }
                 },
                 "rep": {
-                    "symbol": {
+                    "destination": {
                         "kind": "value-reference",
-                        "uuid": "c134857d-6759-46c1-9c52-3b39ae100016"
-                    },
-                    "label": {
-                        "kind": "value-reference",
-                        "uuid": "a48f81b3-b873-4cde-9fc1-045bebb68b70"
-                    },
-                    "color": {
-                        "kind": "value-reference",
-                        "uuid": "101740e7-dbf3-46d5-b445-09f4c3dfce82"
-                    },
-                    "lineStyle": {
-                        "kind": "value-reference",
-                        "uuid": "fe421f2f-e9bb-4fe9-895b-a53520cd0872"
-                    },
-                    "lineWidth": {
-                        "kind": "value-reference",
-                        "uuid": "3e345138-073c-4bd7-a845-56d04943b764"
-                    },
-                    "showSourceArrow": {
-                        "kind": "value-reference",
-                        "uuid": "3a89fb2d-ea1f-4e35-9642-2fd73f9a5a03"
-                    },
-                    "showDestinationArrow": {
-                        "kind": "value-reference",
-                        "uuid": "10a874c1-6f2b-4fff-881a-e5aea23cdc19"
+                        "uuid": "af4af5a6-1b7e-4786-b31a-c5789515837f"
                     },
                     "source": {
                         "kind": "value-reference",
-                        "uuid": "5e4139c1-2bed-4126-8e73-7ff0c04818fa"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "8f799f9b-ea77-46ef-a6e3-875f5a2db88e"
-                    }
-                }
-            },
-            "6bdea3bd-f341-454e-b2e3-b3475b9a2474": {
-                "type": {
-                    "element": {
-                        "plugin": {
-                            "object": "NFAEdge"
-                        },
-                        "drawable": {
-                            "object": "DrawableEdge"
-                        }
-                    }
-                },
-                "rep": {
-                    "symbol": {
-                        "kind": "value-reference",
-                        "uuid": "75315e8f-ee89-40f7-a7d5-3f3064645836"
+                        "uuid": "fa015037-25db-47a9-958e-d30f323907be"
                     },
                     "label": {
                         "kind": "value-reference",
-                        "uuid": "1f2c561b-50b3-4a92-b4dd-930bcf4e9ff9"
+                        "uuid": "57e6f0b3-9123-496c-9f1d-3f3455779753"
                     },
                     "color": {
                         "kind": "value-reference",
-                        "uuid": "02f66c56-9e49-4d5f-8561-645cbe2059a8"
+                        "uuid": "d7f3899a-5768-45d1-9a99-ff623fbaabd7"
                     },
                     "lineStyle": {
                         "kind": "value-reference",
-                        "uuid": "096912d7-ae74-49ff-ae2c-441472196cd2"
+                        "uuid": "c1efc8da-29be-4313-82db-6664d90bf5fa"
                     },
                     "lineWidth": {
                         "kind": "value-reference",
-                        "uuid": "313c0038-df03-4480-97ed-67447690c08e"
+                        "uuid": "8ed44637-f978-43cd-866d-fb2d35a10e36"
                     },
                     "showSourceArrow": {
                         "kind": "value-reference",
-                        "uuid": "159b4121-3e13-4cc8-b6ba-d40340b81b57"
+                        "uuid": "b86c4191-55ea-4dd4-acc3-27a127de0ceb"
                     },
                     "showDestinationArrow": {
                         "kind": "value-reference",
-                        "uuid": "172038f0-9f27-49ef-af95-5cfcf3ff4e54"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "2806be1a-67c6-448e-a3bd-b56f23fb24b3"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "cd5994ce-c1b5-4085-9b91-f0901db1d345"
-                    }
-                }
-            },
-            "6d8a4cc6-b060-4fca-87a8-5562fb02a7ac": {
-                "type": {
-                    "element": {
-                        "plugin": {
-                            "object": "NFAEdge"
-                        },
-                        "drawable": {
-                            "object": "DrawableEdge"
-                        }
-                    }
-                },
-                "rep": {
-                    "symbol": {
-                        "kind": "value-reference",
-                        "uuid": "6df3a541-63e1-49e1-bc5a-37cf2593fd18"
-                    },
-                    "label": {
-                        "kind": "value-reference",
-                        "uuid": "f56546a8-e747-416c-8abb-c1792aea1adf"
-                    },
-                    "color": {
-                        "kind": "value-reference",
-                        "uuid": "e2a8a522-5c7c-4ba6-9c35-4f4b55e25778"
-                    },
-                    "lineStyle": {
-                        "kind": "value-reference",
-                        "uuid": "d1243c60-ae14-4bf3-8359-94708df1ace1"
-                    },
-                    "lineWidth": {
-                        "kind": "value-reference",
-                        "uuid": "73f7d820-ddc3-4ef4-bffd-1b302c33e4ef"
-                    },
-                    "showSourceArrow": {
-                        "kind": "value-reference",
-                        "uuid": "ce81626b-2835-487e-8cf8-8a4425bb974d"
-                    },
-                    "showDestinationArrow": {
-                        "kind": "value-reference",
-                        "uuid": "d7b2fa17-5133-4ba9-896b-171600d5122a"
-                    },
-                    "source": {
-                        "kind": "value-reference",
-                        "uuid": "688b7ef1-0ab2-4574-a587-972b8a95c678"
-                    },
-                    "destination": {
-                        "kind": "value-reference",
-                        "uuid": "09c829eb-7483-4746-b6bb-bd37f473b50a"
+                        "uuid": "9cf5d710-58a7-4e7b-a401-4c4b324b3149"
                     }
                 }
             }
         },
         "others": {
-            "1a5b535c-fee9-4d71-94fb-1a3c98c9c579": {
+            "5665db9e-d075-4a14-a031-09713bc15ac1": {
                 "type": {
                     "array": {
                         "union": [
                             {
-                                "object": "NFANode"
+                                "object": "Node"
                             }
                         ]
                     }
                 },
                 "rep": []
             },
-            "bb4bffdc-58a5-4b28-8a72-1afb9e82580d": {
+            "14172f8a-9b00-43bb-9a78-2c357d6b2c54": {
                 "type": {
                     "array": {
                         "union": [
                             {
                                 "element": {
                                     "plugin": {
-                                        "object": "NFAEdge"
+                                        "object": "Edge"
                                     },
                                     "drawable": {
                                         "object": "DrawableEdge"
@@ -462,44 +388,26 @@
                 },
                 "rep": []
             },
-            "73b1120c-fe99-4a5f-a683-f3d625ae36e7": {
-                "type": {
-                    "primitive": "boolean"
-                },
-                "rep": true
-            },
-            "0f24b51f-353b-49f4-80a9-11472ad2d027": {
-                "type": {
-                    "primitive": "boolean"
-                },
-                "rep": false
-            },
-            "65385a6a-a96f-4975-8fdb-8bba71fd9e19": {
+            "05617ed0-90c6-47ef-9086-af4a9d71467c": {
                 "type": {
                     "array": {
                         "union": [
                             {
-                                "object": "NFAEdge"
+                                "object": "Edge"
                             }
                         ]
                     }
                 },
                 "rep": []
             },
-            "4230a09d-95f7-4b25-9479-95788689b582": {
-                "type": {
-                    "primitive": "string"
-                },
-                "rep": "q0"
-            },
-            "fbe2d3a8-5185-485a-8b1a-32294ac208b0": {
+            "c2635409-a3f3-4c85-a670-a14811114d4f": {
                 "type": {
                     "array": {
                         "union": [
                             {
                                 "element": {
                                     "plugin": {
-                                        "object": "NFAEdge"
+                                        "object": "Edge"
                                     },
                                     "drawable": {
                                         "object": "DrawableEdge"
@@ -511,225 +419,31 @@
                 },
                 "rep": []
             },
-            "53291c1f-0025-4866-93a4-4f33e6094b86": {
-                "type": {
-                    "primitive": "color"
-                },
-                "rep": "#fff200"
-            },
-            "d47ac7ab-e1e5-4c46-9287-7015205a6843": {
-                "type": {
-                    "primitive": "number"
-                },
-                "rep": 171
-            },
-            "4b446982-c538-4b51-a683-ca3febf99b5d": {
-                "type": {
-                    "primitive": "number"
-                },
-                "rep": 187
-            },
-            "a2109f00-5bb2-4ff4-9e8b-b77936ec2661": {
-                "type": {
-                    "record": {
-                        "x": {
-                            "primitive": "number"
-                        },
-                        "y": {
-                            "primitive": "number"
-                        }
-                    }
-                },
-                "rep": {
-                    "x": {
-                        "kind": "value-reference",
-                        "uuid": "d47ac7ab-e1e5-4c46-9287-7015205a6843"
-                    },
-                    "y": {
-                        "kind": "value-reference",
-                        "uuid": "4b446982-c538-4b51-a683-ca3febf99b5d"
-                    }
-                }
-            },
-            "a1167fd9-0a07-43c7-8359-e4451cddbdf1": {
-                "type": {
-                    "union": [
-                        {
-                            "literal": "circle"
-                        },
-                        {
-                            "literal": "square"
-                        },
-                        {
-                            "literal": "ellipse"
-                        },
-                        {
-                            "literal": "rectangle"
-                        },
-                        {
-                            "literal": "image"
-                        }
-                    ]
-                },
-                "rep": {
-                    "kind": "value-reference",
-                    "uuid": "a5dd381b-392b-46b2-bd3d-7f5eb06de2ec"
-                }
-            },
-            "adc31dcf-46f2-4563-b1eb-300295f56072": {
-                "type": {
-                    "primitive": "string"
-                },
-                "rep": "/Users/sheyne/Documents/sinap-ide/plugins/nfa/start_state.svg"
-            },
-            "f17a5d33-c5b9-4254-afac-584c2e8d1223": {
-                "type": {
-                    "array": {
-                        "record": {
-                            "x": {
-                                "primitive": "number"
-                            },
-                            "y": {
-                                "primitive": "number"
-                            }
-                        }
-                    }
-                },
-                "rep": []
-            },
-            "1cf19333-925d-4fa5-83c3-8fed203d2114": {
-                "type": {
-                    "primitive": "color"
-                },
-                "rep": "#000"
-            },
-            "6f813cbe-1fcc-43f1-8b6d-4780504184c3": {
-                "type": {
-                    "union": [
-                        {
-                            "literal": "solid"
-                        },
-                        {
-                            "literal": "dotted"
-                        },
-                        {
-                            "literal": "dashed"
-                        }
-                    ]
-                },
-                "rep": {
-                    "kind": "value-reference",
-                    "uuid": "de2d1337-5f2d-4633-84d0-44c828d9b523"
-                }
-            },
-            "07cdd374-23f8-49c9-a9a2-686de1153480": {
-                "type": {
-                    "union": [
-                        {
-                            "literal": "thin"
-                        },
-                        {
-                            "literal": "medium"
-                        },
-                        {
-                            "literal": "thick"
-                        },
-                        {
-                            "primitive": "number"
-                        }
-                    ]
-                },
-                "rep": {
-                    "kind": "value-reference",
-                    "uuid": "44e80d92-af57-427f-b9b7-7ed7e0685e1c"
-                }
-            },
-            "a5dd381b-392b-46b2-bd3d-7f5eb06de2ec": {
-                "type": {
-                    "literal": "ellipse"
-                },
-                "rep": "ellipse"
-            },
-            "44e80d92-af57-427f-b9b7-7ed7e0685e1c": {
-                "type": {
-                    "literal": 2
-                },
-                "rep": 2
-            },
-            "de2d1337-5f2d-4633-84d0-44c828d9b523": {
-                "type": {
-                    "literal": "solid"
-                },
-                "rep": "solid"
-            },
-            "4fa00747-be33-428b-9eb2-d3ec2a964dea": {
-                "type": {
-                    "primitive": "boolean"
-                },
-                "rep": false
-            },
-            "3922ad31-7162-4483-b937-601314f25f75": {
-                "type": {
-                    "primitive": "boolean"
-                },
-                "rep": true
-            },
-            "77c6c266-7bf9-4591-b7f5-0b1b23938971": {
-                "type": {
-                    "array": {
-                        "union": [
-                            {
-                                "object": "NFAEdge"
-                            }
-                        ]
-                    }
-                },
-                "rep": []
-            },
-            "d9152c9a-ce04-471c-8a6b-42c0d87b091e": {
+            "0f45bee3-74c6-4831-b2f5-6702a9fa71b3": {
                 "type": {
                     "primitive": "string"
                 },
                 "rep": "q1"
             },
-            "dbfb39a5-41e7-499f-b26c-6ac6e3306af1": {
-                "type": {
-                    "array": {
-                        "union": [
-                            {
-                                "element": {
-                                    "plugin": {
-                                        "object": "NFAEdge"
-                                    },
-                                    "drawable": {
-                                        "object": "DrawableEdge"
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                },
-                "rep": []
-            },
-            "9832b8d2-74c9-4930-aec5-ee0a5956c1d0": {
+            "18892ce3-8929-4495-8e18-d8388e7f677f": {
                 "type": {
                     "primitive": "color"
                 },
                 "rep": "#fff200"
             },
-            "3ba8c1f1-46af-4939-a276-ae6e7bd9fc35": {
+            "651d294f-52bc-444b-96ce-6cce9c317e01": {
                 "type": {
                     "primitive": "number"
                 },
-                "rep": 328
+                "rep": 217
             },
-            "1d7f6a7f-f118-40bd-bef4-621bd7d92b02": {
+            "e8961b2e-60e4-4d88-a3d7-08ef930f8e92": {
                 "type": {
                     "primitive": "number"
                 },
-                "rep": 263
+                "rep": 167
             },
-            "968e012d-9ba4-4d2d-9543-3dce8ccff4de": {
+            "3f437b9e-9bf7-4770-9e3e-0606eb73d8c0": {
                 "type": {
                     "record": {
                         "x": {
@@ -743,15 +457,15 @@
                 "rep": {
                     "x": {
                         "kind": "value-reference",
-                        "uuid": "3ba8c1f1-46af-4939-a276-ae6e7bd9fc35"
+                        "uuid": "651d294f-52bc-444b-96ce-6cce9c317e01"
                     },
                     "y": {
                         "kind": "value-reference",
-                        "uuid": "1d7f6a7f-f118-40bd-bef4-621bd7d92b02"
+                        "uuid": "e8961b2e-60e4-4d88-a3d7-08ef930f8e92"
                     }
                 }
             },
-            "c042b486-25fa-4557-acde-a01e7ff9bf55": {
+            "745c7876-c358-4581-9599-479f92896f67": {
                 "type": {
                     "union": [
                         {
@@ -773,16 +487,16 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "79d607be-c1d3-4a1b-bebd-eeacf1241a35"
+                    "uuid": "7e6c1a0d-7a4f-4f31-a5ad-332a0fcb08e8"
                 }
             },
-            "c4202ab4-e54a-43be-91a7-698ba9226973": {
+            "549fec64-29cd-4238-8f90-72412fc5e516": {
                 "type": {
                     "primitive": "string"
                 },
-                "rep": "/Users/sheyne/Documents/sinap-ide/plugins/nfa/accept_state.svg"
+                "rep": ""
             },
-            "69f923e8-7cc1-47c4-8471-ee0f75ebe350": {
+            "98a56a1b-0c75-4e96-b6e8-7f69b0bf2491": {
                 "type": {
                     "array": {
                         "record": {
@@ -797,13 +511,13 @@
                 },
                 "rep": []
             },
-            "c158c777-9775-4190-bb0a-e595b63277ee": {
+            "ee31f3bd-c216-47b8-9d6f-078b972bd2ce": {
                 "type": {
                     "primitive": "color"
                 },
                 "rep": "#000"
             },
-            "4be9ac0f-3b88-41fe-8dde-ee8e015f7e97": {
+            "6b207fae-841e-49f2-805d-9a7a9961c448": {
                 "type": {
                     "union": [
                         {
@@ -819,10 +533,10 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "92f63926-ea02-4f93-9c3b-a73f06fa605f"
+                    "uuid": "71771dde-0541-4fe6-a915-6f087114d1ee"
                 }
             },
-            "f0a9e707-5e4a-4095-b0a9-cb31491ae9ac": {
+            "a5b7bc0a-9dd8-4100-a16c-69624e14228d": {
                 "type": {
                     "union": [
                         {
@@ -841,65 +555,47 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "35541313-5700-42cb-ab70-c3bcb5ace03e"
+                    "uuid": "899b3096-aac3-4b21-a991-67c6320ae40b"
                 }
             },
-            "79d607be-c1d3-4a1b-bebd-eeacf1241a35": {
+            "7e6c1a0d-7a4f-4f31-a5ad-332a0fcb08e8": {
                 "type": {
                     "literal": "ellipse"
                 },
                 "rep": "ellipse"
             },
-            "35541313-5700-42cb-ab70-c3bcb5ace03e": {
+            "899b3096-aac3-4b21-a991-67c6320ae40b": {
                 "type": {
                     "literal": 2
                 },
                 "rep": 2
             },
-            "92f63926-ea02-4f93-9c3b-a73f06fa605f": {
+            "71771dde-0541-4fe6-a915-6f087114d1ee": {
                 "type": {
                     "literal": "solid"
                 },
                 "rep": "solid"
             },
-            "3169effc-acee-4373-9a8a-032196b7e59d": {
-                "type": {
-                    "primitive": "boolean"
-                },
-                "rep": false
-            },
-            "afc6c727-13f5-4f69-8b30-2f6683112145": {
-                "type": {
-                    "primitive": "boolean"
-                },
-                "rep": false
-            },
-            "345aea6a-7211-4af6-8bf6-72ab8f3c16ac": {
+            "58f0f7bd-6d56-4643-888f-12116c25bee2": {
                 "type": {
                     "array": {
                         "union": [
                             {
-                                "object": "NFAEdge"
+                                "object": "Edge"
                             }
                         ]
                     }
                 },
                 "rep": []
             },
-            "e9718187-8d6a-4ca0-ab52-e584eb791d9b": {
-                "type": {
-                    "primitive": "string"
-                },
-                "rep": "q2"
-            },
-            "18e37ef2-8c2f-44af-ae65-522a6a64dc33": {
+            "b74e896a-82b1-4903-9319-28e46cf851a6": {
                 "type": {
                     "array": {
                         "union": [
                             {
                                 "element": {
                                     "plugin": {
-                                        "object": "NFAEdge"
+                                        "object": "Edge"
                                     },
                                     "drawable": {
                                         "object": "DrawableEdge"
@@ -911,25 +607,31 @@
                 },
                 "rep": []
             },
-            "d6b869bc-2ff1-4a76-a148-7910f09f6c4c": {
+            "502c3ccd-f410-4af6-9893-8bcf6548fab2": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": "q2"
+            },
+            "e188a51d-e6ed-42bd-9bee-952a36c12527": {
                 "type": {
                     "primitive": "color"
                 },
                 "rep": "#fff200"
             },
-            "4d7bdd21-5b35-470c-882c-0eaaa328364e": {
+            "71e7c3dc-14eb-4724-a91a-7818ee062926": {
                 "type": {
                     "primitive": "number"
                 },
-                "rep": 199.99999999999997
+                "rep": 254
             },
-            "9486bd46-7e4d-4381-be48-defc8b4ff114": {
+            "8e4f4ab1-b2b0-4fa6-bd6f-88ef58dc0aa8": {
                 "type": {
                     "primitive": "number"
                 },
-                "rep": 386
+                "rep": 277
             },
-            "2287c619-10c5-40dd-b5e7-2c56e64deb0a": {
+            "b816ac2d-0a8e-4a3f-a8b4-5fbc9705d816": {
                 "type": {
                     "record": {
                         "x": {
@@ -943,15 +645,15 @@
                 "rep": {
                     "x": {
                         "kind": "value-reference",
-                        "uuid": "4d7bdd21-5b35-470c-882c-0eaaa328364e"
+                        "uuid": "71e7c3dc-14eb-4724-a91a-7818ee062926"
                     },
                     "y": {
                         "kind": "value-reference",
-                        "uuid": "9486bd46-7e4d-4381-be48-defc8b4ff114"
+                        "uuid": "8e4f4ab1-b2b0-4fa6-bd6f-88ef58dc0aa8"
                     }
                 }
             },
-            "2f3ae1f0-0d57-441b-a3be-42974c1a4620": {
+            "bb119224-6ae8-43d2-895b-a28623820bcf": {
                 "type": {
                     "union": [
                         {
@@ -973,16 +675,16 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "a101409f-36bc-4f22-8dcf-243de507f1c8"
+                    "uuid": "fc9624e0-f67e-4a4f-91c1-a8b42af41ad2"
                 }
             },
-            "4f0a2c4d-3f46-46b1-b859-01db9636edb1": {
+            "dec53404-9951-47f3-a4ea-67ee2332cfdd": {
                 "type": {
                     "primitive": "string"
                 },
                 "rep": ""
             },
-            "7533bcf6-8a81-47ad-8ab8-755e53266671": {
+            "21393a1e-8810-4a6a-9ab8-465a1978e644": {
                 "type": {
                     "array": {
                         "record": {
@@ -997,13 +699,13 @@
                 },
                 "rep": []
             },
-            "9edba272-73d3-4e17-b800-06b375b3622e": {
+            "bbcbf7dc-0d25-468a-8a68-6faab304b398": {
                 "type": {
                     "primitive": "color"
                 },
                 "rep": "#000"
             },
-            "61abfa74-ef2f-49c1-8f71-c75c0768c58d": {
+            "b72d6b6f-0b19-4ffe-8afc-c93b0effb483": {
                 "type": {
                     "union": [
                         {
@@ -1019,10 +721,10 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "6ef271d8-5263-4e48-a5da-7b3f68b9973c"
+                    "uuid": "7485a7a7-565d-4a24-9d07-bacaadbfdce7"
                 }
             },
-            "8b21871d-3398-4bcf-888e-8f93f9358934": {
+            "e490b6ce-317a-4f55-9f61-a9fa34fd2dfb": {
                 "type": {
                     "union": [
                         {
@@ -1041,40 +743,157 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "b83cea18-21cc-4db6-9760-2ec5aa049694"
+                    "uuid": "a17cb77c-da09-4b86-b198-ae0a2faf18e1"
                 }
             },
-            "b83cea18-21cc-4db6-9760-2ec5aa049694": {
+            "fc9624e0-f67e-4a4f-91c1-a8b42af41ad2": {
+                "type": {
+                    "literal": "ellipse"
+                },
+                "rep": "ellipse"
+            },
+            "a17cb77c-da09-4b86-b198-ae0a2faf18e1": {
                 "type": {
                     "literal": 2
                 },
                 "rep": 2
             },
-            "6ef271d8-5263-4e48-a5da-7b3f68b9973c": {
+            "7485a7a7-565d-4a24-9d07-bacaadbfdce7": {
                 "type": {
                     "literal": "solid"
                 },
                 "rep": "solid"
             },
-            "d79c284e-2c7f-44ec-ab0d-7439309c5ed1": {
+            "b100ad73-bdd8-4172-8970-2f5f710581c8": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "object": "Edge"
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "2dc2c807-53ef-4b78-9421-fd5b7a1bf99f": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Edge"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "9130e32a-8fea-4617-9fd0-011bf2931d99": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": "q3"
+            },
+            "a8e003e4-638c-4c8f-bca2-edb6e4683f5e": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#fff200"
+            },
+            "10c3ed54-80ec-46d7-bbef-bb8f832ac2f6": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 477.00000000000006
+            },
+            "a7e37290-c43d-4a4d-acaa-165915d01ae4": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 214
+            },
+            "9a7505aa-6013-4cad-93ef-3df6cc7e894a": {
+                "type": {
+                    "record": {
+                        "x": {
+                            "primitive": "number"
+                        },
+                        "y": {
+                            "primitive": "number"
+                        }
+                    }
+                },
+                "rep": {
+                    "x": {
+                        "kind": "value-reference",
+                        "uuid": "10c3ed54-80ec-46d7-bbef-bb8f832ac2f6"
+                    },
+                    "y": {
+                        "kind": "value-reference",
+                        "uuid": "a7e37290-c43d-4a4d-acaa-165915d01ae4"
+                    }
+                }
+            },
+            "0189c95f-5876-4be2-bc5f-a9a2693c6f94": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "circle"
+                        },
+                        {
+                            "literal": "square"
+                        },
+                        {
+                            "literal": "ellipse"
+                        },
+                        {
+                            "literal": "rectangle"
+                        },
+                        {
+                            "literal": "image"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "1608848c-4451-45af-8997-888b669b572a"
+                }
+            },
+            "f38089c1-852d-43c4-a64a-b446cc1c45e8": {
                 "type": {
                     "primitive": "string"
                 },
                 "rep": ""
             },
-            "750234fe-a496-4b19-a7e5-9d2795db97d1": {
+            "9bb2804c-dfc6-47fa-ac66-e256d56954f5": {
                 "type": {
-                    "primitive": "string"
+                    "array": {
+                        "record": {
+                            "x": {
+                                "primitive": "number"
+                            },
+                            "y": {
+                                "primitive": "number"
+                            }
+                        }
+                    }
                 },
-                "rep": "λ"
+                "rep": []
             },
-            "0d5c3b10-9870-4467-8647-4bffb4543a43": {
+            "ef77e6d7-d8a1-4fc4-af00-a9cd7c09d8c1": {
                 "type": {
                     "primitive": "color"
                 },
                 "rep": "#000"
             },
-            "aaf272c2-bed3-4d8b-b371-346544734944": {
+            "86a18aa0-8df0-47ad-90c9-026a1355d520": {
                 "type": {
                     "union": [
                         {
@@ -1090,10 +909,10 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "216d9f6f-57e4-4aab-9210-a829228328d3"
+                    "uuid": "58487c7f-3895-4d61-aa85-f47c8acd1cfa"
                 }
             },
-            "743680eb-2e80-4355-ba4f-b60a7a8721e0": {
+            "42153742-eb34-44c7-a6f0-a2ffc2bb539d": {
                 "type": {
                     "union": [
                         {
@@ -1112,78 +931,40 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "35d38e06-4527-4a23-b1a5-af8149d97945"
+                    "uuid": "4adaf2a2-615e-46c4-99ba-64c5020c4b58"
                 }
             },
-            "aab23e1e-ad74-4857-bd07-3ff44bf68a16": {
+            "1608848c-4451-45af-8997-888b669b572a": {
                 "type": {
-                    "primitive": "boolean"
+                    "literal": "ellipse"
                 },
-                "rep": false
+                "rep": "ellipse"
             },
-            "dc2425a7-a476-409a-a5ee-9c0db7f34395": {
-                "type": {
-                    "primitive": "boolean"
-                },
-                "rep": true
-            },
-            "f5241f0d-a03b-43f2-a4ca-2b0cc9049dcc": {
-                "type": {
-                    "union": [
-                        {
-                            "object": "NFANode"
-                        }
-                    ]
-                },
-                "rep": {
-                    "kind": "value-reference",
-                    "uuid": "e2f06935-1f62-4b43-8c66-0d2476245f96"
-                }
-            },
-            "6b03ca75-f3bb-48e5-89af-8e3733ddbf5b": {
-                "type": {
-                    "union": [
-                        {
-                            "object": "NFANode"
-                        }
-                    ]
-                },
-                "rep": {
-                    "kind": "value-reference",
-                    "uuid": "b65a6527-0703-4432-8cb6-19c197151ba8"
-                }
-            },
-            "216d9f6f-57e4-4aab-9210-a829228328d3": {
-                "type": {
-                    "literal": "solid"
-                },
-                "rep": "solid"
-            },
-            "35d38e06-4527-4a23-b1a5-af8149d97945": {
+            "4adaf2a2-615e-46c4-99ba-64c5020c4b58": {
                 "type": {
                     "literal": 2
                 },
                 "rep": 2
             },
-            "c134857d-6759-46c1-9c52-3b39ae100016": {
+            "58487c7f-3895-4d61-aa85-f47c8acd1cfa": {
+                "type": {
+                    "literal": "solid"
+                },
+                "rep": "solid"
+            },
+            "34ec62d2-8ec3-4cf9-a362-566dd6fcd3c8": {
                 "type": {
                     "primitive": "string"
                 },
                 "rep": ""
             },
-            "a48f81b3-b873-4cde-9fc1-045bebb68b70": {
-                "type": {
-                    "primitive": "string"
-                },
-                "rep": "λ"
-            },
-            "101740e7-dbf3-46d5-b445-09f4c3dfce82": {
+            "8c912577-eede-4fbb-b488-4375f1b4d983": {
                 "type": {
                     "primitive": "color"
                 },
                 "rep": "#000"
             },
-            "fe421f2f-e9bb-4fe9-895b-a53520cd0872": {
+            "e3c44cc9-bf73-4f30-9274-95e969c96c86": {
                 "type": {
                     "union": [
                         {
@@ -1199,10 +980,10 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "4a906cef-0068-4c10-80ff-beb0b197b918"
+                    "uuid": "aa368546-087f-46ad-bb73-316977365435"
                 }
             },
-            "3e345138-073c-4bd7-a845-56d04943b764": {
+            "e3ae292e-e1cd-4451-8fec-006440902498": {
                 "type": {
                     "union": [
                         {
@@ -1221,78 +1002,72 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "2e824b6b-78a6-40a3-89ae-ab6b1a0ae1ea"
+                    "uuid": "db564b5e-371c-4eb1-9dc6-28bb1bddba5a"
                 }
             },
-            "3a89fb2d-ea1f-4e35-9642-2fd73f9a5a03": {
+            "04f87da8-0263-441b-bd8c-36f9b9321aed": {
                 "type": {
                     "primitive": "boolean"
                 },
                 "rep": false
             },
-            "10a874c1-6f2b-4fff-881a-e5aea23cdc19": {
+            "c5b8cc7f-854b-4575-b1af-f147de151457": {
                 "type": {
                     "primitive": "boolean"
                 },
                 "rep": true
             },
-            "5e4139c1-2bed-4126-8e73-7ff0c04818fa": {
+            "da4df745-2bb3-46e6-9dc0-ef1b9a6d015c": {
                 "type": {
                     "union": [
                         {
-                            "object": "NFANode"
+                            "object": "Node"
                         }
                     ]
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "b65a6527-0703-4432-8cb6-19c197151ba8"
+                    "uuid": "50ee47e8-aebf-4d19-a6f8-f7ca2b409367"
                 }
             },
-            "8f799f9b-ea77-46ef-a6e3-875f5a2db88e": {
+            "0b002e6a-9e0a-4925-a874-914b700559a6": {
                 "type": {
                     "union": [
                         {
-                            "object": "NFANode"
+                            "object": "Node"
                         }
                     ]
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "39461682-a15a-434e-85ba-87247fa53514"
+                    "uuid": "ffe6a864-81e9-4f85-a7de-cbb3a0cbbef3"
                 }
             },
-            "4a906cef-0068-4c10-80ff-beb0b197b918": {
+            "aa368546-087f-46ad-bb73-316977365435": {
                 "type": {
                     "literal": "solid"
                 },
                 "rep": "solid"
             },
-            "2e824b6b-78a6-40a3-89ae-ab6b1a0ae1ea": {
+            "db564b5e-371c-4eb1-9dc6-28bb1bddba5a": {
                 "type": {
                     "literal": 2
                 },
                 "rep": 2
             },
-            "75315e8f-ee89-40f7-a7d5-3f3064645836": {
+            "57e6f0b3-9123-496c-9f1d-3f3455779753": {
                 "type": {
                     "primitive": "string"
                 },
-                "rep": "1"
+                "rep": ""
             },
-            "1f2c561b-50b3-4a92-b4dd-930bcf4e9ff9": {
-                "type": {
-                    "primitive": "string"
-                },
-                "rep": "λ"
-            },
-            "02f66c56-9e49-4d5f-8561-645cbe2059a8": {
+            "d7f3899a-5768-45d1-9a99-ff623fbaabd7": {
                 "type": {
                     "primitive": "color"
                 },
                 "rep": "#000"
             },
-            "096912d7-ae74-49ff-ae2c-441472196cd2": {
+            "c1efc8da-29be-4313-82db-6664d90bf5fa": {
                 "type": {
                     "union": [
                         {
@@ -1308,10 +1083,10 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "ad39eabd-da04-4196-8ce8-678794effab4"
+                    "uuid": "a45decdb-94a0-4fa2-b0b1-cfb523ed3e8a"
                 }
             },
-            "313c0038-df03-4480-97ed-67447690c08e": {
+            "8ed44637-f978-43cd-866d-fb2d35a10e36": {
                 "type": {
                     "union": [
                         {
@@ -1330,78 +1105,189 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "0c9526ad-8bbb-41fd-bffa-291e234a7e1f"
+                    "uuid": "fdcc221b-4d0f-457d-a79e-79997c4c574a"
                 }
             },
-            "159b4121-3e13-4cc8-b6ba-d40340b81b57": {
+            "b86c4191-55ea-4dd4-acc3-27a127de0ceb": {
                 "type": {
                     "primitive": "boolean"
                 },
                 "rep": false
             },
-            "172038f0-9f27-49ef-af95-5cfcf3ff4e54": {
+            "9cf5d710-58a7-4e7b-a401-4c4b324b3149": {
                 "type": {
                     "primitive": "boolean"
                 },
                 "rep": true
             },
-            "2806be1a-67c6-448e-a3bd-b56f23fb24b3": {
+            "fa015037-25db-47a9-958e-d30f323907be": {
                 "type": {
                     "union": [
                         {
-                            "object": "NFANode"
+                            "object": "Node"
                         }
                     ]
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "e2f06935-1f62-4b43-8c66-0d2476245f96"
+                    "uuid": "ffe6a864-81e9-4f85-a7de-cbb3a0cbbef3"
                 }
             },
-            "cd5994ce-c1b5-4085-9b91-f0901db1d345": {
+            "af4af5a6-1b7e-4786-b31a-c5789515837f": {
                 "type": {
                     "union": [
                         {
-                            "object": "NFANode"
+                            "object": "Node"
                         }
                     ]
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "e2f06935-1f62-4b43-8c66-0d2476245f96"
+                    "uuid": "2d03581c-1cec-418a-bdc0-839fcbac311c"
                 }
             },
-            "ad39eabd-da04-4196-8ce8-678794effab4": {
+            "a45decdb-94a0-4fa2-b0b1-cfb523ed3e8a": {
                 "type": {
                     "literal": "solid"
                 },
                 "rep": "solid"
             },
-            "0c9526ad-8bbb-41fd-bffa-291e234a7e1f": {
+            "fdcc221b-4d0f-457d-a79e-79997c4c574a": {
                 "type": {
                     "literal": 2
                 },
                 "rep": 2
             },
-            "6df3a541-63e1-49e1-bc5a-37cf2593fd18": {
+            "0b2af52b-6c6a-4db2-9891-df300f180397": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "object": "Edge"
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "e35f2032-3cbf-4029-af5f-d955156981a1": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Edge"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "1d0fbc6f-7309-4ba9-bcb0-e87237afb7ba": {
                 "type": {
                     "primitive": "string"
                 },
-                "rep": "2"
+                "rep": "q4"
             },
-            "f56546a8-e747-416c-8abb-c1792aea1adf": {
+            "c9254c2d-aafe-44b6-b350-609ff7106279": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#fff200"
+            },
+            "7722d0cc-4423-4b72-90be-b8806057df15": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 322
+            },
+            "44728e7b-c401-417a-a077-b4c273d972f0": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 366
+            },
+            "a26bc73e-87ce-4519-8096-5913bb820ede": {
+                "type": {
+                    "record": {
+                        "x": {
+                            "primitive": "number"
+                        },
+                        "y": {
+                            "primitive": "number"
+                        }
+                    }
+                },
+                "rep": {
+                    "x": {
+                        "kind": "value-reference",
+                        "uuid": "7722d0cc-4423-4b72-90be-b8806057df15"
+                    },
+                    "y": {
+                        "kind": "value-reference",
+                        "uuid": "44728e7b-c401-417a-a077-b4c273d972f0"
+                    }
+                }
+            },
+            "f6544b0f-ddc5-408f-8113-6a62b87f4083": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "circle"
+                        },
+                        {
+                            "literal": "square"
+                        },
+                        {
+                            "literal": "ellipse"
+                        },
+                        {
+                            "literal": "rectangle"
+                        },
+                        {
+                            "literal": "image"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "16de383b-3dad-4dc3-930d-370e11f7b5b9"
+                }
+            },
+            "5044ff21-e598-4d93-920a-81e2ebdfffc5": {
                 "type": {
                     "primitive": "string"
                 },
-                "rep": "λ"
+                "rep": ""
             },
-            "e2a8a522-5c7c-4ba6-9c35-4f4b55e25778": {
+            "ebe0af7d-21e0-4a09-a582-67b9e6998836": {
+                "type": {
+                    "array": {
+                        "record": {
+                            "x": {
+                                "primitive": "number"
+                            },
+                            "y": {
+                                "primitive": "number"
+                            }
+                        }
+                    }
+                },
+                "rep": []
+            },
+            "d635eec2-acac-4a3e-9b73-97707a31b372": {
                 "type": {
                     "primitive": "color"
                 },
                 "rep": "#000"
             },
-            "d1243c60-ae14-4bf3-8359-94708df1ace1": {
+            "04448147-c84b-40b0-8ec5-a97340db11a4": {
                 "type": {
                     "union": [
                         {
@@ -1417,10 +1303,10 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "980b96c1-87af-43df-ba5e-78e5c367c028"
+                    "uuid": "60a4916c-3bae-46bc-9195-eba00118d0de"
                 }
             },
-            "73f7d820-ddc3-4ef4-bffd-1b302c33e4ef": {
+            "b82746d3-3246-4543-aee2-2aabfb55db17": {
                 "type": {
                     "union": [
                         {
@@ -1439,64 +1325,26 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "0e9341ff-57d9-4cb1-93d2-4b9737642053"
+                    "uuid": "2c9de18e-cb2c-4488-aee9-4b3eff571c51"
                 }
             },
-            "ce81626b-2835-487e-8cf8-8a4425bb974d": {
+            "16de383b-3dad-4dc3-930d-370e11f7b5b9": {
                 "type": {
-                    "primitive": "boolean"
+                    "literal": "ellipse"
                 },
-                "rep": false
+                "rep": "ellipse"
             },
-            "d7b2fa17-5133-4ba9-896b-171600d5122a": {
-                "type": {
-                    "primitive": "boolean"
-                },
-                "rep": true
-            },
-            "688b7ef1-0ab2-4574-a587-972b8a95c678": {
-                "type": {
-                    "union": [
-                        {
-                            "object": "NFANode"
-                        }
-                    ]
-                },
-                "rep": {
-                    "kind": "value-reference",
-                    "uuid": "39461682-a15a-434e-85ba-87247fa53514"
-                }
-            },
-            "09c829eb-7483-4746-b6bb-bd37f473b50a": {
-                "type": {
-                    "union": [
-                        {
-                            "object": "NFANode"
-                        }
-                    ]
-                },
-                "rep": {
-                    "kind": "value-reference",
-                    "uuid": "b65a6527-0703-4432-8cb6-19c197151ba8"
-                }
-            },
-            "980b96c1-87af-43df-ba5e-78e5c367c028": {
-                "type": {
-                    "literal": "solid"
-                },
-                "rep": "solid"
-            },
-            "0e9341ff-57d9-4cb1-93d2-4b9737642053": {
+            "2c9de18e-cb2c-4488-aee9-4b3eff571c51": {
                 "type": {
                     "literal": 2
                 },
                 "rep": 2
             },
-            "a101409f-36bc-4f22-8dcf-243de507f1c8": {
+            "60a4916c-3bae-46bc-9195-eba00118d0de": {
                 "type": {
-                    "literal": "circle"
+                    "literal": "solid"
                 },
-                "rep": "circle"
+                "rep": "solid"
             }
         }
     }

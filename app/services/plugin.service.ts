@@ -6,6 +6,7 @@ import { IS_PRODUCTION } from "../constants";
 import { Plugin, PluginLoader, getPluginInfo, Program, PluginInfo } from "sinap-core";
 import { TypescriptPluginLoader } from "sinap-typescript";
 import * as fs from "fs";
+import { PythonPluginLoader } from "sinap-python-loader";
 
 
 const app = remote.app;
@@ -95,7 +96,10 @@ export class PromiseLock {
 
 @Injectable()
 export class PluginService {
-    private loader: TypescriptPluginLoader = new TypescriptPluginLoader(ROOT_DIRECTORY);
+    private loaders: Map<string, PluginLoader> = new Map([
+        ["typescript", new TypescriptPluginLoader(ROOT_DIRECTORY)],
+        ["python", new PythonPluginLoader()],
+    ]);
     private holders: PluginHolder[];
     private lock: PromiseLock;
 
@@ -143,11 +147,17 @@ export class PluginService {
         }
 
         const plugins = await somePromises(dirs.map(dir => this.loadPlugin(dir)), LOG);
-        return plugins.map(plugin => new PluginHolder(this.loader, this.lock, plugin));
+        return plugins.map(info => new PluginHolder(info[1], this.lock, info[0]));
     }
 
-    private async loadPlugin(dir: string): Promise<Plugin> {
-        return await this.loader.load(await getPluginInfo(dir));
+    private async loadPlugin(dir: string) {
+        const info = await getPluginInfo(dir);
+        const loader = this.loaders.get(info.interpreterInfo.loader);
+        if (!loader) {
+            throw new Error(`loader: "${info.interpreterInfo.loader}" not found`);
+        }
+        const plugin = await loader.load(info);
+        return [plugin, loader] as [Plugin, PluginLoader];
     }
 
     public async getPluginByKind(kind: string[]): Promise<Plugin> {

@@ -55,6 +55,11 @@
         cursor: pointer;
     }
 
+    button.disabled:hover {
+        background-color: white;
+        cursor: not-allowed;
+    }
+
     button:focus {
         outline: none;
     }
@@ -107,6 +112,17 @@
 
 .error {
     color: darkred;
+}
+
+.empty-input {
+    width: 100%;
+    text-align: center;
+    color: grey;
+    display: inline-block;
+}
+
+.disabled {
+    opacity: .6;
 }
 
 .clickable {
