@@ -236,7 +236,6 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     launchPluginManager() {
         this.pluginService.pluginData.then((pluginData) => {
-            console.log(pluginData);
             this.windowService.createModal("plugin-manager", ModalType.MODAL, pluginData.map((d) => {
                 return {
                     // TODO: Not make these getters, so this class can be serialized.
