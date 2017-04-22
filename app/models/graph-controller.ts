@@ -256,7 +256,8 @@ export class GraphController {
                     throw new Error("Trying to create a core element like a core element with a different type.");
                 }
             } else {
-                throw new OutOfSyncError();
+                console.log("TODO: What happens when the node you're creating a copy of is deleted?");
+                // throw new OutOfSyncError();
             }
         }
 
