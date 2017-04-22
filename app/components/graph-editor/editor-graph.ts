@@ -11,9 +11,9 @@
  */
 
 // TODO: Make sure to not rely on this dependency long term.
-import { PLUGIN_DIRECTORY } from "../../services/plugin.service";
-import { remote } from "electron";
-const path = remote.require("path");
+// import { PLUGIN_DIRECTORY } from "../../services/plugin.service";
+// import { remote } from "electron";
+// const path = remote.require("path");
 
 import { NUDGE, SELECTION_COLOR, STICKY_DELAY } from "./defaults";
 import {
@@ -811,6 +811,8 @@ export class EditorGraph {
             edge.destination.incomingEdges.delete(edge);
             d.source.removeEdge(d);
             d.destination.removeEdge(d);
+            edge.source.update(this.g);
+            edge.destination.update(this.g);
         }
         else if (d instanceof DrawableNode)
             this.nodes = this.nodes.filter(v => v.drawable !== d);
@@ -818,7 +820,6 @@ export class EditorGraph {
         this.selected.delete(e);
         this.unselected.delete(e);
         this.drawables.delete(d);
-        this.updateHoverObject();
         d.removeEventListener("change", this.onDrawablePropertyChanged);
         this.draw();
     }
