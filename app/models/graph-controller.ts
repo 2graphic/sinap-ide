@@ -159,8 +159,8 @@ export class GraphController {
 
         const movedListener = (evt: MoveEdgeEvent) => {
             const f = (): UndoableEvent => {
+                const replacement = this.addDrawable(evt.detail.replacement, undefined, evt.detail.original);
                 const original = this.removeDrawable(evt.detail.original);
-                const replacement = this.addDrawable(evt.detail.replacement);
 
                 const undo: UndoableEvent = new UndoableEvent(true, () => sync(() => {
                     this.undelete(original);
@@ -247,10 +247,17 @@ export class GraphController {
                         const likeValue = likeBridge.core.get(k);
                         const coreValue = core.get(k);
 
-                        // TODO: Handle more than Primitive values.
+                        // TODO: Handle more than primitive and union values.
                         if (likeValue instanceof Value.Primitive && coreValue instanceof Value.Primitive) {
                             coreValue.value = likeValue.value;
-                        }
+                        } else
+                            if (likeValue instanceof Value.Union && coreValue instanceof Value.Union) {
+                                if (likeValue.value instanceof Value.Primitive && coreValue.value instanceof Value.Primitive) {
+                                    coreValue.value.value = likeValue.value.value;
+                                } else if (likeValue.value instanceof Value.Literal && coreValue.value instanceof Value.Literal) {
+                                    coreValue.value = likeValue.value;
+                                }
+                            }
                     });
                 } else {
                     throw new Error("Trying to create a core element like a core element with a different type.");
