@@ -93,6 +93,14 @@ export class PluginManager implements ModalComponent {
         }
     }
 
+    private getFileManagerText() {
+        if (process.platform === 'darwin') {
+            return "Reveal in Finder";
+        } else {
+            return "Open in Explorer";
+        }
+    }
+
     async importPlugins() {
         const dirNames = await requestOpenDirs(DEFAULT_DIR);
         await this.importMany(dirNames);
