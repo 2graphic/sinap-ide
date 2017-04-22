@@ -1,12 +1,13 @@
 import { Component, Inject, Output, ChangeDetectorRef } from "@angular/core";
-import { PluginService } from "../../services/plugin.service";
+import { PluginService, PLUGIN_DIRECTORY } from "../../services/plugin.service";
 import { requestSaveFile, requestOpenDirs, requestFiles, getLogger } from "../../util";
-import { remote } from "electron";
+import { remote, shell } from "electron";
 import { ZIP_FILE_FILTER } from "../../constants";
 import { ModalComponent, ModalInfo } from "../../models/modal-window";
 import { getPluginInfo, PluginInfo } from "sinap-core";
-import { dirFiles, subdirs, tempDir, unzip, TempDir } from "../../util";
+import { dirFiles, subdirs, tempDir, unzip, TempDir, getPath } from "../../util";
 import { WindowService } from "./../../modal-windows/services/window.service";
+import * as path from "path";
 
 let exec = require('child_process').exec;
 
@@ -48,7 +49,7 @@ const LOG = getLogger("plugin-manager");
     styleUrls: ["plugin-manager.component.scss"]
 })
 export class PluginManager implements ModalComponent {
-    public modalInfo: ModalInfo;
+    private _modalInfo: ModalInfo;
     private plugins: PluginInfo[];
     private selectedPlugin: PluginInfo;
 
@@ -57,12 +58,18 @@ export class PluginManager implements ModalComponent {
         private changeDetectorRef: ChangeDetectorRef) {
     }
 
-    async ngOnInit() {
-        this.plugins = await this.pluginService.pluginData;
+    set modalInfo(modalInfo: ModalInfo) {
+        this._modalInfo = modalInfo;
+
+        this.plugins = modalInfo.data;
         if (this.plugins.length > 0) {
             this.pluginSelected(this.plugins[0]);
         }
         this.changeDetectorRef.detectChanges();
+    }
+
+    get modalInfo() {
+        return this._modalInfo;
     }
 
     ngAfterViewInit() {
@@ -82,6 +89,22 @@ export class PluginManager implements ModalComponent {
         await Promise.all(proms);
         this.plugins = await this.pluginService.pluginData;
         this.changeDetectorRef.detectChanges();
+    }
+
+    private showInFolder() {
+        const directory = getPath(path.join(this.selectedPlugin.interpreterInfo.directory, "package.json"));
+        LOG.info(`Opening ${directory} in file manager.`);
+        if (!shell.showItemInFolder(directory)) {
+            LOG.error(`Could not open ${directory} in file manager.`);
+        }
+    }
+
+    private getFileManagerText() {
+        if (process.platform === 'darwin') {
+            return "Reveal in Finder";
+        } else {
+            return "Open in Explorer";
+        }
     }
 
     async importPlugins() {

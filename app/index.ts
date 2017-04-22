@@ -92,7 +92,7 @@ function bufferModalWindow() {
     nextModal = new BrowserWindow({
         parent: win,
         modal: true,
-        width: 600,
+        width: 650,
         height: 450,
         center: true,
         resizable: true,
