@@ -16,20 +16,23 @@ export class Bridge {
         const computedPropertyContext = new ComputedPropertyContext(core);
         core.context = computedPropertyContext;
 
-        // Copy computed properties for the first time.
-        const copyComputedProperties = () => {
-            [...computedPropertyContext.properties.entries()].forEach(([key, [name, value]]) => {
-                this.graph.copyPropertyToDrawable(value, drawable, key);
-            });
+        // Debounce updating the computed properties.
+        let timer: number | undefined;
+        const updateComputedProperties = () => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                computedPropertyContext.update();
+                [...computedPropertyContext.properties.entries()].forEach(([key, [name, value]]) => {
+                    this.graph.copyPropertyToDrawable(value, drawable, key);
+                });
+            }, timer ? 100 : 0) as any;
         };
-        copyComputedProperties();
+
+        updateComputedProperties();
 
         this.coreListener = (_: Value.Value, value: Value.Value, other: any) => {
             this.sync(() => {
-                // console.log(core, _, value, other);
-
-                computedPropertyContext.update();
-                copyComputedProperties();
+                updateComputedProperties();
 
                 [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => {
                     if (v === value) {
@@ -54,14 +57,14 @@ export class Bridge {
                             this.sync(() => {
                                 value.value = other.from;
                                 computedPropertyContext.update();
-                                copyComputedProperties();
+                                updateComputedProperties();
                                 this.graph.copyPropertyToDrawable(core.get(k), drawable, k);
                             });
                             return new UndoableEvent(true, () => {
                                 this.sync(() => {
                                     value.value = other.to;
                                     computedPropertyContext.update();
-                                    copyComputedProperties();
+                                    updateComputedProperties();
                                     this.graph.copyPropertyToDrawable(core.get(k), drawable, k);
                                 });
                                 return undo.copy();
@@ -126,11 +129,10 @@ export class ComputedPropertyContext {
     public readonly properties = new Map<string, [string, Value.Value]>();
     public onUpdate?: (() => void) = undefined;
 
-    constructor(public readonly value: ElementValue) {
-        this.update();
-    };
+    constructor(public readonly value: ElementValue) {};
 
     update() {
+        console.log("Updating computed properties");
         [...this.value.type.pluginType.methods.entries()].filter(([_, method]) => method.isGetter).forEach(([key, _]) => {
             let v = this.value.call(key);
             if (v) {

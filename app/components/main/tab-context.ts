@@ -140,7 +140,7 @@ export class TabContext {
 
             this.undoHistory.push(this.pendingChanges);
             this.pendingChanges = [];
-        }, 200) as any;
+        }, 100) as any;
     }
 
     private recompileIfNeccesary(changes: UndoableEvent[]) {
