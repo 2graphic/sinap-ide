@@ -21,9 +21,11 @@ export class Bridge {
         const updateComputedProperties = () => {
             if (timer) clearTimeout(timer);
             timer = setTimeout(() => {
-                computedPropertyContext.update();
-                [...computedPropertyContext.properties.entries()].forEach(([key, [name, value]]) => {
-                    this.graph.copyPropertyToDrawable(value, drawable, key);
+                this.sync(() => {
+                    computedPropertyContext.update();
+                    [...computedPropertyContext.properties.entries()].forEach(([key, [name, value]]) => {
+                        this.graph.copyPropertyToDrawable(value, drawable, key);
+                    });
                 });
             }, timer ? 100 : 0) as any;
         };
@@ -129,10 +131,9 @@ export class ComputedPropertyContext {
     public readonly properties = new Map<string, [string, Value.Value]>();
     public onUpdate?: (() => void) = undefined;
 
-    constructor(public readonly value: ElementValue) {};
+    constructor(public readonly value: ElementValue) { };
 
     update() {
-        console.log("Updating computed properties");
         [...this.value.type.pluginType.methods.entries()].filter(([_, method]) => method.isGetter).forEach(([key, _]) => {
             let v = this.value.call(key);
             if (v) {
