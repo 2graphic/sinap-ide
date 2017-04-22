@@ -34,7 +34,7 @@ export class WindowService implements ModalService {
                 this.queuedWindow = arg as ModalInfo;
             }
         });
-        ipcRenderer.on("windowClosed", (event, arg) => this.callback("Window closed early.", arg));
+        ipcRenderer.on("windowClosed", (event, arg) => this.callbacks.delete(arg.id));
     }
 
     public createModal(selector: string, type: ModalType, data?: any): [ModalInfo, Promise<any>] {
