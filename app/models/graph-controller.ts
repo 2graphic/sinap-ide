@@ -231,42 +231,52 @@ export class GraphController {
     }
 
     private addDrawable(drawable: Drawable, _core?: ElementValue, like?: DrawableElement) {
+        let likeBridge: Bridge | undefined = undefined;
+        if (like) {
+            likeBridge = this.bridges.getB(like);
+            if (!likeBridge) {
+                console.log("TODO: What happens when the node you're creating a copy of is deleted?");
+                // throw new OutOfSyncError();
+            }
+        }
+
         let core: ElementValue;
         if (!_core) {
-            core = this.makeCoreFromDrawable(drawable);
+            let kind: ElementType | undefined = undefined;
+            if (likeBridge) kind = likeBridge.core.type;
+
+            core = this.makeCoreFromDrawable(drawable, kind);
         } else {
             core = _core;
             this.copyPropertiesToDrawable(core, drawable);
         }
 
-        if (like) {
-            const likeBridge = this.bridges.getB(like);
-            if (likeBridge) {
-                if (Type.isSubtype(likeBridge.core.type, core.type)) {
-                    likeBridge.core.type.members.forEach((t, k) => {
-                        const likeValue = likeBridge.core.get(k);
-                        const coreValue = core.get(k);
 
-                        // TODO: Handle more than primitive and union values.
-                        if (likeValue instanceof Value.Primitive && coreValue instanceof Value.Primitive) {
-                            coreValue.value = likeValue.value;
-                        } else
-                            if (likeValue instanceof Value.Union && coreValue instanceof Value.Union) {
-                                if (likeValue.value instanceof Value.Primitive && coreValue.value instanceof Value.Primitive) {
-                                    coreValue.value.value = likeValue.value.value;
-                                } else if (likeValue.value instanceof Value.Literal && coreValue.value instanceof Value.Literal) {
-                                    coreValue.value = likeValue.value;
-                                }
+        if (likeBridge) {
+            if (Type.isSubtype(likeBridge.core.type, core.type)) {
+                const b = likeBridge;
+                likeBridge.core.type.members.forEach((t, k) => {
+                    const likeValue = b.core.get(k);
+                    const coreValue = core.get(k);
+
+                    // TODO: Handle more than primitive and union values.
+                    if (likeValue instanceof Value.Primitive && coreValue instanceof Value.Primitive) {
+                        coreValue.value = likeValue.value;
+                    } else
+                        if (likeValue instanceof Value.Union && coreValue instanceof Value.Union) {
+                            if (likeValue.value instanceof Value.Primitive && coreValue.value instanceof Value.Primitive) {
+                                coreValue.value.value = likeValue.value.value;
+                            } else if (likeValue.value instanceof Value.Literal && coreValue.value instanceof Value.Literal) {
+                                coreValue.value = likeValue.value;
                             }
-                    });
-                } else {
-                    throw new Error("Trying to create a core element like a core element with a different type.");
-                }
+                        }
+                });
             } else {
-                console.log("TODO: What happens when the node you're creating a copy of is deleted?");
-                // throw new OutOfSyncError();
+                throw new Error("Trying to create a core element like a core element with a different type.");
             }
         }
+
+
 
         const bridge = new Bridge(this, core, drawable);
         this.bridges.set(core, drawable, bridge);
@@ -288,11 +298,11 @@ export class GraphController {
     }
 
 
-    private makeCoreFromDrawable(drawable: Drawable) {
+    private makeCoreFromDrawable(drawable: Drawable, kind?: ElementType) {
         let core: ElementValue;
 
         if (drawable instanceof DrawableNode) {
-            core = this.core.makeNode(this.activeNodeType);
+            core = this.core.makeNode(kind ? kind : this.activeNodeType);
         } else if (drawable instanceof DrawableEdge) {
             const srcB = this.bridges.getB(drawable.source);
             const dstB = this.bridges.getB(drawable.destination);
@@ -300,7 +310,7 @@ export class GraphController {
                 throw new Error("Model missing source or destination for edge.");
             }
 
-            core = this.core.makeEdge(this.activeEdgeType, srcB.core, dstB.core);
+            core = this.core.makeEdge(kind ? kind : this.activeEdgeType, srcB.core, dstB.core);
         } else if (drawable instanceof DrawableGraph) {
             core = this.core.graph;
         } else {
