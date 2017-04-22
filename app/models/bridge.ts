@@ -83,10 +83,11 @@ export class Bridge {
 
         this.drawableListener = (evt: PropertyChangedEvent<any>) => {
             const f = () => this.sync(() => {
+                const previous = JSON.parse(JSON.stringify(evt.detail.prev));
+                const current = JSON.parse(JSON.stringify(evt.detail.curr));
+
                 const result = this.graph.copyPropertyToCore(this.drawable, this.core, evt.detail.key.toString());
                 if (result) {
-                    const previous = evt.detail.prev;
-                    const current = JSON.parse(JSON.stringify(evt.detail.curr)); // TODO: this feels pretty bad...
                     const undo: UndoableEvent = new UndoableEvent(false, () => {
                         this.sync(() => {
                             (this.drawable as any)[evt.detail.key] = previous;

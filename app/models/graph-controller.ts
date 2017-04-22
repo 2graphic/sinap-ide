@@ -333,7 +333,7 @@ export class GraphController {
         Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    private readonly drawableKeys = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image", "shape", "borderStyle", "lineStyle", "position"]);
+    private readonly drawableKeys = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image", "shape", "borderStyle", "lineStyle", "position", "origin", "scale", "size"]);
 
     copyPropertyToDrawable(value: Value.Value | undefined, drawable: Drawable, key: string) {
         if (value === undefined || !this.drawableKeys.has(key)) {
@@ -372,10 +372,19 @@ export class GraphController {
             return;
         }
 
-        if (value instanceof Value.Record && key === "position") {
-            (drawable as DrawableNode).position = {
+        if (value instanceof Value.Record && (key === "position" || key === "origin")) {
+            (drawable as DrawableNode)[key] = {
                 x: (value.value.x as Value.Primitive).value as number,
                 y: (value.value.y as Value.Primitive).value as number
+            };
+
+            return;
+        }
+
+        if (value instanceof Value.Record && (key === "size")) {
+            (drawable as DrawableNode)[key] = {
+                width: (value.value.x as Value.Primitive).value as number,
+                height: (value.value.y as Value.Primitive).value as number
             };
 
             return;
@@ -420,9 +429,15 @@ export class GraphController {
             return true;
         }
 
-        if (value instanceof Value.Record && key === "position") {
+        if (value instanceof Value.Record && (key === "position" || key === "origin")) {
             (value.value.x as Value.Primitive).value = (drawable as any)[key].x;
             (value.value.y as Value.Primitive).value = (drawable as any)[key].y;
+            return true;
+        }
+
+        if (value instanceof Value.Record && key === "size") {
+            (value.value.width as Value.Primitive).value = (drawable as any)[key].width;
+            (value.value.height as Value.Primitive).value = (drawable as any)[key].height;
             return true;
         }
 
