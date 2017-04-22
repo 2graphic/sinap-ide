@@ -738,11 +738,18 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private onWheel
     = (e: WheelEvent) => {
-        // Apply zoom.
-        if (e.deltaY > 0)
-            this.zoom(e, 1 / 1.05);
-        else if (e.deltaY < 0)
-            this.zoom(e, 1.05);
+        if (e.ctrlKey) {
+            // Apply zoom.
+            if (e.deltaY > 0)
+                this.zoom(e, 1 / 1.05);
+            else if (e.deltaY < 0)
+                this.zoom(e, 1.05);
+        } else {
+            this.pan({
+                movementX: -e.deltaX,
+                movementY: -e.deltaY,
+            } as MouseEvent);
+        }
     }
 
     /**
