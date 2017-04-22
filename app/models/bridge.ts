@@ -53,8 +53,6 @@ export class Bridge {
                 }).forEach(([k, _]) => {
                     this.graph.copyPropertyToDrawable(core.get(k), drawable, k);
 
-                    console.log(value, other);
-
                     // TODO: Can only undo primitive and union changes.
                     if (value instanceof Value.Primitive || value instanceof Value.Union) {
                         const undo: UndoableEvent = new UndoableEvent(true, () => {
