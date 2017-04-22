@@ -124,7 +124,7 @@ export class GraphController {
 
         /* finally set up all the listeners after we copy all the elements */
         const createdListener = (evt: DrawableEvent<DrawableElement>) => {
-            const bridges = evt.detail.drawables.map(d => this.addDrawable(d[0]));
+            const bridges = evt.detail.drawables.map(d => this.addDrawable(d[0], undefined, d[1]));
             this.changed.emit(new UndoableEvent(true, () => sync(() => deleteBridges(bridges))));
         };
 
@@ -230,7 +230,7 @@ export class GraphController {
         this.bridges.set(bridge.core, bridge.drawable, bridge);
     }
 
-    private addDrawable(drawable: Drawable, _core?: ElementValue) {
+    private addDrawable(drawable: Drawable, _core?: ElementValue, like?: DrawableElement) {
         let core: ElementValue;
         if (!_core) {
             core = this.makeCoreFromDrawable(drawable);
@@ -238,6 +238,28 @@ export class GraphController {
             core = _core;
             this.copyPropertiesToDrawable(core, drawable);
         }
+
+        if (like) {
+            const likeBridge = this.bridges.getB(like);
+            if (likeBridge) {
+                if (Type.isSubtype(likeBridge.core.type, core.type)) {
+                    likeBridge.core.type.members.forEach((t, k) => {
+                        const likeValue = likeBridge.core.get(k);
+                        const coreValue = core.get(k);
+
+                        // TODO: Handle more than Primitive values.
+                        if (likeValue instanceof Value.Primitive && coreValue instanceof Value.Primitive) {
+                            coreValue.value = likeValue.value;
+                        }
+                    });
+                } else {
+                    throw new Error("Trying to create a core element like a core element with a different type.");
+                }
+            } else {
+                throw new OutOfSyncError();
+            }
+        }
+
         const bridge = new Bridge(this, core, drawable);
         this.bridges.set(core, drawable, bridge);
 
