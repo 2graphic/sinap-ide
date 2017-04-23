@@ -92,6 +92,11 @@ export class DrawableGraph extends Drawable {
                 writable: true,
                 value: 1
             },
+            _readonly: {
+                enumerable: false,
+                writable: true,
+                value: false
+            },
             isValidEdge: { enumerable: false },
             nodes: {
                 enumerable: false,
@@ -163,6 +168,7 @@ export class DrawableGraph extends Drawable {
     private _unselected: Set<DrawableElement>;
     private _origin: { x: number, y: number };
     private _scale: number;
+    private _readonly: boolean;
 
 
     // Public fields ///////////////////////////////////////////////////////////
@@ -322,6 +328,9 @@ export class DrawableGraph extends Drawable {
      *   was cancelled prematurely.
      */
     cloneElements(items: DrawableElement[], offsetPt: point = { x: 0, y: 0 }) {
+        if (this._readonly)
+            return null;
+
         if (items.length > 0 && items[0].graph !== this) {
             console.log("error: attempting to clone elements from other graph");
             return null;
@@ -411,7 +420,9 @@ export class DrawableGraph extends Drawable {
         src: DrawableNode,
         dst: DrawableNode,
         edge: DrawableEdge
-    ): DrawableEdge {
+    ): DrawableEdge | null {
+        if (this._readonly)
+            return null;
         this.deselect(edge);
         this._edges.delete(edge);
         this._unselected.delete(edge);
@@ -443,6 +454,8 @@ export class DrawableGraph extends Drawable {
      * @emits DrawableGraph#created
      */
     recreateItems(...items: DrawableElement[]) {
+        if (this._readonly)
+            return;
         items.forEach(d => {
             console.assert(d.graph === this, "graph mismatch recreating item");
             if (d instanceof DrawableEdge) {
@@ -478,6 +491,8 @@ export class DrawableGraph extends Drawable {
         item: D,
         like?: D
     ) {
+        if (this._readonly)
+            return null;
         if (!this.dispatchEvent(
             new TypedCustomEvent(
                 "creating",
@@ -514,6 +529,8 @@ export class DrawableGraph extends Drawable {
      * @emits DrawableGraph#deleted
      */
     delete(...items: DrawableElement[]): boolean {
+        if (this._readonly)
+            return false;
         const deletedEdges: DrawableEdge[] = [];
         const deletedNodes: DrawableNode[] = [];
         const toDeselect: DrawableElement[] = [];

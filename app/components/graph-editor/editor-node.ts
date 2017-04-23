@@ -212,14 +212,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
         this.updateTextSize(g);
         const drawable = this.drawable;
         const textRect = this.textRect;
-        if (drawable.shape === "image") {
-            const img = IMAGES.get(drawable.image)!;
-            drawable.size = {
-                height: img.height,
-                width: img.width
-            };
-        }
-        else {
+        if (drawable.image === "") {
             // TODO:
             // Do we want dynamically sized nodes?
             drawable.size = {
@@ -250,68 +243,69 @@ export class EditorNode extends EditorElement<DrawableNode> {
      */
     private updateTrace() {
         const drawable = this.drawable;
-        switch (this.drawable.shape) {
-            case "circle":
-            case "ellipse": {
-                this.trace = (g: EditorCanvas) => {
-                    const r = {
-                        x: drawable.size.width / 2,
-                        y: drawable.size.height / 2
+        if (drawable.image === "") {
+            switch (this.drawable.shape) {
+                case "circle":
+                case "ellipse": {
+                    this.trace = (g: EditorCanvas) => {
+                        const r = {
+                            x: drawable.size.width / 2,
+                            y: drawable.size.height / 2
+                        };
+                        g.traceEllipse(
+                            MathEx.diff(this._position, this.drawable.origin),
+                            r.x,
+                            r.y
+                        );
                     };
-                    g.traceEllipse(
-                        MathEx.diff(this._position, this.drawable.origin),
-                        r.x,
-                        r.y
-                    );
-                };
-            } break;
+                } break;
 
-            case "square":
-            case "rectangle": {
-                this.trace = (g: EditorCanvas) => {
-                    const pt = MathEx
-                        .diff(this._position, this.drawable.origin);
-                    g.traceRectangle({
-                        x: pt.x - drawable.size.width / 2,
-                        y: pt.y - drawable.size.height / 2,
-                        height: drawable.size.height,
-                        width: drawable.size.width
-                    });
-                };
-            } break;
+                case "square":
+                case "rectangle": {
+                    this.trace = (g: EditorCanvas) => {
+                        const pt = MathEx
+                            .diff(this._position, this.drawable.origin);
+                        g.traceRectangle({
+                            x: pt.x - drawable.size.width / 2,
+                            y: pt.y - drawable.size.height / 2,
+                            height: drawable.size.height,
+                            width: drawable.size.width
+                        });
+                    };
+                } break;
+            }
+        }
+        else {
+            switch (this.state) {
+                case DrawableStates.Dragging: {
+                    this.trace = (g: EditorCanvas) => {
+                        const pt = MathEx
+                            .diff(this._position, drawable.origin);
+                        g.shadowBlur = GRID_SPACING;
+                        g.shadowColor = NODE_DRAG_SHADOW_COLOR;
+                        g.drawImage(pt, drawable.image);
+                        g.shadowBlur = 0;
+                    };
+                } break;
 
-            case "image": {
-                switch (this.state) {
-                    case DrawableStates.Dragging: {
-                        this.trace = (g: EditorCanvas) => {
-                            const pt = MathEx
-                                .diff(this._position, drawable.origin);
-                            g.shadowBlur = GRID_SPACING;
-                            g.shadowColor = NODE_DRAG_SHADOW_COLOR;
-                            g.drawImage(pt, drawable.image);
-                            g.shadowBlur = 0;
-                        };
-                    } break;
+                case DrawableStates.Hovered: {
+                    this.trace = (g: EditorCanvas) => {
+                        const pt = MathEx
+                            .diff(this._position, drawable.origin);
+                        g.shadowBlur = GRID_SPACING;
+                        g.shadowColor = SELECTION_COLOR;
+                        g.drawImage(pt, drawable.image);
+                        g.shadowBlur = 0;
+                    };
+                } break;
 
-                    case DrawableStates.Hovered: {
-                        this.trace = (g: EditorCanvas) => {
-                            const pt = MathEx
-                                .diff(this._position, drawable.origin);
-                            g.shadowBlur = GRID_SPACING;
-                            g.shadowColor = SELECTION_COLOR;
-                            g.drawImage(pt, drawable.image);
-                            g.shadowBlur = 0;
-                        };
-                    } break;
-
-                    default:
-                        this.trace = (g: EditorCanvas) => {
-                            const pt = MathEx
-                                .diff(this._position, drawable.origin);
-                            g.drawImage(pt, drawable.image);
-                        };
-                }
-            } break;
+                default:
+                    this.trace = (g: EditorCanvas) => {
+                        const pt = MathEx
+                            .diff(this._position, drawable.origin);
+                        g.drawImage(pt, drawable.image);
+                    };
+            }
         }
     }
 
@@ -322,9 +316,9 @@ export class EditorNode extends EditorElement<DrawableNode> {
      */
     private updateStroke() {
         const drawable = this.drawable;
-        if (drawable.shape === "image" || drawable.borderWidth === 0)
+        if (drawable.image !== "" || drawable.borderWidth === 0)
             this.stroke = (g: EditorCanvas) => { };
-        else
+        else if (drawable.borderWidth > 0)
             this.stroke = (g: EditorCanvas) => {
                 g.lineWidth = this.drawable.borderWidth;
                 g.lineStyle = this.drawable.borderStyle;
@@ -340,7 +334,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
      */
     private updateFill() {
         const drawable = this.drawable;
-        if (drawable.shape === "image")
+        if (drawable.image !== "")
             this.fill = (g: EditorCanvas) => { };
         else {
             this.fill = (g: EditorCanvas) => {
@@ -356,7 +350,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
      *   Updates the shadow function.
      */
     private updateShadow() {
-        if (this.drawable.shape === "image") {
+        if (this.drawable.image !== "") {
             this.shadow = (g: EditorCanvas) => { };
             this.updateTrace();
         }
@@ -402,8 +396,8 @@ export class EditorNode extends EditorElement<DrawableNode> {
      * @memberOf EditorNode
      */
     private updateHighlight() {
-        if (this.drawable.shape === "image") {
-            const posn = this.position;
+        if (this.drawable.image !== "") {
+            const posn = MathEx.diff(this._position, this.drawable.origin);
             const offsets = [
                 -2, -2,
                 0, -2,
@@ -497,7 +491,6 @@ export class EditorNode extends EditorElement<DrawableNode> {
                 }
             } break;
 
-            case "image":
             case "square":
             case "rectangle": {
                 const ax = Math.abs(v.x);
@@ -578,7 +571,6 @@ export class EditorNode extends EditorElement<DrawableNode> {
             } break;
 
             // The boundary of a rectangle depends on the direction of u.
-            case "image":
             case "square":
             case "rectangle": {
                 const up = {

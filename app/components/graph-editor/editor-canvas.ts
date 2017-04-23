@@ -97,7 +97,7 @@ export type LineStyles = "solid" | "dotted" | "dashed" | "double";
 /**
  * `Shapes`
  */
-export type Shapes = "circle" | "square" | "ellipse" | "rectangle" | "image";
+export type Shapes = "circle" | "square" | "ellipse" | "rectangle";
 
 /**
  * `point`
