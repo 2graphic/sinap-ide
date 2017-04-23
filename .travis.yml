@@ -1,13 +1,17 @@
 dist: trusty
 sudo: true
-language: node_js
+osx_image: xcode8.3
+language: nodejs
 node_js:
-- '7'
-- '6'
+- 6.1.x
 cache:
   directories:
-  - $HOME/.electron
   - node_modules
+before_install:
+- curl -s -o $HOME/.nvm/nvm.sh https://raw.githubusercontent.com/creationix/nvm/v0.31.0/nvm.sh
+- source $HOME/.nvm/nvm.sh
+- nvm install stable
+- node --version
 install:
 - npm install
 script:
@@ -20,6 +24,12 @@ notifications:
 before_deploy:
 - curl https://raw.githubusercontent.com/electron-userland/electron-packager/master/test/ci/before_install.sh | bash 
 - node package.js
+- echo $CERTIFICATE_OSX_P12 | base64 --decode > certificate.p12
+- security create-keychain -p $KEYCHAIN_PASSWORD build.keychain
+- security default-keychain -s build.keychain
+- security unlock-keychain -p $KEYCHAIN_PASSWORD build.keychain
+- security import certificate.p12 -k build.keychain -P $CERT_PASSWORD -T /usr/bin/codesign
+
 deploy:
   provider: releases
   skip_cleanup: true
