@@ -492,7 +492,8 @@ export class EditorNode extends EditorElement<DrawableNode> {
             } break;
 
             case "square":
-            case "rectangle": {
+            case "rectangle":
+            default: {
                 const ax = Math.abs(v.x);
                 const ay = Math.abs(v.y);
                 if (ax < inner.width / 2 && ay < inner.height / 2)
@@ -572,7 +573,8 @@ export class EditorNode extends EditorElement<DrawableNode> {
 
             // The boundary of a rectangle depends on the direction of u.
             case "square":
-            case "rectangle": {
+            case "rectangle":
+            default: {
                 const up = {
                     x: (u.x < 0 ? -u.x : u.x),
                     y: (u.y < 0 ? -u.y : u.y)

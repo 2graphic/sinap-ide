@@ -559,8 +559,7 @@ export class GraphEditorComponent implements AfterViewInit {
                 this._graph!.drawable.setSelected(d);
             }
         }
-        else
-            this.preventDblClick = false;
+        this.preventDblClick = false;
     }
 
     /**
@@ -581,6 +580,7 @@ export class GraphEditorComponent implements AfterViewInit {
         );
 
         if (evt.buttons === 1) {
+            this.preventDblClick = false;
             if (evt.shiftKey) {
                 this._graph!.updateHoverObject();
                 this._graph!.dragStart(this.graphCanvas.getCoordinates(evt));
