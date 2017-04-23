@@ -1,5 +1,8 @@
 dist: trusty
 sudo: true
+os:
+  - osx
+  - linux
 osx_image: xcode8.3
 language: nodejs
 node_js:
@@ -23,13 +26,14 @@ notifications:
     secure: ccL5icbs/Y54xKCpIa4Q4XStQ08S5zMD9Y3MPTp0JN7+rg0KZgOm/a7fgMptdTY88yd9SaI9UQ4L28Mls+KDKgUDs1/BqGKVAcnwtqq4mCZvmIHxDvUODoJnIpHjF8Qt+8tgxpuAveZ6BspTmo7jh4LNrtdPMX2dww/v/gxBOx2rWyAQTUiufMKuhJez7DXl7EHH5XHMqtqCIvKk8dQ7zm7Oetan+4zx/h9ISkarAs68Q+P2kKPL2lm2sUdhUdX8ClCyMl4CYSqkGqbYTMqLXd5UvQnhpH+iwxqlZsRPA5zvloMl7lJHT+2KGZEu2ZsiuJYwVKI7gujeZzO9W+EopIlMNsc+VNeRKvqeble8p/WFqEYgBnFDcNklBhd2iF0IGamniHaKdjOEMr7NG/Y5yy7HDAJ86oFOEMxlFbruj00V58Gk/HSjn2yPuawciRspA0ocJTATb/pXWST8NjyQMpPWRjioqyV23W2YFFJDaPJRNxZQ3pYifunK1l29cimBgS6JxQDqqSrv1ozAzP9b5KjgBQfqgNpeDyJCVwpGCnZmXnJm2YwSUPhhpogGdkUhjYriKXaZeedpu8zfVn4Mmd56tAqLViQMDAGo36qgHS4A2B8p6n6mAZFnGVPE4bTJQibsZpH0sspcJJXKck1znLaeknR7kV8vniEHkPT/Rog=
 before_deploy:
 - curl https://raw.githubusercontent.com/electron-userland/electron-packager/master/test/ci/before_install.sh | bash 
-- node package.js
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 - echo $CERTIFICATE_OSX_P12 | base64 --decode > certificate.p12
 - security create-keychain -p $KEYCHAIN_PASSWORD build.keychain
 - security default-keychain -s build.keychain
 - security unlock-keychain -p $KEYCHAIN_PASSWORD build.keychain
 - security import certificate.p12 -k build.keychain -P $CERT_PASSWORD -T /usr/bin/codesign
-
+- node package.js
+- fi
 deploy:
   provider: releases
   skip_cleanup: true
