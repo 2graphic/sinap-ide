@@ -269,14 +269,14 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                     this.saveFile(c);
                 } else {
                     this.closeFile(file);
-                    this.saveToFile(c, file).then(() => this.openFile(file));
+                    this.saveToFile(c, file).then(() => this.openFile(file)).catch(e => console.log(e));
                 }
             }).catch(e => console.log(e));
         }
     }
 
     saveToFile(context: TabContext, file: string) {
-        return writeData(context.getRawData(), file);
+        return writeData(file, context.getRawData());
     }
 
     requestOpenFile() {
