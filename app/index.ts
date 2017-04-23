@@ -119,7 +119,10 @@ function killIfUnresponsive() {
     }
 
     if (result === 1) {
-        timer = setTimeout(killIfUnresponsive, 5000) as any;
+        if (!IS_DEBUG) {
+            // Otherwise, you can't debug.
+            timer = setTimeout(killIfUnresponsive, 5000) as any;
+        }
     }
 }
 let timer: number | undefined = undefined;
