@@ -553,11 +553,11 @@ export class GraphEditorComponent implements AfterViewInit {
     private onDoubleClick
     = (evt: MouseEvent) => {
         if (!this.preventDblClick) {
-            const d = this._graph!.drawable.createNode();
-            if (d) {
-                d.position = this.graphCanvas.getCoordinates(evt);
+            const d = this._graph!.drawable.createNode(
+                this.graphCanvas.getCoordinates(evt)
+            );
+            if (d)
                 this._graph!.drawable.setSelected(d);
-            }
         }
         this.preventDblClick = false;
     }

@@ -397,7 +397,6 @@ export class EditorNode extends EditorElement<DrawableNode> {
      */
     private updateHighlight() {
         if (this.drawable.image !== "") {
-            const posn = MathEx.diff(this._position, this.drawable.origin);
             const offsets = [
                 -2, -2,
                 0, -2,
@@ -409,6 +408,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
                 2, 2
             ];
             this._drawHighlight = (g: EditorCanvas) => {
+                const posn = MathEx.diff(this._position, this.drawable.origin);
                 for (let i = 0; i < offsets.length; i += 2) {
                     const opt = {
                         x: posn.x + offsets[i],

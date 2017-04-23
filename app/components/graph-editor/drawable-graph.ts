@@ -254,6 +254,9 @@ export class DrawableGraph extends Drawable {
      *   If `like` is specified, a `DrawableNode` with matching properties is
      *   created.
      *
+     * @param position
+     *   The initial position of the node.
+     *
      * @param like
      *   The node to be copied.
      *
@@ -265,8 +268,13 @@ export class DrawableGraph extends Drawable {
      * @emits DrawableGraph#creating
      * @emits DrawableGraph#created
      */
-    createNode(like?: DrawableNode): DrawableNode | null {
-        return this.createItem(this._nodes, new DrawableNode(this, like), like);
+    createNode(
+        position: point = { x: 0, y: 0 },
+        like?: DrawableNode
+    ): DrawableNode | null {
+        const n = new DrawableNode(this, like);
+        n.position = position;
+        return this.createItem(this._nodes, n, like);
     }
 
     /**
