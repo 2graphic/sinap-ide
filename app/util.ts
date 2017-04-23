@@ -8,7 +8,6 @@ import * as zlib from "zlib";
 import { remote } from "electron";
 const { dialog } = remote;
 
-import { ncp } from "ncp";
 import * as archiver from "archiver";
 import * as tmp from "tmp";
 import * as extract from "extract-zip";

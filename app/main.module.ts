@@ -12,7 +12,6 @@ import { BrowserModule } from "@angular/platform-browser";
 
 import { FormsModule } from '@angular/forms';
 
-import { InlineSVGModule } from 'ng-inline-svg';
 import { ResizableModule } from 'angular-resizable-element';
 
 import { MainComponent } from "./components/main/main.component";
@@ -44,7 +43,6 @@ import { PointTypeComponent } from "./components/types/point-type/point-type.com
     imports: [
         BrowserModule,
         FormsModule,
-        InlineSVGModule,
         ResizableModule,
     ],
     declarations: [
