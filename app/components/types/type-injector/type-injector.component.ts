@@ -75,13 +75,20 @@ export class TypeInjectorComponent {
             this.container.clear();
             this.component = undefined;
         }
-        // TODO: Sheyne, deepEqual after a couple recursive calls throws an exception.
-        // else if (this.component && this._value && this._value.deepEqual(v)) {
-        //     if (this._value !== v) {
-        //         this._value = v;
-        //         this.component.instance.value = v;
-        //     }
-        // }
+        else if (this.component && this._value) {
+            try {
+                if (this._value.deepEqual(v) && this._value !== v) {
+                    this._value = v;
+                    this.component.instance.value = v;
+                } else {
+                    this.inject(v, this.readonly, this._disabled, this.graph);
+                }
+            } catch (e) {
+                console.log(e);
+                this.inject(v, this.readonly, this._disabled, this.graph);
+                // TODO: Sheyne, deepEqual after a couple recursive calls throws an exception when running dfs.
+            }
+        }
         else {
             this.inject(v, this.readonly, this._disabled, this.graph);
         }

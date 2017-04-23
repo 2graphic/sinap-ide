@@ -268,6 +268,9 @@ export class GraphEditorComponent implements AfterViewInit {
         if (this.graphCanvas) {
             this.graphCanvas.origin = value;
         }
+
+        this._graph!.drawable.origin = value;
+
         this.redraw();
     }
 
@@ -494,6 +497,7 @@ export class GraphEditorComponent implements AfterViewInit {
             x: canvas.origin.x + evt.x / canvas.scale,
             y: canvas.origin.y + evt.y / canvas.scale
         };
+
         this.redraw();
     }
 

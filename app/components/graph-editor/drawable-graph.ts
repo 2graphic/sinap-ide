@@ -125,7 +125,10 @@ export class DrawableGraph extends Drawable {
                 enumerable: true,
                 get: () => this._origin,
                 set: (value: point) => {
-                    const old = this.origin;
+                    const old = {
+                        x: this._origin.x,
+                        y: this._origin.y
+                    };
                     if (value.x !== old.x || value.y !== old.y) {
                         this._origin.x = value.x;
                         this._origin.y = value.y;

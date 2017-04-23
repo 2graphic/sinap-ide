@@ -22,73 +22,25 @@ import { Model, Plugin, ElementValue, ElementType } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { DoubleMap } from "./double-map";
 import { getPath } from "../util";
+import { Bridge } from "./bridge";
+export { Bridge, ComputedPropertyContext } from "./bridge";
+
 
 export class UndoableEvent {
-    constructor(public undo: () => void) { }
-}
+    private once = false;
+    constructor(public readonly reloadProgram: boolean, private _undo: () => UndoableEvent) { }
 
-export class Bridge {
-    private isSyncing = false;
+    public undo() {
+        if (this.once) {
+            throw new Error("Can only undo once!");
+        }
 
-    constructor(private graph: GraphController, public core: ElementValue, public drawable: Drawable) {
-        const computedPropertyContext = new ComputedPropertyContext(core);
-        core.context = computedPropertyContext;
+        this.once = true;
+        return this._undo();
+    }
 
-        // Copy computed properties for the first time.
-        const copyComputedProperties = () => {
-            [...computedPropertyContext.properties.entries()].forEach(([key, [name, value]]) => {
-                this.graph.copyPropertyToDrawable(value, drawable, key);
-            });
-        };
-        copyComputedProperties();
-
-        core.environment.listen((_, value, other) => {
-            this.sync(() => {
-                // console.log(core, _, value, other);
-
-                computedPropertyContext.update();
-                copyComputedProperties();
-
-                [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => {
-                    if (v === value) {
-                        return true;
-                    } else if (v instanceof Value.Record) {
-                        for (const k of Object.keys(v.value)) {
-                            if (v.value[k] === value) {
-                                return true;
-                            }
-                        }
-                    } else if (v instanceof Value.Union && v.value === value) {
-                        return true;
-                    }
-
-                    return false;
-                }).forEach(([k, _]) => {
-                    this.graph.copyPropertyToDrawable(core.get(k), drawable, k);
-                    this.graph.changed.emit(new UndoableEvent(() => {
-                        // TODO
-                    }));
-                });
-            });
-        }, () => true, core);
-
-        drawable.addEventListener("change", (evt: PropertyChangedEvent<any>) => {
-            this.sync(() => {
-                const result = this.graph.copyPropertyToCore(this.drawable, this.core, evt.detail.key.toString());
-                if (result) {
-                    this.graph.changed.emit(new UndoableEvent(() => {
-                        // TODO
-                    }));
-                }
-            });
-        });
-    };
-
-    private sync(f: () => void) {
-        if (this.isSyncing) return;
-        this.isSyncing = true;
-        f();
-        this.isSyncing = false;
+    public copy() {
+        return new UndoableEvent(this.reloadProgram, this._undo);
     }
 }
 
@@ -98,27 +50,7 @@ class OutOfSyncError extends Error {
     }
 }
 
-export class ComputedPropertyContext {
-    public readonly properties = new Map<string, [string, Value.Value]>();
-    public onUpdate?: (() => void) = undefined;
 
-    constructor(public readonly value: ElementValue) {
-        this.update();
-    };
-
-    update() {
-        [...this.value.type.pluginType.methods.entries()].filter(([_, method]) => method.isGetter).forEach(([key, _]) => {
-            let v = this.value.call(key);
-            if (v) {
-                this.properties.set(key, [this.value.type.prettyName(key), v]);
-            }
-        });
-
-        if (this.onUpdate) {
-            this.onUpdate();
-        }
-    }
-}
 
 export class GraphController {
     drawable: DrawableGraph;
@@ -191,25 +123,78 @@ export class GraphController {
 
 
         /* finally set up all the listeners after we copy all the elements */
-        this.drawable.addEventListener("created", (evt: DrawableEvent<DrawableElement>) => {
-            const bridges = evt.detail.drawables.map(d => this.addDrawable(d[0]));
-            this.changed.emit(new UndoableEvent(() => {
-                // TODO
-            }));
-        });
-        this.drawable.addEventListener("deleted", (evt: DrawableEvent<DrawableElement>) => {
+        const createdListener = (evt: DrawableEvent<DrawableElement>) => {
+            const bridges = evt.detail.drawables.map(d => this.addDrawable(d[0], undefined, d[1]));
+            this.changed.emit(new UndoableEvent(true, () => sync(() => deleteBridges(bridges))));
+        };
+
+        const deleteBridges = (bridges: Bridge[]): UndoableEvent => {
+            const edges = bridges.filter((b) => b.drawable instanceof DrawableEdge);
+            const nodes = bridges.filter((b) => b.drawable instanceof DrawableNode);
+
+            const deleted = [...edges, ...nodes].map((e) => {
+                this.drawable.delete(e.drawable as DrawableElement);
+                return this.removeDrawable(e.drawable);
+            });
+
+            return new UndoableEvent(true, () => sync(() => addBridges(deleted)));
+        };
+
+        const addBridges = (bridges: Bridge[]): UndoableEvent => {
+            const edges = bridges.filter((b) => b.drawable instanceof DrawableEdge);
+            const nodes = bridges.filter((b) => b.drawable instanceof DrawableNode);
+
+            const undeleted = [...nodes, ...edges].map((b) => {
+                this.undelete(b);
+                return b;
+            });
+
+            return new UndoableEvent(true, () => sync(() => deleteBridges(undeleted)));
+        };
+
+        const deletedListener = (evt: DrawableEvent<DrawableElement>) => {
             const bridges = evt.detail.drawables.map(d => this.removeDrawable(d[0]));
-            this.changed.emit(new UndoableEvent(() => {
-                // TODO
-            }));
-        });
-        this.drawable.addEventListener("moved", (evt: MoveEdgeEvent) => {
-            const original = this.removeDrawable(evt.detail.original);
-            const replacement = this.addDrawable(evt.detail.replacement);
-            this.changed.emit(new UndoableEvent(() => {
-                // TODO
-            }));
-        });
+            this.changed.emit(new UndoableEvent(true, () => sync(() => addBridges(bridges))));
+        };
+
+        const movedListener = (evt: MoveEdgeEvent) => {
+            const f = (): UndoableEvent => {
+                const replacement = this.addDrawable(evt.detail.replacement, undefined, evt.detail.original);
+                const original = this.removeDrawable(evt.detail.original);
+
+                const undo: UndoableEvent = new UndoableEvent(true, () => sync(() => {
+                    this.undelete(original);
+                    this.drawable.delete(replacement.drawable as DrawableElement);
+                    this.removeDrawable(replacement.drawable);
+
+                    return new UndoableEvent(true, () => sync(() => {
+                        this.undelete(replacement);
+                        this.drawable.delete(original.drawable as DrawableElement);
+                        this.removeDrawable(original.drawable);
+                        return undo.copy();
+                    }));
+                }));
+
+                return undo;
+            };
+            this.changed.emit(f());
+        };
+
+        const sync = (f: () => UndoableEvent) => {
+            this.drawable.removeEventListener("created", createdListener);
+            this.drawable.removeEventListener("deleted", deletedListener);
+            this.drawable.removeEventListener("moved", movedListener);
+            let r = f();
+            this.drawable.addEventListener("created", createdListener);
+            this.drawable.addEventListener("deleted", deletedListener);
+            this.drawable.addEventListener("moved", movedListener);
+
+            return r;
+        };
+
+        this.drawable.addEventListener("created", createdListener);
+        this.drawable.addEventListener("deleted", deletedListener);
+        this.drawable.addEventListener("moved", movedListener);
 
         this.drawable.addEventListener("select", (evt: SelectionChangedEvent) => this.setSelectedElements(evt.detail.curr));
         /* ************************************************************* */
@@ -219,14 +204,80 @@ export class GraphController {
         this.setSelectedElements(undefined);
     }
 
-    private addDrawable(drawable: Drawable, _core?: ElementValue) {
+    private undelete(bridge: Bridge) {
+        if (bridge.drawable instanceof DrawableElement) {
+            this.drawable.recreateItems(bridge.drawable);
+        }
+
+
+        // TODO: Sheyne, if you loved me you'd fix this before 1.0
+        const f = (v: Value.Value) => {
+            v.dependencyChildren.forEach(f);
+            this.core.environment.add(v);
+        };
+        f(bridge.core);
+
+
+
+        if (bridge.drawable instanceof DrawableNode) {
+            this.core.nodes.add(bridge.core);
+        }
+        if (bridge.drawable instanceof DrawableEdge) {
+            this.core.edges.add(bridge.core);
+        }
+
+        bridge.undeleted();
+        this.bridges.set(bridge.core, bridge.drawable, bridge);
+    }
+
+    private addDrawable(drawable: Drawable, _core?: ElementValue, like?: DrawableElement) {
+        let likeBridge: Bridge | undefined = undefined;
+        if (like) {
+            likeBridge = this.bridges.getB(like);
+            if (!likeBridge) {
+                console.log("TODO: What happens when the node you're creating a copy of is deleted?");
+                // throw new OutOfSyncError();
+            }
+        }
+
         let core: ElementValue;
         if (!_core) {
-            core = this.makeCoreFromDrawable(drawable);
+            let kind: ElementType | undefined = undefined;
+            if (likeBridge) kind = likeBridge.core.type;
+
+            core = this.makeCoreFromDrawable(drawable, kind);
         } else {
             core = _core;
             this.copyPropertiesToDrawable(core, drawable);
         }
+
+
+        if (likeBridge) {
+            if (Type.isSubtype(likeBridge.core.type, core.type)) {
+                const b = likeBridge;
+                likeBridge.core.type.members.forEach((t, k) => {
+                    const likeValue = b.core.get(k);
+                    const coreValue = core.get(k);
+
+                    // TODO: Handle more than primitive and union values.
+                    if (likeValue instanceof Value.Primitive && coreValue instanceof Value.Primitive) {
+                        coreValue.value = likeValue.value;
+                    } else
+                        if (likeValue instanceof Value.Union && coreValue instanceof Value.Union) {
+                            if (likeValue.value instanceof Value.Primitive && coreValue.value instanceof Value.Primitive) {
+                                coreValue.value.value = likeValue.value.value;
+                            } else if (likeValue.value instanceof Value.Literal && coreValue.value instanceof Value.Literal) {
+                                coreValue.value = likeValue.value;
+                            }
+                        }
+                });
+            } else {
+                throw new Error("Trying to create a core element like a core element with a different type.");
+            }
+        }
+
+
+
         const bridge = new Bridge(this, core, drawable);
         this.bridges.set(core, drawable, bridge);
 
@@ -236,6 +287,7 @@ export class GraphController {
     private removeDrawable(drawable: Drawable) {
         const bridge = this.bridges.getB(drawable);
         if (bridge) {
+            bridge.deleted();
             this.core.delete(bridge.core);
             this.bridges.delete(bridge.core, bridge.drawable);
         } else {
@@ -246,11 +298,11 @@ export class GraphController {
     }
 
 
-    private makeCoreFromDrawable(drawable: Drawable) {
+    private makeCoreFromDrawable(drawable: Drawable, kind?: ElementType) {
         let core: ElementValue;
 
         if (drawable instanceof DrawableNode) {
-            core = this.core.makeNode(this.activeNodeType);
+            core = this.core.makeNode(kind ? kind : this.activeNodeType);
         } else if (drawable instanceof DrawableEdge) {
             const srcB = this.bridges.getB(drawable.source);
             const dstB = this.bridges.getB(drawable.destination);
@@ -258,7 +310,7 @@ export class GraphController {
                 throw new Error("Model missing source or destination for edge.");
             }
 
-            core = this.core.makeEdge(this.activeEdgeType, srcB.core, dstB.core);
+            core = this.core.makeEdge(kind ? kind : this.activeEdgeType, srcB.core, dstB.core);
         } else if (drawable instanceof DrawableGraph) {
             core = this.core.graph;
         } else {
@@ -267,10 +319,6 @@ export class GraphController {
 
         this.copyPropertiesToCore(drawable, core);
         return core;
-    }
-
-    public applyUndoableEvent(event: UndoableEvent) {
-        // TODO:
     }
 
 
@@ -285,7 +333,7 @@ export class GraphController {
         Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    private readonly drawableKeys = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image", "shape", "borderStyle", "lineStyle", "position"]);
+    private readonly drawableKeys = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image", "shape", "borderStyle", "lineStyle", "position", "origin", "scale", "size"]);
 
     copyPropertyToDrawable(value: Value.Value | undefined, drawable: Drawable, key: string) {
         if (value === undefined || !this.drawableKeys.has(key)) {
@@ -324,10 +372,19 @@ export class GraphController {
             return;
         }
 
-        if (value instanceof Value.Record && key === "position") {
-            (drawable as DrawableNode).position = {
+        if (value instanceof Value.Record && (key === "position" || key === "origin")) {
+            (drawable as DrawableNode)[key] = {
                 x: (value.value.x as Value.Primitive).value as number,
                 y: (value.value.y as Value.Primitive).value as number
+            };
+
+            return;
+        }
+
+        if (value instanceof Value.Record && (key === "size")) {
+            (drawable as DrawableNode)[key] = {
+                width: (value.value.x as Value.Primitive).value as number,
+                height: (value.value.y as Value.Primitive).value as number
             };
 
             return;
@@ -372,9 +429,15 @@ export class GraphController {
             return true;
         }
 
-        if (value instanceof Value.Record && key === "position") {
+        if (value instanceof Value.Record && (key === "position" || key === "origin")) {
             (value.value.x as Value.Primitive).value = (drawable as any)[key].x;
             (value.value.y as Value.Primitive).value = (drawable as any)[key].y;
+            return true;
+        }
+
+        if (value instanceof Value.Record && key === "size") {
+            (value.value.width as Value.Primitive).value = (drawable as any)[key].width;
+            (value.value.height as Value.Primitive).value = (drawable as any)[key].height;
             return true;
         }
 

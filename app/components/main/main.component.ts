@@ -147,8 +147,6 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     private set context(context: TabContext | undefined) {
         this._context = context;
         if (context) {
-            context.compileProgram();
-
             this.toolsPanelData.graph = context.graph;
             this.filesPanelData.selectedFile = context.file;
             this.statusBar.info = context.statusBarInfo;
@@ -199,7 +197,6 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             let tabNumber = this.tabBar.newTab(context);
             this.tabs.set(tabNumber, context);
 
-            graph.changed.asObservable().subscribe(this.makeChangeNotifier(context));
             this.selectedTab(tabNumber);
         });
     }
@@ -225,13 +222,6 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         // if (isDirty) {
         //     return confirm('You have unsaved files, are you sure you wish to quit?');
         // }
-    }
-
-
-    private makeChangeNotifier(context: TabContext) {
-        return (change: UndoableEvent) => {
-            context.compileProgram();
-        };
     }
 
     launchPluginManager() {
