@@ -59,6 +59,7 @@
     "cpx": "1.5.0",
     "css-loader": "0.27.3",
     "electron": "1.6.5",
+    "electron-osx-sign": "^0.4.4",
     "electron-packager": "8.6.0",
     "extract-loader": "0.1.0",
     "extract-text-webpack-plugin": "2.1.0",

@@ -9,6 +9,7 @@ const exec = require("child_process").exec;
 const process = require("process");
 const path = require("path");
 const glob = require("glob");
+const signAsync = require('electron-osx-sign').signAsync;
 
 ncp.limit = 16;
 
@@ -83,7 +84,6 @@ function main() {
         packageOpts.platform = args[2];
         packageOpts.all = false;
         packageOpts.arch = "all";
-        packageOpts.osxSign = true;
     }
 
     const cleanBuild = deleteDir("./build").then(() => {createDir("./build")});
@@ -99,13 +99,19 @@ function main() {
         ENV: "production",
         DEBUG: false
     };
+
     if (args.length > 3) {
         console.log("Debug enabled.");
         env.DEBUG = true;
     }
 
     const mainBuild = Promise.all([cleanBuild, buildDll]).then(() => webpackProm(mainConfig(env)));
-    mainBuild.then(() => runPackage(packageOpts)).then(() => {
+    mainBuild.then(() => runPackage(packageOpts)).then(async () => {
+        if (packageOpts.all || packageOpts.platform === "darwin") {
+            await signAsync({app: 'dist/Sinap-darwin-x64/Sinap.app', "provisioning-profile": "Sinap.provisionprofile"});
+        }
+
+
         glob("dist/*", function(er, files){
             for (const dir of files) {
                 exec(`zip --symlinks -r ${dir}.zip ${dir}`);
