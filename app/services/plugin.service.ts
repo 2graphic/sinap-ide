@@ -57,7 +57,7 @@ class PluginHolder {
             } catch (e) {
                 LOG.info(`Failed to reload plugin at ${this.plugin.pluginInfo.interpreterInfo.directory}`, e);
                 this.close();
-                this.pluginService.removePlugin(this.plugin);
+                this.pluginService.unload(this.plugin);
             } finally {
                 this.lock.release();
             }
@@ -196,15 +196,28 @@ export class PluginService {
         await copy(dir, dest);
     }
 
-    public async removePlugin(plugin: Plugin): Promise<void> {
+    public async unload(plugin: Plugin): Promise<void> {
         await this.lock.acquire();
         try {
-            LOG.info(`Removing the ${plugin.pluginInfo.pluginKind.join(".")} plugin.`);
+            LOG.info(`Unloading the ${plugin.pluginInfo.pluginKind.join(".")} plugin.`);
             const holder = this.holders.find(h => h.plugin === plugin);
             if (holder) {
                 holder.close();
                 this.holders.splice(this.holders.indexOf(holder), 1);
             }
+        } finally {
+            this.lock.release();
+        }
+
+        return;
+    }
+
+    public async removePlugin(plugin: Plugin): Promise<void> {
+        await this.unload(plugin);
+
+        await this.lock.acquire();
+        try {
+            LOG.info(`Removing the ${plugin.pluginInfo.pluginKind.join(".")} plugin.`);
             await removeDir(plugin.pluginInfo.interpreterInfo.directory);
         } finally {
             this.lock.release();
