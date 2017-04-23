@@ -3,7 +3,6 @@ sudo: true
 language: nodejs
 node_js:
 - '7'
-- '6'
 cache:
   directories:
   - $HOME/.electron

@@ -79,7 +79,6 @@
     "uglify-js": "git+https://github.com/mishoo/UglifyJS2.git#harmony",
     "webpack": "2.2.1",
     "webpack-material-design-icons": "0.1.0",
-    "webpack-merge": "4.1.0",
-    "zip-folder": "1.0.0"
+    "webpack-merge": "4.1.0"
   }
 }
