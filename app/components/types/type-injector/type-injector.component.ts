@@ -178,7 +178,7 @@ export class TypeInjectorComponent {
                 }
             }
 
-            if (value instanceof Value.ArrayObject) {
+            if (value instanceof Value.ArrayObject || value instanceof Value.TupleObject) {
                 return ListTypeComponent;
             }
 

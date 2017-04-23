@@ -270,7 +270,9 @@ class State {
      * Returns a new object value that doesn't have a message property.
      */
     private stripMessage(state: Value.Value) {
-        // TODO
+        if (state instanceof Value.CustomObject && (state.type as any)._visibility) {
+            (state.type as any)._visibility.set("message", false) // TODO, set visiblity 
+        }
         return state;
     }
 
