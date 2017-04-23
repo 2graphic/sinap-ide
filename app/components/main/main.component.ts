@@ -93,7 +93,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
     private propertiesPanelData = new PropertiesPanelData();
     // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
-    private filesPanelData = new FilesPanelData("./examples");
+    private filesPanelData = new FilesPanelData();
     private toolsPanelData = new ToolsPanelData();
 
     private tabs = new Map<number, TabContext>();

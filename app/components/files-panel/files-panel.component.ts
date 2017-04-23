@@ -13,7 +13,7 @@
 import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
-import { dirFullFiles, compareFiles } from "../../util";
+import { dirFullFiles, compareFiles, requestDirectory, getPath } from "../../util";
 
 import * as path from "path";
 
@@ -33,10 +33,11 @@ export class FilesPanelData {
     public directory?: string;
     public files: FileInfo[] = [];
 
-    constructor(directoryToOpen: string) {
-        this.setDirectory(directoryToOpen).catch(err => {
+    constructor() {
+        const directory = localStorage.getItem("directory");
+
+        this.setDirectory(directory ? directory : undefined).catch(err => {
             console.log(err);
-            this.setDirectory(".");
         });
     }
 
@@ -55,13 +56,16 @@ export class FilesPanelData {
 
     readonly openFile = new EventEmitter<string>();
 
-    private setDirectory(value?: string): Promise<void> {
+    public setDirectory(value?: string): Promise<void> {
         if (value) {
+            localStorage.setItem("directory", value);
+            this.directory = path.basename(value);
             return dirFullFiles(value).then(files => {
                 this.files = files.filter((file => file.indexOf(".sinap") > -1)).map(file => new FileInfo(file));
             });
         }
         else {
+            localStorage.removeItem("directory");
             this.directory = undefined;
             this.files = [];
             return Promise.resolve();
@@ -86,6 +90,19 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
                 .subscribe(this.updateSelectedFile);
             this._data = value;
             this.updateSelectedFile(value.selectedFile);
+        }
+    }
+
+    private async openFolder() {
+        try {
+            const toOpenList = await requestDirectory();
+            const toOpen = toOpenList.shift();
+
+            if (toOpen) {
+                this._data.setDirectory(getPath(toOpen));
+            }
+        } catch (e) {
+            console.log(e);
         }
     }
 

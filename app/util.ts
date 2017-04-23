@@ -142,6 +142,15 @@ export async function requestOpenDirs(name?: string): Promise<string[]> {
     return await result.promise;
 }
 
+export async function requestDirectory(): Promise<string[]> {
+    const result = new NodePromise<string[]>();
+    dialog.showOpenDialog(remote.BrowserWindow.getFocusedWindow(), {
+        properties: ["openDirectory"],
+    }, names => result.cb(names ? null : "Directory selection cancelled", names));
+
+    return await result.promise;
+}
+
 export async function copyFile(src: string, dest: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         let cbCalled = false;
