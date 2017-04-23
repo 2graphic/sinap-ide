@@ -14,7 +14,7 @@
 // References to app and BrowserWindow are needed in order to start an Electron
 // application.
 //
-import { app, BrowserWindow, ipcMain, Menu } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, dialog } from "electron";
 import { ModalInfo, ModalType } from './models/modal-window';
 import { IS_DEBUG } from "./constants";
 import * as process from "process";
@@ -49,6 +49,21 @@ function createWindow() {
         app.quit();
     });
 
+    win.webContents.on("crashed", () => {
+        console.log("Crashed");
+        win = undefined;
+        app.quit();
+    });
+
+    win.on("unresponsive", () => {
+        console.log("unresponsive");
+        if (win) {
+            win.destroy();
+            win = undefined;
+        }
+        app.quit();
+    });
+
     win.once("ready-to-show", () => {
         (win as Electron.BrowserWindow).show();
     });
@@ -77,6 +92,40 @@ app.on("window-all-closed", () => {
 process.on('uncaughtException', (e: Error) => {
     console.log(e);
     app.exit();
+});
+
+
+
+
+function killIfUnresponsive() {
+    let result = dialog.showMessageBox({
+        type: 'info',
+        message: 'The application is unresponsive... reload window?',
+        buttons: ['Exit', 'Keep Waiting', 'Reload']
+    });
+
+    if (result === 2) {
+        if (win) {
+            win.webContents.reload();
+        }
+    }
+
+    if (result === 0) {
+        if (win) {
+            win.destroy();
+            win = undefined;
+        }
+        app.quit();
+    }
+
+    if (result === 1) {
+        timer = setTimeout(killIfUnresponsive, 5000) as any;
+    }
+}
+let timer: number | undefined = undefined;
+ipcMain.on('heartbeat', () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(killIfUnresponsive, 5000) as any;
 });
 
 
