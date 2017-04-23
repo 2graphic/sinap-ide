@@ -1,9 +1,9 @@
 dist: trusty
 sudo: true
 language: node_js
-node:
-  - 6
-  - 7
+node_js:
+- '7'
+- '6'
 cache:
   directories:
   - $HOME/.electron
