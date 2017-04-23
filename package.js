@@ -5,10 +5,11 @@ const webpack = require("webpack");
 const dllConfig = require("./webpack.dll.config");
 const mainConfig = require("./webpack.config.js");
 const fs = require("fs");
+const exec = require("child_process").exec;
 const process = require("process");
 const path = require("path");
-const zipFolder = require('zip-folder');
 const glob = require("glob");
+const signAsync = require('electron-osx-sign').signAsync;
 
 ncp.limit = 16;
 
@@ -98,22 +99,22 @@ function main() {
         ENV: "production",
         DEBUG: false
     };
+
     if (args.length > 3) {
         console.log("Debug enabled.");
         env.DEBUG = true;
     }
 
     const mainBuild = Promise.all([cleanBuild, buildDll]).then(() => webpackProm(mainConfig(env)));
-    mainBuild.then(() => runPackage(packageOpts)).then(() => {
+    mainBuild.then(() => runPackage(packageOpts)).then(async () => {
+        if (packageOpts.all || packageOpts.platform === "darwin") {
+            await signAsync({app: 'dist/Sinap-darwin-x64/Sinap.app', "provisioning-profile": "Sinap.provisionprofile"});
+        }
+
+
         glob("dist/*", function(er, files){
             for (const dir of files) {
-                zipFolder(dir, dir + '.zip', (err) => {
-                    if (err) {
-                        console.log("failed to make archive", dir)
-                    } else {
-                        console.log("finished", dir)
-                    }
-                })
+                exec(`zip --symlinks -r ${dir}.zip ${dir}`);
             }
         });
     });
