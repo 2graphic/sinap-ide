@@ -28,6 +28,10 @@ function webpackProm(options) {
     return new Promise((resolve, reject) => webpack(options, makeCb(resolve, reject)));
 }
 
+function globProm(options) {
+    return new Promise((resolve, reject) => glob(options, makeCb(resolve, reject)));
+}
+
 function copyProm(source, destination) {
     return new Promise((resolve, reject) => ncp(source, destination, makeCb(resolve, reject)));
 }
@@ -69,7 +73,7 @@ function moveTsFiles(buildLoc) {
     });
 }
 
-function main() {
+async function main() {
     const args = process.argv;
     let packageOpts = {
         all: true,
@@ -105,20 +109,21 @@ function main() {
         env.DEBUG = true;
     }
 
-    const mainBuild = Promise.all([cleanBuild, buildDll]).then(() => webpackProm(mainConfig(env)));
-    mainBuild.then(() => runPackage(packageOpts)).then(async () => {
-        console.log("Finished building, begining signing");
-        if (packageOpts.all || packageOpts.platform === "darwin") {
-            await signAsync({app: 'dist/Sinap-darwin-x64/Sinap.app', "provisioning-profile": "Sinap.provisionprofile"});
-        }
+    await Promise.all([cleanBuild, buildDll]);
+    await webpackProm(mainConfig(env));
+    await runPackage(packageOpts);
+    console.log("Finished building, begining signing");
+    if (packageOpts.all || packageOpts.platform === "darwin") {
+        await signAsync({app: 'dist/Sinap-darwin-x64/Sinap.app', "provisioning-profile": "Sinap.provisionprofile"});
+    }
+    console.log("Finished Signing, begining zipping");
 
-
-        glob("dist/*", function(er, files){
-            for (const dir of files) {
-                exec(`zip --symlinks -r ${dir}.zip ${dir}`);
-            }
-        });
-    });
+    const files = await globProm("dist/*");
+    for (const dir of files) {
+        exec(`zip --symlinks -r ${dir}.zip ${dir}`);
+    }
 }
 
-main();
+main().then(() => {
+    console.log("finished");
+});
