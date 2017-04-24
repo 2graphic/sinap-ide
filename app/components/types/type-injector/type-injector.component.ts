@@ -75,7 +75,7 @@ export class TypeInjectorComponent {
             this.container.clear();
             this.component = undefined;
         }
-        else if (this.component && this._value && this._value !== v && this._value.environment === v.environment && this._value.deepEqual(v)) {
+        else if (this.component && !(this.component.instance instanceof NodeTypeComponent) && this._value && this._value !== v && this._value.environment === v.environment && this._value.deepEqual(v)) {
             this._value = v;
             this.component.instance.value = v;
         }
