@@ -12,7 +12,13 @@ import { MainModule } from "./main.module";
 
 import { IS_PRODUCTION } from "./constants";
 
+const ipcRenderer = require('electron').ipcRenderer;
+
 import "file-loader?name=index.html!extract-loader!./index.html";
+
+setInterval(() => {
+    ipcRenderer.send("heartbeat");
+}, 1000);
 
 if (IS_PRODUCTION) {
     enableProdMode();

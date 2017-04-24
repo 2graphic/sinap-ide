@@ -45,7 +45,6 @@ import { ResizeEvent } from 'angular-resizable-element';
 import { requestSaveFile, requestFiles, fileStat, compareFiles, writeData, getPath } from "../../util";
 
 const remote = require('electron').remote;
-const ipcRenderer = require('electron').ipcRenderer;
 const dialog = remote.dialog;
 
 import * as path from "path";
@@ -59,10 +58,6 @@ import * as path from "path";
 export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, TabDelegate {
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
-
-        setInterval(() => {
-            ipcRenderer.send("heartbeat");
-        }, 1000);
 
         // Restore previously opened files.
         try {
