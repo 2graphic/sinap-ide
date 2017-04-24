@@ -106,17 +106,16 @@ export class TabContext {
 
     /** Compile the graph with the plugin, and retains a cached copy for subsequent calls. */
     public compileProgram() {
-        const program = this.plugin.makeProgram(this.internalGraph.core);
-        const validation = program.validate();
-        if (validation) {
-            this.statusBarInfo.items = [validation.value.toString()];
-        } else {
-            this.statusBarInfo.items = [];
-        }
-        this.inputPanelData.program = program;
-        this.testPanelData.program = program;
-
-        return program;
+        this.plugin.makeProgram(this.internalGraph.core).then((program) => {
+            const validation = program.validate();
+            if (validation) {
+                this.statusBarInfo.items = [validation.value.toString()];
+            } else {
+                this.statusBarInfo.items = [];
+            }
+            this.inputPanelData.program = program;
+            this.testPanelData.program = program;
+        }).catch((e) => console.log(e));
     }
 
 

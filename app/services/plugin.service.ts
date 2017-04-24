@@ -4,7 +4,7 @@ import * as path from "path";
 import { remote } from "electron";
 import { IS_PRODUCTION } from "../constants";
 import { Plugin, PluginLoader, getPluginInfo, Program, PluginInfo } from "sinap-core";
-import { TypescriptPluginLoader } from "sinap-typescript";
+import { TypescriptPluginLoader } from "sinap-typescript-loader";
 import * as fs from "fs";
 import { PythonPluginLoader } from "sinap-python-loader";
 
