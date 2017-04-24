@@ -19,15 +19,25 @@ export class Bridge {
         // Debounce updating the computed properties.
         let timer: number | undefined;
         const updateComputedProperties = () => {
-            if (timer) clearTimeout(timer);
-            timer = setTimeout(() => {
+            const f = () => {
                 this.sync(() => {
                     computedPropertyContext.update();
                     [...computedPropertyContext.properties.entries()].forEach(([key, [name, value]]) => {
                         this.graph.copyPropertyToDrawable(value, drawable, key);
                     });
                 });
-            }, timer ? 100 : 0) as any;
+            };
+
+            if (timer !== undefined) {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    f();
+                }, 100) as any;
+            } else {
+                timer = 0;
+                f();
+            }
+
         };
 
         updateComputedProperties();
