@@ -162,7 +162,12 @@ export class TestPanelComponent implements PanelComponent<TestPanelData>, TitleB
     private newTest() {
         if (this._data.program) {
             console.log("Creating new test.");
-            const test = new Test(getInput(this._data.program), getExpected(this._data.program), undefined);
+            const input = getInput(this._data.program);
+            const expected = getExpected(this._data.program);
+            if (!(input && expected)) {
+                return;
+            }
+            const test = new Test(input, expected, undefined);
 
             test.input.environment.listen(this.testChanged.bind(this, test), () => true, test.input);
 

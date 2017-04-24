@@ -271,7 +271,7 @@ class State {
      */
     private stripMessage(state: Value.Value) {
         if (state instanceof Value.CustomObject && (state.type as any)._visibility) {
-            (state.type as any)._visibility.set("message", false) // TODO, set visiblity 
+            (state.type as any)._visibility.set("message", false); // TODO, set visiblity
         }
         return state;
     }
