@@ -83,7 +83,7 @@ export class TabContext {
         } else {
             this.statusBarInfo.items = [];
         }
-        this.inputPanelData.programInfo = new ProgramInfo(program, this.graph);
+        this.inputPanelData.program = program;
         this.testPanelData.program = program;
 
         return program;

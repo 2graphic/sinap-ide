@@ -90,6 +90,7 @@
                     </td>
                 </tr>
             </table>
+            <button *ngIf="_data.selected && !_data.isDebugging" (click)="startDebugging()">Start Debugging</button>
         </div>
     </div>
 
