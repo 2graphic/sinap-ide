@@ -20,7 +20,7 @@ import * as path from "path";
  * Stores the state of each open tab.
  */
 export class TabContext {
-    private constructor(public graph: GraphController, private plugin: Plugin, private kind: string[], public file?: string, tempName?: string) {
+    private constructor(public internalGraph: GraphController, private plugin: Plugin, private kind: string[], public file?: string, tempName?: string) {
         this.statusBarInfo = {
             title: kind.length > 0 ? kind[kind.length - 1] : "",
             items: []
@@ -35,8 +35,12 @@ export class TabContext {
 
         this.compileProgram();
 
-        graph.changed.asObservable().subscribe(this.addUndoableEvent);
+        internalGraph.changed.asObservable().subscribe(this.addUndoableEvent);
     };
+
+    public get graph() {
+        return (this.inputPanelData.selected && this.inputPanelData.selected.isDebugging) ? this.inputPanelData.selected.programInfo.graph : this.internalGraph;
+    }
 
     static getUnsavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], name?: string) {
         return new TabContext(graph, plugin, kind, undefined, name);
