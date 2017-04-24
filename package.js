@@ -9,7 +9,7 @@ const exec = require("child_process").exec;
 const process = require("process");
 const path = require("path");
 const glob = require("glob");
-const signAsync = require('electron-osx-sign').signAsync;
+const sign = require('electron-osx-sign');
 
 ncp.limit = 16;
 
@@ -34,6 +34,10 @@ function globProm(options) {
 
 function copyProm(source, destination) {
     return new Promise((resolve, reject) => ncp(source, destination, makeCb(resolve, reject)));
+}
+
+function signProm(options) {
+    return new Promise((resolve, reject) => sign(options, makeCb(resolve, reject)));
 }
 
 function runPackage(options) {
@@ -114,7 +118,7 @@ async function main() {
     await runPackage(packageOpts);
     console.log("Finished building, begining signing");
     if (packageOpts.all || packageOpts.platform === "darwin") {
-        await signAsync({app: 'dist/Sinap-darwin-x64/Sinap.app', "keychain": "build.keychain", "provisioning-profile": "Sinap.provisionprofile"});
+        await signProm({app: 'dist/Sinap-darwin-x64/Sinap.app', "keychain": "build.keychain", "provisioning-profile": "Sinap.provisionprofile"});
     }
     console.log("Finished Signing, begining zipping");
 
