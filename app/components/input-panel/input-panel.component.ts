@@ -71,14 +71,15 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private stepBackwardButton = new TitlebarButton("arrow_back", "Step", false, this.stepBackward.bind(this));
     private stepForwardButton = new TitlebarButton("arrow_forward", "Step", false, this.step.bind(this));
     private stepLastButton = new TitlebarButton("last_page", "Finish", false, this.stepFinish.bind(this));
-    private syncButton = new TitlebarButton("sync", "Step to Completion", false, this.stepToCompletion.bind(this));
+    private debugStopButton = new TitlebarButton("stop", "Stop Debuggin", false, this.stopDebugging.bind(this));
 
     private updateButtons() {
+        [this.stepFirstButton, this.stepBackwardButton, this.stepForwardButton, this.stepLastButton, this.debugStopButton].forEach((b) => b.isDisabled = true);
+
         if (this._data.selected && this._data.selected.isDebugging === true) {
-            [this.stepForwardButton, this.stepLastButton, this.syncButton].forEach((b) => b.isDisabled = (this._data.selected.steps === this._data.selected.totalSteps));
+            this.debugStopButton.isDisabled = false;
+            [this.stepForwardButton, this.stepLastButton].forEach((b) => b.isDisabled = (this._data.selected.steps === this._data.selected.totalSteps));
             [this.stepFirstButton, this.stepBackwardButton].forEach((b) => b.isDisabled = (this._data.selected.steps === 0));
-        } else {
-            [this.stepFirstButton, this.stepBackwardButton, this.stepForwardButton, this.stepLastButton, this.syncButton].forEach((b) => b.isDisabled = true);
         }
     }
 
@@ -89,7 +90,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         this.stepForwardButton,
         this.stepLastButton,
         new TitlebarSpacer(),
-        this.syncButton
+        this.debugStopButton
     ];
 
     set data(value: InputPanelData) {
@@ -122,8 +123,11 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private selectState(state: State) {
-        this._data.selectedState = state;
         if (this._data.selected) {
+            this._data.selectedState = state;
+            this._data.selected.isDebugging = true;
+            this.updateButtons();
+
             if (state.state instanceof Value.CustomObject && state.state.type.members.has("active")) {
                 const active = state.state.get("active");
                 if (active instanceof Value.ArrayObject || active instanceof Value.SetObject) {
@@ -133,8 +137,6 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
                 }
             }
         }
-
-        this.updateButtons();
     }
 
     private scrollToBottom() {
@@ -154,7 +156,6 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private stepFirst() {
-        this._data.selected.isDebugging = true;
         if (this._data.selected) {
             this._data.selected.steps = 0;
             this.scrollToBottom();
@@ -163,7 +164,6 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private stepBackward() {
-        this._data.selected.isDebugging = true;
         if (this._data.selected && (this._data.selected.steps > 0)) {
             this._data.selected.steps--;
             if (this._data.selected.steps > 0) {
@@ -174,49 +174,21 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         }
     }
 
-    private step(): boolean {
+    private step() {
         if (this._data.selected && (this._data.selected.steps < this._data.selected.output.states.length)) {
             this.selectState(this._data.selected.output.states[this._data.selected.steps++]);
             this.scrollToBottom();
             this.updateButtons();
-
-            if (this._data.selected.steps === this._data.selected.output.states.length) {
-                this._data.selected.isDebugging = false;
-            }
-            return true;
         }
-
-        return false;
     }
 
     private stepFinish() {
         if (this._data.selected) {
             this._data.selected.steps = this._data.selected.output.states.length - 1;
             this.selectState(this._data.selected.output.states[this._data.selected.steps++]);
-            this._data.selected.isDebugging = false;
             this.scrollToBottom();
             this.updateButtons();
         }
-    }
-
-    /**
-     * Calls this.step() every 750 milliseconds as long as this.step() returns true.
-     */
-    private stepToCompletion() {
-        let g: () => void;
-        let f = () => {
-            setTimeout(() => {
-                g();
-            }, 750);
-        };
-
-        g = () => {
-            if (this.step()) {
-                f();
-            }
-        };
-
-        g();
     }
 
     private async onSubmit() {
@@ -267,11 +239,19 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
 
     private startDebugging() {
         if (this._data.selected) {
+            this._data.selected.isDebugging = true;
+
             this._data.selected.steps = Math.min(1, this._data.selected.totalSteps - 1);
             if (this._data.selected.steps) {
                 this.selectState(this._data.selected.getStates()[0]);
             }
-            this._data.selected.isDebugging = true;
+            this.updateButtons();
+        }
+    }
+
+    private stopDebugging() {
+        if (this._data.selected) {
+            this._data.selected.isDebugging = false;
             this.updateButtons();
         }
     }
