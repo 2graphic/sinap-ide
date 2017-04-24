@@ -55,6 +55,28 @@ function createWindow() {
         app.quit();
     });
 
+    win.webContents.on("errorInWindow", (e: any) => {
+        let result = dialog.showMessageBox({
+            type: 'error',
+            message: 'There was an error:\n' + e.toString(),
+            buttons: ['Exit', 'Reload']
+        });
+
+        if (result === 1) {
+            if (win) {
+                win.webContents.reload();
+            }
+        }
+
+        if (result === 0) {
+            if (win) {
+                win.destroy();
+                win = undefined;
+            }
+            app.quit();
+        }
+    });
+
     win.on("unresponsive", () => {
         console.log("unresponsive");
         if (win) {

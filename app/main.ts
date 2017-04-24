@@ -16,9 +16,14 @@ const ipcRenderer = require('electron').ipcRenderer;
 
 import "file-loader?name=index.html!extract-loader!./index.html";
 
+ipcRenderer.send("heartbeat");
 setInterval(() => {
     ipcRenderer.send("heartbeat");
 }, 1000);
+
+window.onerror = (error, url, line) => {
+    ipcRenderer.send('errorInWindow', error);
+};
 
 if (IS_PRODUCTION) {
     enableProdMode();
