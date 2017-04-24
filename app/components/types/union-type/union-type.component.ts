@@ -45,7 +45,7 @@ export class UnionTypeComponent extends BaseTypeComponent<Value.Union> {
 
         this.options = [];
         v.type.types.forEach((t) => {
-            if (v.value.type.equals(t)) {
+            if (Type.isSubtype(v.value.type, t)) {
                 this._selected = t;
                 if (this.value.value instanceof Value.Literal) {
                     this.selectedValue = undefined;

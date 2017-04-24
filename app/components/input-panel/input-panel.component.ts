@@ -151,6 +151,8 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
                     this._data.selected.programInfo.graph.selectElements(...active.simpleRepresentation as ElementValue[]);
                 } else if (active.type instanceof ElementType) {
                     this._data.selected.programInfo.graph.selectElements(active as ElementValue);
+                } else if (active instanceof Value.Union && active.value.type instanceof ElementType) {
+                    this._data.selected.programInfo.graph.selectElements(active.value as ElementValue);
                 }
             }
         }
