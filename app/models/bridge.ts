@@ -34,9 +34,7 @@ export class Bridge {
 
         this.coreListener = (_: Value.Value, value: Value.Value, other: any) => {
             this.sync(() => {
-                updateComputedProperties();
-
-                [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => {
+                const key = [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).find(([_, v]) => {
                     if (v === value) {
                         return true;
                     } else if (v instanceof Value.Record) {
@@ -50,7 +48,12 @@ export class Bridge {
                     }
 
                     return false;
-                }).forEach(([k, _]) => {
+                });
+                if (key) {
+                    const [k, _] = key;
+
+                    updateComputedProperties();
+
                     this.graph.copyPropertyToDrawable(core.get(k), drawable, k);
 
                     // TODO: Can only undo primitive and union changes.
@@ -75,7 +78,7 @@ export class Bridge {
 
                         this.graph.changed.emit(undo);
                     }
-                });
+                }
             });
         };
 
