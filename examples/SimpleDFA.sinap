@@ -741,7 +741,7 @@
                 },
                 "rep": {
                     "kind": "value-reference",
-                    "uuid": "677e8ad5-63a8-4852-8bf4-a32daf8fc25f"
+                    "uuid": "e8f42d77-4101-416b-a40f-c957d424fb08"
                 }
             },
             "5c447b76-5d20-4d55-81c0-b1de4d9601bf": {
@@ -749,12 +749,6 @@
                     "literal": "ellipse"
                 },
                 "rep": "ellipse"
-            },
-            "677e8ad5-63a8-4852-8bf4-a32daf8fc25f": {
-                "type": {
-                    "literal": 2
-                },
-                "rep": 2
             },
             "aede3711-f542-4e4a-99a4-be4daac5518e": {
                 "type": {
@@ -1815,6 +1809,12 @@
                     "literal": 2
                 },
                 "rep": 2
+            },
+            "e8f42d77-4101-416b-a40f-c957d424fb08": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 2.1
             }
         }
     }

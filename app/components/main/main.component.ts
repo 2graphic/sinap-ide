@@ -147,12 +147,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     private set context(context: TabContext | undefined) {
         this._context = context;
         if (context) {
-            this.toolsPanelData.graph = context.graph;
+            this.toolsPanelData.graph = context.internalGraph;
             this.filesPanelData.selectedFile = context.file;
             this.statusBar.info = context.statusBarInfo;
-
-            context.graph.selectionChanged.asObservable().subscribe(evt => this.propertiesPanelData.selectedElements = evt);
-            this.propertiesPanelData.selectedElements = context.graph.selectedElements;
 
             if (this.toolsPanelData.shouldDisplay && this.sidePanels.length < 3) {
                 this.sidePanels = [
@@ -191,8 +188,8 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             const model = content ? Model.fromSerial(content, plugin) : new Model(plugin);
 
             const graph = new GraphController(model, plugin);
-            const context = file ? TabContext.getSavedTabContext(graph, plugin, kind, file) :
-                TabContext.getUnsavedTabContext(graph, plugin, kind, name);
+            const context = file ? TabContext.getSavedTabContext(graph, plugin, kind, this.propertiesPanelData, file) :
+                TabContext.getUnsavedTabContext(graph, plugin, kind, this.propertiesPanelData, name);
 
             let tabNumber = this.tabBar.newTab(context);
             this.tabs.set(tabNumber, context);

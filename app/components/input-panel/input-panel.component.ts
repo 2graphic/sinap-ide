@@ -55,6 +55,9 @@ export class InputPanelData {
 
     readonly programChanged
     = new EventEmitter<ProgramInfo | undefined>();
+
+    readonly setDebugging
+    = new EventEmitter<boolean>();
 }
 
 @Component({
@@ -125,7 +128,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private selectState(state: State) {
         if (this._data.selected) {
             this._data.selectedState = state;
-            this._data.selected.isDebugging = true;
+           this.startDebugging(false);
             this.updateButtons();
 
             if (state.state instanceof Value.CustomObject && state.state.type.members.has("active")) {
@@ -237,14 +240,18 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         }
     }
 
-    private startDebugging() {
+    private startDebugging(reset: boolean = true) {
         if (this._data.selected) {
             this._data.selected.isDebugging = true;
+            this._data.setDebugging.emit(true);
 
-            this._data.selected.steps = Math.min(1, this._data.selected.totalSteps - 1);
-            if (this._data.selected.steps) {
-                this.selectState(this._data.selected.getStates()[0]);
+            if (reset) {
+                this._data.selected.steps = Math.min(1, this._data.selected.totalSteps - 1);
+                if (this._data.selected.steps) {
+                    this.selectState(this._data.selected.getStates()[0]);
+                }
             }
+
             this.updateButtons();
         }
     }
@@ -252,7 +259,9 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private stopDebugging() {
         if (this._data.selected) {
             this._data.selected.isDebugging = false;
+            this._data.setDebugging.emit(false);
             this.updateButtons();
+            this.scrollToBottom();
         }
     }
 }
