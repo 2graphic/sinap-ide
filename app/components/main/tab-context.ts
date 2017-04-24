@@ -41,6 +41,9 @@ export class TabContext {
         this.graph = internalGraph;
 
         internalGraph.changed.asObservable().subscribe(this.addUndoableEvent);
+        internalGraph.selectionChanged.asObservable().subscribe((a) => {
+            this.selected(a, internalGraph);
+        });
         this.inputPanelData.setDebugging.asObservable().subscribe(this.setDebugging);
     };
 
@@ -49,13 +52,24 @@ export class TabContext {
     }
 
     public set graph(g: GraphController) {
-        this._graph = g;
-        g.selectionChanged.asObservable().subscribe(this.selected);
-        this.propertiesPanel.selectedElements = g.selectedElements;
+        this.propertiesPanel.isReadonly = (g === this.internalGraph) ? false : true;
+
+        if (this._graph !== g) {
+            this.propertiesPanel.selectedElements = g.selectedElements;
+
+            this._graph = g;
+
+            if (g !== this.internalGraph && !this.inputPanelData.startDebugging(g)) {
+                this._graph = this.internalGraph;
+            } else {
+                this._graph = g;
+            }
+        }
     }
 
-    private selected = (selected: Set<Bridge>) => {
+    private selected = (selected: Set<Bridge>, selectedGraph: GraphController) => {
         this.propertiesPanel.selectedElements = selected;
+        this.graph = selectedGraph;
     }
 
     public setDebugging = (isDebugging: boolean) => {
@@ -115,6 +129,13 @@ export class TabContext {
             }
             this.inputPanelData.program = program;
             this.testPanelData.program = program;
+
+            if (this.inputPanelData.programInfo) {
+                const g = this.inputPanelData.programInfo.graph;
+                g.selectionChanged.asObservable().subscribe((a) => {
+                    this.selected(a, g);
+                });
+            }
         }).catch((e) => console.log(e));
     }
 

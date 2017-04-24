@@ -53,6 +53,17 @@ export class InputPanelData {
         this.programChanged.emit(this._programInfo);
     }
 
+    startDebugging(g: GraphController) {
+        const found = this.results.find(r => r.programInfo.graph === g);
+        if (found) {
+            this.selected = found;
+            this.setDebugging.emit(true);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     readonly programChanged
     = new EventEmitter<ProgramInfo | undefined>();
 
@@ -74,7 +85,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private stepBackwardButton = new TitlebarButton("arrow_back", "Step", false, this.stepBackward.bind(this));
     private stepForwardButton = new TitlebarButton("arrow_forward", "Step", false, this.step.bind(this));
     private stepLastButton = new TitlebarButton("last_page", "Finish", false, this.stepFinish.bind(this));
-    private debugStopButton = new TitlebarButton("stop", "Stop Debuggin", false, this.stopDebugging.bind(this));
+    private debugStopButton = new TitlebarButton("stop", "Stop Debugging", false, this.stopDebugging.bind(this));
 
     private updateButtons() {
         [this.stepFirstButton, this.stepBackwardButton, this.stepForwardButton, this.stepLastButton, this.debugStopButton].forEach((b) => b.isDisabled = true);
@@ -100,6 +111,9 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         this._data = value;
         value.programChanged.asObservable().subscribe(p => {
             this.setupInput();
+        });
+        value.setDebugging.asObservable().subscribe(b => {
+            b === true ? this.startDebugging(false) : this.stopDebugging();
         });
         this.setupInput();
         this.updateButtons();
@@ -241,7 +255,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private startDebugging(reset: boolean = true) {
-        if (this._data.selected) {
+        if (this._data.selected && this._data.selected.isDebugging === false) {
             this._data.selected.isDebugging = true;
             this._data.setDebugging.emit(true);
 
@@ -257,7 +271,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private stopDebugging() {
-        if (this._data.selected) {
+        if (this._data.selected && this._data.selected.isDebugging === true) {
             this._data.selected.isDebugging = false;
             this._data.setDebugging.emit(false);
             this.updateButtons();
