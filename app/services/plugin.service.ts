@@ -1,5 +1,5 @@
 import { Injectable, Inject, EventEmitter } from '@angular/core';
-import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter, getLogger, dirFiles, removeDir, arrayEquals, createDir, sleep } from "../util";
+import { somePromises, subdirs, copy, zipFiles, fileStat, tempDir, unzip, closeAfter, getLogger, dirFiles, removeDir, arrayEquals, createDir, sleep, ensureDir } from "../util";
 import * as path from "path";
 import { remote } from "electron";
 import { IS_PRODUCTION } from "../constants";
@@ -124,11 +124,13 @@ export class PluginService {
     constructor() {
         this.lock = new PromiseLock();
         this.holders = [];
-        fs.watch(PLUGIN_DIRECTORY, {
-            persistent: false,
-            recursive: false
-        }, (event, fname) => this.reload());
-        this.reload();
+        ensureDir(PLUGIN_DIRECTORY).then(_ => {
+            fs.watch(PLUGIN_DIRECTORY, {
+                persistent: false,
+                recursive: false
+            }, (event, fname) => this.reload());
+            this.reload();
+        });
     }
 
     async reload(): Promise<void> {
