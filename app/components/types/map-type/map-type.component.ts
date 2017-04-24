@@ -20,8 +20,6 @@ export class MapTypeComponent extends BaseTypeComponent<Value.MapObject> {
     @Input()
     set value(v: Value.MapObject) {
         super.value = v;
-        this.values = [];
-
-        // TODO
+        this.values = v.simpleRepresentation;
     }
 }

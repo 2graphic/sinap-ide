@@ -21,7 +21,7 @@
                     </div>
                     <div *ngIf="item.kind === 'button'">
                         <span class="titlebar-button " title="{{item.title}}" [class.disabled]="item.isDisabled"
-                            (click)="item.click(item)">
+                            (click)="!item.isDisabled && item.click(item)">
                                 <i class="material-icons toolbar-icon">{{item.icon}}</i>
                         </span>
                     </div>

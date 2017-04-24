@@ -196,3 +196,27 @@ td.last {
 ::-webkit-scrollbar {
     display: none;
 }
+
+
+#debug-button {
+    width: calc(100% - .5em);
+    margin: .25em;
+    font-size: small;
+    margin-top: .5em;
+    text-align: center;
+    background-color: white;
+    border: thin solid black;
+    border-radius: 4px;
+    box-sizing: border-box;
+    padding: .45em;
+
+    cursor: pointer;
+}
+
+#debug-button:hover {
+    background-color: whitesmoke;
+}
+
+#debug-button:active {
+    background-color: gainsboro;
+}

@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { NodePromise, readdir, Program } from "sinap-core";
+import { NodePromise, readdir, Program, ElementType, Plugin } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { SINAP_FILE_FILTER, ZIP_FILE_FILTER } from "./constants";
 import * as zlib from "zlib";
@@ -8,7 +8,6 @@ import * as zlib from "zlib";
 import { remote } from "electron";
 const { dialog } = remote;
 
-import { ncp } from "ncp";
 import * as archiver from "archiver";
 import * as tmp from "tmp";
 import * as extract from "extract-zip";
@@ -22,13 +21,29 @@ export function getInput(program: Program) {
 
     let inputForPlugin: Value.Value | undefined = undefined;
 
-    if ([...plugin.types.nodes.types.values()].find((t) => Type.isSubtype!(type, t.pluginType))) {
+    if (type instanceof Value.MapType && isNodeType(program.plugin, type.keyType)) {
+        const filtered = [...program.model.nodes.values()].filter((n) => Type.isSubtype(n.type, type.keyType));
+        if (filtered.length === 0) {
+            return undefined;
+        }
+        const map = program.model.environment.make(type) as Value.MapObject;
+        filtered.forEach((n) => {
+            map.set(n, program.model.environment.make(type.valueType));
+        });
+        return map;
+    }
+
+    if (isNodeType(program.plugin, type)) {
         inputForPlugin = program.model.nodes.values().next().value;
         return inputForPlugin;
     }
 
 
     return program.model.environment.make(type);
+}
+
+export function isNodeType(plugin: Plugin, type: Type.Type) {
+    return [...plugin.types.nodes.types.values()].find((t) => Type.isSubtype(type, t.pluginType));
 }
 
 export function getExpected(program: Program) {
@@ -137,6 +152,15 @@ export async function requestOpenDirs(name?: string): Promise<string[]> {
         properties: ["openDirectory"],
         filters: [ZIP_FILE_FILTER],
         defaultPath: name
+    }, names => result.cb(names ? null : "Directory selection cancelled", names));
+
+    return await result.promise;
+}
+
+export async function requestDirectory(): Promise<string[]> {
+    const result = new NodePromise<string[]>();
+    dialog.showOpenDialog(remote.BrowserWindow.getFocusedWindow(), {
+        properties: ["openDirectory"],
     }, names => result.cb(names ? null : "Directory selection cancelled", names));
 
     return await result.promise;

@@ -1,14 +1,30 @@
 <div>
-<table>
-    <tr>
-        <td class="label">X: </td>
-        <td id="first">
-            <sinap-type [graph]="graph" [value]="point.x" [readonly]="readonly"></sinap-type>
-        </td>
-        <td class="label">Y: </td>
-        <td>
-            <sinap-type [graph]="graph" [value]="point.y" [readonly]="readonly"></sinap-type>
-        </td>
-    </tr>
-</table>
+    <table>
+        <tr>
+            <td>
+                <div class="inner first">
+                    <table>
+                        <tr>
+                            <td class="label">X</td>
+                            <td>
+                                <sinap-type [graph]="graph" [value]="point.x" [readonly]="readonly"></sinap-type>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td>
+                <div class="inner last">
+                    <table>
+                        <tr>
+                            <td class="label">Y</td>
+                            <td>
+                                <sinap-type [graph]="graph" [value]="point.y" [readonly]="readonly"></sinap-type>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
 </div>

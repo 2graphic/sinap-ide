@@ -19,24 +19,32 @@ export class Bridge {
         // Debounce updating the computed properties.
         let timer: number | undefined;
         const updateComputedProperties = () => {
-            if (timer) clearTimeout(timer);
-            timer = setTimeout(() => {
+            const f = () => {
                 this.sync(() => {
                     computedPropertyContext.update();
                     [...computedPropertyContext.properties.entries()].forEach(([key, [name, value]]) => {
                         this.graph.copyPropertyToDrawable(value, drawable, key);
                     });
                 });
-            }, timer ? 100 : 0) as any;
+            };
+
+            if (timer !== undefined) {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    f();
+                }, 100) as any;
+            } else {
+                timer = 0;
+                f();
+            }
+
         };
 
         updateComputedProperties();
 
         this.coreListener = (_: Value.Value, value: Value.Value, other: any) => {
             this.sync(() => {
-                updateComputedProperties();
-
-                [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).filter(([_, v]) => {
+                const key = [...core.type.members.entries()].map(([k, _]): [string, Value.Value] => [k, core.get(k)]).find(([_, v]) => {
                     if (v === value) {
                         return true;
                     } else if (v instanceof Value.Record) {
@@ -50,7 +58,12 @@ export class Bridge {
                     }
 
                     return false;
-                }).forEach(([k, _]) => {
+                });
+                if (key) {
+                    const [k, _] = key;
+
+                    updateComputedProperties();
+
                     this.graph.copyPropertyToDrawable(core.get(k), drawable, k);
 
                     // TODO: Can only undo primitive and union changes.
@@ -75,7 +88,7 @@ export class Bridge {
 
                         this.graph.changed.emit(undo);
                     }
-                });
+                }
             });
         };
 

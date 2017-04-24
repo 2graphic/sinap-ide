@@ -75,19 +75,9 @@ export class TypeInjectorComponent {
             this.container.clear();
             this.component = undefined;
         }
-        else if (this.component && this._value) {
-            try {
-                if (this._value.deepEqual(v) && this._value !== v) {
-                    this._value = v;
-                    this.component.instance.value = v;
-                } else {
-                    this.inject(v, this.readonly, this._disabled, this.graph);
-                }
-            } catch (e) {
-                console.log(e);
-                this.inject(v, this.readonly, this._disabled, this.graph);
-                // TODO: Sheyne, deepEqual after a couple recursive calls throws an exception when running dfs.
-            }
+        else if (this.component && !(this.component.instance instanceof NodeTypeComponent) && this._value && this._value !== v && this._value.environment === v.environment && this._value.deepEqual(v)) {
+            this._value = v;
+            this.component.instance.value = v;
         }
         else {
             this.inject(v, this.readonly, this._disabled, this.graph);
@@ -178,7 +168,7 @@ export class TypeInjectorComponent {
                 }
             }
 
-            if (value instanceof Value.ArrayObject) {
+            if (value instanceof Value.ArrayObject || value instanceof Value.TupleObject) {
                 return ListTypeComponent;
             }
 

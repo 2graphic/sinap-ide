@@ -59,7 +59,7 @@
                 <tbody *ngFor="let state of _data.selected.getStates()" (click)="selectState(state)">
                         <tr *ngIf="state.message !== undefined">
                             <td [class.expand-chevron-before]="_data.selectedState === state">
-                                <sinap-type [graph]="_data.programInfo.graph" [value]="state.message"></sinap-type>
+                                <sinap-type [graph]="_data.selected.programInfo.graph" [value]="state.message"></sinap-type>
                             </td>
                             <td [class.clickable]="_data.selectedState !== state" [class.expand-chevron-down]="_data.selectedState === state" [class.expand-chevron-right]="_data.selectedState !== state">
                                 <span class="chevron">›</span>
@@ -68,13 +68,13 @@
 
                         <tr *ngIf="state.message !== undefined && _data.selectedState == state" class="expanded">
                             <td colspan="2">
-                                <sinap-type [graph]="_data.programInfo.graph" [value]="state.state"></sinap-type>
+                                <sinap-type [graph]="_data.selected.programInfo.graph" [value]="state.state"></sinap-type>
                             </td>
                         </tr>
 
                         <tr *ngIf="state.message === undefined">
                             <td colspan="2">
-                                <sinap-type [graph]="_data.programInfo.graph" [value]="state.state"></sinap-type>
+                                <sinap-type [graph]="_data.selected.programInfo.graph" [value]="state.state"></sinap-type>
                             </td>
                         </tr>
                 </tbody>
@@ -84,12 +84,14 @@
                         <div class="result">
                             <span class="chevron">&lt;</span>
                             <span [class.error]="isErrorType(_data.selected.output.result.type)">
-                                <sinap-type [graph]="_data.programInfo.graph" [value]="_data.selected.output.result"></sinap-type>
+                                <sinap-type [graph]="_data.selected.programInfo.graph" [value]="_data.selected.output.result"></sinap-type>
                             </span>
                         </div>
                     </td>
                 </tr>
             </table>
+
+            <div *ngIf="_data.selected && !_data.selected.isDebugging" (click)="startDebugging()" id="debug-button">Start Debugging </div>
         </div>
     </div>
 

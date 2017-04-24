@@ -66,6 +66,7 @@ table {
     border-collapse: separate;
     font-size: small;
     margin: .25em;
+    width: calc(100% - .5em);
     overflow: hidden;
 }
 
