@@ -265,18 +265,19 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
                     this.selectState(this._data.selected.getStates()[0]);
                 }
             }
-
-            this.updateButtons();
         }
+
+        this.updateButtons();
     }
 
     private stopDebugging() {
         if (this._data.selected && this._data.selected.isDebugging === true) {
             this._data.selected.isDebugging = false;
             this._data.setDebugging.emit(false);
-            this.updateButtons();
             this.scrollToBottom();
         }
+
+        this.updateButtons();
     }
 }
 
