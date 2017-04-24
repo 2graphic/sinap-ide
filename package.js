@@ -6,6 +6,7 @@ const dllConfig = require("./webpack.dll.config");
 const mainConfig = require("./webpack.config.js");
 const fs = require("fs");
 const exec = require("child_process").exec;
+const execSync = require("child_process").execSync;
 const process = require("process");
 const path = require("path");
 const glob = require("glob");
@@ -118,7 +119,10 @@ async function main() {
     await runPackage(packageOpts);
     console.log("Finished building, begining signing");
     if (packageOpts.all || packageOpts.platform === "darwin") {
-        await signProm({app: 'dist/Sinap-darwin-x64/Sinap.app', "keychain": "build.keychain", "provisioning-profile": "Sinap.provisionprofile"});
+        execSync(
+            "node_modules/.bin/electron-osx-sign dist/Sinap-darwin-x64/Sinap.app/ --keychain=build.keychain --provisioning-profile=Sinap.provisionprofile"
+            , {stdio: "inherit"}
+        );
     }
     console.log("Finished Signing, begining zipping");
 
