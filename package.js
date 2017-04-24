@@ -114,7 +114,7 @@ async function main() {
     await runPackage(packageOpts);
     console.log("Finished building, begining signing");
     if (packageOpts.all || packageOpts.platform === "darwin") {
-        await signAsync({app: 'dist/Sinap-darwin-x64/Sinap.app', "provisioning-profile": "Sinap.provisionprofile"});
+        await signAsync({app: 'dist/Sinap-darwin-x64/Sinap.app', "keychain": "build.keychain", "provisioning-profile": "Sinap.provisionprofile"});
     }
     console.log("Finished Signing, begining zipping");
 
