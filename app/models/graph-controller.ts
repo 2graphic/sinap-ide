@@ -345,6 +345,9 @@ export class GraphController {
                 const lineWidth = value.value.value;
                 (drawable as any)[key] = lineWidth === "thin" ? 1 : (lineWidth === "thick" ? 3 : 2); // medium = 2;
             } else if (value.value instanceof Value.Primitive) {
+                if (value.value.value === 0) {
+                    value.value.value = 2;
+                }
                 (drawable as any)[key] = value.value.value;
             }
 

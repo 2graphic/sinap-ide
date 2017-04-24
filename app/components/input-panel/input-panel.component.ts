@@ -128,7 +128,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private selectState(state: State) {
         if (this._data.selected) {
             this._data.selectedState = state;
-           this.startDebugging(false);
+            this.startDebugging(false);
             this.updateButtons();
 
             if (state.state instanceof Value.CustomObject && state.state.type.members.has("active")) {
