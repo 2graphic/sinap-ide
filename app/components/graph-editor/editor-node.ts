@@ -604,6 +604,7 @@ export class EditorNode extends EditorElement<DrawableNode> {
     private onDrawableChange
     = (evt: PropertyChangedEvent<any>) => {
         switch (evt.detail.key) {
+            case "image":
             case "shape": {
                 this.updateTrace();
                 this.updateStroke();
