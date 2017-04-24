@@ -10,7 +10,6 @@
 }
 
 .color-label {
-    cursor: pointer;
     vertical-align: middle;
     color: black;
     font-size: 11px;
@@ -19,10 +18,17 @@
     height: 100%;
 
     @extend %rounded;
+
+    padding: 3px;
+}
+
+.clickable {
+    cursor: pointer;
 }
 
 .color-preview {
     width: .85em;
     height: .85em;
+    border: thin solid black;
     display: inline-block;
 }

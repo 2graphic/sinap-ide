@@ -345,6 +345,9 @@ export class GraphController {
                 const lineWidth = value.value.value;
                 (drawable as any)[key] = lineWidth === "thin" ? 1 : (lineWidth === "thick" ? 3 : 2); // medium = 2;
             } else if (value.value instanceof Value.Primitive) {
+                if (value.value.value === 0) {
+                    value.value.value = 2;
+                }
                 (drawable as any)[key] = value.value.value;
             }
 
@@ -352,9 +355,13 @@ export class GraphController {
         }
 
         if (((value instanceof Value.Literal) || (value instanceof Value.Primitive)) && key === "image") {
-            if (value.value && value.value !== "") {
+            if (value.value) {
                 const path = getPath(this.plugin.pluginInfo.interpreterInfo.directory + "/" + value.value);
+                console.log("setting image to: " + path);
                 (drawable as any)[key] = path;
+            } else {
+                console.log("setting image to the blank string");
+                (drawable as any)[key] = "";
             }
             return;
         }

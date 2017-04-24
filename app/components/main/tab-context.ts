@@ -3,10 +3,11 @@
 // Date created: October 10, 2016
 //
 
-import { GraphController, UndoableEvent } from "../../models/graph-controller";
+import { GraphController, UndoableEvent, Bridge } from "../../models/graph-controller";
 import { Program, Plugin } from "sinap-core";
 import { StatusBarInfo } from "../../components/status-bar/status-bar.component";
 import { InputPanelData, ProgramInfo } from "../input-panel/input-panel.component";
+import { PropertiesPanelData } from "../properties-panel/properties-panel.component";
 import { TestPanelData } from "../test-panel/test-panel.component";
 import { writeData } from "../../util";
 import { SINAP_FILE_FILTER } from "../../constants";
@@ -20,7 +21,9 @@ import * as path from "path";
  * Stores the state of each open tab.
  */
 export class TabContext {
-    private constructor(public graph: GraphController, private plugin: Plugin, private kind: string[], public file?: string, tempName?: string) {
+    private _graph: GraphController;
+
+    private constructor(public internalGraph: GraphController, private plugin: Plugin, private kind: string[], private propertiesPanel: PropertiesPanelData, public file?: string, tempName?: string) {
         this.statusBarInfo = {
             title: kind.length > 0 ? kind[kind.length - 1] : "",
             items: []
@@ -35,16 +38,43 @@ export class TabContext {
 
         this.compileProgram();
 
-        graph.changed.asObservable().subscribe(this.addUndoableEvent);
+        this.graph = internalGraph;
+
+        internalGraph.changed.asObservable().subscribe(this.addUndoableEvent);
+        this.inputPanelData.setDebugging.asObservable().subscribe(this.setDebugging);
     };
 
-    static getUnsavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], name?: string) {
-        return new TabContext(graph, plugin, kind, undefined, name);
+    public get graph() {
+        return this._graph;
     }
 
-    static getSavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], file: string) {
+    public set graph(g: GraphController) {
+        this._graph = g;
+        g.selectionChanged.asObservable().subscribe(this.selected);
+        this.propertiesPanel.selectedElements = g.selectedElements;
+    }
+
+    private selected = (selected: Set<Bridge>) => {
+        this.propertiesPanel.selectedElements = selected;
+    }
+
+    public setDebugging = (isDebugging: boolean) => {
+        if (isDebugging && this.inputPanelData.selected) {
+            this.graph = this.inputPanelData.selected.programInfo.graph;
+            this.propertiesPanel.isReadonly = true;
+        } else {
+            this.graph = this.internalGraph;
+            this.propertiesPanel.isReadonly = false;
+        }
+    }
+
+    static getUnsavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], propertiesPanel: PropertiesPanelData, name?: string) {
+        return new TabContext(graph, plugin, kind, propertiesPanel, undefined, name);
+    }
+
+    static getSavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], propertiesPanel: PropertiesPanelData, file: string) {
         // TODO: Move file loading here
-        return new TabContext(graph, plugin, kind, file);
+        return new TabContext(graph, plugin, kind, propertiesPanel, file);
     }
 
     toString() {
@@ -76,14 +106,14 @@ export class TabContext {
 
     /** Compile the graph with the plugin, and retains a cached copy for subsequent calls. */
     public compileProgram() {
-        const program = this.plugin.makeProgram(this.graph.core);
+        const program = this.plugin.makeProgram(this.internalGraph.core);
         const validation = program.validate();
         if (validation) {
             this.statusBarInfo.items = [validation.value.toString()];
         } else {
             this.statusBarInfo.items = [];
         }
-        this.inputPanelData.programInfo = new ProgramInfo(program, this.graph);
+        this.inputPanelData.program = program;
         this.testPanelData.program = program;
 
         return program;
@@ -153,8 +183,8 @@ export class TabContext {
 
     public getRawData() {
         return JSON.stringify({
-            kind: this.graph.plugin.pluginInfo.pluginKind,
-            graph: this.graph.core.serialize()
+            kind: this.internalGraph.plugin.pluginInfo.pluginKind,
+            graph: this.internalGraph.core.serialize()
         }, null, 4);
     }
 

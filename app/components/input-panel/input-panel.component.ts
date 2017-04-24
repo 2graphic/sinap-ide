@@ -32,7 +32,6 @@ export class InputPanelData {
     results: ProgramResult[] = [];
     selected: ProgramResult;
     selectedState: State;
-    isDebugging = true;
 
     leftPanelWidth = 300;
 
@@ -42,13 +41,23 @@ export class InputPanelData {
         return this._programInfo;
     }
 
-    set programInfo(value: ProgramInfo | undefined) {
-        this._programInfo = value;
-        this.programChanged.emit(value);
+    set program(program: Program | undefined) {
+        if (program) {
+            const graph = new GraphController(program.model, program.plugin);
+            graph.drawable.isReadonly = true;
+            this._programInfo = new ProgramInfo(program, graph);
+        } else {
+            this._programInfo = undefined;
+        }
+
+        this.programChanged.emit(this._programInfo);
     }
 
     readonly programChanged
     = new EventEmitter<ProgramInfo | undefined>();
+
+    readonly setDebugging
+    = new EventEmitter<boolean>();
 }
 
 @Component({
@@ -65,14 +74,15 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     private stepBackwardButton = new TitlebarButton("arrow_back", "Step", false, this.stepBackward.bind(this));
     private stepForwardButton = new TitlebarButton("arrow_forward", "Step", false, this.step.bind(this));
     private stepLastButton = new TitlebarButton("last_page", "Finish", false, this.stepFinish.bind(this));
-    private syncButton = new TitlebarButton("sync", "Step to Completion", false, this.stepToCompletion.bind(this));
+    private debugStopButton = new TitlebarButton("stop", "Stop Debuggin", false, this.stopDebugging.bind(this));
 
     private updateButtons() {
-        if (this._data.selected && this._data.isDebugging === true) {
-            [this.stepForwardButton, this.stepLastButton, this.syncButton].forEach((b) => b.isDisabled = (this._data.selected.steps === this._data.selected.totalSteps));
+        [this.stepFirstButton, this.stepBackwardButton, this.stepForwardButton, this.stepLastButton, this.debugStopButton].forEach((b) => b.isDisabled = true);
+
+        if (this._data.selected && this._data.selected.isDebugging === true) {
+            this.debugStopButton.isDisabled = false;
+            [this.stepForwardButton, this.stepLastButton].forEach((b) => b.isDisabled = (this._data.selected.steps === this._data.selected.totalSteps));
             [this.stepFirstButton, this.stepBackwardButton].forEach((b) => b.isDisabled = (this._data.selected.steps === 0));
-        } else {
-            [this.stepFirstButton, this.stepBackwardButton, this.stepForwardButton, this.stepLastButton, this.syncButton].forEach((b) => b.isDisabled = true);
         }
     }
 
@@ -83,7 +93,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         this.stepForwardButton,
         this.stepLastButton,
         new TitlebarSpacer(),
-        this.syncButton
+        this.debugStopButton
     ];
 
     set data(value: InputPanelData) {
@@ -93,6 +103,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         });
         this.setupInput();
         this.updateButtons();
+        this.scrollToBottom();
     }
 
     ngAfterViewChecked() {
@@ -115,19 +126,20 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private selectState(state: State) {
-        this._data.selectedState = state;
-        if (this._data.programInfo) {
+        if (this._data.selected) {
+            this._data.selectedState = state;
+            this.startDebugging(false);
+            this.updateButtons();
+
             if (state.state instanceof Value.CustomObject && state.state.type.members.has("active")) {
                 const active = state.state.get("active");
                 if (active instanceof Value.ArrayObject || active instanceof Value.SetObject) {
-                    this._data.programInfo.graph.selectElements(...active.simpleRepresentation as ElementValue[]);
+                    this._data.selected.programInfo.graph.selectElements(...active.simpleRepresentation as ElementValue[]);
                 } else if (active.type instanceof ElementType) {
-                    this._data.programInfo.graph.selectElements(active as ElementValue);
+                    this._data.selected.programInfo.graph.selectElements(active as ElementValue);
                 }
             }
         }
-
-        this.updateButtons();
     }
 
     private scrollToBottom() {
@@ -165,15 +177,12 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         }
     }
 
-    private step(): boolean {
+    private step() {
         if (this._data.selected && (this._data.selected.steps < this._data.selected.output.states.length)) {
             this.selectState(this._data.selected.output.states[this._data.selected.steps++]);
             this.scrollToBottom();
             this.updateButtons();
-            return true;
         }
-
-        return false;
     }
 
     private stepFinish() {
@@ -185,48 +194,27 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         }
     }
 
-    /**
-     * Calls this.step() every 750 milliseconds as long as this.step() returns true.
-     */
-    private stepToCompletion() {
-        let g: () => void;
-        let f = () => {
-            setTimeout(() => {
-                g();
-            }, 750);
-        };
-
-        g = () => {
-            if (this.step()) {
-                f();
-            }
-        };
-
-        g();
-    }
-
     private async onSubmit() {
-        let input = this.inputComponent.value!;
-
-        let inputDifferent: Value.Value | undefined;
         if (this._data.programInfo) {
-            inputDifferent = this._data.programInfo.program.model.environment.values.get(input.uuid);
+            let input = this.inputComponent.value!;
+
+            let inputDifferent: Value.Value | undefined = this._data.programInfo.program.model.environment.values.get(input.uuid);
+            if (inputDifferent) {
+                input = inputDifferent;
+            }
+
+            const output = await this.run(input);
+            const states = output.steps.map(s => new State(s));
+            const result = new ProgramResult(input, new Output(states, output.result), this._data.programInfo);
+
+            console.log("Run result", result);
+
+            this._data.selected = result;
+            this._data.results.unshift(result);
+            this.updateButtons();
+            this.setupInput();
+            this.scrollToBottom();
         }
-        if (inputDifferent) {
-            input = inputDifferent;
-        }
-
-        const output = await this.run(input);
-        const states = output.steps.map(s => new State(s));
-        const result = new ProgramResult(input, new Output(states, output.result));
-
-        console.log("Run result", result);
-
-        this._data.selected = result;
-        this._data.results.unshift(result);
-        this.updateButtons();
-        this.setupInput();
-        this.scrollToBottom();
     }
 
     private async run(input: Value.Value) {
@@ -249,6 +237,31 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
         if (evt.rectangle.width) {
             this._data.leftPanelWidth = Math.max(evt.rectangle.width, 200); // TODO, max value
             this.toolbarSpacer.width = this._data.leftPanelWidth - 60;
+        }
+    }
+
+    private startDebugging(reset: boolean = true) {
+        if (this._data.selected) {
+            this._data.selected.isDebugging = true;
+            this._data.setDebugging.emit(true);
+
+            if (reset) {
+                this._data.selected.steps = Math.min(1, this._data.selected.totalSteps - 1);
+                if (this._data.selected.steps) {
+                    this.selectState(this._data.selected.getStates()[0]);
+                }
+            }
+
+            this.updateButtons();
+        }
+    }
+
+    private stopDebugging() {
+        if (this._data.selected) {
+            this._data.selected.isDebugging = false;
+            this._data.setDebugging.emit(false);
+            this.updateButtons();
+            this.scrollToBottom();
         }
     }
 }
@@ -286,7 +299,9 @@ class State {
 }
 
 class ProgramResult {
-    constructor(public readonly input: Value.Value, public readonly output: Output) { };
+    isDebugging = false;
+
+    constructor(public readonly input: Value.Value, public readonly output: Output, public programInfo: ProgramInfo) { };
     public steps = 0;
 
     public getStates() {

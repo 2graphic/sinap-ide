@@ -553,14 +553,13 @@ export class GraphEditorComponent implements AfterViewInit {
     private onDoubleClick
     = (evt: MouseEvent) => {
         if (!this.preventDblClick) {
-            const d = this._graph!.drawable.createNode();
-            if (d) {
-                d.position = this.graphCanvas.getCoordinates(evt);
+            const d = this._graph!.drawable.createNode(
+                this.graphCanvas.getCoordinates(evt)
+            );
+            if (d)
                 this._graph!.drawable.setSelected(d);
-            }
         }
-        else
-            this.preventDblClick = false;
+        this.preventDblClick = false;
     }
 
     /**
@@ -581,6 +580,7 @@ export class GraphEditorComponent implements AfterViewInit {
         );
 
         if (evt.buttons === 1) {
+            this.preventDblClick = false;
             if (evt.shiftKey) {
                 this._graph!.updateHoverObject();
                 this._graph!.dragStart(this.graphCanvas.getCoordinates(evt));

@@ -1,14 +1,28 @@
 @import '../../../styles/constants';
 
-div {
-    @extend %rounded;
-}
-
 .label {
     vertical-align: middle;
-    padding-right: .25em;
+    text-align: center;
+    
+    border-right: thin solid grey;
+    padding: 0 .3em;
+    background-color: gainsboro;
 }
 
-#first {
-    padding-right: .5em;
+div /deep/ input {
+    border: none;
+}
+
+.inner {
+    border: thin solid black;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.first {
+    margin-right: .25em;
+}
+
+.last {
+    margin-left: .25em;
 }

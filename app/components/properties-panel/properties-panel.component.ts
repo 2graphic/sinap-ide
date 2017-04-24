@@ -25,6 +25,8 @@ export class PropertiesPanelData {
     public pluginHidden = false;
     public visualHidden = false;
 
+    public isReadonly = false;
+
     get selectedElements() {
         return this._selectedElements;
     }

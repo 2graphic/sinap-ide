@@ -14,13 +14,13 @@
                         <tr *ngFor="let property of element.pluginProperties; let i = index">
                             <td>{{property.name}}</td>
                             <td>
-                                <sinap-type [readonly]="false" [value]="property.value"></sinap-type>
+                                <sinap-type [readonly]="_data.isReadonly" [value]="property.value"></sinap-type>
                             </td>
                         </tr>
                         <tr *ngFor="let property of element.computed">
                             <td>{{property.name}}</td>
                             <td>
-                                <sinap-type [value]="property.value" [readonly]="true"></sinap-type>
+                                <sinap-type [readonly]="true" [value]="property.value"></sinap-type>
                             </td>
                         </tr>
                     </table>
@@ -38,7 +38,7 @@
                         <tr *ngFor="let property of element.drawableProperties">
                             <td>{{property.name}}</td>
                             <td>
-                                <sinap-type [value]="property.value" [readonly]="false"></sinap-type>
+                                <sinap-type [readonly]="_data.isReadonly" [value]="property.value"></sinap-type>
                             </td>
                         </tr>
                     </table>
