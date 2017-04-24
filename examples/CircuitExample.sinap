@@ -1,0 +1,1196 @@
+{
+    "kind": [
+        "Circuits",
+        "Digital Logic"
+    ],
+    "graph": {
+        "graph": {
+            "c5f82cbb-5593-40fe-9dd0-06b6c266c75d": {
+                "type": {
+                    "element": {
+                        "plugin": {
+                            "object": "Circuit"
+                        },
+                        "drawable": {
+                            "object": "DrawableGraph"
+                        }
+                    }
+                },
+                "rep": {
+                    "nodes": {
+                        "kind": "value-reference",
+                        "uuid": "fe1af23a-6987-4b07-9bdb-908882b06b1b"
+                    },
+                    "edges": {
+                        "kind": "value-reference",
+                        "uuid": "03720c68-522d-45b8-8b7d-e27dcc907676"
+                    }
+                }
+            }
+        },
+        "nodes": {
+            "ebb08365-ad4e-4770-b88a-501e9644450d": {
+                "type": {
+                    "element": {
+                        "plugin": {
+                            "object": "InputGate"
+                        },
+                        "drawable": {
+                            "object": "DrawableNode"
+                        }
+                    }
+                },
+                "rep": {
+                    "inputIndex": {
+                        "kind": "value-reference",
+                        "uuid": "99e098c0-a964-4a69-958d-9d0da39dc613"
+                    },
+                    "parents": {
+                        "kind": "value-reference",
+                        "uuid": "9dc07850-ebc2-473e-959a-d4f0baf04ed6"
+                    },
+                    "children": {
+                        "kind": "value-reference",
+                        "uuid": "eb652372-e470-41fb-a25c-85a945fed547"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "a565df9d-c181-4b6d-a19a-35acbf1203d1"
+                    },
+                    "color": {
+                        "kind": "value-reference",
+                        "uuid": "b31d0772-71c1-4476-b06a-52e99bf4ed6d"
+                    },
+                    "position": {
+                        "kind": "value-reference",
+                        "uuid": "cc98c318-cf69-42c8-93a5-c3b62b6315d3"
+                    },
+                    "shape": {
+                        "kind": "value-reference",
+                        "uuid": "7216de64-295e-436b-b63e-d0fa409e4735"
+                    },
+                    "image": {
+                        "kind": "value-reference",
+                        "uuid": "88440155-1581-4f6f-8f4e-3d1ddee625b1"
+                    },
+                    "anchorPoints": {
+                        "kind": "value-reference",
+                        "uuid": "f4a4859f-bbfd-41ed-9ff7-5c5c48900439"
+                    },
+                    "borderColor": {
+                        "kind": "value-reference",
+                        "uuid": "38cb8902-c017-49e6-aafe-10b4155b10b1"
+                    },
+                    "borderStyle": {
+                        "kind": "value-reference",
+                        "uuid": "9515d38a-233f-40c4-8a8c-ca12b930ff9a"
+                    },
+                    "borderWidth": {
+                        "kind": "value-reference",
+                        "uuid": "60c4d45d-a7ae-455c-8f48-a6140fc769d4"
+                    }
+                }
+            },
+            "743cc9c6-5b2f-4885-babb-5e8fc9b0a9f0": {
+                "type": {
+                    "element": {
+                        "plugin": {
+                            "object": "OutputGate"
+                        },
+                        "drawable": {
+                            "object": "DrawableNode"
+                        }
+                    }
+                },
+                "rep": {
+                    "parents": {
+                        "kind": "value-reference",
+                        "uuid": "d4d6c4ba-6212-4c15-81cd-e357ce55ede3"
+                    },
+                    "children": {
+                        "kind": "value-reference",
+                        "uuid": "5731235a-3b9e-4920-8d70-cd0508038645"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "43b96318-2de6-4b93-834f-43c43328e7b6"
+                    },
+                    "color": {
+                        "kind": "value-reference",
+                        "uuid": "6a014b8d-7817-4c76-99f5-c6a4a82bde27"
+                    },
+                    "position": {
+                        "kind": "value-reference",
+                        "uuid": "fbdcac42-6118-4cd1-b39e-c82d9bc1a4c9"
+                    },
+                    "shape": {
+                        "kind": "value-reference",
+                        "uuid": "c5ae33cd-042a-4c0f-9e89-e68680e734dc"
+                    },
+                    "image": {
+                        "kind": "value-reference",
+                        "uuid": "86ee7ad1-c455-4a12-a06b-e2eac91b6ac5"
+                    },
+                    "anchorPoints": {
+                        "kind": "value-reference",
+                        "uuid": "17f8e547-7f2f-46d0-92f9-c53f5b75cbb7"
+                    },
+                    "borderColor": {
+                        "kind": "value-reference",
+                        "uuid": "209ae903-5bb2-451b-9198-e73f35bcb85c"
+                    },
+                    "borderStyle": {
+                        "kind": "value-reference",
+                        "uuid": "4781ab83-37b4-44cb-8f44-b4cdddd61abf"
+                    },
+                    "borderWidth": {
+                        "kind": "value-reference",
+                        "uuid": "cf2c81e3-23a7-4983-b900-26e8a20979d9"
+                    }
+                }
+            },
+            "3370a433-dcb0-4af9-b708-96e58cece4fc": {
+                "type": {
+                    "element": {
+                        "plugin": {
+                            "object": "NotGate"
+                        },
+                        "drawable": {
+                            "object": "DrawableNode"
+                        }
+                    }
+                },
+                "rep": {
+                    "parents": {
+                        "kind": "value-reference",
+                        "uuid": "5d723913-235a-45a4-b276-b6087ad1470b"
+                    },
+                    "children": {
+                        "kind": "value-reference",
+                        "uuid": "0e00516b-5581-4cb8-ab76-81976da60c55"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "35b0d384-f218-4ef4-9c07-a425c2a7b0f2"
+                    },
+                    "color": {
+                        "kind": "value-reference",
+                        "uuid": "2de85b76-78b9-48c3-92fa-6d38c7802a8e"
+                    },
+                    "position": {
+                        "kind": "value-reference",
+                        "uuid": "d12942ac-49c3-4162-8164-1cc0cca5e580"
+                    },
+                    "shape": {
+                        "kind": "value-reference",
+                        "uuid": "033c997a-5a0e-4822-9155-510e6e66a0f4"
+                    },
+                    "image": {
+                        "kind": "value-reference",
+                        "uuid": "c99641e0-38fb-4a43-87a1-e3d4fa2a906f"
+                    },
+                    "anchorPoints": {
+                        "kind": "value-reference",
+                        "uuid": "8c63f52e-30a1-46bf-9c3e-e5ae579759b5"
+                    },
+                    "borderColor": {
+                        "kind": "value-reference",
+                        "uuid": "5d2ed13e-c088-484f-bfda-1814d46e61f3"
+                    },
+                    "borderStyle": {
+                        "kind": "value-reference",
+                        "uuid": "7f396dda-ab26-4a35-a3dd-eb67eeed786f"
+                    },
+                    "borderWidth": {
+                        "kind": "value-reference",
+                        "uuid": "23105e10-53c2-4068-a99e-bd869c1333e0"
+                    }
+                }
+            }
+        },
+        "edges": {
+            "d34b2910-96c3-4c13-92b8-2407366f9ddb": {
+                "type": {
+                    "element": {
+                        "plugin": {
+                            "object": "Wire"
+                        },
+                        "drawable": {
+                            "object": "DrawableEdge"
+                        }
+                    }
+                },
+                "rep": {
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "2afb98bd-cf3c-4a48-a843-01e526ac5a3a"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "7d21ec6f-972f-4038-abe8-28f591dbc899"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "b922ec1f-01e4-4487-8e2b-ca1213acdbd9"
+                    },
+                    "color": {
+                        "kind": "value-reference",
+                        "uuid": "5ec4ce9d-8b71-4653-96b0-65da9de284f5"
+                    },
+                    "lineStyle": {
+                        "kind": "value-reference",
+                        "uuid": "d52b5b68-5085-4d05-88c5-15fe520d0eae"
+                    },
+                    "lineWidth": {
+                        "kind": "value-reference",
+                        "uuid": "2d67b3a1-2431-4da5-9e0f-6f18a9f95965"
+                    },
+                    "showSourceArrow": {
+                        "kind": "value-reference",
+                        "uuid": "6e098957-871f-4a60-9535-7285b66f249c"
+                    },
+                    "showDestinationArrow": {
+                        "kind": "value-reference",
+                        "uuid": "917cc17d-96a4-4f4a-aedd-5e8c0a5dfdff"
+                    }
+                }
+            },
+            "b3dc4a37-3598-495d-b09c-b4c4b694add9": {
+                "type": {
+                    "element": {
+                        "plugin": {
+                            "object": "Wire"
+                        },
+                        "drawable": {
+                            "object": "DrawableEdge"
+                        }
+                    }
+                },
+                "rep": {
+                    "source": {
+                        "kind": "value-reference",
+                        "uuid": "962eca52-863b-49a9-8649-c35f0c7cb070"
+                    },
+                    "destination": {
+                        "kind": "value-reference",
+                        "uuid": "437de1ab-6708-4de2-8dbd-738c5ebae27d"
+                    },
+                    "label": {
+                        "kind": "value-reference",
+                        "uuid": "4f75db9a-63c3-4c7a-b680-57a6d5680732"
+                    },
+                    "color": {
+                        "kind": "value-reference",
+                        "uuid": "48f66834-b581-4382-96b1-8d8f41862e63"
+                    },
+                    "lineStyle": {
+                        "kind": "value-reference",
+                        "uuid": "452089e5-c3de-4459-b677-6b36e97a5a34"
+                    },
+                    "lineWidth": {
+                        "kind": "value-reference",
+                        "uuid": "10882a43-e6ad-412d-a1fd-778affcb47d4"
+                    },
+                    "showSourceArrow": {
+                        "kind": "value-reference",
+                        "uuid": "f05160f4-8db4-4275-953f-1e2dc5cf2900"
+                    },
+                    "showDestinationArrow": {
+                        "kind": "value-reference",
+                        "uuid": "144f1cda-dcb1-4d02-b8d8-8a622590d890"
+                    }
+                }
+            }
+        },
+        "others": {
+            "fe1af23a-6987-4b07-9bdb-908882b06b1b": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "object": "AndGate"
+                            },
+                            {
+                                "object": "OrGate"
+                            },
+                            {
+                                "object": "NotGate"
+                            },
+                            {
+                                "object": "InputGate"
+                            },
+                            {
+                                "object": "OutputGate"
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "03720c68-522d-45b8-8b7d-e27dcc907676": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Wire"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "99e098c0-a964-4a69-958d-9d0da39dc613": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 0
+            },
+            "9dc07850-ebc2-473e-959a-d4f0baf04ed6": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Wire"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "eb652372-e470-41fb-a25c-85a945fed547": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Wire"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "a565df9d-c181-4b6d-a19a-35acbf1203d1": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": ""
+            },
+            "b31d0772-71c1-4476-b06a-52e99bf4ed6d": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#fff200"
+            },
+            "f583002a-1ab6-4dc0-a62e-7c7b72bd6b06": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 132
+            },
+            "5989623b-58af-4f89-be4d-f05b3f9461f9": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 156
+            },
+            "cc98c318-cf69-42c8-93a5-c3b62b6315d3": {
+                "type": {
+                    "record": {
+                        "x": {
+                            "primitive": "number"
+                        },
+                        "y": {
+                            "primitive": "number"
+                        }
+                    }
+                },
+                "rep": {
+                    "x": {
+                        "kind": "value-reference",
+                        "uuid": "f583002a-1ab6-4dc0-a62e-7c7b72bd6b06"
+                    },
+                    "y": {
+                        "kind": "value-reference",
+                        "uuid": "5989623b-58af-4f89-be4d-f05b3f9461f9"
+                    }
+                }
+            },
+            "7216de64-295e-436b-b63e-d0fa409e4735": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "circle"
+                        },
+                        {
+                            "literal": "square"
+                        },
+                        {
+                            "literal": "ellipse"
+                        },
+                        {
+                            "literal": "rectangle"
+                        },
+                        {
+                            "literal": "image"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "7db35f64-8f53-4b87-a967-0a69d8a99887"
+                }
+            },
+            "88440155-1581-4f6f-8f4e-3d1ddee625b1": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": ""
+            },
+            "f4a4859f-bbfd-41ed-9ff7-5c5c48900439": {
+                "type": {
+                    "array": {
+                        "record": {
+                            "x": {
+                                "primitive": "number"
+                            },
+                            "y": {
+                                "primitive": "number"
+                            }
+                        }
+                    }
+                },
+                "rep": []
+            },
+            "38cb8902-c017-49e6-aafe-10b4155b10b1": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#000"
+            },
+            "9515d38a-233f-40c4-8a8c-ca12b930ff9a": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "solid"
+                        },
+                        {
+                            "literal": "dotted"
+                        },
+                        {
+                            "literal": "dashed"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "484c8d4a-6317-479e-b89b-c462c1f892ee"
+                }
+            },
+            "60c4d45d-a7ae-455c-8f48-a6140fc769d4": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "thin"
+                        },
+                        {
+                            "literal": "medium"
+                        },
+                        {
+                            "literal": "thick"
+                        },
+                        {
+                            "primitive": "number"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "c1251d2a-d6c4-4b51-87f1-e24c3eca3ad7"
+                }
+            },
+            "7db35f64-8f53-4b87-a967-0a69d8a99887": {
+                "type": {
+                    "literal": "ellipse"
+                },
+                "rep": "ellipse"
+            },
+            "c1251d2a-d6c4-4b51-87f1-e24c3eca3ad7": {
+                "type": {
+                    "literal": "medium"
+                },
+                "rep": "medium"
+            },
+            "484c8d4a-6317-479e-b89b-c462c1f892ee": {
+                "type": {
+                    "literal": "solid"
+                },
+                "rep": "solid"
+            },
+            "d4d6c4ba-6212-4c15-81cd-e357ce55ede3": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Wire"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "5731235a-3b9e-4920-8d70-cd0508038645": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Wire"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "43b96318-2de6-4b93-834f-43c43328e7b6": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": ""
+            },
+            "6a014b8d-7817-4c76-99f5-c6a4a82bde27": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#fff200"
+            },
+            "365d4c1e-a9b8-4ece-b900-4462d3c935fd": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 396
+            },
+            "d220679b-a275-4239-8a89-c1f63f6237c8": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 174
+            },
+            "fbdcac42-6118-4cd1-b39e-c82d9bc1a4c9": {
+                "type": {
+                    "record": {
+                        "x": {
+                            "primitive": "number"
+                        },
+                        "y": {
+                            "primitive": "number"
+                        }
+                    }
+                },
+                "rep": {
+                    "x": {
+                        "kind": "value-reference",
+                        "uuid": "365d4c1e-a9b8-4ece-b900-4462d3c935fd"
+                    },
+                    "y": {
+                        "kind": "value-reference",
+                        "uuid": "d220679b-a275-4239-8a89-c1f63f6237c8"
+                    }
+                }
+            },
+            "c5ae33cd-042a-4c0f-9e89-e68680e734dc": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "circle"
+                        },
+                        {
+                            "literal": "square"
+                        },
+                        {
+                            "literal": "ellipse"
+                        },
+                        {
+                            "literal": "rectangle"
+                        },
+                        {
+                            "literal": "image"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "f4b48211-cfd2-4ac8-b1a9-456d8533ebde"
+                }
+            },
+            "86ee7ad1-c455-4a12-a06b-e2eac91b6ac5": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": ""
+            },
+            "17f8e547-7f2f-46d0-92f9-c53f5b75cbb7": {
+                "type": {
+                    "array": {
+                        "record": {
+                            "x": {
+                                "primitive": "number"
+                            },
+                            "y": {
+                                "primitive": "number"
+                            }
+                        }
+                    }
+                },
+                "rep": []
+            },
+            "209ae903-5bb2-451b-9198-e73f35bcb85c": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#000"
+            },
+            "4781ab83-37b4-44cb-8f44-b4cdddd61abf": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "solid"
+                        },
+                        {
+                            "literal": "dotted"
+                        },
+                        {
+                            "literal": "dashed"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "9efdcb03-69ed-43cd-9913-7690cf196e74"
+                }
+            },
+            "cf2c81e3-23a7-4983-b900-26e8a20979d9": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "thin"
+                        },
+                        {
+                            "literal": "medium"
+                        },
+                        {
+                            "literal": "thick"
+                        },
+                        {
+                            "primitive": "number"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "1b0b6a77-d570-4c68-b2a1-8274ace870c5"
+                }
+            },
+            "f4b48211-cfd2-4ac8-b1a9-456d8533ebde": {
+                "type": {
+                    "literal": "ellipse"
+                },
+                "rep": "ellipse"
+            },
+            "1b0b6a77-d570-4c68-b2a1-8274ace870c5": {
+                "type": {
+                    "literal": "medium"
+                },
+                "rep": "medium"
+            },
+            "9efdcb03-69ed-43cd-9913-7690cf196e74": {
+                "type": {
+                    "literal": "solid"
+                },
+                "rep": "solid"
+            },
+            "5d723913-235a-45a4-b276-b6087ad1470b": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Wire"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "0e00516b-5581-4cb8-ab76-81976da60c55": {
+                "type": {
+                    "array": {
+                        "union": [
+                            {
+                                "element": {
+                                    "plugin": {
+                                        "object": "Wire"
+                                    },
+                                    "drawable": {
+                                        "object": "DrawableEdge"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "rep": []
+            },
+            "35b0d384-f218-4ef4-9c07-a425c2a7b0f2": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": ""
+            },
+            "2de85b76-78b9-48c3-92fa-6d38c7802a8e": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#fff200"
+            },
+            "1ca5d14b-484e-4881-9cd4-d24a0da3a70d": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 250.00000000000003
+            },
+            "89bc793b-d7dd-4232-85b9-c322ee835263": {
+                "type": {
+                    "primitive": "number"
+                },
+                "rep": 154
+            },
+            "d12942ac-49c3-4162-8164-1cc0cca5e580": {
+                "type": {
+                    "record": {
+                        "x": {
+                            "primitive": "number"
+                        },
+                        "y": {
+                            "primitive": "number"
+                        }
+                    }
+                },
+                "rep": {
+                    "x": {
+                        "kind": "value-reference",
+                        "uuid": "1ca5d14b-484e-4881-9cd4-d24a0da3a70d"
+                    },
+                    "y": {
+                        "kind": "value-reference",
+                        "uuid": "89bc793b-d7dd-4232-85b9-c322ee835263"
+                    }
+                }
+            },
+            "033c997a-5a0e-4822-9155-510e6e66a0f4": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "circle"
+                        },
+                        {
+                            "literal": "square"
+                        },
+                        {
+                            "literal": "ellipse"
+                        },
+                        {
+                            "literal": "rectangle"
+                        },
+                        {
+                            "literal": "image"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "ccd1fef8-593c-4bc9-a293-6577013e9aa0"
+                }
+            },
+            "c99641e0-38fb-4a43-87a1-e3d4fa2a906f": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": ""
+            },
+            "8c63f52e-30a1-46bf-9c3e-e5ae579759b5": {
+                "type": {
+                    "array": {
+                        "record": {
+                            "x": {
+                                "primitive": "number"
+                            },
+                            "y": {
+                                "primitive": "number"
+                            }
+                        }
+                    }
+                },
+                "rep": []
+            },
+            "5d2ed13e-c088-484f-bfda-1814d46e61f3": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#000"
+            },
+            "7f396dda-ab26-4a35-a3dd-eb67eeed786f": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "solid"
+                        },
+                        {
+                            "literal": "dotted"
+                        },
+                        {
+                            "literal": "dashed"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "ecd8d188-78ca-4ef7-84d5-de8b0e8f35d2"
+                }
+            },
+            "23105e10-53c2-4068-a99e-bd869c1333e0": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "thin"
+                        },
+                        {
+                            "literal": "medium"
+                        },
+                        {
+                            "literal": "thick"
+                        },
+                        {
+                            "primitive": "number"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "cf7933f9-346b-478b-b83a-b025d4c50b11"
+                }
+            },
+            "ccd1fef8-593c-4bc9-a293-6577013e9aa0": {
+                "type": {
+                    "literal": "ellipse"
+                },
+                "rep": "ellipse"
+            },
+            "cf7933f9-346b-478b-b83a-b025d4c50b11": {
+                "type": {
+                    "literal": "medium"
+                },
+                "rep": "medium"
+            },
+            "ecd8d188-78ca-4ef7-84d5-de8b0e8f35d2": {
+                "type": {
+                    "literal": "solid"
+                },
+                "rep": "solid"
+            },
+            "b922ec1f-01e4-4487-8e2b-ca1213acdbd9": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": ""
+            },
+            "5ec4ce9d-8b71-4653-96b0-65da9de284f5": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#000"
+            },
+            "d52b5b68-5085-4d05-88c5-15fe520d0eae": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "solid"
+                        },
+                        {
+                            "literal": "dotted"
+                        },
+                        {
+                            "literal": "dashed"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "a0d3816b-b741-490c-8ad8-ec9913223ae3"
+                }
+            },
+            "2d67b3a1-2431-4da5-9e0f-6f18a9f95965": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "thin"
+                        },
+                        {
+                            "literal": "medium"
+                        },
+                        {
+                            "literal": "thick"
+                        },
+                        {
+                            "primitive": "number"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "7f8b5a44-8e30-4393-b94c-e21d4c5702c4"
+                }
+            },
+            "6e098957-871f-4a60-9535-7285b66f249c": {
+                "type": {
+                    "primitive": "boolean"
+                },
+                "rep": false
+            },
+            "917cc17d-96a4-4f4a-aedd-5e8c0a5dfdff": {
+                "type": {
+                    "primitive": "boolean"
+                },
+                "rep": true
+            },
+            "2afb98bd-cf3c-4a48-a843-01e526ac5a3a": {
+                "type": {
+                    "union": [
+                        {
+                            "object": "AndGate"
+                        },
+                        {
+                            "object": "OrGate"
+                        },
+                        {
+                            "object": "NotGate"
+                        },
+                        {
+                            "object": "InputGate"
+                        },
+                        {
+                            "object": "OutputGate"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "ebb08365-ad4e-4770-b88a-501e9644450d"
+                }
+            },
+            "7d21ec6f-972f-4038-abe8-28f591dbc899": {
+                "type": {
+                    "union": [
+                        {
+                            "object": "AndGate"
+                        },
+                        {
+                            "object": "OrGate"
+                        },
+                        {
+                            "object": "NotGate"
+                        },
+                        {
+                            "object": "InputGate"
+                        },
+                        {
+                            "object": "OutputGate"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "3370a433-dcb0-4af9-b708-96e58cece4fc"
+                }
+            },
+            "a0d3816b-b741-490c-8ad8-ec9913223ae3": {
+                "type": {
+                    "literal": "solid"
+                },
+                "rep": "solid"
+            },
+            "7f8b5a44-8e30-4393-b94c-e21d4c5702c4": {
+                "type": {
+                    "literal": "medium"
+                },
+                "rep": "medium"
+            },
+            "4f75db9a-63c3-4c7a-b680-57a6d5680732": {
+                "type": {
+                    "primitive": "string"
+                },
+                "rep": ""
+            },
+            "48f66834-b581-4382-96b1-8d8f41862e63": {
+                "type": {
+                    "primitive": "color"
+                },
+                "rep": "#000"
+            },
+            "452089e5-c3de-4459-b677-6b36e97a5a34": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "solid"
+                        },
+                        {
+                            "literal": "dotted"
+                        },
+                        {
+                            "literal": "dashed"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "8bf65ebb-f254-4b4a-9901-1a0c39ff4713"
+                }
+            },
+            "10882a43-e6ad-412d-a1fd-778affcb47d4": {
+                "type": {
+                    "union": [
+                        {
+                            "literal": "thin"
+                        },
+                        {
+                            "literal": "medium"
+                        },
+                        {
+                            "literal": "thick"
+                        },
+                        {
+                            "primitive": "number"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "9be220d8-1eb6-4a5b-bad2-acdec0688ad9"
+                }
+            },
+            "f05160f4-8db4-4275-953f-1e2dc5cf2900": {
+                "type": {
+                    "primitive": "boolean"
+                },
+                "rep": false
+            },
+            "144f1cda-dcb1-4d02-b8d8-8a622590d890": {
+                "type": {
+                    "primitive": "boolean"
+                },
+                "rep": true
+            },
+            "962eca52-863b-49a9-8649-c35f0c7cb070": {
+                "type": {
+                    "union": [
+                        {
+                            "object": "AndGate"
+                        },
+                        {
+                            "object": "OrGate"
+                        },
+                        {
+                            "object": "NotGate"
+                        },
+                        {
+                            "object": "InputGate"
+                        },
+                        {
+                            "object": "OutputGate"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "3370a433-dcb0-4af9-b708-96e58cece4fc"
+                }
+            },
+            "437de1ab-6708-4de2-8dbd-738c5ebae27d": {
+                "type": {
+                    "union": [
+                        {
+                            "object": "AndGate"
+                        },
+                        {
+                            "object": "OrGate"
+                        },
+                        {
+                            "object": "NotGate"
+                        },
+                        {
+                            "object": "InputGate"
+                        },
+                        {
+                            "object": "OutputGate"
+                        }
+                    ]
+                },
+                "rep": {
+                    "kind": "value-reference",
+                    "uuid": "743cc9c6-5b2f-4885-babb-5e8fc9b0a9f0"
+                }
+            },
+            "8bf65ebb-f254-4b4a-9901-1a0c39ff4713": {
+                "type": {
+                    "literal": "solid"
+                },
+                "rep": "solid"
+            },
+            "9be220d8-1eb6-4a5b-bad2-acdec0688ad9": {
+                "type": {
+                    "literal": "medium"
+                },
+                "rep": "medium"
+            }
+        }
+    }
+}
