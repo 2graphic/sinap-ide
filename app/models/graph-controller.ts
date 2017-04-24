@@ -333,7 +333,7 @@ export class GraphController {
         Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    private readonly drawableKeys = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image", "shape", "borderStyle", "lineStyle", "position", "origin", "scale", "size"]);
+    private readonly drawableKeys = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image", "shape", "borderStyle", "lineStyle", "position", "origin", "scale", "size", "anchorPoints"]);
 
     copyPropertyToDrawable(value: Value.Value | undefined, drawable: Drawable, key: string) {
         if (value === undefined || !this.drawableKeys.has(key)) {
@@ -391,6 +391,20 @@ export class GraphController {
                 width: (value.value.x as Value.Primitive).value as number,
                 height: (value.value.y as Value.Primitive).value as number
             };
+
+            return;
+        }
+
+        if (value instanceof Value.ArrayObject && key === "anchorPoints") {
+            const anchorPoints = value.simpleRepresentation.filter((v) => v instanceof Value.Record).map(v => {
+                const r = v as Value.Record;
+                return {
+                    x: (r.value.x as Value.Primitive).value as number,
+                    y: (r.value.y as Value.Primitive).value as number
+                }
+            });
+
+            (drawable as any)[key] = anchorPoints;
 
             return;
         }
