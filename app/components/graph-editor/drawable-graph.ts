@@ -148,6 +148,11 @@ export class DrawableGraph extends Drawable {
                         this.onPropertyChanged("scale", old);
                     }
                 }
+            },
+            isReadonly: {
+                enumerable: false,
+                writable: true,
+                value: false
             }
         });
         Object.seal(this);
@@ -236,6 +241,13 @@ export class DrawableGraph extends Drawable {
      */
     scale: number;
 
+    /**
+     * `isReadonly`
+     *
+     *   Whether or not elements can be created or deleted.
+     */
+    isReadonly: boolean;
+
 
     // Creation methods ////////////////////////////////////////////////////////
 
@@ -248,6 +260,9 @@ export class DrawableGraph extends Drawable {
      *   If `like` is specified, a `DrawableNode` with matching properties is
      *   created.
      *
+     * @param position
+     *   The initial position of the node.
+     *
      * @param like
      *   The node to be copied.
      *
@@ -259,8 +274,13 @@ export class DrawableGraph extends Drawable {
      * @emits DrawableGraph#creating
      * @emits DrawableGraph#created
      */
-    createNode(like?: DrawableNode): DrawableNode | null {
-        return this.createItem(this._nodes, new DrawableNode(this, like), like);
+    createNode(
+        position: point = { x: 0, y: 0 },
+        like?: DrawableNode
+    ): DrawableNode | null {
+        const n = new DrawableNode(this, like);
+        n.position = position;
+        return this.createItem(this._nodes, n, like);
     }
 
     /**
@@ -322,6 +342,9 @@ export class DrawableGraph extends Drawable {
      *   was cancelled prematurely.
      */
     cloneElements(items: DrawableElement[], offsetPt: point = { x: 0, y: 0 }) {
+        if (this.isReadonly)
+            return null;
+
         if (items.length > 0 && items[0].graph !== this) {
             console.log("error: attempting to clone elements from other graph");
             return null;
@@ -411,7 +434,9 @@ export class DrawableGraph extends Drawable {
         src: DrawableNode,
         dst: DrawableNode,
         edge: DrawableEdge
-    ): DrawableEdge {
+    ): DrawableEdge | null {
+        if (this.isReadonly)
+            return null;
         this.deselect(edge);
         this._edges.delete(edge);
         this._unselected.delete(edge);
@@ -443,6 +468,8 @@ export class DrawableGraph extends Drawable {
      * @emits DrawableGraph#created
      */
     recreateItems(...items: DrawableElement[]) {
+        if (this.isReadonly)
+            return;
         items.forEach(d => {
             console.assert(d.graph === this, "graph mismatch recreating item");
             if (d instanceof DrawableEdge) {
@@ -478,6 +505,8 @@ export class DrawableGraph extends Drawable {
         item: D,
         like?: D
     ) {
+        if (this.isReadonly)
+            return null;
         if (!this.dispatchEvent(
             new TypedCustomEvent(
                 "creating",
@@ -514,6 +543,8 @@ export class DrawableGraph extends Drawable {
      * @emits DrawableGraph#deleted
      */
     delete(...items: DrawableElement[]): boolean {
+        if (this.isReadonly)
+            return false;
         const deletedEdges: DrawableEdge[] = [];
         const deletedNodes: DrawableNode[] = [];
         const toDeselect: DrawableElement[] = [];

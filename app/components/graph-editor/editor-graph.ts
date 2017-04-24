@@ -782,7 +782,7 @@ export class EditorGraph {
             else if (d instanceof DrawableNode) {
                 const node = new EditorNode(d);
                 this.drawables.set(d, node);
-                if (d.shape === "image")
+                if (d.image !== "")
                     this.loadImage(d);
                 this.nodes.push(node);
             }
@@ -831,7 +831,7 @@ export class EditorGraph {
      */
     private loadImage(node: DrawableNode) {
         // TODO:
-        // Look into what Daniel was talking about SVG images and angular2.
+        // Use actual SVGs so we can specify stroke/fill.
         if (node.image !== "" && !IMAGES.has(node.image)) {
             const img = new Image();
             IMAGES.set(node.image, img);
@@ -912,9 +912,7 @@ export class EditorGraph {
             this.draw();
         }
         else if (drawable instanceof DrawableNode) {
-            if ((evt.detail.key === "shape" && evt.detail.curr === "image") ||
-                (evt.detail.key === "image" && evt.detail.curr !== "" &&
-                    drawable.shape === "image"))
+            if (evt.detail.key === "image" && evt.detail.curr !== "")
                 this.loadImage(drawable);
             else {
                 this.drawables.get(drawable)!.update(this.g);

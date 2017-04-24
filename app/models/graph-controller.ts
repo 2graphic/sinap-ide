@@ -352,9 +352,13 @@ export class GraphController {
         }
 
         if (((value instanceof Value.Literal) || (value instanceof Value.Primitive)) && key === "image") {
-            if (value.value && value.value !== "") {
+            if (value.value) {
                 const path = getPath(this.plugin.pluginInfo.interpreterInfo.directory + "/" + value.value);
+                console.log("setting image to: " + path);
                 (drawable as any)[key] = path;
+            } else {
+                console.log("setting image to the blank string");
+                (drawable as any)[key] = "";
             }
             return;
         }

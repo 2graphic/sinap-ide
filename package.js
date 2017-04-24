@@ -107,6 +107,7 @@ function main() {
 
     const mainBuild = Promise.all([cleanBuild, buildDll]).then(() => webpackProm(mainConfig(env)));
     mainBuild.then(() => runPackage(packageOpts)).then(async () => {
+        console.log("Finished building, begining signing");
         if (packageOpts.all || packageOpts.platform === "darwin") {
             await signAsync({app: 'dist/Sinap-darwin-x64/Sinap.app', "provisioning-profile": "Sinap.provisionprofile"});
         }
