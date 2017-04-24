@@ -19,10 +19,13 @@
     height: 100%;
 
     @extend %rounded;
+
+    padding: 3px;
 }
 
 .color-preview {
     width: .85em;
     height: .85em;
+    border: thin solid black;
     display: inline-block;
 }
