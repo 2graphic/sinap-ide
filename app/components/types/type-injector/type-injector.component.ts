@@ -42,8 +42,19 @@ export class TypeInjectorComponent {
     private _value?: Value.Value;
     private _disabled: boolean = false;
 
+    private _graph: GraphController;
+
     @Input()
-    public graph: GraphController;
+    set graph(graph: GraphController) {
+        this._graph = graph;
+        if (this.component) {
+            this.component.instance.graph = graph;
+        }
+    }
+
+    get graph() {
+        return this._graph;
+    }
 
     @Output()
     injected = new EventEmitter<TypeInjectorComponent>();

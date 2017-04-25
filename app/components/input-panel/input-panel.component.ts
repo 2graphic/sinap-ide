@@ -54,7 +54,7 @@ export class InputPanelData {
     }
 
     startDebugging(g: GraphController) {
-        const found = this.results.find(r => r.programInfo.graph === g);
+        const found = this.selected.programInfo.graph === g ? this.selected : this.results.find(r => r.programInfo.graph === g);
         if (found) {
             this.selected = found;
             this.setDebugging.emit(true);

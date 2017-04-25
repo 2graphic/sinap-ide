@@ -81,6 +81,7 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
         const found = [...this.graph.core.nodes.values()].find((n) => n.uuid === this._value.uuid);
         if (found) {
             this.graph.selectElements(found);
+            e.preventDefault();
         }
     }
 }
