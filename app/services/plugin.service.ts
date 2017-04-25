@@ -18,6 +18,7 @@ export const ROOT_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", 
 class PluginHolder {
     private _plugin: Plugin;
     private watchers: fs.FSWatcher[];
+    private loaded = true;
 
     constructor(private loader: PluginLoader, private lock: PromiseLock, plugin: Plugin, private pluginService: PluginService) {
         this.watchers = [];
@@ -34,6 +35,7 @@ class PluginHolder {
         }
 
         this.watchers = [];
+        this.loaded = false;
     }
 
     get plugin(): Plugin {
@@ -43,6 +45,7 @@ class PluginHolder {
     set plugin(plugin: Plugin) {
         this._plugin = plugin;
         this.close();
+        // TODO: add support for child directories.
         this.addWatcher(plugin.pluginInfo.interpreterInfo.directory);
     }
 
@@ -50,16 +53,25 @@ class PluginHolder {
     public reload() {
         if (this.timer !== undefined) clearInterval(this.timer);
         this.timer = setTimeout(async () => {
-            await this.lock.acquire();
-            try {
-                LOG.info(`Reloading plugin at ${this.plugin.pluginInfo.interpreterInfo.directory}`);
-                this.plugin = await this.loader.load(await getPluginInfo(this.plugin.pluginInfo.interpreterInfo.directory));
-            } catch (e) {
-                LOG.info(`Failed to reload plugin at ${this.plugin.pluginInfo.interpreterInfo.directory}`, e);
-                this.close();
-                this.pluginService.unload(this.plugin);
-            } finally {
-                this.lock.release();
+            if (this.loaded) {
+                const dir = this.plugin.pluginInfo.interpreterInfo.directory;
+                try {
+                    await this.lock.acquire(dir);
+                } catch (_) {
+                }
+                try {
+                    LOG.info(`Reloading plugin at ${dir}`);
+                    this.plugin = await this.loader.load(await getPluginInfo(this.plugin.pluginInfo.interpreterInfo.directory));
+                    this.pluginService.publishEvent([this.plugin]);
+                } catch (e) {
+                    LOG.info(`Failed to reload plugin at ${dir}`, e);
+                    this.close();
+                    await this.pluginService.unload(this.plugin);
+                } finally {
+                    this.lock.releaseType(dir);
+                }
+            } else {
+                LOG.info(`{this.plugin.pluginInfo.interpreterInfo.directory} is not loaded.`);
             }
         }, 25) as any;
     }
@@ -74,8 +86,15 @@ class PluginHolder {
     }
 }
 
+class PromiseStruct<T> {
+    constructor(public readonly resolve: (obj: T) => void,
+        public readonly reject: (err: any) => void,
+        public readonly promType?: string) {
+    }
+}
+
 export class PromiseLock {
-    private queue: (() => void)[];
+    private queue: PromiseStruct<void>[];
     private locked: boolean;
 
     constructor() {
@@ -83,10 +102,10 @@ export class PromiseLock {
         this.queue = [];
     }
 
-    acquire(): Promise<void> {
+    acquire(eventType?: string): Promise<void> {
         if (this.locked) {
             return new Promise<void>((resolve, reject) => {
-                this.queue.push(resolve);
+                this.queue.push(new PromiseStruct(resolve, reject, eventType));
             });
         } else {
             this.locked = true;
@@ -98,11 +117,24 @@ export class PromiseLock {
         if (this.queue.length === 0) {
             this.locked = false;
         } else {
-            const next = this.queue.shift();
-            next!();
+            const next = this.queue.shift()!;
+            next.resolve(undefined as any);
+            if (next.promType) {
+                this.releaseType(next.promType);
+            }
         }
     }
+
+    releaseType(typ: string) {
+        const pred = (proms: PromiseStruct<void>) => proms.promType === typ;
+        const toRemove = this.queue.filter(pred);
+        toRemove.forEach(toRem => toRem.reject('Event was already resolved.'));
+        this.queue = this.queue.filter(prom => !pred(prom));
+        this.release();
+    }
 }
+
+export type PluginCb = (plugins: Plugin[]) => void;
 
 @Injectable()
 export class PluginService {
@@ -112,6 +144,25 @@ export class PluginService {
     ]);
     private holders: PluginHolder[];
     private lock: PromiseLock;
+    private cbs: PluginCb[] = [];
+
+    get pluginLock(): PromiseLock {
+        return this.lock;
+    }
+
+    public publishEvent(plugins: Plugin[]) {
+        for (const cb of this.cbs) {
+            try {
+                cb(plugins);
+            } catch (err) {
+                LOG.error(err);
+            }
+        }
+    }
+
+    public subscribe(cb: PluginCb) {
+        this.cbs.push(cb);
+    }
 
     get plugins(): Promise<Plugin[]> {
         return this.lock.acquire().then(_ => {
@@ -134,14 +185,19 @@ export class PluginService {
     }
 
     async reload(): Promise<void> {
-        await this.lock.acquire();
+        try {
+            await this.lock.acquire(PLUGIN_DIRECTORY);
+        } catch (_) {
+            return;
+        }
         try {
             for (const holder of this.holders) {
                 holder.close();
             }
             this.holders = await this.loadPlugins();
+            this.publishEvent(this.holders.map(holder => holder.plugin));
         } finally {
-            this.lock.release();
+            this.lock.releaseType(PLUGIN_DIRECTORY);
         }
     }
 
@@ -199,7 +255,6 @@ export class PluginService {
     }
 
     public async unload(plugin: Plugin): Promise<void> {
-        await this.lock.acquire();
         try {
             LOG.info(`Unloading the ${plugin.pluginInfo.pluginKind.join(".")} plugin.`);
             const holder = this.holders.find(h => h.plugin === plugin);
@@ -208,7 +263,7 @@ export class PluginService {
                 this.holders.splice(this.holders.indexOf(holder), 1);
             }
         } finally {
-            this.lock.release();
+            this.publishEvent([plugin]);
         }
 
         return;
@@ -216,7 +271,6 @@ export class PluginService {
 
     public async removePlugin(plugin: Plugin): Promise<void> {
         await this.unload(plugin);
-
         await this.lock.acquire();
         try {
             LOG.info(`Removing the ${plugin.pluginInfo.pluginKind.join(".")} plugin.`);
