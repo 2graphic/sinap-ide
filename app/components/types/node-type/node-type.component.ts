@@ -82,6 +82,7 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
         if (found) {
             this.graph.selectElements(found);
             e.preventDefault();
+            e.stopPropagation();
         }
     }
 }
