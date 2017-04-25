@@ -325,7 +325,9 @@ export class GraphController {
 
     copyPropertiesToDrawable(core: ElementValue, drawable: Drawable) {
         Object.keys(drawable).forEach((key) => {
-            this.copyPropertyToDrawable(core.get(key), drawable, key);
+            if (core.type.members.has(key)) {
+                this.copyPropertyToDrawable(core.get(key), drawable, key);
+            }
         });
     }
 
