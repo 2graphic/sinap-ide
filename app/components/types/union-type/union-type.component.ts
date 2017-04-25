@@ -14,6 +14,7 @@ import { Value, Type } from "sinap-types";
 })
 export class UnionTypeComponent extends BaseTypeComponent<Value.Union> {
     private options: [string, Type.Type][];
+    private _value: Value.Union;
     private _selected: Type.Type;
     private selectedValue: Value.Value | undefined = undefined;
     private set selected(selected: Type.Type) {
@@ -41,7 +42,7 @@ export class UnionTypeComponent extends BaseTypeComponent<Value.Union> {
     }
 
     set value(v: Value.Union) {
-        super.value = v;
+        this._value = v;
 
         this.options = [];
         v.type.types.forEach((t) => {
@@ -56,6 +57,10 @@ export class UnionTypeComponent extends BaseTypeComponent<Value.Union> {
 
             this.options.push([this.getName(t), t]);
         });
+    }
+
+    get value() {
+        return this._value;
     }
 
     selectedOption(option: Type.Type) {

@@ -13,10 +13,15 @@ import { Value } from "sinap-types";
     styleUrls: ["./list-type.component.scss"]
 })
 export class ListTypeComponent extends BaseTypeComponent<Value.ArrayObject> {
+    private _value: Value.ArrayObject;
     private values: Value.Value[] = [];
 
     set value(v: Value.ArrayObject) {
-        super.value = v;
+        this._value = v;
         this.values = v.simpleRepresentation;
+    }
+
+    get value() {
+        return this._value;
     }
 }

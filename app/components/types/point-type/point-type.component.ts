@@ -21,7 +21,7 @@ export const PointType = new Type.Record(new Map([["x", new Type.Primitive("numb
     styleUrls: ["./point-type.component.scss"]
 })
 export class PointTypeComponent extends BaseTypeComponent<Value.Record> {
-
+    private _value: Value.Record;
     private point: Point;
 
     set value(v: Value.Record) {
@@ -29,11 +29,15 @@ export class PointTypeComponent extends BaseTypeComponent<Value.Record> {
             throw new Error("Passed record is not a Point");
         }
 
-        super.value = v;
+        this._value = v;
 
         this.point = {
             x: v.value.x,
             y: v.value.y
         };
+    }
+
+    get value() {
+        return this._value;
     }
 }
