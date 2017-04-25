@@ -120,6 +120,12 @@ process.on('uncaughtException', (e: Error) => {
 
 
 function killIfUnresponsive() {
+    // Don't pop up while debugging.
+    if (win && win.webContents.isDevToolsOpened) {
+        timer = setTimeout(killIfUnresponsive, 5000) as any;
+        return;
+    }
+
     let result = dialog.showMessageBox({
         type: 'info',
         message: 'The application is unresponsive... reload window?',
