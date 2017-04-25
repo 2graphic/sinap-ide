@@ -170,6 +170,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private selectResult(c: ProgramResult) {
+        this.stopDebugging();
         this._data.selected = c;
         this.scrollToBottom();
         this.updateButtons();
