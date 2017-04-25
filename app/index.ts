@@ -97,7 +97,7 @@ function createWindow() {
 //
 app.on("ready", () => {
     createWindow();
-    bufferModalWindow();
+    bufferModalWindow(ModalType.MODAL);
 });
 
 
@@ -160,12 +160,10 @@ ipcMain.on('heartbeat', () => {
 
 let nextModal: Electron.BrowserWindow | undefined;
 
-function bufferModalWindow() {
-    const r = nextModal;
-
-    nextModal = new BrowserWindow({
-        parent: win,
-        modal: true,
+function bufferModalWindow(type: ModalType) {
+    let newWindow = new BrowserWindow({
+        parent: (type === ModalType.MODAL) ? win : undefined,
+        modal: (type === ModalType.MODAL),
         width: 650,
         height: 450,
         center: true,
@@ -173,10 +171,20 @@ function bufferModalWindow() {
         show: false,
         autoHideMenuBar: true
     });
+    newWindow.loadURL(`file://${__dirname}/modal.html`);
 
-    nextModal.loadURL(`file://${__dirname}/modal.html`);
-
-    return r;
+    if (nextModal) {
+        if (nextModal.isModal() === (type === ModalType.MODAL)) {
+            const r = nextModal;
+            nextModal = newWindow;
+            return r;
+        } else {
+            return newWindow;
+        }
+    } else {
+        nextModal = newWindow;
+        return undefined;
+    }
 }
 
 ipcMain.on('createWindow', (event, selector, type, data) => {
@@ -198,7 +206,7 @@ ipcMain.on('windowResult', (event, arg: ModalInfo) => {
 });
 
 function createNewWindow(selector: string, type: ModalType, data: any): ModalInfo {
-    const modalWindow = bufferModalWindow();
+    const modalWindow = bufferModalWindow(type);
     if (win && modalWindow) {
         let info: ModalInfo = {
             id: modalWindow.id,
@@ -208,6 +216,9 @@ function createNewWindow(selector: string, type: ModalType, data: any): ModalInf
         };
 
         modalWindow.webContents.send("newWindow", info);
+        modalWindow.on("ready-to-show", () => {
+            modalWindow.webContents.send("newWindow", info);
+        });
         modalWindow.on("closed", () => {
             if (win) {
                 win.webContents.send("windowClosed", info);
