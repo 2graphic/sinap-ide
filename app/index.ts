@@ -170,12 +170,9 @@ function bufferModalWindow() {
         height: 450,
         center: true,
         resizable: true,
-        show: false
+        show: false,
+        autoHideMenuBar: true
     });
-
-    if (!IS_DEBUG) {
-        nextModal.setMenu(null as any);
-    }
 
     nextModal.loadURL(`file://${__dirname}/modal.html`);
 
