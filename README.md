@@ -3,6 +3,15 @@
 #### Date created: October 10, 2016
 
 
+## Command Line Tools
+[sinap-cli](https://www.github.com/2graphic/sinap-cli) provides command line tools that operate on Sinap plugins and graph files. 
+
+```
+$ npm install -g sinap-cli
+$ sinap-run plugins/nfa examples/SimpleNFA.sinap 111222
+true
+```
+
 ## Getting Started
 
 Navigate to the project root directory before running any commands. E.g.: `cd /path/to/sinap-ide`   
