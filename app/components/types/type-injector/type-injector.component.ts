@@ -117,8 +117,7 @@ export class TypeInjectorComponent {
 
         this.component.changeDetectorRef.detectChanges();
 
-        if (this.focus && this.component.instance.focus && (document.activeElement.tagName.toLocaleLowerCase() === "body"
-            || document.activeElement.tagName.toLocaleLowerCase() === "canvas")) {
+        if (this.focus && this.component.instance.focus && document.activeElement.tagName.toLocaleLowerCase() === "body") {
             // Make sure we're not yanking the focus away from something important
 
             this.component.instance.focus();
