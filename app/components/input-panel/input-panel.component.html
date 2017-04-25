@@ -31,11 +31,11 @@
 
             <div id="input">
                 <div id="input-value">
-                    <sinap-type *ngIf="_data.inputForPlugin" [graph]="_data.programInfo.graph" #inputComponent [readonly]="false" [focus]="true" [disabled]="!_data.programInfo" [value]="_data.inputForPlugin"></sinap-type>
+                    <sinap-type *ngIf="_data.inputForPlugin" [graph]="_data.programInfo.graph" #inputComponent [readonly]="false" [focus]="true" [disabled]="!_data.programInfo || (_data.selected && _data.selected.isDebugging)" [value]="_data.inputForPlugin"></sinap-type>
                     <span *ngIf="!_data.inputForPlugin" class="empty-input">No Input</span>                   
                 </div>
                 <div id="input-button">
-                    <button (click)="onSubmit()" [disabled]="!_data.inputForPlugin" [class.disabled]="!_data.inputForPlugin">
+                    <button (click)="onSubmit()" [disabled]="!_data.inputForPlugin || (_data.selected && _data.selected.isDebugging)" [class.disabled]="!_data.inputForPlugin || (_data.selected && _data.selected.isDebugging)">
                         <i class="material-icons">play_arrow</i>
                     </button>
                 </div>

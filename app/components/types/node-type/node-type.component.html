@@ -1,6 +1,6 @@
 <table *ngIf="options.length > 0">
     <tr>
-        <td><select [ngModel]="value" (ngModelChange)="selectedOption($event)">
+        <td><select [ngModel]="value" (ngModelChange)="selectedOption($event)" [disabled]="disabled">
         <option *ngFor="let option of options" [ngValue]="option[1]">{{option[0]}}</option>
     </select></td>
         <td><span [style.border-color]="borderColor" [style.background-color]="color" (click)="selectNode($event)">{{label}}</span></td>

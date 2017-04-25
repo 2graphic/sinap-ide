@@ -211,7 +211,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private async onSubmit() {
-        if (this._data.programInfo) {
+        if (this._data.programInfo && (!this._data.selected || !this._data.selected.isDebugging)) {
             let input = this.inputComponent.value!;
 
             let inputDifferent: Value.Value | undefined = this._data.programInfo.program.model.environment.values.get(input.uuid);

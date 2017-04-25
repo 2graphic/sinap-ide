@@ -1,6 +1,6 @@
 <table>
     <tr *ngFor="let tuple of values">
-        <td><sinap-type [graph]="graph" [value]="tuple[0]" [readonly]="true"></sinap-type></td>
-        <td><sinap-type [graph]="graph" [value]="tuple[1]" [readonly]="readonly"></sinap-type></td>
+        <td><sinap-type [graph]="graph" [value]="tuple[0]" [readonly]="true" [disabled]="disabled"></sinap-type></td>
+        <td><sinap-type [graph]="graph" [value]="tuple[1]" [readonly]="readonly" [disabled]="disabled"></sinap-type></td>
     </tr>
 </table>
