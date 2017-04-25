@@ -89,16 +89,24 @@ export class DrawableEdge extends DrawableElement {
                 enumerable: true,
                 get: () => this._sourcePoint,
                 set: (value: point) => {
-                    this._sourcePoint.x = value.x;
-                    this._sourcePoint.y = value.y;
+                    const old = { x: this._sourcePoint.x, y: this._sourcePoint.y };
+                    if (value.x !== old.x || value.y !== old.y) {
+                        this._sourcePoint.x = value.x;
+                        this._sourcePoint.y = value.y;
+                        this.onPropertyChanged("sourcePoint", old);
+                    }
                 }
             },
             destinationPoint: {
                 enumerable: true,
                 get: () => this._destinationPoint,
                 set: (value: point) => {
-                    this._destinationPoint.x = value.x;
-                    this._destinationPoint.y = value.y;
+                    const old = { x: this._destinationPoint.x, y: this._destinationPoint.y };
+                    if (value.x !== old.x || value.y !== old.y) {
+                        this._destinationPoint.x = value.x;
+                        this._destinationPoint.y = value.y;
+                        this.onPropertyChanged("destinationPoint", old);
+                    }
                 }
             },
             showSourceArrow: {
