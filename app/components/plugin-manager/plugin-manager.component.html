@@ -3,7 +3,7 @@
 <button (click)="importFromZip()">Import from Zip</button>
 <button (click)="deletePlugins()">Delete All Plugins</button> -->
 <div id="container" class="flex-container-row">
-    <div class="flex-container-column" id="pluginList">
+    <div class="flex-container-column" id="pluginList" mwlResizable [resizeEdges]="{right: true}" (resizing)="resizing($event)" [style.width]="width+'px'">
         <plugins-list [plugins]="plugins" *ngIf="plugins"
             (pluginSelected)="pluginSelected($event)"></plugins-list>
         <div class="buttons">

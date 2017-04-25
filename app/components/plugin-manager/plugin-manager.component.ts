@@ -7,6 +7,7 @@ import { ModalComponent, ModalInfo } from "../../models/modal-window";
 import { getPluginInfo, PluginInfo } from "sinap-core";
 import { dirFiles, subdirs, tempDir, unzip, TempDir, getPath } from "../../util";
 import { WindowService } from "./../../modal-windows/services/window.service";
+import { ResizeEvent } from 'angular-resizable-element';
 import * as path from "path";
 
 let exec = require('child_process').exec;
@@ -140,6 +141,14 @@ export class PluginManager implements ModalComponent {
             tempDirs.forEach(tempDir => tempDir.close());
         } finally {
             tempDirs.forEach(tempDir => tempDir.close());
+        }
+    }
+
+    private width = 200;
+
+    private resizing(evt: ResizeEvent) {
+        if (evt.rectangle.width) {
+            this.width = Math.max(Math.min(evt.rectangle.width, 275), 185);
         }
     }
 }

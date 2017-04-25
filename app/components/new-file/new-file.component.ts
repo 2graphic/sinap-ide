@@ -48,7 +48,7 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
 
     private availablePlugins: PluginList[];
     private selectedPlugin: PluginInfo;
-    private width = 175;
+    private width = 200;
     @ViewChild(CollapsibleListComponent) firstList: CollapsibleListComponent;
     @ViewChild('filenameInput') filenameInput: ElementRef;
     @ViewChildren(CollapsibleListComponent) lists: QueryList<CollapsibleListComponent>;
@@ -72,7 +72,7 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
 
     private resizing(evt: ResizeEvent) {
         if (evt.rectangle.width) {
-            this.width = Math.max(Math.min(evt.rectangle.width, 325), 125);
+            this.width = Math.max(Math.min(evt.rectangle.width, 325), 185);
         }
     }
 
