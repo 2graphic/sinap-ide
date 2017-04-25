@@ -401,7 +401,7 @@ export class GraphController {
                 return {
                     x: (r.value.x as Value.Primitive).value as number,
                     y: (r.value.y as Value.Primitive).value as number
-                }
+                };
             });
 
             (drawable as any)[key] = anchorPoints;
