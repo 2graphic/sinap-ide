@@ -43,10 +43,10 @@
     "rimraf": "2.6.1",
     "rxjs": "5.3.0",
     "tmp": "0.0.31",
-    "sinap-core": "3.11.0",
-    "sinap-typescript-loader": "0.4.19",
+    "sinap-core": "3.11.3",
+    "sinap-typescript-loader": "0.4.20",
     "sinap-python-loader": "0.0.3",
-    "sinap-types": "0.4.0",
+    "sinap-types": "0.6.0",
     "zone.js": "0.8.8"
   },
   "devDependencies": {
