@@ -390,8 +390,8 @@ export class GraphController {
 
         if (value instanceof Value.Record && (key === "size")) {
             (drawable as DrawableNode)[key] = {
-                width: (value.value.x as Value.Primitive).value as number,
-                height: (value.value.y as Value.Primitive).value as number
+                width: (value.value.width as Value.Primitive).value as number,
+                height: (value.value.height as Value.Primitive).value as number
             };
 
             return;
