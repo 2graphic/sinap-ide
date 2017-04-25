@@ -3,12 +3,20 @@
 #### Date created: October 10, 2016
 
 
+## Command Line Tools
+[sinap-cli](https://www.github.com/2graphic/sinap-cli) provides command line tools that operate on Sinap plugins and graph files. 
+
+```
+$ npm install -g sinap-cli
+$ sinap-run plugins/nfa examples/SimpleNFA.sinap 111222
+true
+```
+
 ## Getting Started
 
 Navigate to the project root directory before running any commands. E.g.: `cd /path/to/sinap-ide`   
 Download all the dependencies with `npm install` and build the vendor DLL with `npm run build:dll`
 > Note: Everytime you update angular or other dependencies in `vendors.ts`, or clean out the build directory, you should rebuild the DLL with `npm run build:dll` 
-
 
 To build the project use: `npm run build`  
 You can watch for file changes and quickly rebuild using: `npm run build:watch`  
@@ -19,6 +27,11 @@ In order to build for a single platform, simply run `node package.js PLATFORM` w
 
 > Note: There are some combinations of these such as `npm run build:start`, `npm run build:watch:start`, `npm run clean`, etc... Refer to `package.json` for a list of all available scripts.
 
+> Note: when you first clone this repository, make sure to checkout the submodules if you want access to the plugins we develop with:
+
+    $ git submodule init
+    $ git submodule update
+    
 ### System Dependencies
 
 You must have a version of npm >= 4.2 and a version of node >= 6.9.1.
