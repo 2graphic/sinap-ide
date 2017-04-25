@@ -192,11 +192,11 @@ export class GraphController {
             return r;
         };
 
-        this.drawable.addEventListener("created", createdListener);
-        this.drawable.addEventListener("deleted", deletedListener);
-        this.drawable.addEventListener("moved", movedListener);
+        // this.drawable.addEventListener("created", createdListener);
+        // this.drawable.addEventListener("deleted", deletedListener);
+        // this.drawable.addEventListener("moved", movedListener);
 
-        this.drawable.addEventListener("select", (evt: SelectionChangedEvent) => this.setSelectedElements(evt.detail.curr));
+        // this.drawable.addEventListener("select", (evt: SelectionChangedEvent) => this.setSelectedElements(evt.detail.curr));
         /* ************************************************************* */
 
 

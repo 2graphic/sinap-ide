@@ -128,7 +128,7 @@ export class Bridge {
 
     public undeleted() {
         this.core.environment.listen(this.coreListener, () => true, this.core);
-        this.drawable.addEventListener("change", this.drawableListener);
+        // this.drawable.addEventListener("change", this.drawableListener);
     }
 
     public deleted() {
