@@ -1,2 +1,1 @@
-<input *ngIf="!readonly" [ngModel]="round(value.value)" (ngModelChange)="setValue($event)" type="number" step=".1" #input [disabled]="disabled" />
-<span *ngIf="readonly">{{round(value.value)}}</span>
+<input *ngIf="!readonly" [ngModel]="round(value.value)" (ngModelChange)="setValue($event)" type="number" step=".1" #input [disabled]="disabled" /><span *ngIf="readonly">{{round(value.value)}}</span>

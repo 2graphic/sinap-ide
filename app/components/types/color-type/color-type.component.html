@@ -1,4 +1,4 @@
-<label class="color-label">
+<label class="color-label" [class.readonly]="readonly">
     <span class="color-preview" [class.clickable]="!readonly" [style.background-color]="value.value"></span>
     {{value.value}}
     <input [(ngModel)]="value.value" type="color" class="color-input" [disabled]="readonly" />
