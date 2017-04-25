@@ -26,6 +26,11 @@ class PluginHolder {
     }
 
     close() {
+        this.removeWatchers();
+        this.loaded = false;
+    }
+
+    removeWatchers() {
         for (const watcher of this.watchers) {
             try {
                 watcher.close();
@@ -35,7 +40,6 @@ class PluginHolder {
         }
 
         this.watchers = [];
-        this.loaded = false;
     }
 
     get plugin(): Plugin {
@@ -44,7 +48,7 @@ class PluginHolder {
 
     set plugin(plugin: Plugin) {
         this._plugin = plugin;
-        this.close();
+        this.removeWatchers();
         // TODO: add support for child directories.
         this.addWatcher(plugin.pluginInfo.interpreterInfo.directory);
     }
@@ -71,7 +75,7 @@ class PluginHolder {
                     this.lock.releaseType(dir);
                 }
             } else {
-                LOG.info(`{this.plugin.pluginInfo.interpreterInfo.directory} is not loaded.`);
+                LOG.info(`${this.plugin.pluginInfo.interpreterInfo.directory} is not loaded.`);
             }
         }, 25) as any;
     }
