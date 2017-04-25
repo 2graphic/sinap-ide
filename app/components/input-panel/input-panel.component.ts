@@ -28,6 +28,7 @@ export class InputPanelData {
     constructor() { }
 
     private _programInfo?: ProgramInfo;
+    public currentGraph: GraphController;
 
     results: ProgramResult[] = [];
     selected: ProgramResult;

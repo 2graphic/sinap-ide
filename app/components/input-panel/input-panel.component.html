@@ -31,7 +31,7 @@
 
             <div id="input">
                 <div id="input-value">
-                    <sinap-type *ngIf="_data.inputForPlugin" [graph]="_data.programInfo.graph" #inputComponent [readonly]="false" [focus]="true" [disabled]="!_data.programInfo || (_data.selected && _data.selected.isDebugging)" [value]="_data.inputForPlugin"></sinap-type>
+                    <sinap-type *ngIf="_data.inputForPlugin" [graph]="_data.currentGraph" #inputComponent [readonly]="false" [focus]="true" [disabled]="!_data.programInfo || (_data.selected && _data.selected.isDebugging)" [value]="_data.inputForPlugin"></sinap-type>
                     <span *ngIf="!_data.inputForPlugin" class="empty-input">No Input</span>                   
                 </div>
                 <div id="input-button">
@@ -51,7 +51,7 @@
                     <td colspan="2">
                         <div class="input">
                             <span class="chevron">&gt;</span>
-                            <sinap-type [graph]="_data.programInfo.graph" [value]="_data.selected.input"></sinap-type>
+                            <sinap-type [graph]="_data.selected.programInfo.graph" [value]="_data.selected.input"></sinap-type>
                         </div>
                     </td>
                 </tr>

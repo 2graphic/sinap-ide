@@ -45,6 +45,7 @@ export class TabContext {
             this.selected(a, internalGraph);
         });
         this.inputPanelData.setDebugging.asObservable().subscribe(this.setDebugging);
+        this.inputPanelData.currentGraph = internalGraph;
     };
 
     public get graph() {
