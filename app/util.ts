@@ -387,6 +387,18 @@ export function createDir(name: string): Promise<void> {
     }));
 }
 
+export async function ensureDir(name: string): Promise<void> {
+    try {
+        await fileStat(name);
+    } catch (err) {
+        if (err.code === "ENOENT") {
+            await createDir(name);
+        } else {
+            throw err;
+        }
+    }
+}
+
 export function sleep(time: number): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         setTimeout(() => resolve(), time);

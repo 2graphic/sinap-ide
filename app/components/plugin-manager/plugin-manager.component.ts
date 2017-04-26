@@ -4,7 +4,7 @@ import { requestSaveFile, requestOpenDirs, requestFiles, getLogger } from "../..
 import { remote, shell } from "electron";
 import { ZIP_FILE_FILTER } from "../../constants";
 import { ModalComponent, ModalInfo } from "../../models/modal-window";
-import { getPluginInfo, PluginInfo } from "sinap-core";
+import { PluginInfo } from "sinap-core";
 import { dirFiles, subdirs, tempDir, unzip, TempDir, getPath } from "../../util";
 import { WindowService } from "./../../modal-windows/services/window.service";
 import * as path from "path";
@@ -16,15 +16,14 @@ async function isPluginDir(dir: string) {
     return files.find(name => name === "package.json");
 }
 
-async function recursiveInfo(dir: string): Promise<PluginInfo[]> {
+async function recursiveInfo(dir: string): Promise<string[]> {
     if (await isPluginDir(dir)) {
-        LOG.log(`Getting info for ${dir}`);
-        return [await getPluginInfo(dir)];
+        return [dir];
     } else {
         LOG.log(`${dir} is not a plugin so check its children.`);
         const children = await subdirs(dir);
         const results = await Promise.all(children.map(child => recursiveInfo(child)));
-        return ([] as PluginInfo[]).concat(...results);
+        return ([] as string[]).concat(...results);
     }
 }
 
@@ -56,6 +55,10 @@ export class PluginManager implements ModalComponent {
     constructor( @Inject(PluginService) private pluginService: PluginService,
         @Inject(WindowService) private windowService: WindowService,
         private changeDetectorRef: ChangeDetectorRef) {
+        this.pluginService.subscribe(async _ => {
+            this.plugins = await this.pluginService.pluginData;
+            this.changeDetectorRef.detectChanges();
+        });
     }
 
     set modalInfo(modalInfo: ModalInfo) {
@@ -82,13 +85,17 @@ export class PluginManager implements ModalComponent {
     }
 
     private async importMany(dirNames: string[]) {
-        LOG.info(`Finding info for ${JSON.stringify(dirNames)}.`);
-        const infos = ([] as PluginInfo[]).concat(... await Promise.all(dirNames.map(recursiveInfo)));
-        LOG.info("Found info, now try to import them all."); // TODO: Prompt for which ones to import.
-        const proms = infos.map(info => this.pluginService.importPlugin(info.interpreterInfo.directory));
-        await Promise.all(proms);
-        this.plugins = await this.pluginService.pluginData;
-        this.changeDetectorRef.detectChanges();
+        const lock = this.pluginService.pluginLock;
+        await lock.acquire();
+        try {
+            LOG.info(`Finding info for ${JSON.stringify(dirNames)}.`);
+            const infos = ([] as string[]).concat(... await Promise.all(dirNames.map(recursiveInfo)));
+            LOG.info("Found info, now try to import them all."); // TODO: Prompt for which ones to import.
+            const proms = infos.map(dir => this.pluginService.importPlugin(dir));
+            await Promise.all(proms);
+        } finally {
+            lock.release();
+        }
     }
 
     private showInFolder() {
@@ -114,8 +121,6 @@ export class PluginManager implements ModalComponent {
 
     async deletePlugin() {
         await this.pluginService.removePlugin(await this.pluginService.getPluginByKind(this.selectedPlugin.pluginKind));
-        this.plugins = await this.pluginService.pluginData;
-        this.changeDetectorRef.detectChanges();
     }
 
     editButton() {
