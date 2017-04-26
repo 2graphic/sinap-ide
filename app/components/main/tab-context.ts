@@ -219,6 +219,7 @@ export class TabContext {
         return new Promise((resolve, reject) => {
             const saved = () => {
                 this._unsaved = false;
+                this.compileProgram();
                 resolve();
             };
 
