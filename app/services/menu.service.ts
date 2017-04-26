@@ -94,7 +94,7 @@ export class MenuService {
             case MenuEventAction.DELETE:
                 return makeAction("delete");
             case MenuEventAction.CLOSE:
-                if (process.platform === 'darwin') {
+                if (process.platform === 'darwin' && remote.BrowserWindow.getFocusedWindow()) {
                     return remote.BrowserWindow.getFocusedWindow().close;
                 } else {
                     break;

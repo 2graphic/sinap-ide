@@ -407,11 +407,11 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 break;
             case MenuEventAction.CLOSE:
                 if (this._context) {
+                    e.preventDefault();
                     const found = [...this.tabs.entries()].find((v) => v[1] === this._context);
                     if (found) {
                         this.tabBar.deleteTab(found[0]);
                     }
-                    e.preventDefault();
                 }
                 break;
             case MenuEventAction.PREVIOUS_TAB:
