@@ -13,11 +13,14 @@ import { Value, Type } from "sinap-types";
     styleUrls: ["./object-type.component.scss"]
 })
 export class ObjectTypeComponent extends BaseTypeComponent<Value.CustomObject> {
+    private _value: Value.CustomObject;
     private values = new Map<string, Value.Value>();
     private keys: string[] = [];
 
     @Input()
     set value(v: Value.CustomObject) {
+        this._value = v;
+
         // TODO, remove keys that no longer exist.
         v.type.members.forEach((type, key) => {
             if (v.type.isVisible(key)) {
@@ -26,5 +29,9 @@ export class ObjectTypeComponent extends BaseTypeComponent<Value.CustomObject> {
         });
 
         this.keys = [...this.values.keys()];
+    }
+
+    get value() {
+        return this._value;
     }
 }

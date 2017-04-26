@@ -97,6 +97,30 @@ div {
     }
   }
 
+  #overlay {
+    position: absolute;
+    z-index: 999;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    background-color: rgba(lightgrey, .15);
+    pointer-events: none;
+  }
+
+  #overlay p {
+    padding: .25em;
+    margin: .4em;
+    font-size: small;
+    background-color: black;
+    color: white;
+    border: thin solid lightgrey;
+    border-radius: 8px;
+    pointer-events: all;
+    cursor: pointer;
+  }
+
   #instructions:hover {
     opacity: .25;
   }

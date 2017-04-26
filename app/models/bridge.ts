@@ -114,7 +114,9 @@ export class Bridge {
                         });
                     });
 
-                    this.graph.changed.emit(undo);
+                    if (evt.detail.key !== "sourcePoint" && evt.detail.key !== "destinationPoint") {
+                        this.graph.changed.emit(undo);
+                    }
                 }
             });
 

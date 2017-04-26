@@ -4,7 +4,8 @@
             <select *ngIf="!readonly" [ngModel]="selected" (ngModelChange)="selectedOption($event)">
                 <option *ngFor="let option of options" [ngValue]="option[1]">{{option[0]}}</option>
             </select>
-            <span *ngIf="readonly && selected && !selectedValue">{{selected.name}}</span></td>
+            <span *ngIf="readonly && selected && !selectedValue">{{selected.name}}</span>
+        </td>
         <td *ngIf="selectedValue !== undefined" class="last">
             <sinap-type [graph]="graph" [value]="selectedValue" [readonly]="readonly"></sinap-type>
         </td>

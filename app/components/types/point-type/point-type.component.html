@@ -1,4 +1,4 @@
-<div>
+<div *ngIf="!readonly">
     <table>
         <tr>
             <td>
@@ -28,3 +28,4 @@
         </tr>
     </table>
 </div>
+<span *ngIf="readonly">(<sinap-type [graph]="graph" [value]="point.x" [readonly]="readonly"></sinap-type>, <sinap-type [graph]="graph" [value]="point.y" [readonly]="readonly"></sinap-type>)</span>

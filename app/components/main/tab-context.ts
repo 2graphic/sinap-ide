@@ -45,6 +45,7 @@ export class TabContext {
             this.selected(a, internalGraph);
         });
         this.inputPanelData.setDebugging.asObservable().subscribe(this.setDebugging);
+        this.inputPanelData.currentGraph = internalGraph;
     };
 
     public get graph() {
@@ -80,6 +81,10 @@ export class TabContext {
             this.graph = this.internalGraph;
             this.propertiesPanel.isReadonly = false;
         }
+    }
+
+    public stopDebugging = () => {
+        this.inputPanelData.stopDebugging();
     }
 
     static getUnsavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], propertiesPanel: PropertiesPanelData, name?: string) {
@@ -214,6 +219,7 @@ export class TabContext {
         return new Promise((resolve, reject) => {
             const saved = () => {
                 this._unsaved = false;
+                this.compileProgram();
                 resolve();
             };
 

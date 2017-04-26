@@ -4,7 +4,6 @@ import { WindowService } from "./../../modal-windows/services/window.service";
 import { CollapsibleListComponent } from "./../../components/collapsible-list/collapsible-list.component";
 import { ModalInfo, ModalComponent } from "./../../models/modal-window";
 import { PluginInfo } from "sinap-core";
-import { ResizeEvent } from 'angular-resizable-element';
 import { PluginService } from "../../services/plugin.service";
 
 @Component({
@@ -17,7 +16,6 @@ export class PluginListComponent {
 
     private availablePlugins: PluginList[];
     @Output() pluginSelected = new EventEmitter<PluginInfo>();
-    private width = 175;
     @ViewChild(CollapsibleListComponent) firstList: CollapsibleListComponent;
     @ViewChildren(CollapsibleListComponent) lists: QueryList<CollapsibleListComponent>;
 
@@ -43,12 +41,6 @@ export class PluginListComponent {
         if (this.firstList) {
             this.firstList.selectedIndex = 0;
             this.changeDetectorRef.detectChanges();
-        }
-    }
-
-    private resizing(evt: ResizeEvent) {
-        if (evt.rectangle.width) {
-            this.width = Math.max(Math.min(evt.rectangle.width, 325), 125);
         }
     }
 

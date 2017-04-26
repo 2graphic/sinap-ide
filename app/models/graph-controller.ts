@@ -18,7 +18,7 @@ import {
     PropertyChangedEventDetail,
     SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
-import { Model, Plugin, ElementValue, ElementType } from "sinap-core";
+import { Model, Plugin, ElementValue, ElementType, validateEdge } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { DoubleMap } from "./double-map";
 import { getPath } from "../util";
@@ -80,9 +80,9 @@ export class GraphController {
             destination = destinationBridge.core;
         }
 
-        // TODO: ...
+        // TODO: ...like
 
-        return true;
+        return validateEdge(this.plugin, source, destination, undefined);
     }
 
     constructor(public core: Model, public readonly plugin: Plugin) {
@@ -90,7 +90,7 @@ export class GraphController {
         this.activeNodeType = plugin.types.nodes.types.values().next().value;
 
         this.drawable = new DrawableGraph(this.validateEdgeHandler);
-        this.addDrawable(this.drawable); // Will copy over properties from the core graph to the drawable graph
+        this.addDrawable(this.drawable, core.graph); // Will copy over properties from the core graph to the drawable graph
 
 
 
@@ -325,7 +325,9 @@ export class GraphController {
 
     copyPropertiesToDrawable(core: ElementValue, drawable: Drawable) {
         Object.keys(drawable).forEach((key) => {
-            this.copyPropertyToDrawable(core.get(key), drawable, key);
+            if (core.type.members.has(key)) {
+                this.copyPropertyToDrawable(core.get(key), drawable, key);
+            }
         });
     }
 
@@ -333,7 +335,7 @@ export class GraphController {
         Object.keys(drawable).forEach(this.copyPropertyToCore.bind(this, drawable, core));
     }
 
-    private readonly drawableKeys = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image", "shape", "borderStyle", "lineStyle", "position", "origin", "scale", "size"]);
+    private readonly drawableKeys = new Set(["label", "color", "borderColor", "borderWidth", "lineWidth", "showSourceArrow", "showDestinationArrow", "image", "shape", "borderStyle", "lineStyle", "position", "origin", "scale", "size", "anchorPoints", "sourcePoint", "destinationPoint"]);
 
     copyPropertyToDrawable(value: Value.Value | undefined, drawable: Drawable, key: string) {
         if (value === undefined || !this.drawableKeys.has(key)) {
@@ -365,6 +367,9 @@ export class GraphController {
         }
 
         if (value instanceof Value.Primitive) {
+            if (key === "scale" && value.value === 0) {
+                value.value = 1;
+            }
             (drawable as any)[key] = value.value;
             return;
         }
@@ -377,20 +382,35 @@ export class GraphController {
             return;
         }
 
-        if (value instanceof Value.Record && (key === "position" || key === "origin")) {
-            (drawable as DrawableNode)[key] = {
+        if (value instanceof Value.Record && (key === "position" || key === "origin" || key === "sourcePoint" || key === "destinationPoint")) {
+            const v = {
                 x: (value.value.x as Value.Primitive).value as number,
                 y: (value.value.y as Value.Primitive).value as number
             };
+            (drawable as any)[key] = v;
 
             return;
         }
 
         if (value instanceof Value.Record && (key === "size")) {
             (drawable as DrawableNode)[key] = {
-                width: (value.value.x as Value.Primitive).value as number,
-                height: (value.value.y as Value.Primitive).value as number
+                width: (value.value.width as Value.Primitive).value as number,
+                height: (value.value.height as Value.Primitive).value as number
             };
+
+            return;
+        }
+
+        if (value instanceof Value.ArrayObject && key === "anchorPoints") {
+            const anchorPoints = value.simpleRepresentation.filter((v) => v instanceof Value.Record).map(v => {
+                const r = v as Value.Record;
+                return {
+                    x: (r.value.x as Value.Primitive).value as number,
+                    y: (r.value.y as Value.Primitive).value as number
+                };
+            });
+
+            (drawable as any)[key] = anchorPoints;
 
             return;
         }
@@ -434,7 +454,8 @@ export class GraphController {
             return true;
         }
 
-        if (value instanceof Value.Record && (key === "position" || key === "origin")) {
+        if (value instanceof Value.Record && (key === "position" || key === "origin" || key === "sourcePoint" || key === "destinationPoint")) {
+            // if (key === "sourcePoint" || key === "destinationPoint") debugger;
             (value.value.x as Value.Primitive).value = (drawable as any)[key].x;
             (value.value.y as Value.Primitive).value = (drawable as any)[key].y;
             return true;

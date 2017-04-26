@@ -4,12 +4,12 @@
         <div class="left" mwlResizable [style.width]="_data.leftPanelWidth+'px'" [resizeEdges]="{right: true}" (resizing)="resizing($event)">
             <div id="output">
                 <div class="program-result clickable" *ngFor="let result of _data.results" (click)="selectResult(result)" [class.selected]="_data.selected == result">
-                    <table *ngIf="_data.selected">
+                    <table>
                         <tr>
                             <td>
                                 <div class="input">
                                     <span class="chevron">&gt;</span>
-                                    <sinap-type [graph]="_data.programInfo.graph" [value]="result.input"></sinap-type>
+                                    <sinap-type [graph]="(_data.selected === result) ? result.programInfo.graph : undefined" [value]="result.input"></sinap-type>
                                 </div>
                             </td>
                         </tr>
@@ -19,7 +19,7 @@
                                     <span class="chevron">&lt;</span>
                                     <span>
                                         <span [class.error]="isErrorType(result.output.result.type)">
-                                            <sinap-type [graph]="_data.programInfo.graph" [value]="result.output.result"></sinap-type>
+                                            <sinap-type [graph]="(_data.selected === result) ? result.programInfo.graph : undefined" [value]="result.output.result"></sinap-type>
                                         </span>
                                     </span>
                                 </div>
@@ -31,11 +31,11 @@
 
             <div id="input">
                 <div id="input-value">
-                    <sinap-type *ngIf="_data.inputForPlugin" [graph]="_data.programInfo.graph" #inputComponent [readonly]="false" [focus]="true" [disabled]="!_data.programInfo" [value]="_data.inputForPlugin"></sinap-type>
+                    <sinap-type *ngIf="_data.inputForPlugin" [graph]="_data.currentGraph" #inputComponent [readonly]="false" [focus]="true" [disabled]="!_data.programInfo || (_data.selected && _data.selected.isDebugging)" [value]="_data.inputForPlugin"></sinap-type>
                     <span *ngIf="!_data.inputForPlugin" class="empty-input">No Input</span>                   
                 </div>
                 <div id="input-button">
-                    <button (click)="onSubmit()" [disabled]="!_data.inputForPlugin" [class.disabled]="!_data.inputForPlugin">
+                    <button (click)="onSubmit()" [disabled]="!_data.inputForPlugin || (_data.selected && _data.selected.isDebugging)" [class.disabled]="!_data.inputForPlugin || (_data.selected && _data.selected.isDebugging)">
                         <i class="material-icons">play_arrow</i>
                     </button>
                 </div>
@@ -51,7 +51,7 @@
                     <td colspan="2">
                         <div class="input">
                             <span class="chevron">&gt;</span>
-                            <sinap-type [graph]="_data.programInfo.graph" [value]="_data.selected.input"></sinap-type>
+                            <sinap-type [graph]="_data.selected.programInfo.graph" [value]="_data.selected.input"></sinap-type>
                         </div>
                     </td>
                 </tr>

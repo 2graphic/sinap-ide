@@ -59,6 +59,14 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
+        document.body.ondrop = (ev) => {
+            const path = ev.dataTransfer.files[0].path;
+            setTimeout(() => {
+                this.openFile(path);
+            });
+            ev.preventDefault();
+        };
+
         // Restore previously opened files.
         try {
             const openFilesJSON = localStorage.getItem("openFiles");

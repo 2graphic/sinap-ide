@@ -28,6 +28,7 @@ export class InputPanelData {
     constructor() { }
 
     private _programInfo?: ProgramInfo;
+    public currentGraph: GraphController;
 
     results: ProgramResult[] = [];
     selected: ProgramResult;
@@ -54,7 +55,7 @@ export class InputPanelData {
     }
 
     startDebugging(g: GraphController) {
-        const found = this.results.find(r => r.programInfo.graph === g);
+        const found = this.selected.programInfo.graph === g ? this.selected : this.results.find(r => r.programInfo.graph === g);
         if (found) {
             this.selected = found;
             this.setDebugging.emit(true);
@@ -62,6 +63,10 @@ export class InputPanelData {
         } else {
             return false;
         }
+    }
+
+    stopDebugging() {
+        this.setDebugging.emit(false);
     }
 
     readonly programChanged
@@ -151,6 +156,8 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
                     this._data.selected.programInfo.graph.selectElements(...active.simpleRepresentation as ElementValue[]);
                 } else if (active.type instanceof ElementType) {
                     this._data.selected.programInfo.graph.selectElements(active as ElementValue);
+                } else if (active instanceof Value.Union && active.value.type instanceof ElementType) {
+                    this._data.selected.programInfo.graph.selectElements(active.value as ElementValue);
                 }
             }
         }
@@ -167,6 +174,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private selectResult(c: ProgramResult) {
+        this.stopDebugging();
         this._data.selected = c;
         this.scrollToBottom();
         this.updateButtons();
@@ -209,7 +217,7 @@ export class InputPanelComponent implements AfterViewChecked, PanelComponent<Inp
     }
 
     private async onSubmit() {
-        if (this._data.programInfo) {
+        if (this._data.programInfo && (!this._data.selected || !this._data.selected.isDebugging)) {
             let input = this.inputComponent.value!;
 
             let inputDifferent: Value.Value | undefined = this._data.programInfo.program.model.environment.values.get(input.uuid);

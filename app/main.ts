@@ -24,6 +24,9 @@ setInterval(() => {
 window.onerror = (error, url, line) => {
     ipcRenderer.send('errorInWindow', error);
 };
+document.ondragover = document.ondrop = (ev) => {
+    ev.preventDefault();
+};
 
 if (IS_PRODUCTION) {
     enableProdMode();
