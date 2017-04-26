@@ -328,7 +328,7 @@ class ProgramResult {
     public steps = 0;
 
     public getStates() {
-        return this.output.states.slice(0, this.steps);
+        return this.output.states.slice(Math.max(0, this.steps - 40), this.steps);
     }
 
     public get totalSteps() {
