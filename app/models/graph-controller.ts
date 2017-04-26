@@ -18,7 +18,7 @@ import {
     PropertyChangedEventDetail,
     SelectionChangedEvent
 } from "../components/graph-editor/graph-editor.component";
-import { Model, Plugin, ElementValue, ElementType } from "sinap-core";
+import { Model, Plugin, ElementValue, ElementType, validateEdge } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { DoubleMap } from "./double-map";
 import { getPath } from "../util";
@@ -80,9 +80,9 @@ export class GraphController {
             destination = destinationBridge.core;
         }
 
-        // TODO: ...
+        // TODO: ...like
 
-        return true;
+        return validateEdge(this.plugin, source, destination, undefined);
     }
 
     constructor(public core: Model, public readonly plugin: Plugin) {

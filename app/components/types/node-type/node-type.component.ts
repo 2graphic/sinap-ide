@@ -6,8 +6,9 @@
 import { Component, Input } from "@angular/core";
 import { BaseTypeComponent } from "../type-injector/base-classes";
 import { Value, Type } from "sinap-types";
-import { ElementValue } from "sinap-core";
+import { ElementValue, ElementType } from "sinap-core";
 import { imap, ifilter } from "sinap-types/lib/util";
+import { getPath } from "../../../util";
 
 @Component({
     selector: "sinap-node-type",
@@ -18,6 +19,8 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
     private label: string = "";
     private _borderColor?: string;
     private _color?: string;
+    private image?: string;
+    private square: boolean = false; ;
 
     private _value: ElementValue;
 
@@ -48,11 +51,21 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
 
     // TODO: Move this into a util collection
     private getPrimitiveAsString(v: Value.CustomObject, key: string): string | undefined {
-        if (v.type.members.has(key)) {
-            const keyValue = v.get(key);
-            if (keyValue instanceof Value.Primitive && typeof keyValue.value === "string") {
-                return keyValue.value;
-            }
+        let keyValue: Value.Value | undefined;
+
+        if (v.type instanceof ElementType && v.type.pluginType.methods.has(key)) {
+            const r = v.call(key);
+            keyValue = r ? r : undefined;
+        } else if (!keyValue && v.type.members.has(key)) {
+            keyValue = v.get(key);
+
+        }
+        if (keyValue instanceof Value.Primitive && typeof keyValue.value === "string") {
+            return keyValue.value;
+        }
+
+        if (keyValue instanceof Value.Union && (keyValue.value instanceof Value.Primitive || keyValue.value instanceof Value.Literal) && typeof keyValue.value.value === "string") {
+            return keyValue.value.value;
         }
 
         return undefined;
@@ -73,6 +86,24 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
 
         this._borderColor = this.getPrimitiveAsString(option, "borderColor");
         this._color = this.getPrimitiveAsString(option, "color");
+        if (this.graph) {
+            const image = this.getPrimitiveAsString(option, "image");
+            if (image && image !== '') {
+                this.image = getPath(this.graph.plugin.pluginInfo.interpreterInfo.directory + "/" + image);
+            } else {
+                this.image = undefined;
+            }
+        } else {
+            this.image = undefined;
+        }
+
+        const shape = this.getPrimitiveAsString(option, "shape");
+        if (shape && (shape === "square" || shape === "rectangle")) {
+            this.square = true;
+        } else {
+            this.square = false;
+        }
+
         this.label = this.getLabel(option);
     }
 

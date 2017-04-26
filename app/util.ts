@@ -16,9 +16,10 @@ import * as rimraf from "rimraf";
 
 
 export function getInput(program: Program) {
-    const plugin = program.plugin;
-    const type = plugin.types.arguments[0];
+    return getFromType(program, program.plugin.types.arguments[0]);
+}
 
+function getFromType(program: Program, type: Type.Type) {
     let inputForPlugin: Value.Value | undefined = undefined;
 
     if (type instanceof Value.MapType && isNodeType(program.plugin, type.keyType)) {
@@ -47,7 +48,7 @@ export function isNodeType(plugin: Plugin, type: Type.Type) {
 }
 
 export function getExpected(program: Program) {
-    return program.model.environment.make(program.plugin.types.result);
+    return getFromType(program, program.plugin.types.result);
 }
 
 

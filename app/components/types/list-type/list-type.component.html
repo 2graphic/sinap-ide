@@ -1,6 +1,7 @@
-<span class="list">
+<span *ngIf="values.length > 0" class="list">
     <span *ngFor="let v of values; let i = index">
         <sinap-type [graph]="graph" [value]="v"></sinap-type>
         <span *ngIf="i < values.length - 1">, </span>
     </span>
 </span>
+<span *ngIf="values.length === 0">Empty List</span>
