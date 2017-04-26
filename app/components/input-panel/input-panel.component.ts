@@ -65,6 +65,10 @@ export class InputPanelData {
         }
     }
 
+    stopDebugging() {
+        this.setDebugging.emit(false);
+    }
+
     readonly programChanged
     = new EventEmitter<ProgramInfo | undefined>();
 

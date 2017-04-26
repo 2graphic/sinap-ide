@@ -83,6 +83,10 @@ export class TabContext {
         }
     }
 
+    public stopDebugging = () => {
+        this.inputPanelData.stopDebugging();
+    }
+
     static getUnsavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], propertiesPanel: PropertiesPanelData, name?: string) {
         return new TabContext(graph, plugin, kind, propertiesPanel, undefined, name);
     }
