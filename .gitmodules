@@ -19,3 +19,6 @@
 [submodule "plugins/dfa-python"]
 	path = plugins/dfa-python
 	url = https://github.com/2graphic/dfa-python-plugin.git
+[submodule "plugins/keras"]
+	path = plugins/keras
+	url = https://github.com/2graphic/keras-plugin.git
