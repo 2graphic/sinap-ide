@@ -4,10 +4,10 @@
         <option *ngFor="let option of options" [ngValue]="option[1]">{{option[0]}}</option>
     </select></td>
         <td>
-            <span *ngIf="!image || image === ''" [style.border-color]="borderColor" [class.square]="square" [style.background-color]="color" (click)="selectNode($event)">{{label}}</span>
-            <img *ngIf="image && image !== ''" [src]="image" (click)="selectNode($event)">
+            <span *ngIf="!image || image === ''" class="node" [style.border-color]="borderColor" [class.square]="square" [style.background-color]="color" (click)="selectNode($event)">{{label}}</span>
+            <span *ngIf="!(!image || image === '')" class="wrap"><img [src]="image" (click)="selectNode($event)"><span *ngIf="hasRealLabel" class="label"> {{label}}</span></span>
         </td>
     </tr>
 </table>
-<span *ngIf="(options.length === 0) && (!image || image === '')" [style.border-color]="borderColor" [class.square]="square" [style.background-color]="color" (click)="selectNode($event)">{{label}}</span>
-<img *ngIf="(options.length === 0) && !(!image || image === '')" [src]="image" (click)="selectNode($event)">
+<span *ngIf="(options.length === 0) && (!image || image === '')" class="node" [style.border-color]="borderColor" [class.square]="square" [style.background-color]="color" (click)="selectNode($event)">{{label}}</span>
+<span *ngIf="(options.length === 0) && !(!image || image === '')" class="wrap"><img [src]="image" (click)="selectNode($event)"><span *ngIf="hasRealLabel" class="label"> {{label}}</span></span>

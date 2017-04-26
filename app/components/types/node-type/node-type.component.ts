@@ -20,7 +20,8 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
     private _borderColor?: string;
     private _color?: string;
     private image?: string;
-    private square: boolean = false; ;
+    private square: boolean = false;
+    private hasRealLabel = false;
 
     private _value: ElementValue;
 
@@ -77,6 +78,8 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
         const index = [...node.environment.values.entries()].map((v) => v[1]).filter((v) => {
             return Type.isSubtype(v.type, node.type);
         }).indexOf(node);
+
+        this.hasRealLabel = label ? true : false;
 
         return label ? label : node.type.pluginType.name + " " + index;
     }
