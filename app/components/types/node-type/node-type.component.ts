@@ -92,7 +92,7 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
         if (this.graph) {
             const image = this.getPrimitiveAsString(option, "image");
             if (image && image !== '') {
-                this.image = getPath(this.graph.plugin.pluginInfo.interpreterInfo.directory + "/" + image);
+                this.image = getPath(this.graph.plugin.pluginInfo.interpreterInfo.directory + "/" + image).replace("C:", "");
             } else {
                 this.image = undefined;
             }
