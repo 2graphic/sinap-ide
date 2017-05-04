@@ -81,7 +81,17 @@ export class GraphController {
         }
 
         // TODO: ...like
-        const likeVal = new ElementValue(this.activeEdgeType, this.core.environment);
+        let likeVal: ElementValue | undefined = undefined;
+        if (like) {
+            const bridge = this.bridges.getB(like);
+            if (bridge) {
+                likeVal = bridge.core;
+            }
+        }
+
+        if (!likeVal) {
+            likeVal = new ElementValue(this.activeEdgeType, this.core.environment);
+        }
 
         return validateEdge(this.plugin, source, destination, likeVal);
     }
