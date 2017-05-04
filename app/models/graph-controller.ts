@@ -81,10 +81,10 @@ export class GraphController {
         }
 
         // TODO: ...like
+        const likeVal = new ElementValue(this.activeEdgeType, this.core.environment);
 
-        return validateEdge(this.plugin, source, destination, undefined);
+        return validateEdge(this.plugin, source, destination, likeVal);
     }
-
     constructor(public core: Model, public readonly plugin: Plugin) {
         this.activeEdgeType = plugin.types.edges.types.values().next().value;
         this.activeNodeType = plugin.types.nodes.types.values().next().value;
