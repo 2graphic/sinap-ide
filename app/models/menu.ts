@@ -188,7 +188,7 @@ let helpMenu: Electron.MenuItemOptions = {
     submenu: [
         {
             label: 'Learn More',
-            click: function() { require('electron').shell.openExternal('https://github.com/2graphic/2graphic.github.io'); }
+            click: function() { require('electron').shell.openExternal('https://2graphic.github.io'); }
         },
     ]
 };
