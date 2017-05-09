@@ -60,14 +60,19 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
 
+            /*** # 5/9/2017                                                                     ***/
+            /*** See: https://github.com/webpack/webpack/issues/2545#issuecomment-300134407     ***/
+            /*** Removing uglify for the time being.                                            ***/
+            /*** See also: https://github.com/webpack-contrib/uglifyjs-webpack-plugin           ***/
+            /***           for up-to-date instructions on how to use the webpack uglify plugin. ***/
             // Note because our project is ES6, we're using the harmony branch of uglifyjs
-            new webpack.optimize.UglifyJsPlugin({
-                debug: false,
-                minimize: true,
-                output: {
-                    comments: false
-                },
-            }),
+            // new webpack.optimize.UglifyJsPlugin({
+            //     debug: false,
+            //     minimize: true,
+            //     output: {
+            //         comments: false
+            //     },
+            // }),
         ]
     };
 
