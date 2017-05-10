@@ -258,9 +258,8 @@ export class PluginService {
         // Recursively progress through directories until we get interpreter info.
         const dest = path.join(PLUGIN_DIRECTORY, path.basename(dir));
         if (dest === dir) {
-            return new Promise<void>((resolve, reject) => resolve());
-        }
-        else {
+            return Promise.resolve();
+        } else {
             LOG.log(`Importing plugins from ${dir} to ${dest}.`);
             await copy(dir, dest);
         }
