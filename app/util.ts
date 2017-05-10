@@ -54,22 +54,16 @@ export function getExpected(program: Program) {
 
 
 // Similar to Promise.all. However, this will always resolve and ignore rejected promises.
-export function somePromises<T>(promises: Iterable<Promise<T>>, logger: Logger): Promise<T[]> {
-    let result: Promise<T[]> = Promise.resolve([]);
-
+export async function somePromises<T>(promises: Iterable<Promise<T>>, logger: Logger): Promise<T[]> {
+    const arr = [] as T[];
     for (const promise of promises) {
-        result = result.then((arr) => {
-            return promise.then((ele) => {
-                arr.push(ele);
-                return arr;
-            }).catch((err) => {
-                logger.log(err);
-                return arr;
-            });
-        });
+        try {
+            arr.push(await promise);
+        } catch (err) {
+            logger.log(err);
+        }
     }
-
-    return result;
+    return Promise.resolve(arr);
 }
 
 export function getPath(name: string) {
@@ -151,7 +145,6 @@ export async function requestOpenDirs(name?: string): Promise<string[]> {
     const result = new NodePromise<string[]>();
     dialog.showOpenDialog(remote.BrowserWindow.getFocusedWindow(), {
         properties: ["openDirectory"],
-        filters: [ZIP_FILE_FILTER],
         defaultPath: name
     }, names => result.cb(names ? null : "Directory selection cancelled", names));
 
