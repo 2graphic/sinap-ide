@@ -12,7 +12,7 @@ import { PythonPluginLoader } from "sinap-python-loader";
 const app = remote.app;
 const LOG = getLogger("plugin.service");
 
-export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getPath("userData"), "plugins") : "./plugins";
+export const PLUGIN_DIRECTORY = IS_PRODUCTION ? path.join(app.getPath("userData"), "plugins") : path.join(app.getAppPath(), "plugins");
 export const ROOT_DIRECTORY = IS_PRODUCTION ? path.join(app.getAppPath(), "..", "app") : ".";
 
 class PluginHolder {
@@ -210,12 +210,15 @@ export class PluginService {
         let dirs: string[] = [];
 
         try {
-            dirs = await subdirs(PLUGIN_DIRECTORY);
-        } catch (err) {
-            if (err && err.code === "ENOENT") {
-                await createDir(PLUGIN_DIRECTORY);
-                dirs = [];
+            const unfiltered = await subdirs(PLUGIN_DIRECTORY);
+            for (const dir of unfiltered) {
+                const files = await dirFiles(dir);
+                if (files.findIndex(file => file === "package.json") >= 0)
+                    dirs.push(dir);
             }
+        } catch (err) {
+            if (err && err.code === "ENOENT")
+                await createDir(PLUGIN_DIRECTORY);
         }
 
         const plugins = await somePromises(dirs.map(dir => this.loadPlugin(dir)), LOG);
@@ -254,8 +257,12 @@ export class PluginService {
     public async importPlugin(dir: string): Promise<void> {
         // Recursively progress through directories until we get interpreter info.
         const dest = path.join(PLUGIN_DIRECTORY, path.basename(dir));
-        LOG.log(`Importing plugins from ${dir} to ${dest}.`);
-        await copy(dir, dest);
+        if (dest === dir) {
+            return Promise.resolve();
+        } else {
+            LOG.log(`Importing plugins from ${dir} to ${dest}.`);
+            await copy(dir, dest);
+        }
     }
 
     public async unload(plugin: Plugin): Promise<void> {
