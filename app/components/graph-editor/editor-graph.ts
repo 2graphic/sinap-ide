@@ -557,7 +557,6 @@ export class EditorGraph {
      *   Updates the collection of nodes being dragged.
      */
     private updateDragNodes(dragNode: EditorNode, dpt: point) {
-        // this.suspendDraw();
         const selectedNodes = [...this.drawable.selectedNodes];
         if (dragNode.drawable.isSelected && selectedNodes.length > 0) {
             for (const n of selectedNodes)
@@ -568,7 +567,6 @@ export class EditorGraph {
         }
         else
             this.updateDragNode(dragNode, dpt);
-        // this.resumeDraw();
     }
 
     /**
@@ -676,7 +674,6 @@ export class EditorGraph {
         this.moveEdge = null;
         // Move or create the edge if it was dropped on a node.
         if (hoverNode instanceof EditorNode) {
-            // this.suspendDraw();
             // Get the source and destination nodes.
             const src = dragEdge.source === HIDDEN_NODE ?
                 hoverNode :
@@ -715,7 +712,6 @@ export class EditorGraph {
                     );
                 this.updateSelected(drawable);
             }
-            // this.resumeDraw();
         }
         // Update the original edge if one was being moved.
         else if (like) {
