@@ -20,33 +20,37 @@ function makeCb(resolve, reject) {
     }
 }
 
+function makeProm(fn, args) {
+    return new Promise((resolve, reject) => fn(...args, makeCb(resolve, reject)));
+}
+
 function deleteDir(dirName) {
-    return new Promise((resolve, reject) => rimraf(dirName, makeCb(resolve, reject)));
+    return makeProm(rimraf, [dirName]);
 }
 
 function webpackProm(options) {
-    return new Promise((resolve, reject) => webpack(options, makeCb(resolve, reject)));
+    return makeProm(webpack, [options]);
 }
 
 function globProm(options) {
-    return new Promise((resolve, reject) => glob(options, makeCb(resolve, reject)));
+    return makeProm(glob, [options]);
 }
 
 function copyProm(source, destination) {
-    return new Promise((resolve, reject) => ncp(source, destination, makeCb(resolve, reject)));
+    return makeProm(ncp, [source, destination]);
 }
 
 function signProm(options) {
-    return new Promise((resolve, reject) => sign(options, makeCb(resolve, reject)));
+    return makeProm(sign, [options]);
 }
 
 function runPackage(options) {
-    return new Promise((resolve, reject) => packager(options, makeCb(resolve, reject)));
+    return makeProm(packager, [options]);
 }
 
 function createDir(path) {
-    return new Promise((resolve, reject) => fs.mkdir(path, makeCb(resolve, reject)))
-        .catch((err) => {
+    return makeProm(fs.mkdir, [path])
+        .catch(err => {
             if (err.code === "EEXIST") {
                 return Promise.resolve();
             } else {
@@ -58,7 +62,7 @@ function createDir(path) {
 function createMultDir(base, ...toMake) {
     let current = Promise.resolve(base);
     let curPath = base;
-    for(const part of toMake) {
+    for (const part of toMake) {
         const nextPath = path.join(curPath, part)
         current = current.then(() => {
             return createDir(nextPath).then(() => nextPath);
@@ -94,7 +98,7 @@ async function main() {
         packageOpts.arch = "all";
     }
 
-    const cleanBuild = deleteDir("./build").then(() => {createDir("./build")});
+    const cleanBuild = deleteDir("./build").then(() => { createDir("./build") });
     const cleanDll = deleteDir("./dll");
     const cleanDist = deleteDir("./dist");
     const copyStuff = cleanBuild.then(() => Promise.all([
@@ -118,11 +122,12 @@ async function main() {
     await runPackage(packageOpts);
     console.log("Finished building, begining signing");
     if (packageOpts.all || packageOpts.platform === "darwin") {
-        await signProm({app: 'dist/Sinap-darwin-x64/Sinap.app', "keychain": "build.keychain", "provisioning-profile": "Sinap.provisionprofile"});
+        await signProm({ app: 'dist/Sinap-darwin-x64/Sinap.app', "keychain": "build.keychain", "provisioning-profile": "Sinap.provisionprofile" });
     }
     console.log("Finished Signing, begining zipping");
 
-    const files = await globProm("dist/*");
+    process.chdir("./dist");
+    const files = await globProm("./*");
     for (const dir of files) {
         exec(`zip --symlinks -r ${dir}.zip ${dir}`);
     }
