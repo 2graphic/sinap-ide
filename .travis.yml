@@ -16,7 +16,7 @@ before_install:
 - nvm install stable
 - node --version
 install:
-- rm -r node_modules/sinap*
+- rm -rf node_modules/sinap*
 - npm install
 script:
 - npm run lint
