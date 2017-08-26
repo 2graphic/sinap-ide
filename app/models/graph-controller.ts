@@ -80,11 +80,28 @@ export class GraphController {
             destination = destinationBridge.core;
         }
 
-        // TODO: ...like
+        let likeVal: ElementValue | undefined = undefined;
+        if (like) {
+            const bridge = this.bridges.getB(like);
+            if (bridge) {
+                likeVal = bridge.core;
+            }
+        }
 
-        return validateEdge(this.plugin, source, destination, undefined);
+        let cleanup = false;
+        if (!likeVal) {
+            cleanup = true;
+            likeVal = new ElementValue(this.activeEdgeType, this.core.environment);
+        }
+
+        const r = validateEdge(this.plugin, source, destination, likeVal);
+
+        if (cleanup) {
+            this.core.environment.delete(likeVal);
+        }
+
+        return r;
     }
-
     constructor(public core: Model, public readonly plugin: Plugin) {
         this.activeEdgeType = plugin.types.edges.types.values().next().value;
         this.activeNodeType = plugin.types.nodes.types.values().next().value;
