@@ -97,7 +97,7 @@ export class GraphController {
         const r = validateEdge(this.plugin, source, destination, likeVal);
 
         if (cleanup) {
-            this.core.environment.delete(likeVal)
+            this.core.environment.delete(likeVal);
         }
 
         return r;
