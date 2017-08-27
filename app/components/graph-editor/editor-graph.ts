@@ -10,11 +10,6 @@
  *   (except for events).
  */
 
-// TODO: Make sure to not rely on this dependency long term.
-// import { PLUGIN_DIRECTORY } from "../../services/plugin.service";
-// import { remote } from "electron";
-// const path = remote.require("path");
-
 import { NUDGE, SELECTION_COLOR, STICKY_DELAY } from "./defaults";
 import {
     DrawableEvent,
@@ -268,6 +263,9 @@ export class EditorGraph {
 
             // Update the drag point.
             this.dragPoint = pt;
+
+            // Redraw the canvas.
+            this.draw();
         }
     }
 
@@ -328,6 +326,7 @@ export class EditorGraph {
      *   True if the hover object is set to anything; otherwise, false.
      */
     updateHoverObject(pt?: point): boolean {
+        this.suspendDraw();
 
         // Update the previous hover object.
         if (this.hoverObject) {
@@ -437,7 +436,7 @@ export class EditorGraph {
         else
             this.hoverObject = null;
 
-        this.draw();
+        this.resumeDraw();
         return this.hoverObject !== null;
     }
 
@@ -471,7 +470,6 @@ export class EditorGraph {
                     this.dragObject.isDragging = true;
                 }
             }
-            this.draw();
         }
 
         // Pick up the edge if one is being hovered.
@@ -481,6 +479,7 @@ export class EditorGraph {
             const apt = (this.drawables
                 .get(hoverEdge.drawable.source) as EditorNode).anchor;
             const isSrc = spt.x !== apt.x || spt.y !== apt.y;
+            this.updateHoverObject();
             const edge = this.createDragEdge(
                 (isSrc ? hoverEdge.source : hoverEdge.destination),
                 isSrc,
@@ -498,9 +497,8 @@ export class EditorGraph {
                 else
                     edge.bindDestinationAnchor(pt);
             }
-            this.hoverObject.isDragging = true;
-            this.moveEdge = this.hoverObject;
-            this.updateHoverObject();
+            hoverEdge.isDragging = true;
+            this.moveEdge = hoverEdge;
         }
 
         // Clear the drag object if the hover object is not a node or edge.
@@ -508,7 +506,6 @@ export class EditorGraph {
             this.dragObject.isDragging = false;
             this.dragObject = null;
             this.updateHoverObject();
-            this.draw();
         }
     }
 
@@ -541,9 +538,6 @@ export class EditorGraph {
         this._drawSelectionBox = () => {
             this.g.drawSelectionBox(rect);
         };
-
-        // Update the canvas.
-        this.draw();
     }
 
     /**
@@ -563,7 +557,6 @@ export class EditorGraph {
      *   Updates the collection of nodes being dragged.
      */
     private updateDragNodes(dragNode: EditorNode, dpt: point) {
-        this.suspendDraw();
         const selectedNodes = [...this.drawable.selectedNodes];
         if (dragNode.drawable.isSelected && selectedNodes.length > 0) {
             for (const n of selectedNodes)
@@ -574,7 +567,6 @@ export class EditorGraph {
         }
         else
             this.updateDragNode(dragNode, dpt);
-        this.resumeDraw();
     }
 
     /**
@@ -682,7 +674,6 @@ export class EditorGraph {
         this.moveEdge = null;
         // Move or create the edge if it was dropped on a node.
         if (hoverNode instanceof EditorNode) {
-            this.suspendDraw();
             // Get the source and destination nodes.
             const src = dragEdge.source === HIDDEN_NODE ?
                 hoverNode :
@@ -721,7 +712,6 @@ export class EditorGraph {
                     );
                 this.updateSelected(drawable);
             }
-            this.resumeDraw();
         }
         // Update the original edge if one was being moved.
         else if (like) {
@@ -795,7 +785,6 @@ export class EditorGraph {
             this.unselected.add(e);
         e.update(this.g);
         d.addEventListener("change", this.onDrawablePropertyChanged);
-        this.draw();
     }
 
     /**
@@ -821,7 +810,6 @@ export class EditorGraph {
         this.unselected.delete(e);
         this.drawables.delete(d);
         d.removeEventListener("change", this.onDrawablePropertyChanged);
-        this.draw();
     }
 
     /**
@@ -869,8 +857,10 @@ export class EditorGraph {
      */
     private onCreated
     = (evt: DrawableEvent<DrawableElement>) => {
+        this.suspendDraw();
         for (const e of evt.detail.drawables)
             this.registerDrawable(e[0]);
+        this.resumeDraw();
     }
 
     /**
@@ -881,9 +871,11 @@ export class EditorGraph {
      */
     private onDeleted
     = (evt: DrawableEvent<DrawableElement>) => {
+        this.suspendDraw();
         for (const e of evt.detail.drawables) {
             this.unregisterDrawable(e[0]);
         }
+        this.resumeDraw();
     }
 
     /**
@@ -893,8 +885,10 @@ export class EditorGraph {
      */
     private onMovedEdge
     = (evt: MoveEdgeEvent) => {
+        this.suspendDraw();
         this.unregisterDrawable(evt.detail.original);
         this.registerDrawable(evt.detail.replacement);
+        this.resumeDraw();
     }
 
     /**
