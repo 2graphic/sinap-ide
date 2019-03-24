@@ -17,6 +17,7 @@
       <sinap-tab-bar id="tab-bar"></sinap-tab-bar>
 
       <div #graphEditorContainer
+          [hidden]="!isEditorTab(_context)"
            id="graph-editor-container"
            class="dock-fill">
            <p id="instructions">Hold <em>shift</em> to select or <em>alt</em> to pan</p>
@@ -25,11 +26,14 @@
            </div>
            <!-- TODO: OS specific -->
         <sinap-graph-editor id="graph-editor"
-                            [graph]="_context ? _context.graph.drawable : null"></sinap-graph-editor>
+                            [graph]="isEditorTab(_context) ? _context.graph.drawable : null"></sinap-graph-editor>
+      </div>
+      <div [hidden]="isEditorTab(_context)" class="dock-fill">
+        <sinap-dynamic-component [info]="_context"></sinap-dynamic-component>
       </div>
 
       <sinap-status-bar id="status-bar"
-                        [zoom]="_context ? _context.graph.drawable.scale : 1"
+                        [zoom]="isEditorTab(_context) ? _context.graph.drawable.scale : 1"
                         (zoomChange)="updateZoom($event)"
                         [fullscreen]="isFullscreen()"
                         (toggledFullscreen)="toggleFullscreen()"></sinap-status-bar>

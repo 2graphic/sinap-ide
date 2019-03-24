@@ -28,14 +28,12 @@ import { TestPanelComponent } from "../test-panel/test-panel.component";
 
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
-import { NewFileResult } from "../new-file/new-file.component";
+import { NewFileResult, NewFileComponent } from "../new-file/new-file.component";
 
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
 import { MenuEventAction } from "../../models/menu";
-import { ModalInfo, ModalType } from './../../models/modal-window';
 
 import { PluginService } from "../../services/plugin.service";
-import { WindowService } from "../../modal-windows/services/window.service";
 import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
 
 import { TabContext } from "./tab-context";
@@ -48,15 +46,16 @@ const remote = require('electron').remote;
 const dialog = remote.dialog;
 
 import * as path from "path";
+import { ComponentInfo } from "../dynamic-component/dynamic-component.component";
 
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.scss"],
-    providers: [MenuService, PluginService, WindowService]
+    providers: [MenuService, PluginService]
 })
 export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
         document.body.ondrop = (ev) => {
@@ -151,10 +150,10 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
             this.graphEditorContainer.nativeElement.offsetHeight;
     }
 
-    private _context?: TabContext;
-    private set context(context: TabContext | undefined) {
+    private _context?: TabContext | ComponentInfo;
+    private set context(context: TabContext | ComponentInfo | undefined) {
         this._context = context;
-        if (context) {
+        if (context && context instanceof TabContext) {
             this.toolsPanelData.graph = context.internalGraph;
             this.filesPanelData.selectedFile = context.file;
             this.statusBar.info = context.statusBarInfo;
@@ -186,8 +185,16 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path)
             ];
             this.bottomPanels = [];
+
+            if (context) {
+                // It's a separate window...
+            }
         }
     };
+
+    public isEditorTab(context: any) {
+        return (context instanceof TabContext);
+    }
 
     /** Create a new tab and open it */
     newFile(kind: string[], file?: string, name?: string, content?: any) {
@@ -216,7 +223,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
         // Save what file is open
         localStorage.removeItem("selectedFile");
-        if (this._context) {
+        if (this._context && this._context instanceof TabContext) {
             if (this._context.file) {
                 localStorage.setItem("selectedFile", getPath(this._context.file));
             }
@@ -230,27 +237,32 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     launchPluginManager() {
-        this.pluginService.pluginData.then((pluginData) => {
-            this.windowService.createModal("plugin-manager", ModalType.CHILD, pluginData.map((d) => {
-                return {
-                    // TODO: Not make these getters, so this class can be serialized.
-                    description: d.description,
-                    interpreterInfo: d.interpreterInfo,
-                    packageJson: d.packageJson,
-                    pluginKind: d.pluginKind,
-                };
-            }));
-        });
+        // this.pluginService.pluginData.then((pluginData) => {
+        //     this.windowService.createModal("plugin-manager", ModalType.CHILD, pluginData.map((d) => {
+        //         return {
+        //             // TODO: Not make these getters, so this class can be serialized.
+        //             description: d.description,
+        //             interpreterInfo: d.interpreterInfo,
+        //             packageJson: d.packageJson,
+        //             pluginKind: d.pluginKind,
+        //         };
+        //     }));
+        // });
     }
 
     promptNewFile() {
         this.pluginService.pluginData.then((pluginData) => {
-            let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginData);
-            result.then((result?: NewFileResult) => {
-                if (result) {
-                    this.newFile(result.kind, undefined, result.name);
-                }
-            }).catch(e => console.log(e));
+            const context = new ComponentInfo("New File", NewFileComponent);
+            this.context = context;
+            let tabNumber = this.tabBar.newTab(context);
+
+            // this.selectedTab(tabNumber);
+            // let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginData);
+            // result.then((result?: NewFileResult) => {
+            //     if (result) {
+            //         this.newFile(result.kind, undefined, result.name);
+            //     }
+            // }).catch(e => console.log(e));
         });
     }
 
@@ -262,7 +274,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     saveAsFile() {
-        if (this._context) {
+        if (this._context && this._context instanceof TabContext) {
             const c = this._context;
             requestSaveFile(c.file).then(file => {
                 if (file === c.file) {
@@ -329,7 +341,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         if (!toDelete || !toDelete.unsaved) {
             return Promise.resolve(true);
         } else {
-            return new Promise((resolve) => {
+            return new Promise<boolean>((resolve) => {
                 dialog.showMessageBox(remote.BrowserWindow.getFocusedWindow(), {
                     type: "question",
                     buttons: ["Save", "Don't Save", "Cancel"],
@@ -348,7 +360,6 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     deletedTab(i: number) {
-        const toDelete = this.tabs.get(i);
         this.tabs.delete(i);
     }
 
@@ -378,7 +389,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 this.requestOpenFile();
                 break;
             case MenuEventAction.SAVE_FILE:
-                if (this._context) {
+                if (this._context && this._context instanceof TabContext) {
                     this.saveFile(this._context);
                 }
                 break;
@@ -421,13 +432,13 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 this.tabBar.selectNextTab();
                 break;
             case MenuEventAction.UNDO:
-                if (!this.focusIsChildOf("bottom-panel-group") && this._context) {
+                if (!this.focusIsChildOf("bottom-panel-group") && this._context && this._context instanceof TabContext) {
                     this._context.undo();
                     e.preventDefault();
                 }
                 break;
             case MenuEventAction.REDO:
-                if (!this.focusIsChildOf("bottom-panel-group") && this._context) {
+                if (!this.focusIsChildOf("bottom-panel-group") && this._context && this._context instanceof TabContext) {
                     this._context.redo();
                     e.preventDefault();
                 }
@@ -468,7 +479,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
 
 
     private updateZoom(value: number) {
-        if (this._context) {
+        if (this._context && this._context instanceof TabContext) {
             this._context.graph.drawable.scale = value;
         }
     }

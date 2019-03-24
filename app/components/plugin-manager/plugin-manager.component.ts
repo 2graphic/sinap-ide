@@ -3,10 +3,8 @@ import { PluginService, PLUGIN_DIRECTORY } from "../../services/plugin.service";
 import { requestSaveFile, requestOpenDirs, requestFiles, getLogger } from "../../util";
 import { remote, shell } from "electron";
 import { ZIP_FILE_FILTER } from "../../constants";
-import { ModalComponent, ModalInfo } from "../../models/modal-window";
 import { PluginInfo } from "sinap-core";
 import { dirFiles, subdirs, tempDir, unzip, TempDir, getPath } from "../../util";
-import { WindowService } from "./../../modal-windows/services/window.service";
 import { ResizeEvent } from 'angular-resizable-element';
 import * as path from "path";
 
@@ -48,13 +46,11 @@ const LOG = getLogger("plugin-manager");
     templateUrl: "./plugin-manager.component.html",
     styleUrls: ["plugin-manager.component.scss"]
 })
-export class PluginManager implements ModalComponent {
-    private _modalInfo: ModalInfo;
+export class PluginManager {
     private plugins: PluginInfo[];
     private selectedPlugin: PluginInfo;
 
     constructor( @Inject(PluginService) private pluginService: PluginService,
-        @Inject(WindowService) private windowService: WindowService,
         private changeDetectorRef: ChangeDetectorRef) {
         this.pluginService.subscribe(async _ => {
             this.plugins = await this.pluginService.pluginData;
@@ -62,22 +58,20 @@ export class PluginManager implements ModalComponent {
         });
     }
 
-    set modalInfo(modalInfo: ModalInfo) {
-        this._modalInfo = modalInfo;
+    // set modalInfo() {
+    //     this.plugins = modalInfo.data;
+    //     if (this.plugins.length > 0) {
+    //         this.pluginSelected(this.plugins[0]);
+    //     }
+    //     this.changeDetectorRef.detectChanges();
+    // }
 
-        this.plugins = modalInfo.data;
-        if (this.plugins.length > 0) {
-            this.pluginSelected(this.plugins[0]);
-        }
-        this.changeDetectorRef.detectChanges();
-    }
-
-    get modalInfo() {
-        return this._modalInfo;
-    }
+    // get modalInfo() {
+    //     return this._modalInfo;
+    // }
 
     ngAfterViewInit() {
-        setTimeout(() => this.windowService.showWindow(this.modalInfo.id), 30);
+        // setTimeout(() => this.windowService.showWindow(this.modalInfo.id), 30);
     }
 
     async exportPlugins() {

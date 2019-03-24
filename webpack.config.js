@@ -111,7 +111,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
         entry: {
             'polyfills': "./app/polyfills.ts",
             'main': './app/main',
-            'modal': './app/modal-windows/main'
         },
 
         module: {

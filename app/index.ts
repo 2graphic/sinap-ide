@@ -15,7 +15,6 @@
 // application.
 //
 import { app, BrowserWindow, ipcMain, Menu, dialog } from "electron";
-import { ModalInfo, ModalType } from './models/modal-window';
 import { IS_DEBUG } from "./constants";
 import * as process from "process";
 
@@ -97,7 +96,6 @@ function createWindow() {
 //
 app.on("ready", () => {
     createWindow();
-    bufferModalWindow(ModalType.MODAL);
 });
 
 
@@ -158,90 +156,3 @@ ipcMain.on('heartbeat', () => {
     if (timer) clearTimeout(timer);
     timer = setTimeout(killIfUnresponsive, 5000) as any;
 });
-
-
-
-/** Managing Additional Windows **/
-// TODO: probs should split this into it's own file.
-
-let nextModal: Electron.BrowserWindow | undefined;
-
-function bufferModalWindow(type: ModalType) {
-    let newWindow = new BrowserWindow({
-        parent: (type === ModalType.MODAL) ? win : undefined,
-        modal: (type === ModalType.MODAL),
-        width: 650,
-        height: 450,
-        center: true,
-        resizable: true,
-        show: false,
-        autoHideMenuBar: true
-    });
-    newWindow.loadURL(`file://${__dirname}/modal.html`);
-
-    if (nextModal) {
-        if (nextModal.isModal() === (type === ModalType.MODAL)) {
-            const r = nextModal;
-            nextModal = newWindow;
-            return r;
-        } else {
-            return newWindow;
-        }
-    } else {
-        nextModal = newWindow;
-        return undefined;
-    }
-}
-
-ipcMain.on('createWindow', (event, selector, type, data) => {
-    if (win) {
-        event.returnValue = createNewWindow(selector, type, data);
-    }
-});
-
-ipcMain.on('windowResult', (event, arg: ModalInfo) => {
-    if (win) {
-        win.webContents.send('windowResult', arg);
-    }
-
-    const modalWindow = BrowserWindow.fromId(arg.id);
-
-    if (modalWindow) {
-        modalWindow.close();
-    }
-});
-
-function createNewWindow(selector: string, type: ModalType, data: any): ModalInfo {
-    const modalWindow = bufferModalWindow(type);
-    if (win && modalWindow) {
-        let info: ModalInfo = {
-            id: modalWindow.id,
-            selector: selector,
-            type: type,
-            data: data
-        };
-
-        modalWindow.webContents.send("newWindow", info);
-        modalWindow.on("ready-to-show", () => {
-            modalWindow.webContents.send("newWindow", info);
-        });
-        modalWindow.on("closed", () => {
-            if (win) {
-                win.webContents.send("windowClosed", info);
-            }
-        });
-
-        return info;
-    }
-
-    // This shouldn't ever fail, it can only fail if the main window hasn't been created yet.
-    // However if stuff changes and this does fail, I'd rather avoid a null exception.
-    return {
-        id: -1,
-        selector: selector,
-        type: type,
-        data: undefined
-    };
-}
-
-/***********************************/

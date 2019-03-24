@@ -39,25 +39,6 @@ If you don't have npm installed, you can find it along with nodejs here:
 
 [https://nodejs.org/en/download/](https://nodejs.org/en/download/)
 
-> Note: for Linux developers, it is recommended to install npm and nodejs via the package manager.  
-> **Debian users**
-> ```
-> sudo apt-get install npm
-> ```
-> **Fedora/CentOS users**  
-> You may have to enable the epel repository before you can install npm:
-> ```
-> sudo yum install epel-release
-> ```
-> Install npm:
-> ```
-> sudo yum install npm
-> ```
-
-If your version of npm is not at least 4.2, you must update it.
-> Note: there are various resources across the internet for updating npm and nodejs for your flavor of OS,
-so no discussion will be included here.
-
 ### Step 2: Installing dependencies and building
 Navigate to the project root directory:
 

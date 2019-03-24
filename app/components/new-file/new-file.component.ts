@@ -4,11 +4,10 @@
 
 
 import { Component, Input, ViewChild, AfterViewInit, ChangeDetectorRef, ViewChildren, QueryList, ElementRef } from "@angular/core";
-import { WindowService } from "./../../modal-windows/services/window.service";
 import { CollapsibleListComponent } from "./../../components/collapsible-list/collapsible-list.component";
-import { ModalInfo, ModalComponent } from "./../../models/modal-window";
 import { PluginInfo } from "sinap-core";
 import { ResizeEvent } from 'angular-resizable-element';
+import { PluginService } from "../../services/plugin.service";
 
 export class NewFileResult {
     constructor(readonly name: string, readonly kind: string[]) {
@@ -19,16 +18,12 @@ export class NewFileResult {
     selector: "sinap-new-file",
     templateUrl: "./new-file.component.html",
     styleUrls: ["./new-file.component.scss"],
-    providers: [WindowService]
 })
-export class NewFileComponent implements ModalComponent, AfterViewInit {
-    private _modalInfo: ModalInfo;
+export class NewFileComponent implements AfterViewInit {
     private filename: string = "";
-    set modalInfo(modalInfo: ModalInfo) {
-        this._modalInfo = modalInfo;
+    set plugins(plugins: PluginInfo[]) {
         this.filename = "";
 
-        const plugins: PluginInfo[] = modalInfo.data;
         // This code is extremely evil but necessary.
         for (const plugin of plugins) {
             Object.setPrototypeOf(plugin, PluginInfo.prototype);
@@ -53,7 +48,9 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
     @ViewChild('filenameInput') filenameInput: ElementRef;
     @ViewChildren(CollapsibleListComponent) lists: QueryList<CollapsibleListComponent>;
 
-    constructor(private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) { };
+    constructor(private pluginService: PluginService, private changeDetectorRef: ChangeDetectorRef) {
+        this.pluginService.pluginData.then(d => this.plugins = d);
+    };
 
     ngAfterViewInit() {
         if (this.firstList) {
@@ -66,7 +63,7 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
         }
 
         setTimeout(() => {
-            this.windowService.showWindow(this._modalInfo.id);
+            // this.windowService.showWindow(this._modalInfo.id);
         }, 30); // TODO: Figure out how to reliably tell when the component has rendered.
     }
 
@@ -87,11 +84,11 @@ export class NewFileComponent implements ModalComponent, AfterViewInit {
     }
 
     public createNewFile(filename: string) {
-        this.windowService.closeModal(this._modalInfo, new NewFileResult(filename, this.selectedPlugin.pluginKind));
+        // this.windowService.closeModal(this._modalInfo, new NewFileResult(filename, this.selectedPlugin.pluginKind));
     }
 
     public cancel() {
-        this.windowService.closeModal(this._modalInfo);
+        // this.windowService.closeModal(this._modalInfo);
     }
 }
 
