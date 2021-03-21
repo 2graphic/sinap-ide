@@ -1,4 +1,7 @@
 <div id="window">
+  <div *ngIf="modal" class="flex" id="modal" (click)="modal = undefined">
+    <sinap-dynamic-component [info]="modal" (click)="$event.stopPropagation()"></sinap-dynamic-component>
+  </div>
 
   <div id="left-panel-group" [class.collapsed]="dynamicSidePanel.isCollapsed">
     <dynamic-panel #dynamicSidePanel

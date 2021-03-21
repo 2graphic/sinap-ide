@@ -7,7 +7,7 @@
 
 import 'core-js/es6';
 import 'core-js/es7/reflect';
-require('zone.js/dist/zone');
+import 'zone.js/dist/zone.js';
 
 declare const sinap: any;
 
@@ -16,5 +16,4 @@ if (sinap.ENV === 'production') {
 } else {
     // Development
     Error['stackTraceLimit'] = Infinity;
-    require('zone.js/dist/long-stack-trace-zone');
 }

@@ -8,7 +8,6 @@ import { BaseTypeComponent } from "../type-injector/base-classes";
 import { Value, Type } from "sinap-types";
 import { ElementValue, ElementType } from "sinap-core";
 import { imap, ifilter } from "sinap-types/lib/util";
-import { getPath } from "../../../util";
 
 @Component({
     selector: "sinap-node-type",
@@ -92,7 +91,7 @@ export class NodeTypeComponent extends BaseTypeComponent<ElementValue> {
         if (this.graph) {
             const image = this.getPrimitiveAsString(option, "image");
             if (image && image !== '') {
-                this.image = getPath(this.graph.plugin.pluginInfo.interpreterInfo.directory + "/" + image).replace("C:", "");
+                this.image = image;
             } else {
                 this.image = undefined;
             }

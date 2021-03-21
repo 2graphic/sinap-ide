@@ -15,87 +15,43 @@
 
 
 import { Component, OnInit, AfterViewInit, AfterViewChecked, ViewChild, ChangeDetectorRef, ElementRef, EventEmitter } from "@angular/core";
-import { Program, Plugin, Model, readFile, NodePromise } from "sinap-core";
-
+import { Program, Plugin, Model, NodePromise } from "sinap-core";
 import { GraphEditorComponent } from "../graph-editor/graph-editor.component";
-
 import { DynamicPanelComponent, DynamicPanelItem, DynamicTestPanelComponent } from "../dynamic-panel/dynamic-panel";
 import { PropertiesPanelComponent, PropertiesPanelData } from "../properties-panel/properties-panel.component";
 import { FilesPanelComponent, FilesPanelData } from "../files-panel/files-panel.component";
 import { ToolsPanelComponent, ToolsPanelData } from "../tools-panel/tools-panel.component";
 import { InputPanelComponent } from "../input-panel/input-panel.component";
 import { TestPanelComponent } from "../test-panel/test-panel.component";
-
 import { StatusBarComponent } from "../status-bar/status-bar.component";
 import { TabBarComponent, TabDelegate } from "../tab-bar/tab-bar.component";
-import { NewFileResult } from "../new-file/new-file.component";
-
+import { NewFileResult, NewFileComponent, NewFileComponentInfo } from '../new-file/new-file.component';
 import { GraphController, UndoableEvent } from "../../models/graph-controller";
-import { MenuEventAction } from "../../models/menu";
-import { ModalInfo, ModalType } from './../../models/modal-window';
-
 import { PluginService } from "../../services/plugin.service";
-import { WindowService } from "../../modal-windows/services/window.service";
-import { MenuService, MenuEventListener, MenuEvent } from "../../services/menu.service";
-
 import { TabContext } from "./tab-context";
 import { PROPERTIES_ICON, TOOLS_ICON, FILES_ICON, INPUT_ICON, TEST_ICON } from "./icons";
-
-import { ResizeEvent } from 'angular-resizable-element';
-import { requestSaveFile, requestFiles, fileStat, compareFiles, writeData, getPath } from "../../util";
-
-const remote = require('electron').remote;
-const dialog = remote.dialog;
-
-import * as path from "path";
+import { ComponentInfo } from "../dynamic-component/dynamic-component.component";
+import {MenuService, MenuEventAction, MenuEventListener, MenuEvent} from '../../services/menu.service';
+import { FileInfo } from "../../services/file-info";
+import { FileService } from "../../services/file.service";
 
 @Component({
     selector: "sinap-main",
     templateUrl: "./main.component.html",
     styleUrls: ["./main.component.scss"],
-    providers: [MenuService, PluginService, WindowService]
 })
 export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, MenuEventListener, TabDelegate {
-    constructor(private menu: MenuService, private pluginService: PluginService, private windowService: WindowService, private changeDetectorRef: ChangeDetectorRef) {
+    constructor(private menu: MenuService, private pluginService: PluginService, private fileService: FileService, private changeDetectorRef: ChangeDetectorRef) {
         window.addEventListener("beforeunload", this.onClose);
 
         document.body.ondrop = (ev) => {
-            const path = ev.dataTransfer.files[0].path;
-            setTimeout(() => {
-                this.openFile(path);
-            });
-            ev.preventDefault();
+            // TODO: fix drag and drop files
         };
 
-        // Restore previously opened files.
-        try {
-            const openFilesJSON = localStorage.getItem("openFiles");
-            if (openFilesJSON) {
-                const openFilenames = JSON.parse(openFilesJSON) as string[];
-                const selectedFile = localStorage.getItem("selectedFile");
-
-                const promises = openFilenames.map((f) => {
-                    return this.openFile(f);
-                });
-
-                if (selectedFile) {
-                    Promise.all(promises).then(() => {
-                        const found = [...this.tabs.entries()].find(([_, context]) => context.file !== undefined && compareFiles(selectedFile, context.file));
-                        if (found) {
-                            this.tabBar.active = found[0];
-                        } else {
-                            console.log("Unable to select previously selected file: ", selectedFile);
-                        }
-                    });
-                }
-            }
-        } catch (e) {
-            console.log(e);
-        }
+        // TODO: Restore previously opened files.
     }
 
     private propertiesPanelData = new PropertiesPanelData();
-    // TODO: Keep this in sync with the directory for a loaded file, and remember last opened directory.
     private filesPanelData = new FilesPanelData();
     private toolsPanelData = new ToolsPanelData();
 
@@ -129,7 +85,11 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     ngOnInit(): void {
-        this.filesPanelData.openFile.asObservable().subscribe(this.openFile);
+        this.filesPanelData.openFile.asObservable().subscribe(file => {
+            if (file) {
+                this.openFile(file);
+            }
+        });
         this.sidePanels = [
             new DynamicPanelItem(FilesPanelComponent, this.filesPanelData, FILES_ICON.name, FILES_ICON.path)
         ];
@@ -150,6 +110,8 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         this.graphEditor.height =
             this.graphEditorContainer.nativeElement.offsetHeight;
     }
+
+    private modal?: ComponentInfo<any>;
 
     private _context?: TabContext;
     private set context(context: TabContext | undefined) {
@@ -190,14 +152,14 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     };
 
     /** Create a new tab and open it */
-    newFile(kind: string[], file?: string, name?: string, content?: any) {
+    newFile(kind: string[], file?: FileInfo, name?: string, content?: any) {
         // TODO: have a more efficient way to get kind.
         return this.pluginService.getPluginByKind(kind).then((plugin) => {
             const model = content ? Model.fromSerial(content, plugin) : new Model(plugin);
 
             const graph = new GraphController(model, plugin);
-            const context = file ? TabContext.getSavedTabContext(graph, plugin, kind, this.propertiesPanelData, file) :
-                TabContext.getUnsavedTabContext(graph, plugin, kind, this.propertiesPanelData, name);
+            const context = file ? TabContext.getSavedTabContext(graph, plugin, kind, this.propertiesPanelData, this.fileService, file) :
+                TabContext.getUnsavedTabContext(graph, plugin, kind, this.propertiesPanelData, this.fileService, name);
 
             let tabNumber = this.tabBar.newTab(context);
             this.tabs.set(tabNumber, context);
@@ -210,19 +172,9 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         // Save what files are open
         const openFiles = ([...this.tabs.values()]
             .map((context) => context.file)
-            .filter((path) => path !== undefined) as string[])
-            .map((f) => getPath(f));
-        localStorage.setItem("openFiles", JSON.stringify(openFiles));
+            .filter((path) => path !== undefined) as FileInfo[]);
 
-        // Save what file is open
-        localStorage.removeItem("selectedFile");
-        if (this._context) {
-            if (this._context.file) {
-                localStorage.setItem("selectedFile", getPath(this._context.file));
-            }
-        }
-
-        // TODO: Figure out WTF Electron is doing
+        // TODO: Ask to save dirty files before closing
         // const isDirty = [...this.tabs.values()].map((context) => context.file.dirty).reduce((dirty, accum) => (dirty || accum), false);
         // if (isDirty) {
         //     return confirm('You have unsaved files, are you sure you wish to quit?');
@@ -230,28 +182,25 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     launchPluginManager() {
-        this.pluginService.pluginData.then((pluginData) => {
-            this.windowService.createModal("plugin-manager", ModalType.CHILD, pluginData.map((d) => {
-                return {
-                    // TODO: Not make these getters, so this class can be serialized.
-                    description: d.description,
-                    interpreterInfo: d.interpreterInfo,
-                    packageJson: d.packageJson,
-                    pluginKind: d.pluginKind,
-                };
-            }));
-        });
     }
 
     promptNewFile() {
-        this.pluginService.pluginData.then((pluginData) => {
-            let [_, result] = this.windowService.createModal("sinap-new-file", ModalType.MODAL, pluginData);
-            result.then((result?: NewFileResult) => {
-                if (result) {
-                    this.newFile(result.kind, undefined, result.name);
-                }
-            }).catch(e => console.log(e));
-        });
+        const alreadyOpen = [...this.tabs.entries()].find(([, tab]) => tab instanceof NewFileComponentInfo);
+        if (alreadyOpen) {
+            this.tabBar.active = alreadyOpen[0];
+        } else {
+            this.pluginService.pluginData.then((pluginData) => {
+                const modal = new NewFileComponentInfo("New File", NewFileComponent);
+                this.modal = modal;
+
+                modal.onResult = (result?: NewFileResult) => {
+                    this.modal = undefined;
+                    if (result) {
+                        this.newFile(result.kind, undefined, result.name);
+                    }
+                };
+            });
+        }
     }
 
     saveFile(context: TabContext) {
@@ -262,35 +211,21 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
     }
 
     saveAsFile() {
-        if (this._context) {
-            const c = this._context;
-            requestSaveFile(c.file).then(file => {
-                if (file === c.file) {
-                    this.saveFile(c);
-                } else {
-                    this.closeFile(file);
-                    this.saveToFile(c, file).then(() => this.openFile(file)).catch(e => console.log(e));
-                }
-            }).catch(e => console.log(e));
-        }
-    }
-
-    saveToFile(context: TabContext, file: string) {
-        return writeData(file, context.getRawData());
+        // TODO: 
     }
 
     requestOpenFile() {
-        requestFiles().then(files => files.forEach(file => this.openFile(file))).catch(e => console.log(e));
+        // TODO: 
     }
 
-    openFile = (file: string) => {
+    openFile = (file: FileInfo) => {
         return new Promise((resolve, reject) => {
-            const entry = [...this.tabs.entries()].find(([_, context]) => context.file !== undefined && compareFiles(file, context.file));
+            const entry = [...this.tabs.entries()].find(([_, context]) => context.file !== undefined && file == context.file);
             if (entry) {
                 this.tabBar.active = entry[0];
                 resolve();
             } else {
-                readFile(file).then((content) => {
+                file.open().then((content) => {
                     const pojo = JSON.parse(content);
                     this.newFile(pojo.kind, file, undefined, pojo.graph).then(() => resolve()).catch(reject);
                 }).catch((e) => {
@@ -300,7 +235,7 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         });
     }
 
-    closeFile(file: string) {
+    closeFile(file: FileInfo) {
         const entry = [...this.tabs.entries()].find(([_, context]) => file === context.file);
         if (entry) {
             this.tabBar.deleteTab(entry[0]);
@@ -329,26 +264,11 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         if (!toDelete || !toDelete.unsaved) {
             return Promise.resolve(true);
         } else {
-            return new Promise((resolve) => {
-                dialog.showMessageBox(remote.BrowserWindow.getFocusedWindow(), {
-                    type: "question",
-                    buttons: ["Save", "Don't Save", "Cancel"],
-                    defaultId: 2,
-                    cancelId: 2,
-                    message: "Save file before closing?",
-                    detail: toDelete.file
-                }, (choice) => {
-                    if (choice === 0) {
-                        toDelete.save().then(() => resolve(true)).catch(() => resolve(false));
-                    } else resolve(choice === 1);
-                });
-            });
-
+            return Promise.resolve(confirm("Close file without saving?"));
         }
     }
 
     deletedTab(i: number) {
-        const toDelete = this.tabs.get(i);
         this.tabs.delete(i);
     }
 
@@ -373,13 +293,16 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
         switch (e.action) {
             case MenuEventAction.NEW_FILE:
                 this.promptNewFile();
+                e.event.preventDefault();
                 break;
             case MenuEventAction.OPEN_FILE:
                 this.requestOpenFile();
+                e.event.preventDefault();
                 break;
             case MenuEventAction.SAVE_FILE:
                 if (this._context) {
                     this.saveFile(this._context);
+                    e.event.preventDefault();
                 }
                 break;
             case MenuEventAction.SAVE_AS_FILE:
@@ -387,77 +310,80 @@ export class MainComponent implements OnInit, AfterViewInit, AfterViewChecked, M
                 break;
             case MenuEventAction.DELETE:
                 if (this.focusIsChildOf("graph-editor-container")) {
-                    if (this.graphEditor.graph)
+                    if (this.graphEditor.graph) {
                         this.graphEditor.graph.deleteSelected();
-                    e.preventDefault();
+                        e.event.preventDefault();
+                    }
                 }
                 break;
             case MenuEventAction.SELECT_ALL:
-                // TODO:
-                // Windows seems to be intercepting this call altogether
-                // regardless of what has focus; i.e., this code never gets
-                // executed when the user presses `ctrl+a`. Selecting the menu
-                // item on Windows, however, does trigger this event.
-                // console.log(e);
                 if (this.focusIsChildOf("graph-editor-container")) {
-                    if (this.graphEditor.graph)
+                    if (this.graphEditor.graph) {
                         this.graphEditor.graph.selectAll();
-                    e.preventDefault();
+                        e.event.preventDefault();
+                    }
                 }
                 break;
             case MenuEventAction.CLOSE:
                 if (this._context) {
-                    e.preventDefault();
                     const found = [...this.tabs.entries()].find((v) => v[1] === this._context);
                     if (found) {
                         this.tabBar.deleteTab(found[0]);
                     }
+                    e.event.preventDefault();
                 }
                 break;
             case MenuEventAction.PREVIOUS_TAB:
                 this.tabBar.selectPreviousTab();
+                e.event.preventDefault();
                 break;
             case MenuEventAction.NEXT_TAB:
                 this.tabBar.selectNextTab();
+                e.event.preventDefault();
                 break;
             case MenuEventAction.UNDO:
                 if (!this.focusIsChildOf("bottom-panel-group") && this._context) {
                     this._context.undo();
-                    e.preventDefault();
+                    e.event.preventDefault();
                 }
                 break;
             case MenuEventAction.REDO:
                 if (!this.focusIsChildOf("bottom-panel-group") && this._context) {
                     this._context.redo();
-                    e.preventDefault();
+                    e.event.preventDefault();
                 }
                 break;
             case MenuEventAction.CUT:
                 if (this.focusIsChildOf("graph-editor-container")) {
-                    if (this.graphEditor.graph)
+                    if (this.graphEditor.graph) {
                         this.graphEditor.saveSelection(true);
-                    e.preventDefault();
+                        e.event.preventDefault();
+                    }
                 }
                 break;
             case MenuEventAction.COPY:
                 if (this.focusIsChildOf("graph-editor-container")) {
-                    if (this.graphEditor.graph)
+                    if (this.graphEditor.graph) {
                         this.graphEditor.saveSelection();
-                    e.preventDefault();
+                        e.event.preventDefault();
+                    }
                 }
                 break;
             case MenuEventAction.PASTE:
                 if (this.focusIsChildOf("graph-editor-container")) {
-                    if (this.graphEditor.graph)
+                    if (this.graphEditor.graph) {
                         this.graphEditor.cloneSelection();
-                    e.preventDefault();
+                        e.event.preventDefault();
+                    }
                 }
                 break;
             case MenuEventAction.MANAGE_PLUGINS:
                 this.launchPluginManager();
+                e.event.preventDefault();
                 break;
             case MenuEventAction.REFRESH_PLUGINS:
                 this.pluginService.reload();
+                e.event.preventDefault();
                 break;
         }
     }

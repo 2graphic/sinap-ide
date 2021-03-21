@@ -695,7 +695,7 @@ export class GraphEditorComponent implements AfterViewInit {
      */
     private onWheel
     = (e: WheelEvent) => {
-        if (e.ctrlKey || process.platform === "win32") {
+        if (e.ctrlKey) { // TODO: Check how this works on Windows
             // Apply zoom.
             if (e.deltaY > 0)
                 this.zoom(e, 1 / 1.05);

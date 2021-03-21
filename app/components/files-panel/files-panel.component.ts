@@ -13,64 +13,31 @@
 import { Component, Input, EventEmitter, Output, ViewChild } from "@angular/core";
 import { CollapsibleListComponent } from "../collapsible-list/collapsible-list.component";
 import { PanelComponent } from "../dynamic-panel/dynamic-panel";
-import { dirFullFiles, compareFiles, requestDirectory, getPath } from "../../util";
+import {FileInfo, DirectoryInfo} from '../../services/file-info';
+import {FileService} from '../../services/file.service';
 
-import * as path from "path";
 
-class FileInfo {
-    public readonly name: string;
-
-    constructor(public readonly file: string) {
-        this.name = path.basename(file, ".sinap");
-    };
-
-    toString() {
-        return this.name;
-    }
-}
 
 export class FilesPanelData {
-    public directory?: string;
+    public directory?: DirectoryInfo;
     public files: FileInfo[] = [];
 
     constructor() {
-        const directory = localStorage.getItem("directory");
-
-        this.setDirectory(directory ? directory : undefined).catch(err => {
-            console.log(err);
-        });
     }
 
-    private _selectedFile: string | undefined = undefined;
+    private _selectedFile: FileInfo | undefined = undefined;
 
     get selectedFile() {
         return this._selectedFile;
     }
 
-    set selectedFile(value: string | undefined) {
+    set selectedFile(value: FileInfo | undefined) {
         this._selectedFile = value;
         this.selectedFileChanged.emit(value);
     }
 
-    readonly selectedFileChanged = new EventEmitter<string | undefined>();
-
-    readonly openFile = new EventEmitter<string>();
-
-    public setDirectory(value?: string): Promise<void> {
-        if (value) {
-            localStorage.setItem("directory", value);
-            this.directory = path.basename(value);
-            return dirFullFiles(value).then(files => {
-                this.files = files.filter((file => file.indexOf(".sinap") > -1)).map(file => new FileInfo(file));
-            });
-        }
-        else {
-            localStorage.removeItem("directory");
-            this.directory = undefined;
-            this.files = [];
-            return Promise.resolve();
-        }
-    }
+    readonly selectedFileChanged = new EventEmitter<FileInfo | undefined>();
+    readonly openFile = new EventEmitter<FileInfo>();
 }
 
 @Component({
@@ -79,7 +46,7 @@ export class FilesPanelData {
     styleUrls: ["./files-panel.component.scss"]
 })
 export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
-    constructor() { }
+    constructor(private fileService: FileService) { }
 
     private _data: FilesPanelData;
 
@@ -94,23 +61,15 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
     }
 
     private async openFolder() {
-        try {
-            const toOpenList = await requestDirectory();
-            const toOpen = toOpenList.shift();
-
-            if (toOpen) {
-                this._data.setDirectory(getPath(toOpen));
-            }
-        } catch (e) {
-            console.log(e);
-        }
+        this._data.directory = await this.fileService.openFolder();
+        this._data.files = await this._data.directory.getFiles('.sinap');
     }
 
     @ViewChild('filesList') filesList: CollapsibleListComponent;
 
-    private updateSelectedFile = (value?: string) => {
-        if (value) {
-            const found = this._data.files.find(f => compareFiles(f.file, value));
+    private updateSelectedFile = (file?: FileInfo) => {
+        if (file) {
+            const found = this._data.files.find(f => f == file);
             this.filesList.selectedIndex = found ? this._data.files.indexOf(found) : -1;
         } else {
             this.filesList.selectedIndex = -1;
@@ -120,6 +79,6 @@ export class FilesPanelComponent implements PanelComponent<FilesPanelData> {
     private itemSelected(list: CollapsibleListComponent) {
         const fileInfo = this._data.files[list.selectedIndex];
         if (this._data)
-            this._data.openFile.emit(fileInfo.file);
+            this._data.openFile.emit(fileInfo);
     }
 }
