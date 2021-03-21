@@ -1,20 +1,20 @@
 <div id="container" class="flex-container-row">
-    <div id="side-bar" mwlResizable [resizeEdges]="{right: true}" (resizing)="resizing($event)" [style.width]="width+'px'">
+    <div id="side-bar">
         <sinap-collapsible-list *ngFor="let list of availablePlugins" [items]="list.plugins" [text]="list.title" (selectedIndexChanged)="newSelection($event)"></sinap-collapsible-list>
     </div>
-    <div id="content" class="flex-container-column" *ngIf="selectedPlugin">
+    <div id="content" class="flex-container-column" *ngIf="context.selectedPlugin">
         <div id="description">
-            <h1>{{selectedPlugin.name}}</h1>
+            <h1>{{context.selectedPlugin.name}}</h1>
             <hr>
             <h4>Description</h4>
-            <p>{{selectedPlugin.description}}</p>
+            <p>{{context.selectedPlugin.description}}</p>
         </div>
         <div id="filename" class="flex-container-row">
             <div id="text-input">
-                <input type="text" #filenameInput [(ngModel)]="filename" placeholder="File Name" (keyup.enter)="createNewFile(filename)">
+                <input type="text" #filenameInput [(ngModel)]="context.filename" placeholder="File Name" (keyup.enter)="createNewFile(context.filename)">
             </div>
             <div id="submit-input">
-                <button (click)="createNewFile(filename)">Ok</button>
+                <button (click)="createNewFile(context.filename)">Ok</button>
             </div>
             <div id="cancel-input">
                 <button (click)="cancel()">Cancel</button>

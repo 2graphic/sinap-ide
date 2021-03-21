@@ -1,45 +1,63 @@
 import { Injectable, NgZone } from '@angular/core';
+import hotkeys from 'hotkeys-js';
 
-import { remote, ipcRenderer, webFrame } from 'electron';
-let { Menu, MenuItem, app } = remote;
+export enum MenuEventAction {
+    NEW_FILE,
+    UNDO,
+    REDO,
+    CUT,
+    COPY,
+    PASTE,
+    DELETE,
+    SELECT_ALL,
+    SAVE_FILE,
+    SAVE_AS_FILE,
+    OPEN_FILE,
+    CLOSE,
+    PREVIOUS_TAB,
+    NEXT_TAB,
+    MANAGE_PLUGINS,
+    REFRESH_PLUGINS
+}
 
-import { MENU_TEMPLATE, MenuEventAction } from '../models/menu';
+export class MenuEvent {
+    constructor(public readonly action: MenuEventAction, public readonly event: KeyboardEvent) { }
+}
+
+export interface MenuEventListener {
+    menuEvent: (e: MenuEvent) => void;
+}
+
+const CMD = window.navigator.platform.indexOf('Mac') == 0 ? '⌘' : '⌃';
 
 @Injectable()
 export class MenuService {
     private eventListeners: MenuEventListener[] = [];
 
     constructor(private _ngZone: NgZone) {
-        // Initialize the system Menu
-        let menu = Menu.buildFromTemplate(MENU_TEMPLATE);
-        Menu.setApplicationMenu(menu);
+        // TODO: Prevent users from incrementing the visual zoom (only regular zoom.)
 
-        // Prevent users from incrementing the visual zoom (only regular zoom.)
-        webFrame.setVisualZoomLevelLimits(1, 1);
-
-        let id = remote.getCurrentWindow().id;
-
-        ipcRenderer.on("MenuEvent", (event, action: MenuEventAction) => {
-            if (remote.BrowserWindow.getFocusedWindow() && remote.BrowserWindow.getFocusedWindow().id === id) {
-                this.callEvent(action);
-            } else {
-                this.getDefaultAction(action)();
-            }
-        });
+        // Some of these combo's do not work in Chrome unless it's opened in application mode.
+        // Maybe they will work as an installed PWA?
+        hotkeys(`${CMD}+s`, this.dispatchEvent.bind(this, MenuEventAction.SAVE_FILE));
+        hotkeys(`${CMD}+shift+s`, this.dispatchEvent.bind(this, MenuEventAction.SAVE_AS_FILE));
+        hotkeys(`${CMD}+o`, this.dispatchEvent.bind(this, MenuEventAction.OPEN_FILE));
+        hotkeys(`${CMD}+n`, this.dispatchEvent.bind(this, MenuEventAction.NEW_FILE));
+        hotkeys(`${CMD}+x`, this.dispatchEvent.bind(this, MenuEventAction.CUT));
+        hotkeys(`${CMD}+c`, this.dispatchEvent.bind(this, MenuEventAction.COPY));
+        hotkeys(`${CMD}+v`, this.dispatchEvent.bind(this, MenuEventAction.PASTE));
+        hotkeys(`${CMD}+a`, this.dispatchEvent.bind(this, MenuEventAction.SELECT_ALL));
+        hotkeys(`${CMD}+w`, this.dispatchEvent.bind(this, MenuEventAction.CLOSE));
+        hotkeys(`${CMD}+shift+left`, this.dispatchEvent.bind(this, MenuEventAction.PREVIOUS_TAB));
+        hotkeys(`${CMD}+shift+right`, this.dispatchEvent.bind(this, MenuEventAction.NEXT_TAB));
+        hotkeys(`${CMD}+z`, this.dispatchEvent.bind(this, MenuEventAction.UNDO));
+        hotkeys(`${CMD}+shift+z,${CMD}+y`, this.dispatchEvent.bind(this, MenuEventAction.REDO));
+        hotkeys(`del,backspace`, this.dispatchEvent.bind(this, MenuEventAction.DELETE));
     }
 
-    private callEvent(action: MenuEventAction) {
-        this._ngZone.run(() => {
-            let event = new MenuEvent(action);
-
-            this.eventListeners.forEach((listener) => {
-                listener.menuEvent(event);
-            });
-
-            if (!event._preventDefault) {
-                this.getDefaultAction(action)();
-            }
-        });
+    private dispatchEvent(action: MenuEventAction, event: KeyboardEvent) {
+        const menuEvent = new MenuEvent(action, event);
+        this.eventListeners.forEach(l => l.menuEvent(menuEvent));
     }
 
     public addEventListener(obj: MenuEventListener) {
@@ -54,67 +72,5 @@ export class MenuService {
             this.eventListeners.splice(index, 1);
         }
     }
-
-    /**
-     * If using 'role' in the menu template, you shouldn't need to supply a default action.
-     */
-    private getDefaultAction(action: MenuEventAction): () => void {
-        function getWebContents() {
-            if (remote.getCurrentWebContents().isDevToolsFocused()) {
-                return remote.getCurrentWebContents().devToolsWebContents;
-            } else {
-                return remote.getCurrentWebContents();
-            }
-        }
-
-        function makeAction(selector: string): () => void {
-            if (process.platform === 'darwin') {
-                return () => {
-                    // this function expects a ObjC method selector ie 'copy:' not 'copy'
-                    Menu.sendActionToFirstResponder(selector + ":");
-                };
-            } else {
-                return (getWebContents() as any)[selector];
-            }
-        }
-
-        switch (action) {
-            case MenuEventAction.UNDO:
-                return makeAction("undo");
-            case MenuEventAction.REDO:
-                return makeAction("redo");
-            case MenuEventAction.CUT:
-                return makeAction("cut");
-            case MenuEventAction.COPY:
-                return makeAction("copy");
-            case MenuEventAction.PASTE:
-                return makeAction("paste");
-            case MenuEventAction.SELECT_ALL:
-                return makeAction("selectAll");
-            case MenuEventAction.DELETE:
-                return makeAction("delete");
-            case MenuEventAction.CLOSE:
-                if (process.platform === 'darwin' && remote.BrowserWindow.getFocusedWindow()) {
-                    return remote.BrowserWindow.getFocusedWindow().close;
-                } else {
-                    break;
-                }
-
-        }
-
-        return () => { };
-    }
 }
 
-export class MenuEvent {
-    _preventDefault = false;
-    constructor(public readonly action: MenuEventAction) { }
-
-    public preventDefault() {
-        this._preventDefault = true;
-    }
-}
-
-export interface MenuEventListener {
-    menuEvent: (e: MenuEvent) => void;
-}

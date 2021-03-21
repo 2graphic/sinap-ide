@@ -38,6 +38,12 @@ import { ColorTypeComponent } from "./components/types/color-type/color-type.com
 import { MapTypeComponent } from "./components/types/map-type/map-type.component";
 import { LiteralTypeComponent } from "./components/types/literal-type/literal-type.component";
 import { PointTypeComponent } from "./components/types/point-type/point-type.component";
+import { DynamicComponent } from "./components/dynamic-component/dynamic-component.component";
+import { NewFileComponent } from "./components/new-file/new-file.component";
+import {FileService} from './services/file.service';
+import {PWAFileService, isNativeFileSystemAccessEnabled} from './services/pwa-file.service';
+import {PluginService} from './services/plugin.service';
+import {MenuService} from './services/menu.service';
 
 @NgModule({
     imports: [
@@ -46,38 +52,49 @@ import { PointTypeComponent } from "./components/types/point-type/point-type.com
         ResizableModule,
     ],
     declarations: [
-        MainComponent,
+        BooleanTypeComponent,
         CollapsibleListComponent,
+        ColorTypeComponent,
+        DynamicComponent,
         DynamicPanelComponent,
         DynamicPanelDirective,
-        PropertiesPanelComponent,
-        ToolsPanelComponent,
         FilesPanelComponent,
-        InputPanelComponent,
-        TestPanelComponent,
         GraphEditorComponent,
-        StatusBarComponent,
-        TabBarComponent,
-        TypeInjectorComponent,
-        StringTypeComponent,
-        BooleanTypeComponent,
-        ObjectTypeComponent,
-        NodeTypeComponent,
+        InputPanelComponent,
         ListTypeComponent,
-        UnionTypeComponent,
-        NumberTypeComponent,
-        ColorTypeComponent,
-        MapTypeComponent,
         LiteralTypeComponent,
+        MainComponent,
+        MapTypeComponent,
+        NewFileComponent,
+        NodeTypeComponent,
+        NumberTypeComponent,
+        ObjectTypeComponent,
         PointTypeComponent,
+        PropertiesPanelComponent,
+        StatusBarComponent,
+        StringTypeComponent,
+        TabBarComponent,
+        TestPanelComponent,
+        ToolsPanelComponent,
+        TypeInjectorComponent,
+        UnionTypeComponent,
     ],
     entryComponents: [
         CollapsibleListComponent,
         FilesPanelComponent,
-        PropertiesPanelComponent,
-        ToolsPanelComponent,
-        TestPanelComponent,
         InputPanelComponent,
+        NewFileComponent,
+        PropertiesPanelComponent,
+        TestPanelComponent,
+        ToolsPanelComponent,
+    ],
+    providers: [
+        MenuService,
+        PluginService,
+        {
+            // TODO: Provide fallback
+            provide: FileService, useClass: isNativeFileSystemAccessEnabled() ? PWAFileService : FileService
+        }
     ],
     bootstrap: [MainComponent]
 })

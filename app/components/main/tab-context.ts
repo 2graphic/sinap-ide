@@ -9,13 +9,8 @@ import { StatusBarInfo } from "../../components/status-bar/status-bar.component"
 import { InputPanelData, ProgramInfo } from "../input-panel/input-panel.component";
 import { PropertiesPanelData } from "../properties-panel/properties-panel.component";
 import { TestPanelData } from "../test-panel/test-panel.component";
-import { writeData } from "../../util";
-import { SINAP_FILE_FILTER } from "../../constants";
-
-import { remote } from 'electron';
-const { dialog, app } = remote;
-
-import * as path from "path";
+import { FileInfo } from "../../services/file-info";
+import { FileService } from '../../services/file.service';
 
 /**
  * Stores the state of each open tab.
@@ -23,13 +18,19 @@ import * as path from "path";
 export class TabContext {
     private _graph: GraphController;
 
-    private constructor(public internalGraph: GraphController, private plugin: Plugin, private kind: string[], private propertiesPanel: PropertiesPanelData, public file?: string, tempName?: string) {
+    private constructor(
+        public internalGraph: GraphController,
+        private plugin: Plugin, private kind: string[],
+        private propertiesPanel: PropertiesPanelData,
+        private fileService: FileService,
+        public file?: FileInfo, tempName?: string,
+    ) {
         this.statusBarInfo = {
             title: kind.length > 0 ? kind[kind.length - 1] : "",
             items: []
         };
         if (file) {
-            this.name = path.basename(file, ".sinap");
+            this.name = file.name;
         } else if (tempName) {
             this.name = tempName;
         } else {
@@ -87,13 +88,14 @@ export class TabContext {
         this.inputPanelData.stopDebugging();
     }
 
-    static getUnsavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], propertiesPanel: PropertiesPanelData, name?: string) {
-        return new TabContext(graph, plugin, kind, propertiesPanel, undefined, name);
+    // TODO: no static
+    static getUnsavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], propertiesPanel: PropertiesPanelData, fileService: FileService, name?: string) {
+        return new TabContext(graph, plugin, kind, propertiesPanel, fileService, undefined, name);
     }
 
-    static getSavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], propertiesPanel: PropertiesPanelData, file: string) {
-        // TODO: Move file loading here
-        return new TabContext(graph, plugin, kind, propertiesPanel, file);
+    // TODO: no static 
+    static getSavedTabContext(graph: GraphController, plugin: Plugin, kind: string[], propertiesPanel: PropertiesPanelData, fileService: FileService, file: FileInfo) {
+        return new TabContext(graph, plugin, kind, propertiesPanel, fileService, file);
     }
 
     toString() {
@@ -213,43 +215,23 @@ export class TabContext {
         }, null, 4);
     }
 
-    public save() {
-        const data = this.getRawData();
+    public async save(): Promise<void> {
+        if (this.file) {
+            try {
+                const data = this.getRawData();
 
-        return new Promise((resolve, reject) => {
-            const saved = () => {
+                this.file.save(data);
+
                 this._unsaved = false;
                 this.compileProgram();
-                resolve();
-            };
-
-            const failedToSave = (e: Error) => {
-                dialog.showErrorBox("Unable to Save", `Error occurred while saving to file:\n${this.file}.`);
-                reject(e);
-            };
-
-            if (this.file) {
-                writeData(this.file, data).then(saved).catch(failedToSave);
-            } else {
-                this.chooseFile().then((file) => {
-                    writeData(file, data).then(saved).catch(failedToSave);
-                });
+            } catch (e) {
+                alert(`Error occurred while saving to file.`);
+                throw e;
             }
-        });
-    }
-
-    private chooseFile(): Promise<string> {
-        return new Promise((resolve) => {
-            dialog.showSaveDialog(remote.BrowserWindow.getFocusedWindow(), {
-                defaultPath: this.name,
-                filters: SINAP_FILE_FILTER
-            }, (name) => {
-                if (name) {
-                    this.file = name;
-                    this.name = path.basename(name, ".sinap");
-                    resolve(this.file);
-                }
-            });
-        });
+        } else {
+            this.file = await this.fileService.getSaveFile();
+            this.name = this.file.name;
+            return this.save();
+        }
     }
 }

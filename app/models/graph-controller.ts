@@ -21,7 +21,6 @@ import {
 import { Model, Plugin, ElementValue, ElementType, validateEdge } from "sinap-core";
 import { Value, Type } from "sinap-types";
 import { DoubleMap } from "./double-map";
-import { getPath } from "../util";
 import { Bridge } from "./bridge";
 export { Bridge, ComputedPropertyContext } from "./bridge";
 
@@ -370,16 +369,6 @@ export class GraphController {
                 (drawable as any)[key] = value.value.value;
             }
 
-            return;
-        }
-
-        if (((value instanceof Value.Literal) || (value instanceof Value.Primitive)) && key === "image") {
-            if (value.value) {
-                const path = getPath(this.plugin.pluginInfo.interpreterInfo.directory + "/" + value.value);
-                (drawable as any)[key] = path;
-            } else {
-                (drawable as any)[key] = "";
-            }
             return;
         }
 

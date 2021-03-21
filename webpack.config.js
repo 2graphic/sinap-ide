@@ -19,7 +19,11 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
      * Common configuration for all targets
      */
     let common = {
-        devtool: 'cheap-module-eval-source-map', // There's faster/slower options depending on the quality of source map you want.
+        devtool: 'source-map', // There's faster/slower options depending on the quality of source map you want.
+        node: {
+            fs: "empty",
+            module: "empty"
+        },
 
         output: {
             path: './build',
@@ -60,58 +64,20 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
         plugins: [
             new webpack.NoEmitOnErrorsPlugin(),
 
-            /*** # 5/9/2017                                                                     ***/
-            /*** See: https://github.com/webpack/webpack/issues/2545#issuecomment-300134407     ***/
-            /*** Removing uglify for the time being.                                            ***/
-            /*** See also: https://github.com/webpack-contrib/uglifyjs-webpack-plugin           ***/
-            /***           for up-to-date instructions on how to use the webpack uglify plugin. ***/
-            // Note because our project is ES6, we're using the harmony branch of uglifyjs
-            // new webpack.optimize.UglifyJsPlugin({
-            //     debug: false,
-            //     minimize: true,
-            //     output: {
-            //         comments: false
-            //     },
-            // }),
+            // TODO: minify and optimize
         ]
     };
 
-
-
-    /**
-     * Target configuration for our electron bootstrap project
-     */
-    var electronTarget = webpackMerge(common, {
-        target: 'electron',
-
-        node: {
-            __dirname: false,
-        },
-
-        entry: {
-            'index': './app/index',
-        },
-
-        module: {
-            loaders: [
-                {
-                    test: /\.ts$/,
-                    loader: 'ts-loader',
-                }
-            ]
-        }
-    });
 
     /**
      * Target for the main sinap-ide project
      */
     var webTarget = webpackMerge(common, {
-        target: 'electron-renderer',
+        target: 'web',
 
         entry: {
             'polyfills': "./app/polyfills.ts",
             'main': './app/main',
-            'modal': './app/modal-windows/main'
         },
 
         module: {
@@ -154,7 +120,6 @@ module.exports = (env = {}) => { // pass command line arguments like `webpack ..
      * Our webpack configuration
      */
     var config = [
-        electronTarget,
         webTarget,
     ];
 

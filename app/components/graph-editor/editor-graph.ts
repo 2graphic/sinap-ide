@@ -10,11 +10,6 @@
  *   (except for events).
  */
 
-// TODO: Make sure to not rely on this dependency long term.
-// import { PLUGIN_DIRECTORY } from "../../services/plugin.service";
-// import { remote } from "electron";
-// const path = remote.require("path");
-
 import { NUDGE, SELECTION_COLOR, STICKY_DELAY } from "./defaults";
 import {
     DrawableEvent,
@@ -34,6 +29,14 @@ import { DrawableNode } from "./drawable-node";
 
 
 export { DrawableGraph } from "./drawable-graph";
+
+const rawImages = new Map<string, string>();
+rawImages.set('start_state.svg', require(`!raw-loader!../../../plugins/dfa/start_state.svg`).default)
+rawImages.set('accept_state.svg', require(`!raw-loader!../../../plugins/dfa/accept_state.svg`).default)
+rawImages.set('start_accept_state.svg', require(`!raw-loader!../../../plugins/dfa/start_accept_state.svg`).default)
+rawImages.set('and_gate.svg', require(`!raw-loader!../../../plugins/circuits/and_gate.svg`).default)
+rawImages.set('not_gate.svg', require(`!raw-loader!../../../plugins/circuits/not_gate.svg`).default)
+rawImages.set('or_gate.svg', require(`!raw-loader!../../../plugins/circuits/or_gate.svg`).default)
 
 
 type callback = () => void;
@@ -832,14 +835,14 @@ export class EditorGraph {
     private loadImage(node: DrawableNode) {
         // TODO:
         // Use actual SVGs so we can specify stroke/fill.
-        if (node.image !== "" && !IMAGES.has(node.image)) {
+        if (node.image !== "" && !IMAGES.has(node.image) && rawImages.has(node.image)) {
             const img = new Image();
             IMAGES.set(node.image, img);
             img.onload = () => {
                 this.drawables.get(node)!.update(this.g);
                 this.draw();
             };
-            img.src = node.image;
+            img.src = `data:image/svg+xml;base64,${btoa(rawImages.get(node.image)!)}`;
         }
         else if (IMAGES.has(node.image)) {
             this.drawables.get(node)!.update(this.g);
